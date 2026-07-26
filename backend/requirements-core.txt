@@ -1,0 +1,55 @@
+# Core requirements for Data Insight backend (Python 3.11)
+# Excludes packages requiring C/Rust compilation (pandas, numpy, etc.)
+
+# Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# Database
+sqlalchemy[asyncio]==2.0.36
+alembic==1.14.0
+
+# Validation & Settings
+pydantic[email]==2.10.0
+pydantic-settings==2.7.1
+email-validator>=2.0.0
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt>=4.0.0
+python-multipart==0.0.12
+
+# Background Jobs
+celery[redis]==5.4.0
+redis==5.2.0
+
+# Supabase
+supabase==2.10.0
+
+# AI Models
+openai==1.58.0
+anthropic==0.40.0
+httpx==0.27.2
+
+# Excel output
+openpyxl==3.1.5
+xlsxwriter==3.2.0
+
+# File Handling
+aiofiles==24.1.0
+
+# Email
+resend==2.4.0
+
+# Billing
+stripe>=8.0.0
+
+# Logging
+loguru==0.7.3
+
+# Rate Limiting
+slowapi==0.1.9
+
+# Monitoring
+prometheus-fastapi-instrumentator==7.0.0

@@ -205,12 +205,14 @@ async def _send(to: str, subject: str, html: str) -> None:
     - Wraps the synchronous resend.Emails.send() in asyncio.to_thread() so it
       never blocks the async event loop.
     - Falls back to console log in development if RESEND_API_KEY is not set.
+    - In dev with DEV_EMAIL_OVERRIDE set, redirects to the Resend account owner
+      (Resend sandbox only delivers to the account owner's email address).
     """
     if not settings.RESEND_API_KEY:
         # Dev mode — print OTP to console so developers can see it
         logger.warning(
             f"\n{'='*60}\n"
-            f"📧 DEV EMAIL (no RESEND_API_KEY set)\n"
+            f"DEV EMAIL (no RESEND_API_KEY set)\n"
             f"To:      {to}\n"
             f"Subject: {subject}\n"
             f"[HTML content omitted — check OTP in API logs above]\n"
@@ -218,18 +220,29 @@ async def _send(to: str, subject: str, html: str) -> None:
         )
         return
 
+    # In dev, Resend sandbox restricts delivery to the account owner's email.
+    actual_to = to
+    if settings.DEV_EMAIL_OVERRIDE and settings.APP_ENV == "development":
+        actual_to = settings.DEV_EMAIL_OVERRIDE
+        logger.info(
+            f"[Email] DEV redirect: {to} -> {actual_to} "
+            f"(Resend sandbox restriction — set DEV_EMAIL_OVERRIDE='' in prod)"
+        )
+        subject = f"[DEV for {to}] {subject}"
+
     try:
         params: resend.Emails.SendParams = {
             "from": settings.EMAIL_FROM,
-            "to": [to],
+            "to": [actual_to],
             "subject": subject,
             "html": html,
         }
-        # ⚠️ resend.Emails.send() is SYNCHRONOUS — run it in a thread pool
+        # resend.Emails.send() is SYNCHRONOUS — run it in a thread pool
         # so it doesn't block the entire async event loop
         response = await asyncio.to_thread(resend.Emails.send, params)
-        logger.info(f"[Email] ✅ Sent to {to} | id={response.get('id', 'n/a')} | subject='{subject}'")
+        logger.info(f"[Email] Sent to {actual_to} | id={response.get('id', 'n/a')} | subject='{subject}'")
     except Exception as exc:
-        logger.error(f"[Email] ❌ Failed to send to {to} | subject='{subject}' | error: {exc}")
+        logger.error(f"[Email] Failed to send to {actual_to} | subject='{subject}' | error: {exc}")
         # Don't re-raise — email failure should not crash the auth flow.
         # The OTP is logged in the API endpoint for debugging.
+

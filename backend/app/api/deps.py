@@ -15,10 +15,16 @@ from app.repositories.user import UserRepository
 
 # ─── Redis ────────────────────────────────────────────────────────────────────
 async def get_redis() -> AsyncGenerator[Redis, None]:
-    """Yield a Redis connection from the shared pool."""
-    pool = await get_redis_pool()
-    async with Redis(connection_pool=pool) as redis:
-        yield redis
+    """Yield a Redis connection. Falls back gracefully if Redis is unavailable."""
+    try:
+        pool = await get_redis_pool()
+        async with Redis(connection_pool=pool) as redis:
+            yield redis
+    except Exception:
+        # Redis not available — yield a plain client; OTP service has its own fallback
+        from loguru import logger
+        logger.warning("[Redis] Not available — using in-memory OTP fallback")
+        yield Redis.from_url("redis://localhost:6379/0")
 
 
 # ─── DB Session ───────────────────────────────────────────────────────────────

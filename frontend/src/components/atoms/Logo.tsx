@@ -113,13 +113,19 @@ export function Logo({
       {showText && (
           <span
             className={cn(
-              "font-bold tracking-tight leading-none select-none",
+              "font-bold leading-none select-none",
               textClassName
             )}
-            style={{ fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)", letterSpacing: "-0.03em" }}
+            style={{
+              fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)",
+              letterSpacing: "-0.03em",
+            }}
           >
             {whiteMode ? (
-              "Data Insight"
+              <>
+                <span style={{ color: "#ffffff" }}>Data</span>
+                <span style={{ color: "rgba(255,255,255,0.75)" }}> Insight</span>
+              </>
             ) : (
               <>
                 <span style={{ color: "#0f172a" }}>Data</span>

@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     EMAIL_FROM: str = "noreply@datainsight.ai"
     FRONTEND_URL: str = "http://localhost:3000"
+    # In dev, Resend sandbox only delivers to account owner's address.
+    # Set to your Resend account email to receive OTPs during testing.
+    DEV_EMAIL_OVERRIDE: str = ""
 
     # Billing
     STRIPE_SECRET_KEY: str = ""
