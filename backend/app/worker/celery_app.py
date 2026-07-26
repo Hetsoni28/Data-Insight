@@ -10,6 +10,9 @@ celery_app = Celery(
     include=[
         "app.worker.tasks.dataset_tasks",
         "app.worker.tasks.report_tasks",
+        "app.worker.tasks.email_tasks",
+        "app.worker.tasks.ai_tasks",
+        "app.worker.tasks.excel_tasks",
     ]
 )
 
@@ -25,7 +28,7 @@ celery_app.conf.update(
     enable_utc=True,
 
     # Task Behavior
-    task_acks_late=True,          # Only ack after task completes (safe for retries)
+    task_acks_late=True,           # Only ack after task completes (safe for retries)
     task_reject_on_worker_lost=True,
     task_track_started=True,       # Mark task as STARTED when picked up
 
@@ -39,12 +42,18 @@ celery_app.conf.update(
     # Rate Limiting
     task_annotations={
         "app.worker.tasks.dataset_tasks.*": {"rate_limit": "20/m"},
-        "app.worker.tasks.report_tasks.*": {"rate_limit": "5/m"},
+        "app.worker.tasks.report_tasks.*":  {"rate_limit": "5/m"},
+        "app.worker.tasks.email_tasks.*":   {"rate_limit": "30/m"},
+        "app.worker.tasks.ai_tasks.*":      {"rate_limit": "10/m"},
+        "app.worker.tasks.excel_tasks.*":   {"rate_limit": "5/m"},
     },
 
     # Routing — separate queues per workload type
     task_routes={
-        "dataset.*": {"queue": "datasets"},
-        "report.*": {"queue": "reports"},
+        "app.worker.tasks.dataset_tasks.*": {"queue": "datasets"},
+        "app.worker.tasks.report_tasks.*":  {"queue": "reports"},
+        "app.worker.tasks.email_tasks.*":   {"queue": "emails"},
+        "app.worker.tasks.ai_tasks.*":      {"queue": "ai"},
+        "app.worker.tasks.excel_tasks.*":   {"queue": "reports"},
     },
 )

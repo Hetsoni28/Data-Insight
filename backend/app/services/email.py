@@ -8,7 +8,11 @@ Resend is the best modern transactional email API:
 
 Set RESEND_API_KEY in .env to enable.
 In development, OTPs are logged to console if RESEND_API_KEY is empty.
+
+FIX: resend.Emails.send() is synchronous — wrapped in asyncio.to_thread()
+     so it never blocks the async event loop.
 """
+import asyncio
 import resend
 from loguru import logger
 from app.core.config import settings
@@ -121,6 +125,31 @@ async def send_password_reset(to_email: str, otp: str) -> None:
     await _send(to=to_email, subject="Reset your Data Insight password", html=html)
 
 
+async def send_welcome_email(to_email: str, full_name: str | None) -> None:
+    """Send a welcome email after successful email verification."""
+    name = full_name.split()[0] if full_name else "there"
+    html = _base_html(f"""
+      <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">
+        You're in, {name}! 🎉
+      </h2>
+      <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
+        Your Data Insight account is now active. Start by connecting your first
+        data source and let the AI generate your first report in seconds.
+      </p>
+      <div style="text-align:center;margin-bottom:24px;">
+        <a href="{settings.FRONTEND_URL}/dashboard"
+           style="display:inline-block;background:#10B981;color:#ffffff;font-weight:600;
+                  font-size:15px;padding:14px 32px;border-radius:8px;text-decoration:none;">
+          Go to Dashboard →
+        </a>
+      </div>
+      <p style="margin:0;font-size:13px;color:#9ca3af;text-align:center;">
+        Questions? Reply to this email — we're here to help.
+      </p>
+    """)
+    await _send(to=to_email, subject=f"Welcome to Data Insight, {name}!", html=html)
+
+
 async def send_team_invite(to_email: str, invited_by: str, org_name: str, invite_url: str) -> None:
     """Send a team invitation email with an accept link."""
     html = _base_html(f"""
@@ -145,21 +174,46 @@ async def send_team_invite(to_email: str, invited_by: str, org_name: str, invite
     await _send(to=to_email, subject=f"You're invited to {org_name} on Data Insight", html=html)
 
 
+async def send_report_ready(to_email: str, full_name: str | None, report_name: str, report_url: str) -> None:
+    """Send a notification when an AI report has finished generating."""
+    name = full_name.split()[0] if full_name else "there"
+    html = _base_html(f"""
+      <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">
+        Your report is ready, {name}! 📊
+      </h2>
+      <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
+        The AI has finished analysing your data and your report
+        <strong>"{report_name}"</strong> is now ready to view.
+      </p>
+      <div style="text-align:center;margin-bottom:24px;">
+        <a href="{report_url}"
+           style="display:inline-block;background:#10B981;color:#ffffff;font-weight:600;
+                  font-size:15px;padding:14px 32px;border-radius:8px;text-decoration:none;">
+          View Report →
+        </a>
+      </div>
+    """)
+    await _send(to=to_email, subject=f'Your report "{report_name}" is ready', html=html)
+
+
 # ── Internal send ─────────────────────────────────────────────────────────────
 
 async def _send(to: str, subject: str, html: str) -> None:
     """
-    Send via Resend. Falls back to console log in development
-    if RESEND_API_KEY is not set.
+    Send via Resend.
+
+    - Wraps the synchronous resend.Emails.send() in asyncio.to_thread() so it
+      never blocks the async event loop.
+    - Falls back to console log in development if RESEND_API_KEY is not set.
     """
     if not settings.RESEND_API_KEY:
-        # Dev mode — print to console so developers can see the OTP
+        # Dev mode — print OTP to console so developers can see it
         logger.warning(
             f"\n{'='*60}\n"
-            f"📧 DEV EMAIL (Resend not configured)\n"
+            f"📧 DEV EMAIL (no RESEND_API_KEY set)\n"
             f"To:      {to}\n"
             f"Subject: {subject}\n"
-            f"[HTML content omitted — check OTP in logs above]\n"
+            f"[HTML content omitted — check OTP in API logs above]\n"
             f"{'='*60}"
         )
         return
@@ -171,9 +225,11 @@ async def _send(to: str, subject: str, html: str) -> None:
             "subject": subject,
             "html": html,
         }
-        response = resend.Emails.send(params)
-        logger.info(f"[Email] Sent to {to} | id={response.get('id', 'n/a')}")
+        # ⚠️ resend.Emails.send() is SYNCHRONOUS — run it in a thread pool
+        # so it doesn't block the entire async event loop
+        response = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"[Email] ✅ Sent to {to} | id={response.get('id', 'n/a')} | subject='{subject}'")
     except Exception as exc:
-        logger.error(f"[Email] Failed to send to {to}: {exc}")
-        # Don't raise — email failure should not crash the auth flow in most cases
-        # The OTP is still logged above for debugging
+        logger.error(f"[Email] ❌ Failed to send to {to} | subject='{subject}' | error: {exc}")
+        # Don't re-raise — email failure should not crash the auth flow.
+        # The OTP is logged in the API endpoint for debugging.
