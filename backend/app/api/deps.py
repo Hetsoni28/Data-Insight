@@ -1,0 +1,86 @@
+"""FastAPI dependency injection — auth, DB session, Redis, current user."""
+from typing import AsyncGenerator
+from fastapi import Depends, Header
+from sqlalchemy.ext.asyncio import AsyncSession
+from redis.asyncio import Redis
+from jose import jwt, JWTError
+
+from app.db.session import AsyncSessionLocal
+from app.db.redis import get_redis_pool
+from app.core.config import settings
+from app.core.exceptions import UnauthorizedException
+from app.models.user import User
+from app.repositories.user import UserRepository
+
+
+# ─── Redis ────────────────────────────────────────────────────────────────────
+async def get_redis() -> AsyncGenerator[Redis, None]:
+    """Yield a Redis connection from the shared pool."""
+    pool = await get_redis_pool()
+    async with Redis(connection_pool=pool) as redis:
+        yield redis
+
+
+# ─── DB Session ───────────────────────────────────────────────────────────────
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
+# ─── Current User ─────────────────────────────────────────────────────────────
+async def get_current_user(
+    authorization: str | None = Header(default=None),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """
+    Decodes the Bearer JWT and returns the authenticated User.
+    Raises UnauthorizedException if token is missing, invalid, or user not found.
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        raise UnauthorizedException("No authentication token provided.")
+
+    token = authorization.removeprefix("Bearer ").strip()
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        user_id: str | None = payload.get("sub")
+        if not user_id:
+            raise UnauthorizedException("Invalid token payload.")
+    except JWTError:
+        raise UnauthorizedException("Token is invalid or has expired.")
+
+    user_repo = UserRepository(db)
+    user = await user_repo.get_by_id(user_id)
+    if not user:
+        raise UnauthorizedException("User not found.")
+    if not user.is_active:
+        raise UnauthorizedException("Your account has been deactivated.")
+
+    return user
+
+
+async def get_current_superuser(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Requires the user to be a platform super-admin."""
+    if not current_user.is_superuser:
+        from app.core.exceptions import ForbiddenException
+        raise ForbiddenException("Super-admin access required.")
+    return current_user
+
+
+async def get_current_active_tenant_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Requires the user to belong to a tenant (i.e. be fully onboarded)."""
+    if not current_user.tenant_id:
+        from app.core.exceptions import ForbiddenException
+        raise ForbiddenException("You must belong to an organization to access this resource.")
+    return current_user

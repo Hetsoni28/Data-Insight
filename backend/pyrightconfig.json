@@ -1,0 +1,16 @@
+{
+  "pythonVersion": "3.14",
+  "pythonPlatform": "Windows",
+  "venvPath": "C:\\Users\\Het\\AppData\\Local\\Python",
+  "pythonPath": "C:\\Users\\Het\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+  "include": [
+    "app",
+    "tests"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/.*"
+  ],
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "none"
+}

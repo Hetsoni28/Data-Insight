@@ -1,0 +1,206 @@
+"""
+Authentication endpoints — register, verify-email, login, resend-otp,
+forgot-password, reset-password, /me, logout.
+
+Rate limits (applied per IP via SlowAPI):
+  POST /auth/login          → 5 requests / 15 minutes
+  POST /auth/resend-otp     → 3 requests / hour
+  POST /auth/forgot-password→ 3 requests / hour
+  POST /auth/register       → 10 requests / hour
+"""
+from fastapi import APIRouter, Depends, status, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+from redis.asyncio import Redis
+from pydantic import BaseModel, EmailStr, field_validator
+
+from app.api.deps import get_db, get_redis, get_current_user
+from app.models.user import User
+from app.schemas.user import UserCreate, UserResponse
+from app.schemas.token import Token
+from app.services.auth import AuthService
+from app.core.rate_limit import limiter
+
+router = APIRouter(prefix="/auth", tags=["Auth"])
+
+
+# ── Request / Response Schemas ────────────────────────────────────────────────
+
+class LoginPayload(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class VerifyEmailPayload(BaseModel):
+    email: EmailStr
+    otp: str
+
+    @field_validator("otp")
+    @classmethod
+    def otp_must_be_6_digits(cls, v: str) -> str:
+        v = v.strip()
+        if not v.isdigit() or len(v) != 6:
+            raise ValueError("OTP must be a 6-digit number.")
+        return v
+
+
+class ResendOTPPayload(BaseModel):
+    email: EmailStr
+
+
+class ForgotPasswordPayload(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordPayload(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters.")
+        return v
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+# ── Endpoints ─────────────────────────────────────────────────────────────────
+
+@router.post(
+    "/register",
+    response_model=MessageResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user account (sends verification OTP)",
+)
+@limiter.limit("10/hour")
+async def register(
+    request: Request,
+    user_in: UserCreate,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    await auth_service.register(user_in)
+    return MessageResponse(
+        message="Account created! Check your email for a 6-digit verification code."
+    )
+
+
+@router.post(
+    "/verify-email",
+    response_model=Token,
+    summary="Submit the 6-digit email OTP to verify your account",
+)
+async def verify_email(
+    payload: VerifyEmailPayload,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    access_token = await auth_service.verify_email_otp(
+        email=payload.email,
+        otp=payload.otp,
+    )
+    return Token(access_token=access_token, token_type="bearer")
+
+
+@router.post(
+    "/resend-otp",
+    response_model=MessageResponse,
+    summary="Resend the verification OTP (max 3 times per hour)",
+)
+@limiter.limit("3/hour")
+async def resend_otp(
+    request: Request,
+    payload: ResendOTPPayload,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    await auth_service.resend_verification_otp(email=payload.email)
+    return MessageResponse(
+        message="A new verification code has been sent to your email."
+    )
+
+
+@router.post(
+    "/login",
+    response_model=Token,
+    summary="Login with email and password",
+)
+@limiter.limit("5/15minutes")
+async def login(
+    request: Request,
+    payload: LoginPayload,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    access_token = await auth_service.authenticate(
+        email=payload.email,
+        password=payload.password,
+    )
+    return Token(access_token=access_token, token_type="bearer")
+
+
+@router.post(
+    "/forgot-password",
+    response_model=MessageResponse,
+    summary="Request a password reset OTP (sent to email)",
+)
+@limiter.limit("3/hour")
+async def forgot_password(
+    request: Request,
+    payload: ForgotPasswordPayload,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    await auth_service.request_password_reset(email=payload.email)
+    # Always return success — never reveal if the email exists
+    return MessageResponse(
+        message="If an account exists with this email, a reset code has been sent."
+    )
+
+
+@router.post(
+    "/reset-password",
+    response_model=MessageResponse,
+    summary="Reset password using the OTP from email",
+)
+async def reset_password(
+    payload: ResetPasswordPayload,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    await auth_service.reset_password_with_otp(
+        email=payload.email,
+        otp=payload.otp,
+        new_password=payload.new_password,
+    )
+    return MessageResponse(message="Password reset successfully. You can now log in.")
+
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Get the authenticated user's profile",
+)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.post(
+    "/logout",
+    response_model=MessageResponse,
+    summary="Logout (client discards token)",
+)
+async def logout(current_user: User = Depends(get_current_user)):
+    # Stateless JWT — client discards token.
+    # Future: add token to Redis blacklist for forced invalidation.
+    return MessageResponse(message="Logged out successfully.")
