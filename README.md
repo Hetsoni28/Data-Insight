@@ -3,7 +3,7 @@
 <br />
 
 <!-- LOGO / BRAND -->
-<img src="https://img.shields.io/badge/Data%20Insight-AI%20Business%20Intelligence-10B981?style=for-the-badge&logo=databricks&logoColor=white" alt="Data Insight" height="45" />
+<img src="./frontend/public/logo.svg" alt="Data Insight Logo" height="80" />
 
 <br /><br />
 
