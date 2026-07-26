@@ -15,7 +15,7 @@ import type { NextRequest } from "next/server";
 // Routes where logged-in users should be redirected to /dashboard
 const AUTH_ONLY_PATHS = ["/login", "/register"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip Next.js internals and static assets

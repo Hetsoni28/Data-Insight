@@ -80,11 +80,11 @@ export function IntelligenceSection() {
   ])
 
   return (
-    <section id="solutions" className="py-24 px-5 sm:px-8 bg-white overflow-hidden">
+    <section id="solutions" className="py-16 sm:py-24 px-4 sm:px-8 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial="hidden" whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }} variants={stagger} className="mb-16 text-center max-w-2xl mx-auto"
+          viewport={{ once: true, margin: "-80px" }} variants={stagger} className="mb-10 sm:mb-16 text-center max-w-2xl mx-auto"
         >
           <motion.div variants={fadeUp} className="mb-4">
             <Badge className="bg-[#10B981]/10 text-[#10B981] border-0 text-xs">Intelligence Layer</Badge>
@@ -97,7 +97,7 @@ export function IntelligenceSection() {
           </motion.p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 xl:gap-16 items-start">
           {/* Left — Accordion features */}
           <motion.div
             initial="hidden" whileInView="visible"
@@ -153,7 +153,7 @@ export function IntelligenceSection() {
           <motion.div
             initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.55 }}
-            className="relative h-[450px] w-full"
+            className="relative w-full h-[400px] sm:h-[450px] min-h-[380px]"
           >
             <AnimatePresence mode="wait">
               

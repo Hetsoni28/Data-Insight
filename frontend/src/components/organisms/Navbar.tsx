@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Search, Menu } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/atoms/Logo"
 
@@ -48,7 +48,7 @@ export function Navbar() {
         </div>
 
         {/* Mobile — Sheet drawer */}
-        <Sheet open={open} onOpenChange={setOpen}>
+        <Sheet>
           <SheetTrigger className="ml-auto md:hidden text-slate-500 p-2" aria-label="Open menu">
             <Menu className="h-5 w-5" />
           </SheetTrigger>
@@ -60,19 +60,24 @@ export function Navbar() {
             </SheetHeader>
             <div className="px-4 py-4 space-y-1">
               {NAV.map(n => (
-                <a key={n} href={`#${n.toLowerCase()}`}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                  {n}
-                </a>
+                <SheetClose nativeButton={false} key={n} render={
+                  <a href={`#${n.toLowerCase()}`}
+                    className="flex items-center px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                    {n}
+                  </a>
+                } />
               ))}
               <Separator className="my-3" />
-              <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center rounded-lg mb-2")}>
-                Login
-              </a>
-              <a href="/register" className={cn(buttonVariants(), "w-full justify-center rounded-lg bg-[#10B981] hover:bg-[#059669] text-white")}>
-                Get Started Free
-              </a>
+              <SheetClose nativeButton={false} render={
+                <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center rounded-lg mb-2")}>
+                  Login
+                </a>
+              } />
+              <SheetClose nativeButton={false} render={
+                <a href="/register" className={cn(buttonVariants(), "w-full justify-center rounded-lg bg-[#10B981] hover:bg-[#059669] text-white")}>
+                  Get Started Free
+                </a>
+              } />
             </div>
           </SheetContent>
         </Sheet>

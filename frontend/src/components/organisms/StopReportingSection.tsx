@@ -57,12 +57,12 @@ export function StopReportingSection() {
   }
 
   return (
-    <section id="platform" className="py-24 px-5 sm:px-8 bg-slate-50/60 overflow-hidden">
+    <section id="platform" className="py-16 sm:py-24 px-4 sm:px-8 bg-slate-50/60 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         {/* Section Title */}
         <motion.div 
           initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
-          className="space-y-4 mb-16 text-center max-w-2xl mx-auto"
+          className="space-y-4 mb-10 sm:mb-16 text-center max-w-2xl mx-auto"
         >
           <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
             Stop Manual Reporting
@@ -72,7 +72,7 @@ export function StopReportingSection() {
           </motion.p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 xl:gap-24 items-stretch">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 xl:gap-24 items-stretch">
 
           {/* Left — File upload simulation */}
           <motion.div
@@ -80,7 +80,7 @@ export function StopReportingSection() {
             viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.55 }}
             className="h-full"
           >
-            <div className="rounded-2xl border bg-white shadow-lg p-6 max-w-md mx-auto lg:ml-auto lg:mr-0 relative w-full h-full flex flex-col">
+            <div className="rounded-2xl border bg-white shadow-lg p-4 sm:p-6 max-w-md mx-auto lg:ml-auto lg:mr-0 relative w-full h-full flex flex-col">
               <div className="flex justify-between items-center mb-4 shrink-0">
                 <div className="text-sm font-bold text-slate-800">Data Import Queue</div>
                 {processingState === "done" && (

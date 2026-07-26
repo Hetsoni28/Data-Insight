@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 export function CtaSection() {
   return (
-    <section className="bg-[#064e3b] py-20 px-5 sm:px-8">
+    <section className="bg-[#064e3b] py-14 sm:py-20 px-4 sm:px-8">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}

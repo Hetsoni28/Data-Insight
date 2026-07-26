@@ -19,7 +19,7 @@ const FAQS = [
 
 export function FaqSection() {
   return (
-    <section className="py-24 px-5 sm:px-8 bg-slate-50/60">
+    <section className="py-16 sm:py-24 px-4 sm:px-8 bg-slate-50/60">
       <div className="max-w-3xl mx-auto">
         <motion.div
           initial="hidden" whileInView="visible"

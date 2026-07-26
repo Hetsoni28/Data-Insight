@@ -69,9 +69,26 @@ export function DashboardMockup() {
         <div className="ml-3 flex-1 bg-white rounded border text-[10px] text-slate-400 px-3 py-0.5 max-w-[180px] shadow-sm">app.datainsight.ai</div>
       </div>
 
-      <div className="flex h-[360px] sm:h-[400px]">
-        {/* Sidebar */}
-        <div className="hidden sm:flex w-36 border-r bg-white flex-col gap-1 p-3">
+      <div className="flex h-[360px] sm:h-[400px] flex-col sm:flex-row">
+        {/* Mobile tab bar — only visible on small screens */}
+        <div className="flex sm:hidden overflow-x-auto border-b bg-white px-1 shrink-0">
+          {TABS.map(({ icon: Icon, label, id }) => {
+            const active = activeTab === id
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center gap-1.5 px-3 py-2 text-[10px] font-medium whitespace-nowrap border-b-2 transition-all ${active ? "border-[#10B981] text-[#10B981]" : "border-transparent text-slate-400 hover:text-slate-600"}`}
+              >
+                <Icon className="h-3 w-3 shrink-0" />
+                {label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Desktop Sidebar */}
+        <div className="hidden sm:flex w-36 border-r bg-white flex-col gap-1 p-3 shrink-0">
           {TABS.map(({ icon: Icon, label, id }) => {
             const active = activeTab === id
             return (
@@ -88,7 +105,7 @@ export function DashboardMockup() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 p-4 overflow-hidden relative bg-slate-50/50">
+        <div className="flex-1 p-3 sm:p-4 overflow-hidden relative bg-slate-50/50 min-w-0">
           <AnimatePresence mode="wait">
             {activeTab === "overview" && (
               <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4 h-full flex flex-col">

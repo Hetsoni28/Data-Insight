@@ -40,8 +40,8 @@ export function ExcelSection() {
   }
 
   return (
-    <section className="py-24 px-5 sm:px-8 bg-slate-50/60 overflow-hidden">
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+    <section className="py-16 sm:py-24 px-4 sm:px-8 bg-slate-50/60 overflow-hidden">
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
         {/* Left copy */}
         <motion.div
           initial="hidden" whileInView="visible"
@@ -94,7 +94,7 @@ export function ExcelSection() {
           initial={{ opacity: 0, x: 48 }} whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }}
         >
-          <div className="rounded-2xl border-2 border-slate-200 shadow-2xl overflow-hidden bg-white flex flex-col h-[400px]">
+          <div className="rounded-2xl border-2 border-slate-200 shadow-2xl overflow-hidden bg-white flex flex-col h-[360px] sm:h-[400px]">
             {/* Window Header */}
             <div className="bg-slate-100 border-b flex items-center gap-1.5 px-4 py-2.5 shrink-0">
               <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
@@ -104,12 +104,12 @@ export function ExcelSection() {
             </div>
 
             {/* Tabs */}
-            <div className="bg-slate-50 border-b px-2 flex gap-1 overflow-x-auto shrink-0 custom-scrollbar">
+            <div className="bg-slate-50 border-b px-1 sm:px-2 flex gap-0 sm:gap-1 overflow-x-auto shrink-0 custom-scrollbar">
               {TABS.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`text-[10px] px-4 py-2 font-medium cursor-pointer whitespace-nowrap transition-colors relative ${activeTab === tab ? "text-[#10B981]" : "text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-t-md"}`}
+                  className={`text-[9px] sm:text-[10px] px-2 sm:px-4 py-2 font-medium cursor-pointer whitespace-nowrap transition-colors relative ${activeTab === tab ? "text-[#10B981]" : "text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-t-md"}`}
                 >
                   {activeTab === tab && (
                     <motion.div layoutId="excel-tab-indicator" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981]" />
@@ -124,19 +124,24 @@ export function ExcelSection() {
               <AnimatePresence mode="wait">
                 {activeTab === "Dashboard" && (
                   <motion.div key="Dashboard" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="space-y-2">
-                    <div className="grid grid-cols-5 gap-px bg-slate-100 text-[9px] font-semibold text-slate-500 rounded-t-sm overflow-hidden border">
-                      {["METRIC", "JAN", "FEB", "MAR", "TREND"].map(h => (
-                        <div key={h} className="bg-slate-50 px-2 py-1.5">{h}</div>
-                      ))}
-                    </div>
-                    <div className="border rounded-b-sm overflow-hidden">
-                      {TABLE_ROWS.map((row, ri) => (
-                        <div key={ri} className={`grid grid-cols-5 gap-px text-[9px] ${ri % 2 === 0 ? "bg-white" : "bg-slate-50/60"}`}>
-                          <div className="px-2 py-2 font-medium text-slate-700">{row[0]}</div>
-                          {row.slice(1, 4).map((cell, ci) => <div key={ci} className="px-2 py-2 text-slate-600">{cell}</div>)}
-                          <div className={`px-2 py-2 font-bold ${row[4] === "▲" ? "text-emerald-600" : "text-red-500"}`}>{row[4]}</div>
+                    {/* Horizontally scrollable on mobile so the 5-col table never squishes */}
+                    <div className="overflow-x-auto -mx-1">
+                      <div className="min-w-[320px] px-1">
+                        <div className="grid grid-cols-5 gap-px bg-slate-100 text-[9px] font-semibold text-slate-500 rounded-t-sm overflow-hidden border">
+                          {["METRIC", "JAN", "FEB", "MAR", "TREND"].map(h => (
+                            <div key={h} className="bg-slate-50 px-2 py-1.5 whitespace-nowrap">{h}</div>
+                          ))}
                         </div>
-                      ))}
+                        <div className="border rounded-b-sm overflow-hidden">
+                          {TABLE_ROWS.map((row, ri) => (
+                            <div key={ri} className={`grid grid-cols-5 gap-px text-[9px] ${ri % 2 === 0 ? "bg-white" : "bg-slate-50/60"}`}>
+                              <div className="px-2 py-2 font-medium text-slate-700 whitespace-nowrap">{row[0]}</div>
+                              {row.slice(1, 4).map((cell, ci) => <div key={ci} className="px-2 py-2 text-slate-600 whitespace-nowrap">{cell}</div>)}
+                              <div className={`px-2 py-2 font-bold ${row[4] === "▲" ? "text-emerald-600" : "text-red-500"}`}>{row[4]}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                     <div className="mt-3 rounded-lg bg-[#10B981]/10 border border-[#10B981]/20 p-3 flex items-start gap-3 shadow-sm">
                       <Bot className="h-4 w-4 text-[#10B981] mt-0.5 shrink-0" />

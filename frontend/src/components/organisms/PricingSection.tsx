@@ -45,7 +45,7 @@ function FeatureItem({ text, tip }: { text: string; tip: string }) {
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="py-24 px-5 sm:px-8 bg-white">
+    <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-8 bg-white">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial="hidden" whileInView="visible"
@@ -61,7 +61,7 @@ export function PricingSection() {
 
         <motion.div
           initial="hidden" whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }} variants={stagger} className="grid sm:grid-cols-2 gap-6"
+          viewport={{ once: true, margin: "-60px" }} variants={stagger} className="grid sm:grid-cols-2 gap-5 sm:gap-6"
         >
           {/* Starter */}
           <motion.div variants={fadeUp}>
