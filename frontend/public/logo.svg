@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" width="100%" height="100%" aria-label="Data Insight Logo" role="img">
+  <title>Data Insight Logo</title>
+  <desc>A premium, geometric logo mark combining the letters D and I with an ascending data chart, symbolizing AI-powered business intelligence.</desc>
+  <defs>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="50%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="secondaryGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#6EE7B7" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#10B981" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <g id="icon" transform="translate(30, 30)">
+    <path d="M 20 100 V 0 H 50 C 83.137 0 110 22.386 110 50 C 110 77.614 83.137 100 50 100 H 20 Z" 
+          fill="none" 
+          stroke="url(#primaryGrad)" 
+          stroke-width="18" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+          
+    <line x1="140" y1="0" x2="140" y2="100" 
+          stroke="url(#secondaryGrad)" 
+          stroke-width="18" 
+          stroke-linecap="round" />
+
+    <path d="M 45 65 L 70 40 L 90 55 L 140 10" 
+          fill="none" 
+          stroke="url(#accentGrad)" 
+          stroke-width="12" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+          filter="url(#glow)" />
+
+    <circle cx="140" cy="10" r="6" fill="#FFFFFF" />
+    <circle cx="45" cy="65" r="4.5" fill="#FFFFFF" />
+  </g>
+
+  <g id="wordmark" transform="translate(220, 105)">
+    <text font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Geist', 'SF Pro Display', sans-serif" font-size="72" fill="#0F172A">
+      <tspan font-weight="800" letter-spacing="-0.03em">Data</tspan>
+      <tspan font-weight="500" fill="#10B981" letter-spacing="-0.02em" dx="2">Insight</tspan>
+    </text>
+  </g>
+</svg>

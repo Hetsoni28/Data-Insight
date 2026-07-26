@@ -1,0 +1,41 @@
+<svg width="32" height="32" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="1" />
+      <stop offset="50%" stop-color="#10B981" stop-opacity="1" />
+      <stop offset="100%" stop-color="#059669" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="sGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#047857" stop-opacity="1" />
+      <stop offset="100%" stop-color="#10B981" stop-opacity="1" />
+    </linearGradient>
+    <linearGradient id="aGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669" stop-opacity="1" />
+      <stop offset="100%" stop-color="#6EE7B7" stop-opacity="1" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(10, 30)">
+    <path d="M 20 100 V 0 H 50 C 83.137 0 110 22.386 110 50 C 110 77.614 83.137 100 50 100 H 20 Z" 
+          fill="none" 
+          stroke="url(#pGrad)" 
+          stroke-width="18" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+          
+    <line x1="140" y1="0" x2="140" y2="100" 
+          stroke="url(#sGrad)" 
+          stroke-width="18" 
+          stroke-linecap="round" />
+
+    <path d="M 45 65 L 70 40 L 90 55 L 140 10" 
+          fill="none" 
+          stroke="url(#aGrad)" 
+          stroke-width="12" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+
+    <circle cx="140" cy="10" r="6" fill="#10B981" />
+    <circle cx="45" cy="65" r="4.5" fill="#10B981" />
+  </g>
+</svg>
