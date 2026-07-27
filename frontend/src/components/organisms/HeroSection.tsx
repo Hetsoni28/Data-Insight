@@ -128,17 +128,7 @@ export function HeroSection() {
             className="relative hidden lg:block"
           >
             <DashboardMockup />
-            {/* Floating badge — safe since it's desktop-only */}
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="absolute -bottom-4 right-6 bg-white rounded-xl shadow-lg border px-4 py-2.5 flex items-center gap-2 z-20"
-            >
-              <div className="h-5 w-5 rounded-full bg-[#10B981]/10 flex items-center justify-center">
-                <Zap className="h-3 w-3 text-[#10B981]" />
-              </div>
-              <span className="text-xs font-medium text-slate-700 whitespace-nowrap">Reduce Reporting to 0 Hours</span>
-            </motion.div>
+
           </motion.div>
         </div>
 

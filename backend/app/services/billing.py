@@ -14,7 +14,7 @@ import stripe
 from loguru import logger
 
 from app.core.config import settings
-from app.models.user import User
+from app.models.tenant import Tenant
 
 # ── Stripe Setup ──────────────────────────────────────────────────────────────
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -24,18 +24,18 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 # then paste the price IDs here.
 PLAN_PRICE_IDS: dict[str, str] = {
     "starter":  "price_starter_placeholder",   # $499/month
-    "business": "price_business_placeholder",  # $999/month
+    "professional": "price_professional_placeholder",  # $999/month
 }
 
 PLAN_NAMES: dict[str, str] = {
     "starter":  "Starter",
-    "business": "Business",
+    "professional": "Professional",
 }
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
-async def create_checkout_session(user: User, plan: str) -> str:
+async def create_checkout_session(tenant: Tenant, user_email: str, plan: str) -> str:
     """
     Create a Stripe Checkout session for the given plan.
     Returns the Stripe session URL to redirect the user to.
@@ -47,14 +47,14 @@ async def create_checkout_session(user: User, plan: str) -> str:
     if not settings.STRIPE_SECRET_KEY:
         logger.warning(
             f"[Billing] STRIPE_SECRET_KEY not set — returning stub checkout URL "
-            f"for user={user.email} plan={plan}"
+            f"for tenant={tenant.name} plan={plan}"
         )
         return f"{settings.FRONTEND_URL}/dashboard?billing=stub&plan={plan}"
 
     try:
         session = await asyncio.to_thread(
             stripe.checkout.Session.create,
-            customer_email=user.email,
+            customer_email=user_email,
             payment_method_types=["card"],
             line_items=[
                 {
@@ -66,27 +66,29 @@ async def create_checkout_session(user: User, plan: str) -> str:
             success_url=f"{settings.FRONTEND_URL}/dashboard?billing=success&plan={plan}",
             cancel_url=f"{settings.FRONTEND_URL}/pricing?billing=cancelled",
             metadata={
-                "user_id": str(user.id),
+                "tenant_id": str(tenant.id),
                 "plan": plan,
             },
             subscription_data={
                 "metadata": {
-                    "user_id": str(user.id),
+                    "tenant_id": str(tenant.id),
                     "plan": plan,
                 }
             },
         )
         logger.info(
-            f"[Billing] ✅ Checkout session created | user={user.email} "
+            f"[Billing] ✅ Checkout session created | tenant={tenant.name} "
             f"plan={plan} session_id={session.id}"
         )
+        if not session.url:
+            raise RuntimeError("Failed to generate Stripe checkout session URL")
         return session.url
     except stripe.StripeError as exc:
-        logger.error(f"[Billing] ❌ Checkout session failed | user={user.email} | error: {exc}")
+        logger.error(f"[Billing] ❌ Checkout session failed | tenant={tenant.name} | error: {exc}")
         raise
 
 
-async def get_customer_portal_url(user: User) -> str:
+async def get_customer_portal_url(tenant: Tenant, user_email: str) -> str:
     """
     Create a Stripe Customer Portal session so the user can manage
     their subscription, update payment method, or cancel.
@@ -96,8 +98,8 @@ async def get_customer_portal_url(user: User) -> str:
         logger.warning("[Billing] STRIPE_SECRET_KEY not set — returning stub portal URL")
         return f"{settings.FRONTEND_URL}/dashboard?billing=portal_stub"
 
-    # Look up or create the Stripe customer for this user
-    customer_id = await _get_or_create_customer(user)
+    # Look up or create the Stripe customer for this tenant
+    customer_id = await _get_or_create_customer(tenant, user_email)
 
     try:
         session = await asyncio.to_thread(
@@ -105,10 +107,10 @@ async def get_customer_portal_url(user: User) -> str:
             customer=customer_id,
             return_url=f"{settings.FRONTEND_URL}/dashboard",
         )
-        logger.info(f"[Billing] ✅ Portal session created | user={user.email}")
+        logger.info(f"[Billing] ✅ Portal session created | tenant={tenant.name}")
         return session.url
     except stripe.StripeError as exc:
-        logger.error(f"[Billing] ❌ Portal session failed | user={user.email} | error: {exc}")
+        logger.error(f"[Billing] ❌ Portal session failed | tenant={tenant.name} | error: {exc}")
         raise
 
 
@@ -142,25 +144,31 @@ async def handle_webhook(payload: bytes, sig_header: str) -> dict:
     # ── Handle relevant events ────────────────────────────────────────────────
     if event_type == "checkout.session.completed":
         session = event["data"]["object"]
-        user_id = session.get("metadata", {}).get("user_id")
+        tenant_id = session.get("metadata", {}).get("tenant_id")
         plan = session.get("metadata", {}).get("plan")
-        logger.info(f"[Billing] 💳 Checkout completed | user_id={user_id} plan={plan}")
-        # TODO: Update user.plan in DB using user_id
-        return {"event": event_type, "user_id": user_id, "plan": plan}
+        customer_id = session.get("customer")
+        subscription_id = session.get("subscription")
+        logger.info(f"[Billing] 💳 Checkout completed | tenant_id={tenant_id} plan={plan}")
+        return {
+            "event": event_type, 
+            "tenant_id": tenant_id, 
+            "plan": plan,
+            "stripe_customer_id": customer_id,
+            "stripe_subscription_id": subscription_id
+        }
 
     elif event_type == "customer.subscription.updated":
         sub = event["data"]["object"]
-        user_id = sub.get("metadata", {}).get("user_id")
+        tenant_id = sub.get("metadata", {}).get("tenant_id")
         status = sub.get("status")
-        logger.info(f"[Billing] 🔄 Subscription updated | user_id={user_id} status={status}")
-        return {"event": event_type, "user_id": user_id, "status": status}
+        logger.info(f"[Billing] 🔄 Subscription updated | tenant_id={tenant_id} status={status}")
+        return {"event": event_type, "tenant_id": tenant_id, "status": status}
 
     elif event_type == "customer.subscription.deleted":
         sub = event["data"]["object"]
-        user_id = sub.get("metadata", {}).get("user_id")
-        logger.info(f"[Billing] ❌ Subscription cancelled | user_id={user_id}")
-        # TODO: Downgrade user.plan to 'free' in DB
-        return {"event": event_type, "user_id": user_id, "status": "cancelled"}
+        tenant_id = sub.get("metadata", {}).get("tenant_id")
+        logger.info(f"[Billing] ❌ Subscription cancelled | tenant_id={tenant_id}")
+        return {"event": event_type, "tenant_id": tenant_id, "status": "cancelled"}
 
     elif event_type == "invoice.payment_failed":
         invoice = event["data"]["object"]
@@ -174,14 +182,17 @@ async def handle_webhook(payload: bytes, sig_header: str) -> dict:
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
-async def _get_or_create_customer(user: User) -> str:
+async def _get_or_create_customer(tenant: Tenant, user_email: str) -> str:
     """
     Look up a Stripe customer by email or create one if they don't exist.
     Returns the Stripe customer ID.
     """
+    if tenant.stripe_customer_id:
+        return tenant.stripe_customer_id
+
     # Search for existing customer by email
     customers = await asyncio.to_thread(
-        stripe.Customer.list, email=user.email, limit=1
+        stripe.Customer.list, email=user_email, limit=1
     )
     if customers.data:
         return customers.data[0].id
@@ -189,9 +200,9 @@ async def _get_or_create_customer(user: User) -> str:
     # Create a new customer
     customer = await asyncio.to_thread(
         stripe.Customer.create,
-        email=user.email,
-        name=user.full_name or user.email,
-        metadata={"user_id": str(user.id)},
+        email=user_email,
+        name=tenant.name,
+        metadata={"tenant_id": str(tenant.id)},
     )
-    logger.info(f"[Billing] ✅ Stripe customer created | user={user.email} id={customer.id}")
+    logger.info(f"[Billing] ✅ Stripe customer created | tenant={tenant.name} id={customer.id}")
     return customer.id

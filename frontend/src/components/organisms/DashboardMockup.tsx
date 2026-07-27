@@ -5,7 +5,8 @@ import { Play, ArrowRight, CheckCircle2, Zap, BarChart3, Database, FileSpreadshe
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import ReactECharts from "echarts-for-react"
+import dynamic from "next/dynamic"
+const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false })
 import { toast } from "sonner"
 
 const TABS = [
@@ -141,7 +142,7 @@ export function DashboardMockup() {
                           }
                         }]
                       }} 
-                      style={{ height: '100%', width: '100%' }}
+                      style={{ height: '100%', minHeight: 120, minWidth: 200, width: '100%' }}
                     />
                   </div>
                 </div>
@@ -314,7 +315,7 @@ export function DashboardMockup() {
                           lineStyle: { width: 3 }
                         }]
                       }} 
-                      style={{ height: '100%', width: '100%' }}
+                      style={{ height: '100%', minHeight: 150, minWidth: 200, width: '100%' }}
                     />
                   </div>
                 </div>

@@ -41,9 +41,9 @@ export function Navbar() {
             className="text-sm text-slate-500 hover:text-slate-900 font-medium transition-colors px-1">
             Login
           </Link>
-          <Button render={<Link href="/register" />} nativeButton={false} size="sm"
+          <Button asChild size="sm"
             className="bg-[#10B981] hover:bg-[#059669] text-white shadow-sm px-4 text-xs">
-            Get Started
+            <Link href="/register">Get Started</Link>
           </Button>
         </div>
 
@@ -60,24 +60,24 @@ export function Navbar() {
             </SheetHeader>
             <div className="px-4 py-4 space-y-1">
               {NAV.map(n => (
-                <SheetClose nativeButton={false} key={n} render={
+                <SheetClose asChild key={n}>
                   <a href={`#${n.toLowerCase()}`}
                     className="flex items-center px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
                     {n}
                   </a>
-                } />
+                </SheetClose>
               ))}
               <Separator className="my-3" />
-              <SheetClose nativeButton={false} render={
+              <SheetClose asChild>
                 <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center rounded-lg mb-2")}>
                   Login
                 </a>
-              } />
-              <SheetClose nativeButton={false} render={
+              </SheetClose>
+              <SheetClose asChild>
                 <a href="/register" className={cn(buttonVariants(), "w-full justify-center rounded-lg bg-[#10B981] hover:bg-[#059669] text-white")}>
                   Get Started Free
                 </a>
-              } />
+              </SheetClose>
             </div>
           </SheetContent>
         </Sheet>

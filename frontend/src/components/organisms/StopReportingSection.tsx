@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import ReactECharts from "echarts-for-react"
+import dynamic from "next/dynamic"
+const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false })
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 32 },
@@ -227,7 +228,7 @@ export function StopReportingSection() {
                                 itemStyle: { borderRadius: [4, 4, 0, 0] }
                               }]
                             }}
-                            style={{ height: '100%', width: '100%' }}
+                            style={{ height: '100%', minHeight: 100, minWidth: 200, width: '100%' }}
                           />
                         </motion.div>
                       )}
@@ -251,7 +252,7 @@ export function StopReportingSection() {
                                 ]
                               }]
                             }}
-                            style={{ height: '100%', width: '120px' }}
+                            style={{ height: '100%', minHeight: 100, minWidth: 120, width: '120px' }}
                           />
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-[10px] font-medium text-slate-700"><span className="h-2 w-2 rounded-full bg-[#10B981]" /> North (42%)</div>

@@ -5,7 +5,8 @@ import { BarChart3, FileText, AlertTriangle, ChevronRight, Bot, TrendingUp, Tren
 import { buttonVariants } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import ReactECharts from "echarts-for-react"
+import dynamic from "next/dynamic"
+const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false })
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 32 },
@@ -201,7 +202,7 @@ export function ExcelSection() {
                             }
                           ]
                         }}
-                        style={{ height: '100%', width: '100%' }}
+                        style={{ height: '100%', minHeight: 180, minWidth: 200, width: '100%' }}
                       />
                     </div>
                   </motion.div>

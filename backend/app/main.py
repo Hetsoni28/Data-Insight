@@ -78,7 +78,7 @@ def create_app() -> FastAPI:
 
     # ─── Rate Limiter ─────────────────────────────────────────────────────
     app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
 
     # ─── CORS Middleware ──────────────────────────────────────────────────────
     app.add_middleware(
@@ -99,14 +99,14 @@ def create_app() -> FastAPI:
         return response
 
     # ─── Register Custom Exception Handlers ──────────────────────────────────
-    app.add_exception_handler(ResourceNotFoundException, resource_not_found_handler)
-    app.add_exception_handler(UnauthorizedException, unauthorized_handler)
-    app.add_exception_handler(ForbiddenException, forbidden_handler)
-    app.add_exception_handler(ConflictException, conflict_handler)
-    app.add_exception_handler(ValidationException, validation_handler)
-    app.add_exception_handler(TenantQuotaExceededException, quota_exceeded_handler)
-    app.add_exception_handler(StorageQuotaExceededException, storage_quota_handler)
-    app.add_exception_handler(AIServiceException, ai_service_handler)
+    app.add_exception_handler(ResourceNotFoundException, resource_not_found_handler)  # type: ignore
+    app.add_exception_handler(UnauthorizedException, unauthorized_handler)  # type: ignore
+    app.add_exception_handler(ForbiddenException, forbidden_handler)  # type: ignore
+    app.add_exception_handler(ConflictException, conflict_handler)  # type: ignore
+    app.add_exception_handler(ValidationException, validation_handler)  # type: ignore
+    app.add_exception_handler(TenantQuotaExceededException, quota_exceeded_handler)  # type: ignore
+    app.add_exception_handler(StorageQuotaExceededException, storage_quota_handler)  # type: ignore
+    app.add_exception_handler(AIServiceException, ai_service_handler)  # type: ignore
 
     # ─── Pydantic Validation Error Handler ───────────────────────────────────
     @app.exception_handler(RequestValidationError)

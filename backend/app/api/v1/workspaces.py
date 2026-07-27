@@ -65,3 +65,13 @@ async def delete_workspace(
 ):
     svc = WorkspaceService(db)
     await svc.delete_workspace(workspace_id, current_user)
+
+
+@router.get("/{workspace_id}/stats", summary="Get workspace stats")
+async def get_workspace_stats(
+    workspace_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    svc = WorkspaceService(db)
+    return await svc.get_workspace_stats(workspace_id, current_user)

@@ -6,13 +6,16 @@ POST /billing/webhook   → Stripe webhook (raw body, no auth required)
 GET  /billing/portal    → Stripe customer self-service portal URL
 """
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, status
+from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 import stripe
 from loguru import logger
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.services import billing as billing_service
+from app.repositories.tenant import TenantRepository
+from app.models.tenant import PlanType
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -20,7 +23,7 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
 class CheckoutRequest(BaseModel):
-    plan: str  # "starter" | "business"
+    plan: str  # "starter" | "professional"
 
 
 class CheckoutResponse(BaseModel):
@@ -42,11 +45,21 @@ class PortalResponse(BaseModel):
 async def create_checkout(
     body: CheckoutRequest,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> CheckoutResponse:
     """Create a Stripe checkout session for the requested plan."""
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User must belong to an organization.")
+        
+    tenant_repo = TenantRepository(db)
+    tenant = await tenant_repo.get_by_id(current_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Organization not found.")
+
     try:
         url = await billing_service.create_checkout_session(
-            user=current_user,
+            tenant=tenant,
+            user_email=current_user.email,
             plan=body.plan,
         )
         return CheckoutResponse(checkout_url=url)
@@ -68,10 +81,31 @@ async def create_checkout(
 )
 async def billing_portal(
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> PortalResponse:
     """Create a Stripe customer portal session for the current user."""
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User must belong to an organization.")
+        
+    tenant_repo = TenantRepository(db)
+    tenant = await tenant_repo.get_by_id(current_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Organization not found.")
+
     try:
-        url = await billing_service.get_customer_portal_url(user=current_user)
+        url = await billing_service.get_customer_portal_url(
+            tenant=tenant, 
+            user_email=current_user.email
+        )
+        
+        # If the service created a new Stripe customer, update the Tenant in our DB
+        if not tenant.stripe_customer_id:
+            from app.services.billing import _get_or_create_customer
+            customer_id = await _get_or_create_customer(tenant, current_user.email)
+            if tenant.stripe_customer_id != customer_id:
+                tenant.stripe_customer_id = customer_id
+                await tenant_repo.save(tenant)
+                
         return PortalResponse(portal_url=url)
     except stripe.StripeError as exc:
         logger.error(f"[API /billing/portal] Stripe error: {exc}")
@@ -94,6 +128,7 @@ async def billing_portal(
 async def stripe_webhook(
     request: Request,
     stripe_signature: str = Header(None, alias="stripe-signature"),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Receive and process Stripe webhook events.
@@ -118,6 +153,29 @@ async def stripe_webhook(
             payload=payload,
             sig_header=stripe_signature,
         )
+        
+        event_type = result.get("event")
+        tenant_id_str = result.get("tenant_id")
+        
+        if tenant_id_str:
+            tenant_repo = TenantRepository(db)
+            tenant = await tenant_repo.get_by_id(tenant_id_str)
+            
+            if tenant:
+                if event_type == "checkout.session.completed":
+                    # The payload might just be a string if plan is invalid, but let's assume valid PlanType
+                    plan_val = result.get("plan")
+                    if plan_val in [p.value for p in PlanType]:
+                        tenant.plan = PlanType(plan_val)
+                    tenant.stripe_customer_id = result.get("stripe_customer_id") or tenant.stripe_customer_id
+                    tenant.stripe_subscription_id = result.get("stripe_subscription_id") or tenant.stripe_subscription_id
+                    await tenant_repo.save(tenant)
+                    
+                elif event_type == "customer.subscription.deleted":
+                    tenant.plan = PlanType.starter
+                    tenant.stripe_subscription_id = None
+                    await tenant_repo.save(tenant)
+
         return {"received": True, **result}
     except stripe.SignatureVerificationError:
         raise HTTPException(
@@ -130,3 +188,4 @@ async def stripe_webhook(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Webhook processing failed.",
         )
+

@@ -32,18 +32,21 @@ def _base_html(content: str) -> str:
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data Insight</title>
+  <!-- Import Inter font for modern typography in supported clients -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
     <tr>
       <td align="center">
         <table width="520" cellpadding="0" cellspacing="0"
-               style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+               style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);border:1px solid #e5e7eb;">
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#10B981,#059669);padding:28px 40px;text-align:center;">
-              <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">
-                ◆ Data Insight
+            <td style="padding:32px 40px;text-align:center;border-bottom:1px solid #f3f4f6;">
+              <span style="font-size:24px;font-weight:700;letter-spacing:-0.5px;">
+                <span style="color:#10B981;margin-right:4px;">◆</span>
+                <span style="color:#10B981;font-weight:700;">Data</span><span style="color:#334155;font-weight:400;">Insight</span>
               </span>
             </td>
           </tr>

@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import ReactECharts from "echarts-for-react"
+import dynamic from "next/dynamic"
+const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false })
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 32 },
@@ -283,7 +284,7 @@ export function IntelligenceSection() {
                           }
                         ]
                       }} 
-                      style={{ height: '100%', width: '100%' }}
+                      style={{ height: '100%', minHeight: 200, minWidth: 200, width: '100%' }}
                     />
                   </div>
                   <div className="mt-4 flex gap-4 text-[10px] text-slate-500 justify-center bg-slate-50 py-2 rounded-lg border">

@@ -67,6 +67,8 @@ class WorkspaceService:
         return await self.ws_repo.get_tenant_workspaces(actor.tenant_id)
 
     async def get_workspace(self, workspace_id: uuid.UUID, actor: User) -> Workspace:
+        if not actor.tenant_id:
+            raise ForbiddenException("You must belong to an organization to access this workspace.")
         ws = await self.ws_repo.get_tenant_workspace(actor.tenant_id, workspace_id)
         if not ws:
             raise ResourceNotFoundException("Workspace", str(workspace_id))
@@ -94,3 +96,29 @@ class WorkspaceService:
         await self.ws_repo.soft_delete(ws)
         await self.audit_repo.log("workspace.delete", tenant_id=actor.tenant_id, user_id=actor.id,
                                   resource_type="workspace", resource_id=str(ws.id))
+
+    async def get_workspace_stats(self, workspace_id: uuid.UUID, actor: User) -> dict:
+        ws = await self.get_workspace(workspace_id, actor)
+        from app.models.dataset import Dataset
+        from app.models.report import Report
+        from app.models.user import User as UserModel
+        from sqlalchemy import select, func
+
+        # Count datasets
+        ds_query = select(func.count(Dataset.id)).where(Dataset.workspace_id == workspace_id, Dataset.is_deleted == False)
+        ds_count = await self.session.scalar(ds_query) or 0
+
+        # Count reports
+        rp_query = select(func.count(Report.id)).where(Report.workspace_id == workspace_id, Report.is_deleted == False)
+        rp_count = await self.session.scalar(rp_query) or 0
+
+        # Count members (all users in the tenant)
+        mem_query = select(func.count(UserModel.id)).where(UserModel.tenant_id == actor.tenant_id, UserModel.is_active == True)
+        mem_count = await self.session.scalar(mem_query) or 0
+
+        return {
+            "datasets_count": ds_count,
+            "reports_count": rp_count,
+            "ai_analyses_count": rp_count,  # Proxy for now
+            "members_count": mem_count,
+        }
