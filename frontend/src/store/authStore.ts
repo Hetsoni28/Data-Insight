@@ -46,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           const res = await fetch(`${API_BASE}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store",
           })
           if (res.ok) {
             const user: User = await res.json()
@@ -62,16 +63,23 @@ export const useAuthStore = create<AuthState>()(
       fetchMe: async () => {
         const token = get().token
         if (!token) return
+        set({ isLoading: true })
         try {
           const res = await fetch(`${API_BASE}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store",
           })
           if (res.ok) {
             const user: User = await res.json()
             set({ user })
+          } else if (res.status === 401) {
+            // Throw so AuthInitializer can catch and logout
+            throw new Error("Unauthorized")
           }
-        } catch {
-          // Silently ignore — stale data is fine for background refresh
+        } catch (err) {
+          throw err
+        } finally {
+          set({ isLoading: false })
         }
       },
 
@@ -80,12 +88,15 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem("access_token")
         }
         set({ token: null, user: null })
+        if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+          window.location.href = "/login"
+        }
       },
 
       setUser: (user: User) => set({ user }),
     }),
     {
-      name: "auth-storage",
+      name: "auth-storage-v2",
       // Only persist token — user profile is always re-fetched on mount
       partialize: (state) => ({ token: state.token }),
     }

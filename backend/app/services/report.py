@@ -85,7 +85,7 @@ class ReportService:
         return report
 
     async def approve_report(self, report_id: uuid.UUID, actor: User, notes: str | None = None) -> Report:
-        if actor.role not in (UserRole.owner, UserRole.admin):
+        if actor.role not in (UserRole.super_admin, UserRole.org_admin):
             raise ForbiddenException("Only Owners and Admins can approve reports.")
         report = await self.get_report(report_id, actor)
         if report.status != ReportStatus.review:

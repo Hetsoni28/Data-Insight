@@ -90,3 +90,18 @@ async def get_current_active_tenant_user(
         from app.core.exceptions import ForbiddenException
         raise ForbiddenException("You must belong to an organization to access this resource.")
     return current_user
+
+
+class RequireRole:
+    """
+    Dependency that enforces RBAC. 
+    Checks if the user's role is within the allowed roles.
+    """
+    def __init__(self, allowed_roles: list[str]):
+        self.allowed_roles = allowed_roles
+
+    async def __call__(self, current_user: User = Depends(get_current_active_tenant_user)) -> User:
+        if current_user.role not in self.allowed_roles:
+            from app.core.exceptions import ForbiddenException
+            raise ForbiddenException("You do not have permission to perform this action.")
+        return current_user

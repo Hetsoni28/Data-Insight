@@ -32,8 +32,11 @@ export default function ReportsPage() {
   };
 
   useEffect(() => {
+    // Initial fetch when workspace changes
     fetchReports();
-    
+  }, [activeWs?.id]); // Only run when workspace changes
+
+  useEffect(() => {
     // Polling mechanism if any report is still generating
     const hasPendingReports = reports.some(
       (r) => r.status.toUpperCase() === "PENDING" || r.status.toUpperCase() === "GENERATING"
@@ -93,7 +96,8 @@ export default function ReportsPage() {
         <ReportTable 
           reports={reports} 
           isLoading={isLoading} 
-          onRefresh={fetchReports} 
+          onRefresh={fetchReports}
+          onGenerate={() => setIsDialogOpen(true)}
         />
       </motion.div>
 

@@ -5,14 +5,14 @@ import {
   LayoutDashboard, Database, FileSpreadsheet, Brain, Settings,
   LogOut, ChevronDown, BarChart3, Plus
 } from "lucide-react"
-import type { Workspace } from "@/types"
+import type { UserRole, Workspace } from "@/types"
 
-const NAV = [
+const NAV: { icon: any; label: string; href: string; allowedRoles?: UserRole[] }[] = [
   { icon: LayoutDashboard, label: "Overview",   href: "/dashboard" },
   { icon: Database,         label: "Datasets",   href: "/dashboard/datasets" },
   { icon: FileSpreadsheet,  label: "Reports",    href: "/dashboard/reports" },
   { icon: Brain,            label: "AI Copilot", href: "/dashboard/ai" },
-  { icon: Settings,         label: "Settings",   href: "/dashboard/settings" },
+  { icon: Settings,         label: "Settings",   href: "/dashboard/settings", allowedRoles: ["super_admin", "org_admin"] },
 ]
 
 interface DashboardSidebarProps {
@@ -34,11 +34,8 @@ export default function Sidebar({ user, workspaces = [], activeWs = null, loadin
   return (
     <aside className="w-64 bg-slate-50/50 backdrop-blur-xl border-r border-slate-200/50 flex flex-col flex-shrink-0 min-h-screen relative z-20">
       {/* Logo */}
-      <div className="px-6 py-6 flex items-center gap-3">
-        <div className="w-8 h-8 bg-gradient-to-br from-[#10B981] to-emerald-700 rounded-xl shadow-sm flex items-center justify-center">
-          <BarChart3 className="h-4 w-4 text-white" />
-        </div>
-        <span className="font-semibold text-slate-900 text-[15px] tracking-tight">Data Insight</span>
+      <div className="px-6 py-6 flex items-center">
+        <img src="/logo.svg" alt="Data Insight Logo" className="h-8 w-auto object-contain" />
       </div>
 
       {/* Workspace picker */}
@@ -65,7 +62,7 @@ export default function Sidebar({ user, workspaces = [], activeWs = null, loadin
 
       {/* Nav links */}
       <nav className="flex-1 px-4 space-y-1 mt-2">
-        {NAV.map(({ icon: Icon, label, href }) => {
+        {NAV.filter(item => !item.allowedRoles || (user?.role && item.allowedRoles.includes(user.role))).map(({ icon: Icon, label, href }) => {
           const isActive = pathname === href
           return (
             <button
@@ -100,7 +97,7 @@ export default function Sidebar({ user, workspaces = [], activeWs = null, loadin
             <p className="text-[13px] font-medium text-slate-700 truncate">
               {user?.full_name ?? user?.email ?? "User"}
             </p>
-            <p className="text-[11px] text-slate-400 font-medium capitalize">{user?.role ?? "member"}</p>
+            <p className="text-[11px] text-slate-400 font-medium capitalize">{user?.role ?? "viewer"}</p>
           </div>
           <button 
             onClick={(e) => {

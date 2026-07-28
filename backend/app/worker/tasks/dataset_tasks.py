@@ -36,11 +36,16 @@ async def _profile_dataset(task, dataset_id: str):
             await ds_repo.update_status(dataset, DatasetStatus.profiling)
             await session.commit()
 
-            # Download from Supabase Storage
-            signed_url = get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=300)
-            async with httpx.AsyncClient() as client:
-                response = await client.get(signed_url)
-                file_bytes = response.content
+            # Download from Supabase Storage or read from local disk
+            from app.core.storage import is_local_storage, LOCAL_UPLOADS_DIR
+            if is_local_storage():
+                local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
+                file_bytes = local_path.read_bytes()
+            else:
+                signed_url = get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=300)
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(signed_url)
+                    file_bytes = response.content
 
             # Load into Pandas
             ext = dataset.file_type.value

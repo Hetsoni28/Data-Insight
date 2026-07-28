@@ -3,9 +3,13 @@ import { useRouter, usePathname } from "next/navigation"
 import { Bell, Upload, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+import { useWorkspaceStore } from "@/store/workspaceStore"
+import { toast } from "sonner"
+
 export default function Navbar({ onUploadClick }: { onUploadClick?: () => void }) {
   const router = useRouter()
   const pathname = usePathname()
+  const { activeWs } = useWorkspaceStore()
 
   // Format a clean title from the pathname
   const formatTitle = () => {
@@ -13,6 +17,19 @@ export default function Navbar({ onUploadClick }: { onUploadClick?: () => void }
     const segment = pathname.split("/").pop()
     if (!segment) return "Overview"
     return segment.charAt(0).toUpperCase() + segment.slice(1)
+  }
+
+  const handleUploadClick = () => {
+    if (!activeWs) {
+      toast.error("Please create a workspace first before uploading datasets.")
+      router.push("/onboarding")
+      return
+    }
+    if (onUploadClick) {
+      onUploadClick()
+    } else {
+      router.push("/dashboard/datasets")
+    }
   }
 
   return (
@@ -45,7 +62,7 @@ export default function Navbar({ onUploadClick }: { onUploadClick?: () => void }
         {/* Upload Button */}
         <Button
           suppressHydrationWarning
-          onClick={onUploadClick || (() => router.push("/dashboard/datasets"))}
+          onClick={handleUploadClick}
           className="h-9 px-4 bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-sm shadow-emerald-500/20 border-t border-emerald-400 rounded-xl font-medium text-[13px] gap-2 transition-all"
         >
           <Upload className="h-3.5 w-3.5" />

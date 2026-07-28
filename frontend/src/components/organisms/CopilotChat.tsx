@@ -7,6 +7,10 @@ import { AIService, ChatMessage } from "@/lib/ai.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { StateLayout } from "@/components/molecules/StateLayout";
+import { AiCopilotIllustration } from "@/components/molecules/AiCopilotIllustration";
+import { NoDatasetsIllustration } from "@/components/molecules/NoDatasetsIllustration";
+import { Plus } from "lucide-react";
 
 interface CopilotChatProps {
   datasetId: string | null;
@@ -54,9 +58,17 @@ export function CopilotChat({ datasetId }: CopilotChatProps) {
 
   if (!datasetId) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-slate-50/50 rounded-xl border border-dashed">
-        <Bot className="h-10 w-10 text-slate-300 mb-3" />
-        <p>Select a dataset to start analyzing with AI Copilot.</p>
+      <div className="flex flex-col h-[600px] bg-white dark:bg-slate-950 rounded-xl border shadow-sm overflow-hidden">
+        <StateLayout
+          illustration={<NoDatasetsIllustration />}
+          headline="No Dataset Selected"
+          description="Upload or select a dataset to start asking questions."
+          primaryAction={{
+            label: "Upload Dataset",
+            icon: <Plus className="w-4 h-4" />,
+            onClick: () => { window.location.href = "/dashboard/datasets"; },
+          }}
+        />
       </div>
     );
   }
@@ -75,22 +87,14 @@ export function CopilotChat({ datasetId }: CopilotChatProps) {
 
       <div className="flex-1 p-4 overflow-y-auto" ref={scrollRef}>
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-3 mt-20">
-            <div className="bg-emerald-50 text-emerald-600 p-3 rounded-full">
-              <Bot className="h-6 w-6" />
-            </div>
-            <p className="text-sm font-medium text-slate-700">How can I help you analyze this dataset?</p>
-            <div className="flex gap-2 flex-wrap justify-center mt-4">
-              {["What is the total revenue?", "Find anomalies in the data", "Summarize the key trends"].map((suggestion) => (
-                <Badge
-                  key={suggestion}
-                  className="cursor-pointer hover:bg-slate-200 transition-colors bg-slate-100 text-slate-700 font-normal"
-                  onClick={() => setInput(suggestion)}
-                >
-                  {suggestion}
-                </Badge>
-              ))}
-            </div>
+          <div className="flex items-center justify-center h-full">
+            <StateLayout
+              illustration={<AiCopilotIllustration />}
+              headline="Ask Anything About Your Data"
+              description="I'm ready to analyze your selected dataset. What would you like to know?"
+              aiSuggestion="Try asking: 'What is the total revenue over time?'"
+              keyboardShortcut="Enter"
+            />
           </div>
         ) : (
           <div className="space-y-4 pb-4">

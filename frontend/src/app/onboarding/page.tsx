@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion"
 import { Loader2, LogOut, Check } from "lucide-react"
 import { toast } from "sonner"
 import { useAuthStore } from "@/store/authStore"
+import { useWorkspaceStore } from "@/store/workspaceStore"
 import { logoutUser } from "@/lib/auth.service"
 import api from "@/lib/api"
 import { cn } from "@/lib/utils"
@@ -15,7 +16,7 @@ import { OnboardingSuccessStep } from "@/components/organisms/OnboardingSuccessS
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { user, isLoading: authLoading, fetchMe, logout } = useAuthStore()
+  const { user, isLoading: authLoading, login, fetchMe, logout } = useAuthStore()
 
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -25,19 +26,37 @@ export default function OnboardingPage() {
   const [workspace, setWorkspace] = useState({ name: "My First Workspace", icon: "📊" })
 
   // ── Auth Guards ──────────────────────────────────────────────────────────
+  const { workspaces, loadingWs, setWorkspaces, setLoadingWs } = useWorkspaceStore()
+  
+  // Fetch workspaces if user has a tenant_id to determine if they need step 2
   useEffect(() => {
-    if (!authLoading) {
+    if (user?.tenant_id) {
+      setLoadingWs(true)
+      api.get("/workspaces")
+        .then(({ data }) => setWorkspaces(data))
+        .finally(() => setLoadingWs(false))
+    } else if (!authLoading) {
+      setLoadingWs(false)
+    }
+  }, [user?.tenant_id, authLoading, setWorkspaces, setLoadingWs])
+
+  useEffect(() => {
+    if (!authLoading && !loadingWs) {
       if (!user) {
         toast.error("Please log in to continue onboarding.")
         router.push("/login")
-      } else if (user.tenant_id) {
+      } else if (user.tenant_id && workspaces.length > 0) {
+        // User has finished both org and workspace creation
         router.push("/dashboard")
+      } else if (user.tenant_id && workspaces.length === 0 && step === 1) {
+        // User created org but hasn't created a workspace yet
+        setStep(2)
       }
     }
-  }, [user, authLoading, router])
+  }, [user, authLoading, router, workspaces, loadingWs, step])
 
   // Prevent rendering if not ready
-  if (authLoading || !user || user.tenant_id) {
+  if (authLoading || loadingWs || !user || (user.tenant_id && workspaces.length > 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="h-8 w-8 animate-spin text-[#10B981]" />
@@ -64,7 +83,8 @@ export default function OnboardingPage() {
     setIsLoading(true)
     try {
       await api.post("/tenants", { name: org.name, plan: org.plan })
-      await fetchMe() // refresh user to get new tenant_id and role
+      const res = await api.post("/auth/refresh-token")
+      await login(res.data.access_token) // refresh token and get new role/tenant_id
       setStep(2)
     } catch {
       toast.error("Could not create organization. Please try again.")

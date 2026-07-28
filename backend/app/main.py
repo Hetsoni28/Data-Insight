@@ -26,6 +26,7 @@ from app.core.rate_limit import limiter
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from prometheus_fastapi_instrumentator import Instrumentator
+from app.worker.celery_app import celery_app  # Initialize Celery app
 
 # ─── Loguru Configuration ─────────────────────────────────────────────────────
 logger.remove()
@@ -145,6 +146,16 @@ def create_app() -> FastAPI:
 
     # ─── Register API Routes ──────────────────────────────────────────────
     app.include_router(api_router, prefix="/api/v1")
+
+    # ─── Local Storage Fallback Mount ─────────────────────────────────────
+    import os
+    from fastapi.staticfiles import StaticFiles
+    from app.core.storage import LOCAL_UPLOADS_DIR, is_local_storage
+    
+    if is_local_storage():
+        os.makedirs(LOCAL_UPLOADS_DIR, exist_ok=True)
+        # We mount it under /api/v1/storage so frontend proxy catches it
+        app.mount("/api/v1/storage", StaticFiles(directory=LOCAL_UPLOADS_DIR), name="local_storage")
 
     # ─── Prometheus Metrics ───────────────────────────────────────────────
     Instrumentator(

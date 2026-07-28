@@ -97,7 +97,7 @@ class AuthService:
         await self.session.refresh(user)
 
         logger.info(f"[Auth] Email verified: {email}")
-        return create_access_token(subject=str(user.id))
+        return create_access_token(subject=str(user.id), role=user.role, tenant_id=str(user.tenant_id) if user.tenant_id else None)
 
     # ── Resend OTP ───────────────────────────────────────────────────────────
 
@@ -163,7 +163,7 @@ class AuthService:
             raise ForbiddenException("Your account has been deactivated. Contact support.")
 
         logger.info(f"[Auth] Login: {email}")
-        return create_access_token(subject=str(user.id))
+        return create_access_token(subject=str(user.id), role=user.role, tenant_id=str(user.tenant_id) if user.tenant_id else None)
 
     # ── Forgot Password ──────────────────────────────────────────────────────
 

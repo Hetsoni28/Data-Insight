@@ -15,14 +15,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Report, ReportService } from "@/lib/report.service";
+import { StateLayout } from "@/components/molecules/StateLayout";
+import { NoReportsIllustration } from "@/components/molecules/NoReportsIllustration";
+import { LoadingPulse } from "@/components/molecules/LoadingPulse";
+import { Plus } from "lucide-react";
 
 interface ReportTableProps {
   reports: Report[];
   isLoading: boolean;
   onRefresh: () => void;
+  onGenerate?: () => void;
 }
 
-export function ReportTable({ reports, isLoading, onRefresh }: ReportTableProps) {
+export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: ReportTableProps) {
   const handleDelete = async (reportId: string) => {
     if (!window.confirm("Are you sure you want to delete this report?")) {
       return;
@@ -74,23 +79,31 @@ export function ReportTable({ reports, isLoading, onRefresh }: ReportTableProps)
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border p-12 flex flex-col items-center justify-center text-muted-foreground">
-        <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary/50" />
-        <p className="text-sm">Loading reports...</p>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+        <LoadingPulse messages={["Fetching reports...", "Analyzing insights...", "Generating executive summaries..."]} />
       </div>
     );
   }
 
   if (reports.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed p-12 flex flex-col items-center justify-center text-center">
-        <div className="rounded-full bg-muted p-3 mb-4">
-          <FileText className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h3 className="font-medium text-lg mb-1">No reports generated</h3>
-        <p className="text-sm text-muted-foreground max-w-sm">
-          Select a dataset and click "Generate Report" to let AI create an executive summary for you.
-        </p>
+      <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+        <StateLayout
+          illustration={<NoReportsIllustration />}
+          headline="No Reports Yet"
+          description="Generate your first AI-powered executive report from your uploaded datasets."
+          primaryAction={{
+            label: "Generate Report",
+            icon: <Plus className="w-4 h-4" />,
+            onClick: onGenerate || (() => {}),
+          }}
+          secondaryAction={{
+            label: "Upload Dataset",
+            icon: <FileSpreadsheet className="w-4 h-4" />,
+            onClick: () => { window.location.href = "/dashboard/datasets"; },
+          }}
+          aiSuggestion="AI can automatically find correlations in your dataset."
+        />
       </div>
     );
   }

@@ -8,9 +8,10 @@ from app.db.session import Base
 
 class UserRole:
     """Role constants — stored as plain strings in DB."""
-    owner = "owner"
-    admin = "admin"
-    member = "member"
+    super_admin = "super_admin"
+    org_admin = "org_admin"
+    manager = "manager"
+    analyst = "analyst"
     viewer = "viewer"
 
 
@@ -28,7 +29,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
-    role: Mapped[str] = mapped_column(String(50), default=UserRole.member, nullable=False)
+    role: Mapped[str] = mapped_column(String(50), default=UserRole.viewer, nullable=False)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)

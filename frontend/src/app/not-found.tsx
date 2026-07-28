@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import { PageLostIllustration } from "@/components/molecules/PageLostIllustration"
 import { ArrowLeft, LifeBuoy, Activity } from "lucide-react"
 
 export default function NotFound() {
@@ -28,12 +29,9 @@ export default function NotFound() {
         className="relative z-10 flex flex-col items-center text-center max-w-2xl mx-auto"
       >
         
-
-
-        {/* 404 Text */}
-        <h1 className="text-[120px] md:text-[160px] font-extrabold tracking-tighter leading-none mb-4 text-slate-900 dark:text-white">
-          404
-        </h1>
+        <div className="mb-6">
+          <PageLostIllustration />
+        </div>
         
         {/* Headline */}
         <h2 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight mb-4">

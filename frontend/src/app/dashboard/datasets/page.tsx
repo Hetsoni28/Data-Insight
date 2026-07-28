@@ -99,7 +99,8 @@ export default function DatasetsPage() {
         <DatasetTable 
           datasets={datasets} 
           isLoading={isLoading} 
-          onRefresh={fetchDatasets} 
+          onRefresh={fetchDatasets}
+          onUpload={() => setShowUploader(true)}
         />
       </motion.div>
     </div>

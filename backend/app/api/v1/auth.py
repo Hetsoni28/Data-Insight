@@ -204,3 +204,70 @@ async def logout(current_user: User = Depends(get_current_user)):
     # Stateless JWT — client discards token.
     # Future: add token to Redis blacklist for forced invalidation.
     return MessageResponse(message="Logged out successfully.")
+
+
+@router.post(
+    "/refresh-token",
+    response_model=Token,
+    summary="Get a fresh token with updated DB claims",
+)
+async def refresh_token(current_user: User = Depends(get_current_user)):
+    from app.core.security import create_access_token
+    access_token = create_access_token(
+        subject=str(current_user.id),
+        role=current_user.role,
+        tenant_id=str(current_user.tenant_id) if current_user.tenant_id else None
+    )
+    return Token(access_token=access_token, token_type="bearer")
+
+
+from app.schemas.invitation import AcceptInvitationRequest
+from app.models.invitation import Invitation, InvitationStatus
+from sqlalchemy import select
+from app.core.security import create_access_token
+
+@router.post(
+    "/accept-invite",
+    response_model=Token,
+    summary="Accept an invitation using the secure token",
+)
+async def accept_invite(
+    payload: AcceptInvitationRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.core.exceptions import ResourceNotFoundException, ValidationException, ConflictException
+    
+    stmt = select(Invitation).where(
+        Invitation.token == payload.token,
+        Invitation.status == InvitationStatus.PENDING
+    )
+    invitation = (await db.execute(stmt)).scalars().first()
+    
+    if not invitation:
+        raise ResourceNotFoundException("Invalid or expired invitation token.")
+        
+    import datetime
+    if invitation.expires_at < datetime.datetime.now(datetime.timezone.utc):
+        invitation.status = InvitationStatus.REVOKED
+        await db.commit()
+        raise ValidationException("Invitation token has expired.")
+        
+    if current_user.email != invitation.email:
+        raise ConflictException("This invitation was sent to a different email address.")
+        
+    # Apply the invitation
+    current_user.tenant_id = invitation.tenant_id
+    current_user.role = invitation.role
+    invitation.status = InvitationStatus.ACCEPTED
+    
+    await db.commit()
+    await db.refresh(current_user)
+    
+    # Issue a fresh token with the new role and tenant
+    access_token = create_access_token(
+        subject=str(current_user.id),
+        role=current_user.role,
+        tenant_id=str(current_user.tenant_id)
+    )
+    return Token(access_token=access_token, token_type="bearer")

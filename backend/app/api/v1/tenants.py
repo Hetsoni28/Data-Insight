@@ -31,14 +31,14 @@ async def get_my_tenant(
     return await svc.get_tenant(current_user.tenant_id)
 
 
+from app.api.deps import RequireRole
+
 @router.patch("/me", response_model=TenantResponse, summary="Update my organization")
 async def update_my_tenant(
     body: TenantUpdateRequest,
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(RequireRole(["super_admin", "org_admin"])),
     db: AsyncSession = Depends(get_db),
 ):
-    if current_user.role not in (UserRole.owner, UserRole.admin):
-        raise ForbiddenException("Only Owners and Admins can update organization settings.")
     svc = TenantService(db)
     tenant = await svc.get_tenant(current_user.tenant_id)
     return await svc.update_tenant(tenant, body.model_dump(exclude_none=True), actor=current_user)

@@ -15,22 +15,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dataset, DatasetService } from "@/lib/dataset.service";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import { StateLayout } from "@/components/molecules/StateLayout";
+import { NoDatasetsIllustration } from "@/components/molecules/NoDatasetsIllustration";
+import { LoadingPulse } from "@/components/molecules/LoadingPulse";
+import { Plus } from "lucide-react";
 
 interface DatasetTableProps {
   datasets: Dataset[];
   isLoading: boolean;
   onRefresh: () => void;
+  onUpload?: () => void;
 }
 
-export function DatasetTable({ datasets, isLoading, onRefresh }: DatasetTableProps) {
+export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: DatasetTableProps) {
   const handleDelete = async (datasetId: string) => {
     if (!window.confirm("Are you sure you want to delete this dataset? This action cannot be undone.")) {
       return;
@@ -77,23 +76,26 @@ export function DatasetTable({ datasets, isLoading, onRefresh }: DatasetTablePro
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border p-12 flex flex-col items-center justify-center text-muted-foreground">
-        <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary/50" />
-        <p className="text-sm">Loading datasets...</p>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+        <LoadingPulse messages={["Fetching datasets...", "Connecting to secure vault...", "Preparing workspace..."]} />
       </div>
     );
   }
 
   if (datasets.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed p-12 flex flex-col items-center justify-center text-center">
-        <div className="rounded-full bg-muted p-3 mb-4">
-          <Database className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h3 className="font-medium text-lg mb-1">No datasets found</h3>
-        <p className="text-sm text-muted-foreground max-w-sm">
-          Upload your first dataset above to start generating insights and AI forecasts.
-        </p>
+      <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+        <StateLayout
+          illustration={<NoDatasetsIllustration />}
+          headline="Your Workspace is Ready"
+          description="Upload your first dataset and let AI discover meaningful insights automatically."
+          primaryAction={{
+            label: "Upload Dataset",
+            icon: <Plus className="w-4 h-4" />,
+            onClick: onUpload || (() => {}),
+          }}
+          aiSuggestion="CSV, Excel, JSON, and SQL formats are fully supported."
+        />
       </div>
     );
   }

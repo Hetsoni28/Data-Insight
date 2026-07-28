@@ -33,7 +33,7 @@ class WorkspaceService:
     ) -> Workspace:
         if not actor.tenant_id:
             raise ForbiddenException("You must belong to an organization to create a workspace.")
-        if actor.role not in (UserRole.owner, UserRole.admin):
+        if actor.role not in (UserRole.super_admin, UserRole.org_admin):
             raise ForbiddenException("Only Owners and Admins can create workspaces.")
 
         base_slug = _slugify(name)
@@ -76,7 +76,7 @@ class WorkspaceService:
 
     async def update_workspace(self, workspace_id: uuid.UUID, updates: dict, actor: User) -> Workspace:
         ws = await self.get_workspace(workspace_id, actor)
-        if actor.role not in (UserRole.owner, UserRole.admin):
+        if actor.role not in (UserRole.super_admin, UserRole.org_admin):
             raise ForbiddenException("Only Owners and Admins can update workspaces.")
         allowed = {"name", "description", "icon", "color"}
         for field, value in updates.items():
@@ -89,7 +89,7 @@ class WorkspaceService:
 
     async def delete_workspace(self, workspace_id: uuid.UUID, actor: User) -> None:
         ws = await self.get_workspace(workspace_id, actor)
-        if actor.role not in (UserRole.owner, UserRole.admin):
+        if actor.role not in (UserRole.super_admin, UserRole.org_admin):
             raise ForbiddenException("Only Owners and Admins can delete workspaces.")
         if ws.is_default:
             raise ForbiddenException("The default workspace cannot be deleted.")
