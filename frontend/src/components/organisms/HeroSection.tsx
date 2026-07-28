@@ -60,13 +60,13 @@ export function HeroSection() {
             {/* CTAs */}
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
               <a
-                href="/register"
+                href="/login"
                 className={cn(
                   buttonVariants({ size: "lg" }),
                   "bg-[#10B981] hover:bg-[#059669] text-white h-11 px-7 text-sm font-medium shadow-md justify-center w-full sm:w-auto"
                 )}
               >
-                Get Started <ArrowRight className="h-4 w-4 ml-1" />
+                Sign In <ArrowRight className="h-4 w-4 ml-1" />
               </a>
 
               <Dialog open={videoOpen} onOpenChange={setVideoOpen}>

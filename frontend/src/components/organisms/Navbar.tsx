@@ -35,15 +35,9 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Desktop right */}
         <div className="hidden md:flex items-center gap-3 ml-auto">
-          <Link href="/login"
-            className="text-sm text-slate-500 hover:text-slate-900 font-medium transition-colors px-1">
-            Login
-          </Link>
-          <Button asChild size="sm"
-            className="bg-[#10B981] hover:bg-[#059669] text-white shadow-sm px-4 text-xs">
-            <Link href="/register">Get Started</Link>
+          <Button asChild size="sm" className="bg-[#10B981] hover:bg-[#059669] text-white shadow-sm px-4 text-xs">
+            <Link href="/login">Sign In</Link>
           </Button>
         </div>
 
@@ -71,13 +65,8 @@ export function Navbar() {
               ))}
               <Separator className="my-3" />
               <SheetClose asChild>
-                <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center rounded-lg mb-2")}>
-                  Login
-                </a>
-              </SheetClose>
-              <SheetClose asChild>
-                <a href="/register" className={cn(buttonVariants(), "w-full justify-center rounded-lg bg-[#10B981] hover:bg-[#059669] text-white")}>
-                  Get Started Free
+                <a href="/login" className={cn(buttonVariants(), "w-full justify-center rounded-lg bg-[#10B981] hover:bg-[#059669] text-white")}>
+                  Sign In
                 </a>
               </SheetClose>
             </div>

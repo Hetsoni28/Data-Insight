@@ -3,7 +3,8 @@ import { useRouter, usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   LayoutDashboard, Database, FileSpreadsheet, Brain, Settings,
-  LogOut, ChevronDown, Plus, Crown, Shield, BarChart2, Eye, Users
+  LogOut, ChevronDown, Plus, Crown, Shield, BarChart2, Eye, Users,
+  Building, CreditCard, Receipt, Activity, FileText
 } from "lucide-react"
 import type { UserRole, AccountType, Workspace } from "@/types"
 
@@ -16,12 +17,30 @@ const ROLE_CONFIG: Record<string, { label: string; color: string; bg: string; ic
   viewer:    { label: "Viewer",         color: "text-slate-600",   bg: "bg-slate-50 border-slate-200",   icon: Eye      },
 }
 
-const NAV: { icon: any; label: string; href: string; allowedRoles?: UserRole[] }[] = [
-  { icon: LayoutDashboard, label: "Overview",   href: "/dashboard" },
-  { icon: Database,         label: "Datasets",   href: "/dashboard/datasets" },
-  { icon: FileSpreadsheet,  label: "Reports",    href: "/dashboard/reports" },
-  { icon: Brain,            label: "AI Copilot", href: "/dashboard/ai" },
-  { icon: Settings,         label: "Settings",   href: "/dashboard/settings", allowedRoles: ["owner", "org_admin"] },
+const NAV: { icon: any; label: string; href: string; allowedRoles?: UserRole[] | string[] }[] = [
+  // Platform Owner specific
+  { icon: Building, label: "Organizations", href: "/dashboard/organizations", allowedRoles: ["owner"] },
+  { icon: Users, label: "Users", href: "/dashboard/users", allowedRoles: ["owner"] },
+  { icon: CreditCard, label: "Subscriptions", href: "/dashboard/subscriptions", allowedRoles: ["owner"] },
+  { icon: Receipt, label: "Billing", href: "/dashboard/billing", allowedRoles: ["owner"] },
+  { icon: Activity, label: "Audit Logs", href: "/dashboard/audit-logs", allowedRoles: ["owner"] },
+  { icon: Brain, label: "AI Settings", href: "/dashboard/ai-settings", allowedRoles: ["owner"] },
+  { icon: BarChart2, label: "Platform Analytics", href: "/dashboard/platform-analytics", allowedRoles: ["owner"] },
+  { icon: Activity, label: "System Health", href: "/dashboard/health", allowedRoles: ["owner"] },
+
+  // Org Admin / Manager / Analyst / Viewer
+  { icon: Users, label: "Team", href: "/dashboard/team", allowedRoles: ["org_admin"] },
+  { icon: FileText, label: "Invitations", href: "/dashboard/invitations", allowedRoles: ["org_admin"] },
+  
+  { icon: Database, label: "Datasets", href: "/dashboard/datasets", allowedRoles: ["org_admin", "manager"] },
+  { icon: Database, label: "Upload Dataset", href: "/dashboard/datasets/upload", allowedRoles: ["analyst"] },
+
+  { icon: FileSpreadsheet, label: "Reports", href: "/dashboard/reports", allowedRoles: ["org_admin", "manager", "analyst", "viewer"] },
+  { icon: LayoutDashboard, label: "Dashboard Builder", href: "/dashboard/builder", allowedRoles: ["org_admin", "analyst"] },
+  { icon: BarChart2, label: "Analytics", href: "/dashboard/analytics", allowedRoles: ["manager", "viewer"] },
+  
+  { icon: Brain, label: "AI Copilot", href: "/dashboard/ai", allowedRoles: ["org_admin", "manager", "analyst"] },
+  { icon: Settings, label: "Settings", href: "/dashboard/settings", allowedRoles: ["org_admin"] },
 ]
 
 interface DashboardSidebarProps {

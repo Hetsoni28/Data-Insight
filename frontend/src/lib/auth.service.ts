@@ -5,12 +5,10 @@
 import api from "@/lib/api"
 import type { User, AuthTokens } from "@/types"
 
-export interface RegisterPayload {
-  email: string
+export interface AcceptInvitePayload {
+  token: string
+  full_name: string
   password: string
-  full_name?: string
-  account_type: "individual" | "organization"
-  org_name?: string
 }
 
 export interface LoginPayload {
@@ -27,9 +25,9 @@ export interface ResendOTPPayload {
   email: string
 }
 
-/** POST /auth/register → returns { message } */
-export async function registerUser(payload: RegisterPayload): Promise<{ message: string }> {
-  const { data } = await api.post<{ message: string }>("/auth/register", payload)
+/** POST /auth/accept-invite → returns { access_token, token_type } */
+export async function acceptInvite(payload: AcceptInvitePayload): Promise<AuthTokens> {
+  const { data } = await api.post<AuthTokens>("/auth/accept-invite", payload)
   return data
 }
 
