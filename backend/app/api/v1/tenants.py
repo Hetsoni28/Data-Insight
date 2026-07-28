@@ -36,7 +36,7 @@ from app.api.deps import RequireRole
 @router.patch("/me", response_model=TenantResponse, summary="Update my organization")
 async def update_my_tenant(
     body: TenantUpdateRequest,
-    current_user: User = Depends(RequireRole(["super_admin", "org_admin"])),
+    current_user: User = Depends(RequireRole(["owner", "org_admin"])),
     db: AsyncSession = Depends(get_db),
 ):
     svc = TenantService(db)

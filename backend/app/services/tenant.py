@@ -45,9 +45,11 @@ class TenantService:
 
         tenant = await self.tenant_repo.create(name=name, slug=slug, plan=plan)
 
-        # Assign the creating user as owner
+        # Assign the creating user as org_admin
+        # GUARD: Never downgrade the platform OWNER role
         owner.tenant_id = tenant.id
-        owner.role = UserRole.org_admin
+        if not owner.is_owner:
+            owner.role = UserRole.org_admin
         await self.user_repo.save(owner)
 
         await self.audit_repo.log(

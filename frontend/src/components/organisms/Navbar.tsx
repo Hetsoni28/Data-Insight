@@ -49,8 +49,10 @@ export function Navbar() {
 
         {/* Mobile — Sheet drawer */}
         <Sheet>
-          <SheetTrigger className="ml-auto md:hidden text-slate-500 p-2" aria-label="Open menu">
-            <Menu className="h-5 w-5" />
+          <SheetTrigger asChild>
+            <button className="ml-auto md:hidden text-slate-500 p-2" aria-label="Open menu">
+              <Menu className="h-5 w-5" />
+            </button>
           </SheetTrigger>
           <SheetContent side="right" className="w-72 p-0">
             <SheetHeader className="px-5 py-4 border-b">

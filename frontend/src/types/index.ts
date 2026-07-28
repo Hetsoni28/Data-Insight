@@ -24,7 +24,9 @@ export interface PaginatedResponse<T> {
 }
 
 // ─── User & Auth ───────────────────────────────────────────────────────────────
-export type UserRole = "super_admin" | "org_admin" | "manager" | "analyst" | "viewer";
+export type UserRole = "owner" | "org_admin" | "manager" | "analyst" | "viewer";
+
+export type AccountType = "individual" | "organization";
 
 export interface User {
   id: string;
@@ -32,9 +34,11 @@ export interface User {
   full_name: string | null;
   avatar_url: string | null;
   role: UserRole;
+  account_type: AccountType;
   tenant_id: string | null;
   is_active: boolean;
   is_superuser: boolean;
+  is_owner: boolean;
   is_email_verified: boolean;
   created_at: string;
   updated_at: string;

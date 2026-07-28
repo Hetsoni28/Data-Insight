@@ -9,6 +9,8 @@ export interface RegisterPayload {
   email: string
   password: string
   full_name?: string
+  account_type: "individual" | "organization"
+  org_name?: string
 }
 
 export interface LoginPayload {

@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
 
+    # Platform Owner (seed account — never registerable via UI)
+    OWNER_EMAIL: str = ""
+    OWNER_PASSWORD: str = ""
+
     # Token Settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7

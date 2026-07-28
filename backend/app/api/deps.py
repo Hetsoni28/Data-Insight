@@ -94,13 +94,17 @@ async def get_current_active_tenant_user(
 
 class RequireRole:
     """
-    Dependency that enforces RBAC. 
+    Dependency that enforces RBAC.
     Checks if the user's role is within the allowed roles.
+    The platform OWNER always passes — they have unrestricted access.
     """
     def __init__(self, allowed_roles: list[str]):
         self.allowed_roles = allowed_roles
 
     async def __call__(self, current_user: User = Depends(get_current_active_tenant_user)) -> User:
+        # Platform OWNER bypasses all role checks
+        if current_user.is_owner:
+            return current_user
         if current_user.role not in self.allowed_roles:
             from app.core.exceptions import ForbiddenException
             raise ForbiddenException("You do not have permission to perform this action.")

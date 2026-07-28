@@ -8,11 +8,20 @@ from app.db.session import Base
 
 class UserRole:
     """Role constants — stored as plain strings in DB."""
-    super_admin = "super_admin"
-    org_admin = "org_admin"
-    manager = "manager"
-    analyst = "analyst"
-    viewer = "viewer"
+    owner      = "owner"        # Platform god — seeded only, never registerable
+    org_admin  = "org_admin"    # Auto-assigned when creating an org
+    manager    = "manager"      # Assigned via invitation only
+    analyst    = "analyst"      # Assigned via invitation only
+    viewer     = "viewer"       # Default for individual registrations
+
+    ALL = [owner, org_admin, manager, analyst, viewer]
+    INVITABLE = [manager, analyst, viewer]   # Org admin can assign these
+
+
+class AccountType:
+    """Account type — individual or organization."""
+    individual   = "individual"
+    organization = "organization"
 
 
 class User(Base):
@@ -29,10 +38,15 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
-    role: Mapped[str] = mapped_column(String(50), default=UserRole.viewer, nullable=False)
 
+    # RBAC
+    role: Mapped[str] = mapped_column(String(50), default=UserRole.viewer, nullable=False)
+    account_type: Mapped[str] = mapped_column(String(50), default=AccountType.individual, nullable=False)
+
+    # Flags
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_owner: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     email_verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
     password_reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)

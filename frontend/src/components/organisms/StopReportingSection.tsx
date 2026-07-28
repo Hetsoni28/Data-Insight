@@ -93,11 +93,12 @@ export function StopReportingSection() {
 
               {/* Active Processing Box */}
               <Tooltip>
-                <TooltipTrigger className="w-full text-left flex-1 flex flex-col min-h-[140px]">
-                  <div 
-                    onClick={startUpload}
-                    className={`flex-1 flex flex-col justify-center gap-3 rounded-xl border-2 border-dashed p-4 transition-all duration-300 ${processingState === 'idle' ? 'border-slate-300 bg-slate-50 cursor-pointer hover:border-[#10B981] hover:bg-[#10B981]/5 group' : processingState === 'processing' ? 'border-[#10B981]/50 bg-[#10B981]/5 cursor-default shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'border-emerald-500 bg-emerald-50 cursor-default hidden'}`}
-                  >
+                <TooltipTrigger asChild>
+                  <div className="w-full text-left flex-1 flex flex-col min-h-[140px]">
+                    <div 
+                      onClick={startUpload}
+                      className={`flex-1 flex flex-col justify-center gap-3 rounded-xl border-2 border-dashed p-4 transition-all duration-300 ${processingState === 'idle' ? 'border-slate-300 bg-slate-50 cursor-pointer hover:border-[#10B981] hover:bg-[#10B981]/5 group' : processingState === 'processing' ? 'border-[#10B981]/50 bg-[#10B981]/5 cursor-default shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'border-emerald-500 bg-emerald-50 cursor-default hidden'}`}
+                    >
                     {processingState === "idle" ? (
                       <div className="flex-1 flex flex-col items-center justify-center py-4">
                         <div className="h-10 w-10 rounded-full bg-[#10B981]/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
@@ -126,6 +127,7 @@ export function StopReportingSection() {
                         </div>
                       </>
                     )}
+                  </div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>{processingState === 'idle' ? "Click to start the AI analysis simulation" : "AI is analyzing your spreadsheet data in real-time"}</TooltipContent>

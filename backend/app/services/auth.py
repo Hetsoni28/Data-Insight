@@ -17,6 +17,7 @@ from loguru import logger
 from app.schemas.user import UserCreate
 from app.models.user import User
 from app.repositories.user import UserRepository
+from app.core.config import settings
 from app.core.exceptions import (
     ConflictException,
     UnauthorizedException,
@@ -42,7 +43,18 @@ class AuthService:
         Create a new user account.
         Sends a 6-digit OTP to the registered email.
         The user CANNOT log in until they verify their email.
+
+        Security rules:
+          - OWNER_EMAIL is permanently blocked from public registration.
+          - account_type drives automatic role assignment (viewer for individual,
+            viewer initially for organization — elevated to org_admin at onboarding).
         """
+        # --- SECURITY: Block owner email from public registration ---
+        if settings.OWNER_EMAIL and user_in.email.lower() == settings.OWNER_EMAIL.lower():
+            raise ConflictException(
+                "This email address is reserved. Please use a different email."
+            )
+
         existing = await self.user_repo.get_by_email(user_in.email)
         if existing:
             if existing.is_email_verified:

@@ -13,12 +13,12 @@ export default function SettingsPage() {
 
   useEffect(() => {
     // Basic frontend route protection
-    if (user && user.role !== "super_admin" && user.role !== "org_admin") {
+    if (user && !user.is_owner && user.role !== "org_admin") {
       router.push("/dashboard")
     }
   }, [user, router])
 
-  if (!user || (user.role !== "super_admin" && user.role !== "org_admin")) {
+  if (!user || (!user.is_owner && user.role !== "org_admin")) {
     return (
       <div className="p-8 max-w-3xl mx-auto flex items-center justify-center min-h-[calc(100vh-100px)]">
         <div className="w-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden p-6">

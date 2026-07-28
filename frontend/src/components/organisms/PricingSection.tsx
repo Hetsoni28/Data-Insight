@@ -38,7 +38,9 @@ function FeatureItem({ text, tip }: { text: string; tip: string }) {
           <span className="text-sm text-slate-600">{text}</span>
         </div>
       </TooltipTrigger>
-      <TooltipContent side="right">{tip}</TooltipContent>
+      <TooltipContent>
+        <p>{tip}</p>
+      </TooltipContent>
     </Tooltip>
   )
 }

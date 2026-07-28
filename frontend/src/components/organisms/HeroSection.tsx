@@ -70,16 +70,18 @@ export function HeroSection() {
               </a>
 
               <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
-                <DialogTrigger
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "lg" }),
-                    "h-11 px-7 text-sm font-medium gap-2 border-slate-200 w-full sm:w-auto justify-center"
-                  )}
-                >
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#10B981]/10 shrink-0">
-                    <Play className="h-2.5 w-2.5 text-[#10B981] fill-[#10B981]" />
-                  </div>
-                  Watch Demo
+                <DialogTrigger asChild>
+                  <button
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "lg" }),
+                      "h-11 px-7 text-sm font-medium gap-2 border-slate-200 w-full sm:w-auto justify-center"
+                    )}
+                  >
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#10B981]/10 shrink-0">
+                      <Play className="h-2.5 w-2.5 text-[#10B981] fill-[#10B981]" />
+                    </div>
+                    Watch Demo
+                  </button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl p-0 overflow-hidden">
                   <DialogHeader className="px-6 py-4 border-b">
