@@ -131,6 +131,10 @@ def _reset_key(email: str) -> str:
     return f"otp:reset:{email.lower()}"
 
 
+def _login_key(email: str) -> str:
+    return f"otp:login:{email.lower()}"
+
+
 def _resend_rate_key(email: str) -> str:
     return f"otp:rate:{email.lower()}"
 
@@ -179,6 +183,26 @@ async def verify_password_reset_otp(redis, email: str, otp: str) -> bool:
         return False
     await _delete(redis, _reset_key(email))
     logger.info(f"[OTP] Password reset OTP verified for {email}")
+    return True
+
+
+async def create_login_otp(redis, email: str) -> str:
+    """Create + store a 6-digit login OTP for 2FA (TTL: 5 min)."""
+    otp = _generate_otp()
+    await _set(redis, _login_key(email), otp, int(timedelta(minutes=5).total_seconds()))
+    logger.info(f"[OTP] Login 2FA OTP for {email}: {otp}")
+    return otp
+
+
+async def verify_login_otp(redis, email: str, otp: str) -> bool:
+    """Verify login OTP — single use."""
+    stored = await _get(redis, _login_key(email))
+    if not stored:
+        return False
+    if stored.decode() != otp.strip():
+        return False
+    await _delete(redis, _login_key(email))
+    logger.info(f"[OTP] Login 2FA OTP verified for {email}")
     return True
 
 

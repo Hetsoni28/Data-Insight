@@ -30,6 +30,20 @@ class LoginPayload(BaseModel):
     password: str
 
 
+class VerifyLoginPayload(BaseModel):
+    email: EmailStr
+    password: str
+    otp: str
+
+    @field_validator("otp")
+    @classmethod
+    def otp_must_be_6_digits(cls, v: str) -> str:
+        v = v.strip()
+        if not v.isdigit() or len(v) != 6:
+            raise ValueError("OTP must be a 6-digit number.")
+        return v
+
+
 class VerifyEmailPayload(BaseModel):
     email: EmailStr
     otp: str
@@ -112,8 +126,8 @@ async def resend_otp(
 
 @router.post(
     "/login",
-    response_model=Token,
-    summary="Login with email and password",
+    response_model=MessageResponse,
+    summary="Login step 1: Validate credentials and send 2FA OTP",
 )
 @limiter.limit("5/15minutes")
 async def login(
@@ -123,9 +137,28 @@ async def login(
     redis: Redis = Depends(get_redis),
 ):
     auth_service = AuthService(db, redis)
-    access_token = await auth_service.authenticate(
+    response_data = await auth_service.authenticate(
         email=payload.email,
         password=payload.password,
+    )
+    return MessageResponse(message=response_data["message"])
+
+
+@router.post(
+    "/verify-login",
+    response_model=Token,
+    summary="Login step 2: Verify 2FA OTP and issue token",
+)
+async def verify_login(
+    payload: VerifyLoginPayload,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    access_token = await auth_service.verify_login(
+        email=payload.email,
+        password=payload.password,
+        otp=payload.otp,
     )
     return Token(access_token=access_token, token_type="bearer")
 

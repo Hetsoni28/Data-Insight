@@ -21,13 +21,13 @@ export function CtaSection() {
           Join 500+ forward-thinking organizations using Data Insight to eliminate manual reporting every week.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
-          <a href="/register" className={cn(
+          <a href="/login" className={cn(
             buttonVariants({ variant: "outline", size: "lg" }),
             "h-11 px-8 text-sm border-white/30 text-white hover:bg-white/10 bg-transparent justify-center"
           )}>
-            Get Started Now
+            Sign In
           </a>
-          <a href="/register" className={cn(
+          <a href="mailto:sales@datainsight.ai" className={cn(
             buttonVariants({ size: "lg" }),
             "h-11 px-8 text-sm bg-white text-[#10B981] hover:bg-slate-50 font-semibold shadow-lg gap-1.5 justify-center"
           )}>

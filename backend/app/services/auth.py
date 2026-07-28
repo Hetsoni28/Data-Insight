@@ -144,7 +144,7 @@ class AuthService:
 
     # ── Login ────────────────────────────────────────────────────────────────
 
-    async def authenticate(self, email: str, password: str) -> str:
+    async def authenticate(self, email: str, password: str) -> dict:
         """
         Authenticate a user with email + password.
         Guards:
@@ -174,7 +174,37 @@ class AuthService:
         if not user.is_active:
             raise ForbiddenException("Your account has been deactivated. Contact support.")
 
-        logger.info(f"[Auth] Login: {email}")
+        logger.info(f"[Auth] 2FA Login initiated: {email}")
+        
+        login_otp = await otp_service.create_login_otp(self.redis, email)
+        
+        await email_service.send_email_verification(
+            to_email=email,
+            full_name=user.full_name,
+            otp=login_otp,
+        )
+
+        return {"message": "OTP sent to your email", "requires_2fa": True}
+
+    # ── Verify Login ─────────────────────────────────────────────────────────
+
+    async def verify_login(self, email: str, password: str, otp: str) -> str:
+        """
+        Verify the 2FA OTP to complete login.
+        """
+        user = await self.user_repo.get_by_email(email)
+
+        if not user or not verify_password(password, user.hashed_password):
+            raise UnauthorizedException("Incorrect email or password.")
+
+        if not user.is_active:
+            raise ForbiddenException("Your account has been deactivated. Contact support.")
+
+        valid = await otp_service.verify_login_otp(self.redis, email, otp)
+        if not valid:
+            raise ValidationException("Invalid or expired 2FA code.")
+
+        logger.info(f"[Auth] 2FA Login completed: {email}")
         return create_access_token(subject=str(user.id), role=user.role, tenant_id=str(user.tenant_id) if user.tenant_id else None)
 
     # ── Forgot Password ──────────────────────────────────────────────────────
