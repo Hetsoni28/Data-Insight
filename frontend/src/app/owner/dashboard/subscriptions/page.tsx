@@ -1,14 +1,14 @@
 "use client"
 
-import { Users, Plus, Download } from "lucide-react"
+import { CreditCard, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { UsersDataGrid } from "@/components/organisms/UsersDataGrid"
+import { SubscriptionsDataGrid } from "@/components/organisms/SubscriptionsDataGrid"
 import { motion } from "framer-motion"
 import { toast } from "sonner"
 
-export default function UsersPage() {
+export default function SubscriptionsPage() {
   const handleExport = () => {
-    toast.success("Users CSV export started...")
+    toast.success("Subscriptions report CSV export started...")
   }
 
   return (
@@ -18,13 +18,13 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-              <Users className="h-5 w-5" />
+            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+              <CreditCard className="h-5 w-5" />
             </div>
-            Platform Users
+            Subscriptions
           </h1>
           <p className="text-slate-500 text-sm mt-2">
-            Manage all registered individuals across all organizations.
+            Manage all active tenant SaaS plans, billing cycles, and payment statuses.
           </p>
         </div>
         
@@ -33,9 +33,8 @@ export default function UsersPage() {
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
-          <Button className="h-9 px-4 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-all">
-            <Plus className="h-4 w-4 mr-2" />
-            Invite User
+          <Button onClick={() => toast.info("Stripe portal linking...")} className="h-9 px-4 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-all">
+            Open Stripe Portal
           </Button>
         </div>
       </div>
@@ -45,7 +44,7 @@ export default function UsersPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <UsersDataGrid />
+        <SubscriptionsDataGrid />
       </motion.div>
 
     </div>

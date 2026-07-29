@@ -49,13 +49,22 @@ async def _run_excel_pipeline(task, report_id: str):
 
             # ── STEP 2: Load dataset ─────────────────────────────────────────
             dataset = await ds_repo.get_by_id(report.dataset_id)
-            signed_url = get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=600)
-            async with httpx.AsyncClient() as client:
-                response = await client.get(signed_url)
-                file_bytes = response.content
+            
+            # Support both local storage and Supabase
+            from app.core.storage import is_local_storage, LOCAL_UPLOADS_DIR
+            if is_local_storage():
+                local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
+                file_bytes = local_path.read_bytes()
+            else:
+                signed_url = get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=600)
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(signed_url)
+                    file_bytes = response.content
 
             # ── STEP 3: Parse into Pandas ────────────────────────────────────
-            ext = dataset.file_type.value
+            # file_type may be a string or Enum depending on SQLAlchemy version
+            ext = dataset.file_type.value if hasattr(dataset.file_type, 'value') else str(dataset.file_type)
+            ext = ext.lower().strip()
             df = _load_dataframe(file_bytes, ext)
             await report_repo.update_status(report, ReportStatus.generating, progress=15)
             await session.commit()
@@ -107,16 +116,26 @@ async def _run_excel_pipeline(task, report_id: str):
             await report_repo.update_status(report, ReportStatus.generating, progress=80)
             await session.commit()
 
-            # ── STEP 19: Upload to Supabase Storage ──────────────────────────
+            # ── STEP 19: Upload / Save Excel file ────────────────────────────
             filename = f"{report.title[:50].replace(' ', '_')}.xlsx"
             storage_path = report_storage_path(report.tenant_id, uuid.UUID(report_id), filename)
-            upload_file(REPORTS_BUCKET, excel_bytes, storage_path, content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            
+            from app.core.storage import is_local_storage, LOCAL_UPLOADS_DIR
+            if is_local_storage():
+                # Save Excel file to local disk
+                local_report_path = LOCAL_UPLOADS_DIR / REPORTS_BUCKET / storage_path
+                local_report_path.parent.mkdir(parents=True, exist_ok=True)
+                local_report_path.write_bytes(excel_bytes)
+                # Use a relative path as the download URL (served via static files)
+                output_url = f"/api/v1/storage/{REPORTS_BUCKET}/{storage_path}"
+            else:
+                upload_file(REPORTS_BUCKET, excel_bytes, storage_path, content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                output_url = get_signed_url(REPORTS_BUCKET, storage_path, expires_in=86400)  # 24h
 
-            # ── STEP 20: Update report record ────────────────────────────────
-            signed_download = get_signed_url(REPORTS_BUCKET, storage_path, expires_in=86400)  # 24h
+            # ── STEP 20: Update report record ──────────────────────────────
             await report_repo.update_status(
                 report, ReportStatus.ready, progress=100,
-                output_url=signed_download,
+                output_url=output_url,
                 output_size_bytes=len(excel_bytes),
             )
             await session.commit()

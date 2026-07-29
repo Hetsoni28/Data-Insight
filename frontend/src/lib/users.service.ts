@@ -17,3 +17,14 @@ export async function approveUser(userId: string): Promise<User> {
 export async function rejectUser(userId: string): Promise<void> {
   await api.delete(`/users/${userId}/reject`)
 }
+
+/** GET /users/active → returns list of approved/active users */
+export async function getActiveUsers(): Promise<User[]> {
+  const { data } = await api.get<User[]>("/users/active")
+  return data
+}
+
+/** DELETE /users/:id/revoke → revokes an active user's access */
+export async function revokeUser(userId: string): Promise<void> {
+  await api.delete(`/users/${userId}/revoke`)
+}

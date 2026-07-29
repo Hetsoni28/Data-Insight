@@ -51,7 +51,7 @@ class AuthService:
             raise ConflictException("An account with this email already exists.")
 
         user = await self.user_repo.create(
-            obj_in=UserCreate(
+            user_in=UserCreate(
                 email=email,
                 password=password,
                 full_name=full_name,

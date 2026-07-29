@@ -48,7 +48,7 @@ export default function NotFound() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/owner/dashboard")}
             className="flex items-center gap-2 px-6 py-3 bg-[#10B981] hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm shadow-emerald-500/20"
           >
             <ArrowLeft className="w-4 h-4" />

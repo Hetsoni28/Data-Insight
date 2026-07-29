@@ -10,12 +10,16 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
 export function DashboardEmptyState({ onUploadClick }: { onUploadClick?: () => void }) {
-  const { activeWs } = useWorkspaceStore()
+  const { activeWs, loadingWs } = useWorkspaceStore()
   const router = useRouter()
 
   const handleUploadClick = () => {
+    if (loadingWs) {
+      toast.info("Loading workspace, please wait a moment.")
+      return
+    }
     if (!activeWs) {
-      toast.error("Please create a workspace first before uploading datasets.")
+      toast.error("No workspace found. Redirecting to setup...")
       router.push("/onboarding")
       return
     }
@@ -23,6 +27,7 @@ export function DashboardEmptyState({ onUploadClick }: { onUploadClick?: () => v
   }
 
   const handleSampleReportClick = () => {
+    if (loadingWs) return
     if (!activeWs) {
       toast.error("Please create a workspace first to view reports.")
       router.push("/onboarding")

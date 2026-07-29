@@ -2,6 +2,8 @@
 import { Users, Database, LayoutDashboard, BarChart2, Brain, Settings, UploadCloud, LayoutTemplate, FileSpreadsheet, Activity, User, Receipt } from "lucide-react"
 import DashboardSidebar, { NavItem } from "@/app/owner/dashboard/sidebar/page"
 import DashboardNavbar from "@/app/owner/dashboard/navbar/page"
+import { useEffect } from "react"
+import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import { UploadDatasetModal } from "@/components/organisms/UploadDatasetModal"
 
@@ -36,7 +38,38 @@ interface MemberLayoutProps {
 }
 
 export function MemberLayout({ children, user, handleLogout }: MemberLayoutProps) {
-  const { workspaces, activeWs, loadingWs, isUploadOpen, setIsUploadOpen } = useWorkspaceStore()
+  const { workspaces, activeWs, loadingWs, isUploadOpen, setIsUploadOpen, setWorkspaces, setActiveWs, setLoadingWs } = useWorkspaceStore()
+
+  useEffect(() => {
+    if (user?.tenant_id) {
+      setLoadingWs(true)
+      api.get("/workspaces")
+        .then(({ data }) => {
+          setWorkspaces(data)
+          const currentActive = useWorkspaceStore.getState().activeWs
+          if (data && data.length > 0) {
+            // Check if current active workspace is still in the fetched list
+            const stillExists = currentActive && data.find((w: any) => w.id === currentActive.id)
+            if (!stillExists) {
+              setActiveWs(data[0])
+            }
+          } else {
+            setActiveWs(null)
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoadingWs(false))
+    } else {
+      setLoadingWs(false)
+    }
+  }, [user?.tenant_id, setWorkspaces, setActiveWs, setLoadingWs])
+
+  // Fallback: If workspaces are loaded but activeWs is not set, auto-select it
+  useEffect(() => {
+    if (workspaces.length > 0 && !activeWs) {
+      setActiveWs(workspaces[0])
+    }
+  }, [workspaces, activeWs, setActiveWs])
 
   const handleUploadSuccess = () => {
     window.dispatchEvent(new Event("dataset-uploaded"))

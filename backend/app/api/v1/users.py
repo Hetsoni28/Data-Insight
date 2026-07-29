@@ -78,6 +78,17 @@ async def get_pending_users(
     return result.scalars().all()
 
 
+@router.get("/active", response_model=list[UserResponse], summary="List all active (approved) users")
+async def get_active_users(
+    db: AsyncSession = Depends(get_db),
+    owner: User = Depends(require_owner),
+):
+    # Don't return the owner in the list, only normal active users
+    stmt = select(User).where(User.is_active == True, User.is_owner == False).order_by(User.created_at.desc())
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
 @router.post("/{user_id}/approve", response_model=UserResponse, summary="Approve a user's access request")
 async def approve_user(
     user_id: str,
@@ -114,8 +125,33 @@ async def reject_user(
         raise ResourceNotFoundException("User not found.")
         
     if user.is_active:
-        raise ValidationException("Cannot reject an already active user.")
+        raise ValidationException("Cannot reject an already active user. Use /revoke instead.")
         
     await db.delete(user)
     await db.commit()
     return {"message": "User request rejected."}
+
+
+@router.delete("/{user_id}/revoke", summary="Revoke an active user's access")
+async def revoke_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    owner: User = Depends(require_owner),
+):
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    
+    if not user:
+        raise ResourceNotFoundException("User not found.")
+        
+    if user.is_owner:
+        raise ForbiddenException("Cannot revoke the Platform Owner.")
+        
+    if not user.is_active:
+        raise ValidationException("User is not active.")
+        
+    # Hard delete or soft delete. For now, hard delete to match reject
+    await db.delete(user)
+    await db.commit()
+    return {"message": "User access revoked."}

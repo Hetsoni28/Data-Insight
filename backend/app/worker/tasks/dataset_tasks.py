@@ -48,7 +48,9 @@ async def _profile_dataset(task, dataset_id: str):
                     file_bytes = response.content
 
             # Load into Pandas
-            ext = dataset.file_type.value
+            # file_type may be a string or an Enum depending on DB driver
+            ext = dataset.file_type.value if hasattr(dataset.file_type, 'value') else str(dataset.file_type)
+            ext = ext.lower().strip()
             if ext == "csv":
                 df = pd.read_csv(io.BytesIO(file_bytes))
             elif ext == "xlsx":

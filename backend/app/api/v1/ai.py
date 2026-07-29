@@ -1,6 +1,6 @@
 """AI Copilot endpoints — chat, deep analysis, job status."""
 import uuid
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
 
@@ -43,12 +43,16 @@ async def copilot_chat(
     if not current_user.tenant_id:
         raise ForbiddenException("Organization required.")
     svc = AIService(db)
-    return await svc.copilot_chat(
-        question=body.question,
-        dataset_id=body.dataset_id,
-        actor=current_user,
-        history=body.history,
-    )
+    try:
+        return await svc.copilot_chat(
+            question=body.question,
+            dataset_id=body.dataset_id,
+            actor=current_user,
+            history=body.history,
+        )
+    except Exception as e:
+        # Return a clean error — never crash the server
+        raise HTTPException(status_code=503, detail=f"AI service temporarily unavailable: {str(e)}")
 
 
 @router.post("/analyze", status_code=202, summary="Trigger deep AI analysis (async)")

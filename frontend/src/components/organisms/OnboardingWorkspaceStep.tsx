@@ -85,7 +85,7 @@ export function OnboardingWorkspaceStep({
           <Button
             onClick={handleCreateWorkspace}
             disabled={isLoading || !workspace.name.trim()}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white text-base font-semibold gap-2 rounded-xl shadow-sm shadow-blue-600/20 transition-all"
+            className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold gap-2 rounded-xl shadow-sm shadow-emerald-500/20 transition-all"
           >
             {isLoading ? (
               <><Loader2 className="h-5 w-5 animate-spin" /> Creating...</>

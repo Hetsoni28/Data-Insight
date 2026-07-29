@@ -11,7 +11,7 @@ from app.core.security import get_password_hash
 from app.repositories.user import UserRepository
 
 async def seed_super_admin():
-    email = os.getenv("SUPER_ADMIN_EMAIL", "hetsony143@example.com")
+    email = os.getenv("SUPER_ADMIN_EMAIL", "admin@example.com")
     password = os.getenv("SUPER_ADMIN_PASSWORD", "SuperSecurePassword123!")
     
     async with AsyncSessionLocal() as session:

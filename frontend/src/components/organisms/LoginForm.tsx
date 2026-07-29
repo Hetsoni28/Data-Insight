@@ -98,7 +98,7 @@ export function LoginForm() {
 
       await login(access_token)
       toast.success("Welcome back! 👋")
-      router.push("/dashboard")
+      router.push("/owner/dashboard")
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>
       const msg =
