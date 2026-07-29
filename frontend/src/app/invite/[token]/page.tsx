@@ -23,7 +23,7 @@ const PASSWORD_RULES = [
 
 export default function InvitePage({ params }: { params: { token: string } }) {
   const router = useRouter()
-  const login = useAuthStore((s) => s.login)
+  const { login } = useAuthStore()
 
   const [form, setForm] = useState({ fullName: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)

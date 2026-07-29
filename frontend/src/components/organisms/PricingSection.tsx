@@ -80,8 +80,8 @@ export function PricingSection() {
                 {STARTER_FEATURES.map(f => <FeatureItem key={f.text} {...f} />)}
                 <div className="mt-auto pt-4">
                   <Separator className="mb-4" />
-                  <a href="/register" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-[#10B981] hover:text-[#10B981] transition-colors")}>
-                    Start Free Trial
+                  <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-[#10B981] hover:text-[#10B981] transition-colors")}>
+                    Sign in
                   </a>
                 </div>
               </CardContent>
@@ -106,8 +106,8 @@ export function PricingSection() {
                 {BUSINESS_FEATURES.map(f => <FeatureItem key={f.text} {...f} />)}
                 <div className="mt-auto pt-4">
                   <Separator className="mb-4" />
-                  <a href="/register" className={cn(buttonVariants(), "w-full justify-center bg-[#10B981] hover:bg-[#059669] text-white shadow-md shadow-[#10B981]/20")}>
-                    Get Started Today
+                  <a href="/login" className={cn(buttonVariants(), "w-full justify-center bg-[#10B981] hover:bg-[#059669] text-white shadow-md shadow-[#10B981]/20")}>
+                    Sign in
                   </a>
                 </div>
               </CardContent>

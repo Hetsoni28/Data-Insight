@@ -8,7 +8,8 @@ from app.models.user import User
 from app.schemas.user import UserResponse
 from app.repositories.user import UserRepository
 from app.core.security import verify_password, get_password_hash
-from app.core.exceptions import ValidationException, UnauthorizedException
+from app.core.exceptions import ValidationException, UnauthorizedException, ForbiddenException, ResourceNotFoundException
+from sqlalchemy import select
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -58,3 +59,63 @@ async def change_password(
     current_user.hashed_password = get_password_hash(body.new_password)
     await repo.save(current_user)
     return {"message": "Password changed successfully."}
+
+
+def require_owner(current_user: User = Depends(get_current_user)):
+    from app.models.user import UserRole
+    if current_user.role != UserRole.owner:
+        raise ForbiddenException("Only the Platform Owner can perform this action.")
+    return current_user
+
+
+@router.get("/pending", response_model=list[UserResponse], summary="List all pending access requests")
+async def get_pending_users(
+    db: AsyncSession = Depends(get_db),
+    owner: User = Depends(require_owner),
+):
+    stmt = select(User).where(User.is_active == False).order_by(User.created_at.desc())
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
+@router.post("/{user_id}/approve", response_model=UserResponse, summary="Approve a user's access request")
+async def approve_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    owner: User = Depends(require_owner),
+):
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    
+    if not user:
+        raise ResourceNotFoundException("User not found.")
+        
+    if user.is_active:
+        raise ValidationException("User is already approved.")
+        
+    user.is_active = True
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@router.delete("/{user_id}/reject", summary="Reject and delete an access request")
+async def reject_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    owner: User = Depends(require_owner),
+):
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    
+    if not user:
+        raise ResourceNotFoundException("User not found.")
+        
+    if user.is_active:
+        raise ValidationException("Cannot reject an already active user.")
+        
+    await db.delete(user)
+    await db.commit()
+    return {"message": "User request rejected."}

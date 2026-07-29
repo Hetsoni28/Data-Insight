@@ -30,6 +30,13 @@ class LoginPayload(BaseModel):
     password: str
 
 
+class RequestAccessPayload(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+    requested_role: str
+
+
 class VerifyLoginPayload(BaseModel):
     email: EmailStr
     password: str
@@ -84,9 +91,28 @@ class MessageResponse(BaseModel):
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
-
-
-
+@router.post(
+    "/request-access",
+    response_model=MessageResponse,
+    summary="Submit a request for access to the platform",
+)
+@limiter.limit("5/hour")
+async def request_access(
+    request: Request,
+    payload: RequestAccessPayload,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    await auth_service.request_access(
+        email=payload.email,
+        password=payload.password,
+        full_name=payload.full_name,
+        requested_role=payload.requested_role,
+    )
+    return MessageResponse(
+        message="Your access request has been submitted and is pending approval from the Platform Owner."
+    )
 @router.post(
     "/verify-email",
     response_model=Token,

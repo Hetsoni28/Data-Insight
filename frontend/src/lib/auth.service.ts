@@ -16,6 +16,13 @@ export interface LoginPayload {
   password: string
 }
 
+export interface RequestAccessPayload {
+  email: string
+  password: string
+  full_name: string
+  requested_role: string
+}
+
 export interface VerifyLoginPayload {
   email: string
   password: string
@@ -52,6 +59,12 @@ export async function resendOTP(payload: ResendOTPPayload): Promise<{ message: s
 /** POST /auth/login → returns { message } */
 export async function loginUser(payload: LoginPayload): Promise<{ message: string }> {
   const { data } = await api.post<{ message: string }>("/auth/login", payload)
+  return data
+}
+
+/** POST /auth/request-access → returns { message } */
+export async function requestAccess(payload: RequestAccessPayload): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>("/auth/request-access", payload)
   return data
 }
 

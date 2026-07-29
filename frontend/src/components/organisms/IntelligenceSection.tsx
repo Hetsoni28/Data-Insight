@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from "react"
 import { motion, AnimatePresence, type Variants } from "framer-motion"
-import { Bot, TrendingUp, CheckCircle2, ChevronRight, Database, BarChart3, Bell, TerminalSquare, Send, Activity, Sparkles, Server } from "lucide-react"
+import { Bot, TrendingUp, CheckCircle2, ChevronRight, Database, BarChart3, Bell, TerminalSquare, Send, Activity, Sparkles, Server, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
@@ -144,8 +144,8 @@ export function IntelligenceSection() {
               })}
             </Accordion>
             <motion.div variants={fadeUp} className="pt-2">
-              <a href="/register" className="inline-flex items-center gap-1.5 text-sm font-bold text-[#10B981] hover:text-[#059669] transition-colors group">
-                Explore AI/ML Capabilities <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <a href="/login" className="inline-flex items-center gap-1.5 text-sm font-bold text-[#10B981] hover:text-[#059669] transition-colors group">
+                Sign in to your workspace <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </a>
             </motion.div>
           </motion.div>

@@ -19,8 +19,8 @@ async def seed_super_admin():
         existing_user = await repo.get_by_email(email)
         
         if existing_user:
-            print(f"Super admin {email} already exists. Updating role to super_admin.")
-            existing_user.role = UserRole.super_admin
+            print(f"Owner {email} already exists. Updating role to owner.")
+            existing_user.role = UserRole.owner
             existing_user.is_superuser = True
             existing_user.is_active = True
             existing_user.is_email_verified = True
@@ -32,7 +32,7 @@ async def seed_super_admin():
             email=email,
             hashed_password=get_password_hash(password),
             full_name="Platform Owner",
-            role=UserRole.super_admin,
+            role=UserRole.owner,
             is_superuser=True,
             is_active=True,
             is_email_verified=True

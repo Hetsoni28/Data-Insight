@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion"
 import { Loader2, LogOut, Check } from "lucide-react"
 import { toast } from "sonner"
 import { useAuthStore } from "@/store/authStore"
+import { useAuth } from "@/hooks/useAuth"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import { logoutUser } from "@/lib/auth.service"
 import api from "@/lib/api"
@@ -16,7 +17,8 @@ import { OnboardingSuccessStep } from "@/components/organisms/OnboardingSuccessS
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { user, isLoading: authLoading, login, fetchMe, logout } = useAuthStore()
+  const { data: user, isLoading: authLoading, refetch: fetchMe } = useAuth()
+  const { login, logout } = useAuthStore()
 
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)

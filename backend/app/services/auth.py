@@ -36,6 +36,42 @@ class AuthService:
         self.redis = redis
         self.user_repo = UserRepository(session)
 
+    # ── Request Access ────────────────────────────────────────────────────────
+    
+    async def request_access(self, email: str, password: str, full_name: str, requested_role: str) -> User:
+        """
+        Creates a new user in a Pending Approval state (is_active = False).
+        Platform Owner must approve before the user can log in.
+        """
+        if settings.OWNER_EMAIL and email.lower() == settings.OWNER_EMAIL.lower():
+            raise ConflictException("This email address is reserved.")
+
+        existing = await self.user_repo.get_by_email(email)
+        if existing:
+            raise ConflictException("An account with this email already exists.")
+
+        user = await self.user_repo.create(
+            obj_in=UserCreate(
+                email=email,
+                password=password,
+                full_name=full_name,
+                account_type="organization",
+            )
+        )
+        
+        # Override default creation values to enforce pending state
+        user.is_active = False
+        user.is_email_verified = True # Skip email verification for owner-approved accounts
+        user.account_type = "organization"
+        user.role = requested_role
+        
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user)
+        
+        logger.info(f"[Auth] Access request submitted for {email} as {requested_role}")
+        return user
+
     # ── Register ────────────────────────────────────────────────────────────
 
     async def register(self, user_in: UserCreate) -> User:
@@ -172,7 +208,7 @@ class AuthService:
             )
 
         if not user.is_active:
-            raise ForbiddenException("Your account has been deactivated. Contact support.")
+            raise ForbiddenException("Your account is pending approval by the Platform Owner.")
 
         logger.info(f"[Auth] 2FA Login initiated: {email}")
         
@@ -198,7 +234,7 @@ class AuthService:
             raise UnauthorizedException("Incorrect email or password.")
 
         if not user.is_active:
-            raise ForbiddenException("Your account has been deactivated. Contact support.")
+            raise ForbiddenException("Your account is pending approval by the Platform Owner.")
 
         valid = await otp_service.verify_login_otp(self.redis, email, otp)
         if not valid:
