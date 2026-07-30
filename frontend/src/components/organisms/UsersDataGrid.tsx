@@ -21,10 +21,6 @@ export function UsersDataGrid() {
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
   const fetchUsers = async () => {
     try {
       const { data } = await api.get("/admin/users")
@@ -36,6 +32,10 @@ export function UsersDataGrid() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
   const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
     try {

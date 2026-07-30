@@ -12,10 +12,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { token } = useAuthStore()
-  const { isLoading, isError, data: user, isSuccess } = useAuth()
+  const { isLoading, isError, isSuccess } = useAuth()
   const [mounted, setMounted] = useState(false)
 
   // Prevent hydration mismatch
+  // eslint-disable-next-line
   useEffect(() => setMounted(true), [])
 
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname) || pathname.startsWith("/invite/")

@@ -85,7 +85,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Accept Invitation</h1>
           <p className="text-sm text-slate-500 mt-2">
-            You've been invited to join Data Insight. Set up your profile to get started.
+            You&apos;ve been invited to join Data Insight. Set up your profile to get started.
           </p>
         </div>
 

@@ -113,6 +113,7 @@ function SheetClose({
 
 function SheetPortal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false)
+  // eslint-disable-next-line
   React.useEffect(() => setMounted(true), [])
   if (!mounted) return null
   return createPortal(children, document.body)

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { PageLostIllustration } from "@/components/molecules/PageLostIllustration"
-import { ArrowLeft, LifeBuoy, Activity } from "lucide-react"
+import { ArrowLeft, LifeBuoy } from "lucide-react"
 
 export default function NotFound() {
   const router = useRouter()
@@ -40,7 +40,7 @@ export default function NotFound() {
         
         {/* Description */}
         <p className="text-base text-slate-600 dark:text-slate-400 max-w-md mx-auto mb-10 leading-relaxed">
-          The page you are looking for doesn't exist or has been moved. Please check the URL or navigate back to the dashboard.
+          The page you are looking for doesn&apos;t exist or has been moved. Please check the URL or navigate back to the dashboard.
         </p>
 
         {/* Buttons */}
