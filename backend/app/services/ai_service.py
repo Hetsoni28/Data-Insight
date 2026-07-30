@@ -76,12 +76,31 @@ class AIService:
         if not self._gemini and not self._openai:
             raise AIServiceException("AI API key is not configured.")
 
+        # Fetch the dataset to inject its schema into the context
+        from app.repositories.dataset import DatasetRepository
+        ds_repo = DatasetRepository(self.session)
+        dataset = await ds_repo.get_tenant_dataset(actor.tenant_id, dataset_id)
+        
+        dataset_context = ""
+        if dataset and dataset.profile:
+            import json
+            # Extract basic schema and stats without overwhelming the context limit
+            profile_summary = {
+                "name": dataset.name,
+                "row_count": dataset.profile.get("row_count"),
+                "column_count": dataset.profile.get("column_count"),
+                "columns": {k: {"type": v.get("type"), "null_pct": v.get("null_pct")} for k, v in dataset.profile.get("columns", {}).items()}
+            }
+            dataset_context = f"\n\nDATASET CONTEXT:\n{json.dumps(profile_summary, indent=2)}\n"
+
         clean_question = _sanitize_prompt(question)
         
         if self._gemini:
             try:
                 # Gemini doesn't use standard roles in this quick method, we just format history as text
-                prompt_text = "You are a professional business intelligence analyst.\nAnswer questions about the user's data clearly and concisely in business language.\n\n"
+                prompt_text = "You are a professional business intelligence analyst.\nAnswer questions about the user's data clearly and concisely in business language."
+                prompt_text += dataset_context + "\n"
+                
                 if history:
                     for h in history[-MAX_HISTORY:]:
                         prompt_text += f"{h['role'].capitalize()}: {h['content']}\n"
@@ -110,7 +129,8 @@ class AIService:
 
         if self._openai:
             # Fallback to OpenAI
-            messages = [{"role": "system", "content": "You are a professional business intelligence analyst."}]
+            sys_msg = "You are a professional business intelligence analyst." + dataset_context
+            messages = [{"role": "system", "content": sys_msg}]
             if history:
                 messages.extend(history[-MAX_HISTORY:])
             messages.append({"role": "user", "content": clean_question})
@@ -133,30 +153,39 @@ class AIService:
         if not self._gemini and not self._openai:
             raise AIServiceException("AI API key is not configured.")
 
-        prompt = f"""You are a senior business intelligence architect designing an Excel workbook.
+        prompt = f"""You are a Principal Data Scientist, Business Intelligence Architect, Financial Analyst, Excel Automation Expert, and AI Engineer from Microsoft Excel, Power BI, Tableau, Google Looker, Stripe, Amazon, and McKinsey.
 
-Dataset summary:
+Your task is to generate the blueprint for a completely NEW AI-powered Microsoft Excel workbook that looks like a professionally designed Business Intelligence report prepared by a Fortune 500 consulting firm.
+
+Dataset summary (raw data profile):
 {dataset_summary}
 
-Design a complete Excel workbook blueprint as JSON with the following structure:
+Step 1: Understand the business domain (e.g. Sales, Finance, HR, Logistics).
+Step 2: Detect the most important KPIs to calculate.
+Step 3: Determine the best columns to use for categorical and time-series analysis.
+Step 4: Design the 12-sheet architecture blueprint.
+
+Return ONLY valid JSON with this exact structure:
 {{
-  "sheets": [
-    {{
-      "name": "Executive Dashboard",
-      "type": "kpi_dashboard",
-      "kpis": [...],
-      "charts": [...]
-    }}
+  "domain": "Inferred Business Domain",
+  "primary_date_column": "column_name_or_null",
+  "primary_metric_column": "column_name",
+  "groupby_dimension": "column_name_or_null",
+  "detected_kpis": [
+    {{"name": "Revenue", "description": "Total revenue generated", "type": "currency"}},
+    {{"name": "Growth Rate", "description": "Month over month growth", "type": "percentage"}}
   ],
-  "detected_kpis": ["Revenue", "Growth Rate"],
-  "primary_date_column": "date_column_name_or_null",
-  "primary_metric_column": "metric_column_name",
-  "groupby_dimension": "category_column_name_or_null",
-  "executive_summary_prompt": "Brief prompt for writing the executive summary"
+  "recommended_charts": [
+    {{"title": "Revenue by Region", "type": "bar", "x_col": "Region", "y_col": "Revenue"}}
+  ],
+  "pivot_tables": [
+    {{"name": "Sales by Product", "rows": "Product", "values": "Sales"}}
+  ],
+  "anomaly_detection_column": "column_name_to_check_for_outliers",
+  "executive_summary_prompt": "Specific instructions for the narrative AI to write the executive summary based on this domain."
 }}
 
-Include these 10 sheets: Cover, Executive Dashboard, AI Executive Summary, Charts & Visualizations, Cleaned Data, KPI Analysis, Pivot Analysis, Forecast, Risk & Anomaly Report, Methodology.
-Return ONLY valid JSON. Do not include markdown code block syntax (like ```json), just the raw JSON object."""
+Do not include markdown code block syntax (like ```json), just the raw JSON object."""
 
         if self._gemini:
             try:
@@ -205,22 +234,21 @@ Return ONLY valid JSON. Do not include markdown code block syntax (like ```json)
         user_id: uuid.UUID,
         report_id: uuid.UUID,
     ) -> str:
-        prompt = f"""You are a senior business analyst writing an executive summary for a board report.
+        prompt = f"""You are a Principal Data Scientist and Business Strategy Consultant from McKinsey & Company writing an AI Executive Summary for a Board of Directors report.
 
+Business Domain: {blueprint.get('domain', 'General')}
 Key findings from the data:
 {data_insights}
 
-Workbook blueprint summary:
-KPIs detected: {', '.join(blueprint.get('detected_kpis', []))}
+Write a professional, premium executive summary with exactly 5 sections. Do not use generic filler; be specific, analytical, and highly actionable.
 
-Write a professional executive summary with exactly 5 sections:
-1. OVERVIEW — What the data shows overall (2 paragraphs)
-2. TOP FINDINGS — 3 positive findings (numbered list)
-3. KEY CONCERNS — 3 risks or concerns (numbered list)
-4. RECOMMENDATIONS — 5 numbered, specific, actionable recommendations
-5. OUTLOOK — What to watch in the next quarter (1 paragraph)
+1. OVERVIEW — What the data shows overall about the health of the business (2 paragraphs).
+2. TOP FINDINGS — 3 highly impactful positive findings or strengths (numbered list).
+3. KEY RISKS & CONCERNS — 3 critical risks, anomalies, or areas of concern (numbered list).
+4. EXECUTIVE RECOMMENDATIONS — 5 numbered, specific, actionable strategic recommendations.
+5. OUTLOOK — Predictive statement on what to expect next quarter based on trends (1 paragraph).
 
-Write in professional business English. Be specific, not generic."""
+Write in authoritative, professional business English. Focus on WHY trends happened and WHAT the business should do next."""
 
         if self._gemini:
             try:

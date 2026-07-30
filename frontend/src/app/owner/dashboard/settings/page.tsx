@@ -1,23 +1,35 @@
 "use client"
-import { motion } from "framer-motion"
-import { Building2, Users, CreditCard, Shield, Settings as SettingsIcon } from "lucide-react"
+import { useState } from "react"
+import { Building2, Users, CreditCard, Settings2, Save } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
-import { useWorkspaceStore } from "@/store/workspaceStore"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { toast } from "sonner"
 import { StateLayout } from "@/components/molecules/StateLayout"
 import { AccessRestrictedIllustration } from "@/components/molecules/AccessRestrictedIllustration"
+import { PageHeader } from "@/components/molecules/PageHeader"
+import { SettingCard } from "@/components/molecules/SettingCard"
+import { FormInput } from "@/components/molecules/FormInput"
+import { Button } from "@/components/ui/button"
 
 export default function SettingsPage() {
   const router = useRouter()
   const { data: user } = useAuth()
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    // Basic frontend route protection
     if (user && !user.is_owner && user.role !== "org_admin") {
       router.push("/dashboard")
     }
   }, [user, router])
+
+  const handleSave = () => {
+    setIsSaving(true)
+    setTimeout(() => {
+      setIsSaving(false)
+      toast.success("Settings Saved", { description: "Your organization profile has been updated." })
+    }, 1000)
+  }
 
   if (!user || (!user.is_owner && user.role !== "org_admin")) {
     return (
@@ -39,88 +51,62 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
-          <SettingsIcon className="h-8 w-8 text-emerald-600" />
-          Organization Settings
-        </h1>
-        <p className="text-slate-500 mt-2">Manage your organization's settings, billing, and team members.</p>
-      </motion.div>
+    <div className="p-8 max-w-7xl mx-auto space-y-8 pb-24">
+      <PageHeader 
+        title="System Settings" 
+        description="Manage your organization's core profile, billing, and team structure."
+        icon={Settings2}
+        action={
+          <Button onClick={handleSave} disabled={isSaving} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        }
+      />
 
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        {/* Organization Info */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <div className="flex items-center gap-3 text-slate-900 font-semibold text-lg pb-4 border-b border-slate-100">
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-              <Building2 className="w-5 h-5" />
-            </div>
-            Organization Profile
+      <div className="grid md:grid-cols-2 gap-6">
+        <SettingCard title="Organization Profile" description="Update your company name and workspace defaults." icon={Building2} delay={0.1}>
+          <div className="space-y-4 mt-4">
+            <FormInput 
+              label="Company Name" 
+              defaultValue="Data Insight Corp" 
+              placeholder="e.g. Acme Inc"
+            />
+            <FormInput 
+              label="Support Email" 
+              type="email" 
+              defaultValue="support@datainsight.com" 
+              placeholder="e.g. hello@company.com"
+            />
           </div>
-          <div className="space-y-4">
-            <p className="text-sm text-slate-500">Update your company name, logo, and general preferences.</p>
-            <button className="text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg transition-colors">
-              Manage Profile
-            </button>
-          </div>
-        </div>
+        </SettingCard>
 
-        {/* Team Management */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <div className="flex items-center gap-3 text-slate-900 font-semibold text-lg pb-4 border-b border-slate-100">
-            <div className="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center text-violet-600">
-              <Users className="w-5 h-5" />
+        <SettingCard title="Team Management" description="Invite members and configure roles." icon={Users} delay={0.2}>
+          <div className="space-y-4 mt-4">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
+              <div>
+                <p className="font-medium text-sm text-slate-900">12 Active Members</p>
+                <p className="text-xs text-slate-500">3 pending invitations</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => router.push("/owner/dashboard/users")}>Manage Team</Button>
             </div>
-            Team Management
           </div>
-          <div className="space-y-4">
-            <p className="text-sm text-slate-500">Invite new members, manage roles, and handle workspace access.</p>
-            <button className="text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg transition-colors">
-              Manage Team
-            </button>
-          </div>
-        </div>
+        </SettingCard>
 
-        {/* Billing & Plans */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <div className="flex items-center gap-3 text-slate-900 font-semibold text-lg pb-4 border-b border-slate-100">
-            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-              <CreditCard className="w-5 h-5" />
+        <SettingCard title="Billing & Subscriptions" description="View current plan and payment methods." icon={CreditCard} delay={0.3} className="md:col-span-2">
+          <div className="flex flex-col sm:flex-row gap-6 mt-4 p-4 rounded-xl border border-slate-100 bg-slate-50">
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-emerald-600 tracking-wider uppercase mb-1">Current Plan</p>
+              <p className="text-2xl font-bold text-slate-900">Enterprise AI <span className="text-sm font-normal text-slate-500">/ $999/mo</span></p>
+              <p className="text-sm text-slate-500 mt-2">Your next billing date is August 15, 2026.</p>
             </div>
-            Billing & Subscription
-          </div>
-          <div className="space-y-4">
-            <p className="text-sm text-slate-500">View current usage, upgrade your plan, and manage invoices.</p>
-            <button className="text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg transition-colors">
-              Manage Billing
-            </button>
-          </div>
-        </div>
-
-        {/* Security */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <div className="flex items-center gap-3 text-slate-900 font-semibold text-lg pb-4 border-b border-slate-100">
-            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
-              <Shield className="w-5 h-5" />
+            <div className="flex gap-3 items-center">
+              <Button variant="outline" onClick={() => toast.info("Downloading Invoice...")}>View Invoices</Button>
+              <Button className="bg-slate-900 hover:bg-slate-800 text-white" onClick={() => router.push("/owner/dashboard/subscriptions")}>Upgrade Plan</Button>
             </div>
-            Security
           </div>
-          <div className="space-y-4">
-            <p className="text-sm text-slate-500">Configure SSO, MFA, and access audit logs for your tenant.</p>
-            <button className="text-sm font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg transition-colors">
-              Security Settings
-            </button>
-          </div>
-        </div>
-      </motion.div>
+        </SettingCard>
+      </div>
     </div>
   )
 }

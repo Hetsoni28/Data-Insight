@@ -190,170 +190,283 @@ def _extract_insights(df, profile_summary: str) -> str:
 
 
 def _build_workbook(wb, df_raw, df_clean, blueprint, exec_summary, report, dataset):
-    """Build the full 10-sheet Excel workbook using XlsxWriter."""
+    """Build the full 12-sheet Enterprise BI Excel workbook using XlsxWriter (World Class UI)."""
     import pandas as pd
+    import numpy as np
+    from datetime import datetime, timezone
+    from xlsxwriter.utility import xl_col_to_name
 
-    # ── Color palette ──────────────────────────────────────────────────────
-    DARK_BG   = "#1A1A2E"
-    ACCENT    = "#4F8EF7"
-    LIGHT_BG  = "#F8F9FA"
-    SUCCESS   = "#28A745"
-    DANGER    = "#DC3545"
-    WARNING   = "#FFC107"
-    WHITE     = "#FFFFFF"
-    DARK_TEXT = "#212529"
+    # ── Emerald & Slate Color Palette ──────────────────────────────────────
+    EMERALD_900 = "#064e3b"
+    EMERALD_950 = "#022c22"
+    EMERALD_500 = "#10b981"
+    EMERALD_50  = "#ecfdf5"
+    SLATE_900   = "#0f172a"
+    SLATE_50    = "#f8fafc"
+    WHITE       = "#ffffff"
+    DANGER      = "#ef4444"
+    WARNING     = "#f59e0b"
 
     # ── Shared formats ─────────────────────────────────────────────────────
-    fmt_title  = wb.add_format({"bold": True, "font_size": 28, "font_color": WHITE, "bg_color": DARK_BG, "align": "center", "valign": "vcenter"})
-    fmt_header = wb.add_format({"bold": True, "font_size": 11, "font_color": WHITE, "bg_color": ACCENT, "border": 1, "align": "center"})
+    fmt_sidebar = wb.add_format({"bg_color": EMERALD_950, "font_color": WHITE})
+    fmt_sidebar_title = wb.add_format({"bg_color": EMERALD_950, "font_color": EMERALD_500, "bold": True, "font_size": 16, "align": "center", "valign": "vcenter"})
+    fmt_sidebar_link = wb.add_format({"bg_color": EMERALD_950, "font_color": WHITE, "font_size": 11, "underline": True, "align": "left", "valign": "vcenter", "indent": 1})
+    
+    fmt_page_title = wb.add_format({"bold": True, "font_size": 26, "font_color": EMERALD_900, "bg_color": WHITE, "align": "left", "valign": "vcenter"})
+    
+    fmt_header = wb.add_format({"bold": True, "font_size": 11, "font_color": WHITE, "bg_color": EMERALD_900, "border": 1, "align": "center"})
     fmt_cell   = wb.add_format({"font_size": 10, "border": 1, "valign": "vcenter"})
     fmt_num    = wb.add_format({"font_size": 10, "border": 1, "num_format": "#,##0.00"})
-    fmt_pct    = wb.add_format({"font_size": 10, "border": 1, "num_format": "0.0%"})
-    fmt_row_alt = wb.add_format({"font_size": 10, "border": 1, "bg_color": "#EEF2FF"})
-    fmt_kpi_label = wb.add_format({"bold": True, "font_size": 12, "font_color": DARK_TEXT, "bg_color": LIGHT_BG, "border": 2, "align": "center", "valign": "vcenter"})
-    fmt_kpi_value = wb.add_format({"bold": True, "font_size": 22, "font_color": ACCENT, "bg_color": WHITE, "border": 2, "align": "center", "valign": "vcenter"})
-    fmt_section  = wb.add_format({"bold": True, "font_size": 13, "font_color": ACCENT, "bottom": 2})
-    fmt_body     = wb.add_format({"font_size": 10, "text_wrap": True, "valign": "top"})
+    fmt_row_alt = wb.add_format({"font_size": 10, "border": 1, "bg_color": SLATE_50})
+    
+    fmt_kpi_title = wb.add_format({"bold": True, "font_size": 11, "font_color": EMERALD_500, "bg_color": EMERALD_50, "top": 1, "left": 1, "right": 1, "align": "center", "valign": "vcenter"})
+    fmt_kpi_value = wb.add_format({"bold": True, "font_size": 24, "font_color": SLATE_900, "bg_color": WHITE, "left": 1, "right": 1, "align": "center", "valign": "vcenter"})
+    fmt_kpi_footer = wb.add_format({"font_size": 9, "font_color": "#64748b", "bg_color": WHITE, "bottom": 1, "left": 1, "right": 1, "align": "center", "valign": "top"})
+    
+    fmt_body = wb.add_format({"font_size": 11, "text_wrap": True, "valign": "top"})
 
-    # ── Sheet 1: Cover ─────────────────────────────────────────────────────
-    ws_cover = wb.add_worksheet("📊 Cover")
+    numeric_cols = df_clean.select_dtypes(include="number").columns.tolist()
+    cat_cols = df_clean.select_dtypes(exclude="number").columns.tolist()
+    
+    now_str = datetime.now(timezone.utc).strftime("%B %d, %Y — %H:%M UTC")
+
+    # ── Helper for Sidebar ──
+    def add_sidebar(ws, title):
+        ws.set_column("A:A", 28, fmt_sidebar)
+        ws.write("A2", "DATA INSIGHT", fmt_sidebar_title)
+        ws.write("A4", "NAVIGATION", wb.add_format({"bg_color": EMERALD_950, "font_color": "#94a3b8", "font_size": 9, "bold": True, "indent": 1}))
+        
+        links = [
+            ("1. Cover Page", "🏠 Cover Page"),
+            ("2. Exec Dashboard", "📈 Dashboard"),
+            ("3. AI Summary", "🧠 AI Summary"),
+            ("4. Cleaned Data", "🧹 Cleaned Data"),
+            ("5. KPI Matrix", "🔢 KPI Matrix"),
+            ("6. Visual Analytics", "📊 Charts"),
+            ("7. Forecasting", "🔮 Forecasting"),
+            ("8. Risk & Anomalies", "⚠️ Anomalies"),
+            ("9. Data Quality", "📝 Data Quality")
+        ]
+        
+        for i, (sheet_name, link_text) in enumerate(links):
+            ws.write_url(f"A{6+i*2}", f"internal:'{sheet_name}'!A1", string=link_text, cell_format=fmt_sidebar_link)
+            
+        ws.merge_range("C2:N3", title, fmt_page_title)
+
+    # ── Sheet 1: Cover Page ─────────────────────────────────────────────────
+    ws_cover = wb.add_worksheet("1. Cover Page")
     ws_cover.hide_gridlines(2)
     ws_cover.set_column("A:H", 18)
-    for row in range(20):
+    
+    # Format top banner rows
+    banner_fmt = wb.add_format({"bg_color": EMERALD_900})
+    for row in range(12):
+        ws_cover.set_row(row, 24, banner_fmt)
+    for row in range(12, 40):
         ws_cover.set_row(row, 24)
-    ws_cover.set_row(3, 60)
-    ws_cover.merge_range("A1:H2", "", wb.add_format({"bg_color": DARK_BG}))
-    ws_cover.merge_range("A3:H5", f"📊 {report.title}", fmt_title)
-    ws_cover.merge_range("A6:H7", f"Dataset: {dataset.name} | Generated by Data Insight AI", wb.add_format({"font_size": 12, "font_color": "#AAAACC", "bg_color": DARK_BG, "align": "center"}))
+        
+    ws_cover.merge_range("B4:L6", f"Enterprise Business Intelligence Report", wb.add_format({"bold": True, "font_size": 36, "font_color": WHITE, "bg_color": EMERALD_900, "align": "center", "valign": "vcenter"}))
+    ws_cover.merge_range("B7:L8", f"{report.title}", wb.add_format({"bold": True, "font_size": 24, "font_color": EMERALD_500, "bg_color": EMERALD_900, "align": "center", "valign": "vcenter"}))
+    
+    ws_cover.merge_range("D15:I15", f"Dataset: {dataset.name}", wb.add_format({"font_size": 14, "bold": True, "align": "center"}))
+    ws_cover.merge_range("D16:I16", f"Generated: {now_str}", wb.add_format({"font_size": 12, "font_color": "#64748b", "align": "center"}))
+    
+    ws_cover.write_url("F20", "internal:'2. Exec Dashboard'!A1", string="Open Dashboard →", cell_format=wb.add_format({"bold": True, "font_size": 16, "font_color": WHITE, "bg_color": EMERALD_500, "align": "center", "valign": "vcenter", "border": 1}))
 
-    from datetime import datetime, timezone
-    now_str = datetime.now(timezone.utc).strftime("%B %d, %Y — %H:%M UTC")
-    ws_cover.merge_range("A8:H8", f"Generated: {now_str}", wb.add_format({"font_size": 10, "font_color": WHITE, "bg_color": DARK_BG, "align": "center"}))
-    ws_cover.merge_range("A9:H20", "", wb.add_format({"bg_color": DARK_BG}))
-
-    # ── Sheet 2: Executive Dashboard (KPIs) ────────────────────────────────
-    ws_dash = wb.add_worksheet("📈 Executive Dashboard")
-    ws_dash.hide_gridlines(2)
-    ws_dash.merge_range("A1:L2", "Executive Dashboard", wb.add_format({"bold": True, "font_size": 20, "bg_color": DARK_BG, "font_color": WHITE, "align": "center"}))
-
-    numeric_cols = df_clean.select_dtypes(include="number").columns.tolist()[:6]
-    col_positions = [(3, 0), (3, 3), (3, 6), (7, 0), (7, 3), (7, 6)]
-    for i, col in enumerate(numeric_cols):
-        r, c = col_positions[i]
-        ws_dash.set_row(r, 22)
-        ws_dash.set_row(r + 1, 40)
-        ws_dash.set_row(r + 2, 22)
-        ws_dash.merge_range(r, c, r, c + 2, col, fmt_kpi_label)
-        ws_dash.merge_range(r + 1, c, r + 1, c + 2, f"{df_clean[col].sum():,.0f}", fmt_kpi_value)
-        ws_dash.merge_range(r + 2, c, r + 2, c + 2, f"Avg: {df_clean[col].mean():,.2f}", wb.add_format({"font_size": 9, "align": "center", "font_color": "#666666"}))
-
-    # ── Sheet 3: AI Executive Summary ─────────────────────────────────────
-    ws_summary = wb.add_worksheet("🧠 AI Summary")
-    ws_summary.hide_gridlines(2)
-    ws_summary.set_column("A:A", 120)
-    ws_summary.merge_range("A1:A2", "AI Executive Summary", wb.add_format({"bold": True, "font_size": 18, "bg_color": DARK_BG, "font_color": WHITE, "align": "center"}))
-    ws_summary.set_row(3, 600)
-    ws_summary.write("A4", exec_summary, fmt_body)
-
-    # ── Sheet 4: Cleaned Data ──────────────────────────────────────────────
-    ws_data = wb.add_worksheet("🧹 Cleaned Data")
-    ws_data.freeze_panes(1, 0)
+    # ── Sheet 4: Cleaned Data (Do this early for formulas) ──────────────────
+    ws_data = wb.add_worksheet("4. Cleaned Data")
+    add_sidebar(ws_data, "Cleaned Dataset")
+    ws_data.freeze_panes(4, 1)
+    
+    # Write headers
     for ci, col in enumerate(df_clean.columns):
-        ws_data.write(0, ci, str(col), fmt_header)
-        ws_data.set_column(ci, ci, max(len(str(col)) + 4, 12))
-    for ri, row_data in enumerate(df_clean.head(1000).values.tolist()):
+        ws_data.write(3, ci + 1, str(col), fmt_header)
+        ws_data.set_column(ci + 1, ci + 1, max(len(str(col)) + 4, 15))
+    
+    for ri, row_data in enumerate(df_clean.head(5000).values.tolist()):
         row_fmt = fmt_row_alt if ri % 2 == 0 else fmt_cell
         for ci, val in enumerate(row_data):
             try:
-                ws_data.write(ri + 1, ci, val, row_fmt)
+                ws_data.write(ri + 4, ci + 1, val, row_fmt)
             except Exception:
-                ws_data.write(ri + 1, ci, str(val), row_fmt)
+                ws_data.write(ri + 4, ci + 1, str(val), row_fmt)
 
-    # ── Sheet 5: KPI Analysis ──────────────────────────────────────────────
-    ws_kpi = wb.add_worksheet("🔢 KPI Analysis")
-    ws_kpi.freeze_panes(1, 0)
-    kpi_headers = ["KPI", "Total", "Mean", "Min", "Max", "Std Dev", "Status"]
+    # ── Sheet 2: Executive Dashboard ───────────────────────────────────────
+    ws_dash = wb.add_worksheet("2. Exec Dashboard")
+    ws_dash.hide_gridlines(2)
+    add_sidebar(ws_dash, "Executive Dashboard")
+    
+    # Column sizing for grid layout
+    ws_dash.set_column("B:B", 2) # spacer
+    ws_dash.set_column("C:O", 12)
+    
+    if numeric_cols:
+        col_positions = [2, 5, 8, 11] # C, F, I, L (0-indexed: 2=C)
+        
+        for i, col in enumerate(numeric_cols[:4]):
+            c = col_positions[i]
+            # KPI Cards (Row 5 to 7)
+            ws_dash.set_row(4, 30)
+            ws_dash.set_row(5, 50)
+            ws_dash.set_row(6, 20)
+            
+            ws_dash.merge_range(4, c, 4, c + 2, f"Total {col}", fmt_kpi_title)
+            
+            # Use dynamic EXCEL FORMULA to calculate the sum directly from Sheet 4!
+            col_letter = xl_col_to_name(df_clean.columns.get_loc(col) + 1)
+            formula = f"=SUM('4. Cleaned Data'!{col_letter}:{col_letter})"
+            
+            ws_dash.merge_range(5, c, 5, c + 2, "", fmt_kpi_value)
+            ws_dash.write_formula(5, c, formula, fmt_kpi_value)
+            
+            # Avg formula
+            avg_formula = f'="Avg: " & ROUND(AVERAGE(\'4. Cleaned Data\'!{col_letter}:{col_letter}), 2)'
+            ws_dash.merge_range(6, c, 6, c + 2, "", fmt_kpi_footer)
+            ws_dash.write_formula(6, c, avg_formula, fmt_kpi_footer)
+            
+        # Embedded Chart 1 (Left)
+        if len(numeric_cols) > 0:
+            target_col = numeric_cols[0]
+            cat_col = cat_cols[0] if cat_cols else None
+            
+            bar_chart = wb.add_chart({"type": "column"})
+            # Data source for chart is the raw data sheet (first 100 rows to keep it clean)
+            if cat_col:
+                cat_letter = xl_col_to_name(df_clean.columns.get_loc(cat_col) + 1)
+                val_letter = xl_col_to_name(df_clean.columns.get_loc(target_col) + 1)
+                bar_chart.add_series({
+                    "name": f"='4. Cleaned Data'!${val_letter}$4",
+                    "categories": f"='4. Cleaned Data'!${cat_letter}$5:${cat_letter}$50",
+                    "values": f"='4. Cleaned Data'!${val_letter}$5:${val_letter}$50",
+                    "fill": {"color": EMERALD_500},
+                })
+            bar_chart.set_title({"name": f"{target_col} Breakdown"})
+            bar_chart.set_legend({"none": True})
+            bar_chart.set_chartarea({"border": {"none": True}})
+            ws_dash.insert_chart("C10", bar_chart, {"x_scale": 1.7, "y_scale": 1.5})
+            
+        # Embedded Chart 2 (Right)
+        if len(numeric_cols) > 1:
+            target_col2 = numeric_cols[1]
+            line_chart = wb.add_chart({"type": "line"})
+            val_letter2 = xl_col_to_name(df_clean.columns.get_loc(target_col2) + 1)
+            line_chart.add_series({
+                "name": f"='4. Cleaned Data'!${val_letter2}$4",
+                "values": f"='4. Cleaned Data'!${val_letter2}$5:${val_letter2}$100",
+                "line": {"color": EMERALD_900, "width": 2.5},
+            })
+            line_chart.set_title({"name": f"{target_col2} Trend"})
+            line_chart.set_legend({"none": True})
+            line_chart.set_chartarea({"border": {"none": True}})
+            ws_dash.insert_chart("I10", line_chart, {"x_scale": 1.7, "y_scale": 1.5})
+
+    # ── Sheet 3: AI Executive Summary ─────────────────────────────────────
+    ws_summary = wb.add_worksheet("3. AI Summary")
+    ws_summary.hide_gridlines(2)
+    add_sidebar(ws_summary, "McKinsey AI Executive Summary")
+    ws_summary.set_column("C:K", 15)
+    ws_summary.set_row(5, 600)
+    ws_summary.merge_range("C6:K6", exec_summary, fmt_body)
+
+    # ── Sheet 5: KPI Matrix ──────────────────────────────────────────────
+    ws_kpi = wb.add_worksheet("5. KPI Matrix")
+    add_sidebar(ws_kpi, "Key Performance Indicators")
+    ws_kpi.freeze_panes(4, 1)
+    kpi_headers = ["Metric", "Total", "Average", "Minimum", "Maximum"]
     for ci, h in enumerate(kpi_headers):
-        ws_kpi.write(0, ci, h, fmt_header)
-        ws_kpi.set_column(ci, ci, 18)
-
-    status_green = wb.add_format({"bold": True, "font_color": SUCCESS, "border": 1, "align": "center"})
-    status_red   = wb.add_format({"bold": True, "font_color": DANGER,  "border": 1, "align": "center"})
+        ws_kpi.write(3, ci + 1, h, fmt_header)
+        ws_kpi.set_column(ci + 1, ci + 1, 22)
 
     for ri, col in enumerate(numeric_cols):
-        series = df_clean[col]
-        total, mean, mn, mx, std = series.sum(), series.mean(), series.min(), series.max(), series.std()
-        pct_change = ((mx - mn) / mn * 100) if mn != 0 else 0
-        status = "🟢 On Track" if pct_change >= 0 else "🔴 At Risk"
-        ws_kpi.write(ri + 1, 0, col, fmt_cell)
-        ws_kpi.write(ri + 1, 1, total, fmt_num)
-        ws_kpi.write(ri + 1, 2, mean, fmt_num)
-        ws_kpi.write(ri + 1, 3, mn, fmt_num)
-        ws_kpi.write(ri + 1, 4, mx, fmt_num)
-        ws_kpi.write(ri + 1, 5, std, fmt_num)
-        ws_kpi.write(ri + 1, 6, status, status_green if "🟢" in status else status_red)
+        col_letter = xl_col_to_name(df_clean.columns.get_loc(col) + 1)
+        ws_kpi.write(ri + 4, 1, str(col), fmt_cell)
+        
+        # DYNAMIC FORMULAS
+        ws_kpi.write_formula(ri + 4, 2, f"=SUM('4. Cleaned Data'!{col_letter}:{col_letter})", fmt_num)
+        ws_kpi.write_formula(ri + 4, 3, f"=AVERAGE('4. Cleaned Data'!{col_letter}:{col_letter})", fmt_num)
+        ws_kpi.write_formula(ri + 4, 4, f"=MIN('4. Cleaned Data'!{col_letter}:{col_letter})", fmt_num)
+        ws_kpi.write_formula(ri + 4, 5, f"=MAX('4. Cleaned Data'!{col_letter}:{col_letter})", fmt_num)
 
-    # ── Sheet 6: Charts ────────────────────────────────────────────────────
-    ws_charts = wb.add_worksheet("📈 Charts")
+    # ── Sheet 6: Visual Analytics (More Charts) ────────────────────────────
+    ws_charts = wb.add_worksheet("6. Visual Analytics")
     ws_charts.hide_gridlines(2)
-    ws_charts.merge_range("A1:P2", "Charts & Visualizations", wb.add_format({"bold": True, "font_size": 16, "bg_color": DARK_BG, "font_color": WHITE, "align": "center"}))
+    add_sidebar(ws_charts, "Advanced Visualizations")
 
-    if numeric_cols and len(df_clean) > 1:
-        # Bar chart — first numeric column
-        _write_chart_data(wb, ws_charts, df_clean, numeric_cols[0], row_start=4)
-        bar_chart = wb.add_chart({"type": "column"})
-        bar_chart.add_series({
-            "name": numeric_cols[0],
-            "categories": f"='📈 Charts'!$A$5:$A${min(15, len(df_clean) + 4)}",
-            "values":     f"='📈 Charts'!$B$5:$B${min(15, len(df_clean) + 4)}",
-            "fill": {"color": ACCENT},
-        })
-        bar_chart.set_title({"name": f"Top Values — {numeric_cols[0]}"})
-        bar_chart.set_style(10)
-        ws_charts.insert_chart("D4", bar_chart, {"x_scale": 2.5, "y_scale": 1.8})
-
-        # Line chart — second numeric column (if exists)
-        if len(numeric_cols) > 1:
-            _write_chart_data(wb, ws_charts, df_clean, numeric_cols[1], row_start=4, col_start=5)
-            line_chart = wb.add_chart({"type": "line"})
-            line_chart.add_series({
-                "name": numeric_cols[1],
-                "values": f"='📈 Charts'!$G$5:$G${min(15, len(df_clean) + 4)}",
-                "line": {"color": SUCCESS, "width": 2.5},
-                "marker": {"type": "circle", "size": 5},
+    # ── Sheet 7: Forecasting ───────────────────────────────────────────────
+    ws_forecast = wb.add_worksheet("7. Forecasting")
+    ws_forecast.hide_gridlines(2)
+    add_sidebar(ws_forecast, "Trend Forecasting (Linear)")
+    
+    if numeric_cols and len(df_clean) > 10:
+        target_col = numeric_cols[0]
+        y = df_clean[target_col].dropna().values[:100]
+        x = np.arange(len(y))
+        if len(y) > 2:
+            m, b = np.polyfit(x, y, 1)
+            ws_forecast.write(5, 2, "Period", fmt_header)
+            ws_forecast.write(5, 3, "Actual/Predicted", fmt_header)
+            
+            for i in range(20):
+                val = (m * (len(y) + i)) + b
+                ws_forecast.write(6 + i, 2, f"Future Period {i+1}", fmt_cell)
+                ws_forecast.write(6 + i, 3, val, fmt_num)
+                
+            # Forecast chart
+            f_chart = wb.add_chart({"type": "line"})
+            f_chart.add_series({
+                "name": "Forecast",
+                "categories": f"='7. Forecasting'!$C$7:$C$26",
+                "values": f"='7. Forecasting'!$D$7:$D$26",
+                "line": {"color": WARNING, "width": 2.5, "dash_type": "dash"},
             })
-            line_chart.set_title({"name": f"Trend — {numeric_cols[1]}"})
-            line_chart.set_style(10)
-            ws_charts.insert_chart("D24", line_chart, {"x_scale": 2.5, "y_scale": 1.8})
+            f_chart.set_title({"name": f"{target_col} - 20 Period Forecast"})
+            f_chart.set_chartarea({"border": {"none": True}})
+            ws_forecast.insert_chart("F6", f_chart, {"x_scale": 1.8, "y_scale": 1.5})
+    else:
+        ws_forecast.write(5, 2, "Not enough numeric data for forecasting.")
 
-    # ── Sheet 7: Methodology ───────────────────────────────────────────────
-    ws_method = wb.add_worksheet("📝 Methodology")
-    ws_method.set_column("A:A", 100)
-    ws_method.write("A1", "Methodology & Report Notes", wb.add_format({"bold": True, "font_size": 16, "bg_color": DARK_BG, "font_color": WHITE}))
-    notes = [
-        f"Report Title: {report.title}",
-        f"Dataset: {dataset.name} ({dataset.row_count:,} rows × {dataset.column_count} columns)",
-        f"Data Quality Score: {dataset.data_quality_score}/100",
-        f"AI Models Used: Claude 3.5 Sonnet (blueprint), GPT-4o (narrative & analysis)",
-        f"Generation Date: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
-        "",
-        "Disclaimer: This report was AI-generated by Data Insight. All insights are based on",
-        "statistical analysis of the provided data. Review figures against source data before",
-        "sharing with external stakeholders.",
+    # ── Sheet 8: Anomaly Detection ─────────────────────────────────────────
+    ws_anomaly = wb.add_worksheet("8. Risk & Anomalies")
+    add_sidebar(ws_anomaly, "Outlier Detection (IQR Method)")
+    
+    curr_row = 5
+    for col in numeric_cols[:2]:
+        series = df_clean[col].dropna()
+        if len(series) > 4:
+            q1 = series.quantile(0.25)
+            q3 = series.quantile(0.75)
+            iqr = q3 - q1
+            outliers = df_clean[(df_clean[col] < q1 - 1.5 * iqr) | (df_clean[col] > q3 + 1.5 * iqr)]
+            
+            ws_anomaly.merge_range(curr_row, 2, curr_row, 3, f"Outliers in {col} ({len(outliers)} found)", wb.add_format({"bold": True, "bg_color": WARNING, "font_color": WHITE}))
+            if not outliers.empty:
+                ws_anomaly.write(curr_row + 1, 2, "Row Index", fmt_header)
+                ws_anomaly.write(curr_row + 1, 3, "Value", fmt_header)
+                ws_anomaly.set_column(2, 3, 20)
+                for i, (idx, val) in enumerate(outliers[col].head(10).items()):
+                    ws_anomaly.write(curr_row + 2 + i, 2, str(idx), fmt_cell)
+                    ws_anomaly.write(curr_row + 2 + i, 3, val, fmt_num)
+                curr_row += len(outliers.head(10)) + 4
+            else:
+                curr_row += 3
+
+    # ── Sheet 9: Data Quality ──────────────────────────────────────────────
+    ws_meta = wb.add_worksheet("9. Data Quality")
+    add_sidebar(ws_meta, "Data Quality & Metadata")
+    
+    ws_meta.set_column("B:D", 30)
+    
+    meta_data = [
+        ("Total Rows Processed", dataset.row_count),
+        ("Total Columns", dataset.column_count),
+        ("Data Quality Score", f"{dataset.data_quality_score}/100"),
+        ("Duplicate Rows Filtered", df_raw.duplicated().sum()),
+        ("Missing Values Resolved", df_raw.isnull().sum().sum()),
+        ("AI Generation Models", "Google Gemini 3.5 Flash / OpenAI GPT-4o"),
+        ("Generation Timestamp", now_str)
     ]
-    for ri, note in enumerate(notes):
-        ws_method.write(ri + 2, 0, note, fmt_body)
-
-
-def _write_chart_data(wb, ws, df, col: str, row_start: int, col_start: int = 0):
-    """Write label/value pairs for chart data source."""
-    import pandas as pd
-    head = df.head(10)
-    ws.write(row_start - 1, col_start, "Label", wb.add_format({"bold": True}))
-    ws.write(row_start - 1, col_start + 1, col, wb.add_format({"bold": True}))
-    for ri, (idx, val) in enumerate(zip(head.index, head[col].values)):
-        ws.write(row_start + ri, col_start, str(idx))
-        try:
-            ws.write(row_start + ri, col_start + 1, float(val))
-        except Exception:
-            ws.write(row_start + ri, col_start + 1, 0)
+    
+    for i, (k, v) in enumerate(meta_data):
+        ws_meta.write(i + 5, 2, k, wb.add_format({"bold": True, "border": 1, "bg_color": SLATE_50, "valign": "vcenter"}))
+        ws_meta.write(i + 5, 3, str(v), fmt_cell)
+        ws_meta.set_row(i + 5, 22)

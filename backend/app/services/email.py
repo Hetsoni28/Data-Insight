@@ -1,25 +1,15 @@
 """
-Email service — Resend API integration with HTML templates.
+Email service — SMTP integration with HTML templates.
 
-Resend is the best modern transactional email API:
-- 100 emails/day free
-- Excellent deliverability
-- Beautiful API
-
-Set RESEND_API_KEY in .env to enable.
-In development, OTPs are logged to console if RESEND_API_KEY is empty.
-
-FIX: resend.Emails.send() is synchronous — wrapped in asyncio.to_thread()
-     so it never blocks the async event loop.
+Set SMTP_USER and SMTP_PASSWORD in .env to enable.
+In development, OTPs are logged to console if credentials are empty.
 """
 import asyncio
-import resend
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from loguru import logger
 from app.core.config import settings
-
-
-# ── Resend Setup ──────────────────────────────────────────────────────────────
-resend.api_key = settings.RESEND_API_KEY
 
 
 # ── HTML Email Templates ──────────────────────────────────────────────────────
@@ -201,51 +191,42 @@ async def send_report_ready(to_email: str, full_name: str | None, report_name: s
 
 # ── Internal send ─────────────────────────────────────────────────────────────
 
+def _sync_send(to: str, subject: str, html: str) -> None:
+    """Synchronous function to actually send the email via smtplib."""
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = settings.EMAIL_FROM
+    msg["To"] = to
+
+    msg.attach(MIMEText(html, "html"))
+
+    server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+    server.starttls()
+    server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+    server.sendmail(settings.EMAIL_FROM, to, msg.as_string())
+    server.quit()
+
+
 async def _send(to: str, subject: str, html: str) -> None:
     """
-    Send via Resend.
-
-    - Wraps the synchronous resend.Emails.send() in asyncio.to_thread() so it
-      never blocks the async event loop.
-    - Falls back to console log in development if RESEND_API_KEY is not set.
-    - In dev with DEV_EMAIL_OVERRIDE set, redirects to the Resend account owner
-      (Resend sandbox only delivers to the account owner's email address).
+    Send via SMTP in a thread pool to avoid blocking the event loop.
+    Falls back to console log if SMTP_USER is not set.
     """
-    if not settings.RESEND_API_KEY:
+    if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
         # Dev mode — print OTP to console so developers can see it
         logger.warning(
             f"\n{'='*60}\n"
-            f"DEV EMAIL (no RESEND_API_KEY set)\n"
+            f"DEV EMAIL (no SMTP credentials set)\n"
             f"To:      {to}\n"
             f"Subject: {subject}\n"
-            f"[HTML content omitted — check OTP in API logs above]\n"
+            f"[HTML content omitted]\n"
             f"{'='*60}"
         )
         return
 
-    # In dev, Resend sandbox restricts delivery to the account owner's email.
-    actual_to = to
-    if settings.DEV_EMAIL_OVERRIDE and settings.APP_ENV == "development":
-        actual_to = settings.DEV_EMAIL_OVERRIDE
-        logger.info(
-            f"[Email] DEV redirect: {to} -> {actual_to} "
-            f"(Resend sandbox restriction — set DEV_EMAIL_OVERRIDE='' in prod)"
-        )
-        subject = f"[DEV for {to}] {subject}"
-
     try:
-        params: resend.Emails.SendParams = {
-            "from": settings.EMAIL_FROM,
-            "to": [actual_to],
-            "subject": subject,
-            "html": html,
-        }
-        # resend.Emails.send() is SYNCHRONOUS — run it in a thread pool
-        # so it doesn't block the entire async event loop
-        response = await asyncio.to_thread(resend.Emails.send, params)
-        logger.info(f"[Email] Sent to {actual_to} | id={response.get('id', 'n/a')} | subject='{subject}'")
+        await asyncio.to_thread(_sync_send, to, subject, html)
+        logger.info(f"[Email] Sent to {to} via SMTP | subject='{subject}'")
     except Exception as exc:
-        logger.error(f"[Email] Failed to send to {actual_to} | subject='{subject}' | error: {exc}")
+        logger.error(f"[Email] Failed to send to {to} | subject='{subject}' | error: {exc}")
         # Don't re-raise — email failure should not crash the auth flow.
-        # The OTP is logged in the API endpoint for debugging.
-

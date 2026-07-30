@@ -28,7 +28,10 @@ const OWNER_NAV_GROUPS: NavGroup[] = [
     title: "Overview",
     items: [
       { icon: LayoutDashboard, label: "Dashboard", href: "/owner/dashboard" },
+      { icon: Database, label: "Datasets", href: "/owner/dashboard/datasets" },
+      { icon: FileSpreadsheet, label: "Reports", href: "/owner/dashboard/reports" },
       { icon: ActivitySquare, label: "Monitoring", href: "/owner/dashboard/monitoring" },
+      { icon: Brain, label: "AI Copilot", href: "/owner/dashboard/ai" },
     ]
   },
   {

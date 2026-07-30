@@ -87,7 +87,7 @@ export function MemberLayout({ children, user, handleLogout }: MemberLayoutProps
         workspaces={workspaces}
         activeWs={activeWs}
         loadingWs={loadingWs}
-        navItems={navItems}
+        navGroups={[{ title: "Menu", items: navItems }]}
         handleLogout={handleLogout}
       />
 

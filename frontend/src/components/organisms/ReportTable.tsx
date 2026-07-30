@@ -46,7 +46,16 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
       toast.error("Download link is not available yet.");
       return;
     }
-    window.open(outputUrl, "_blank");
+    
+    // If it's a relative URL (local storage), point it to the backend server
+    let finalUrl = outputUrl;
+    if (outputUrl.startsWith("/")) {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, "");
+      finalUrl = `${baseUrl}${outputUrl}`;
+    }
+    
+    window.open(finalUrl, "_blank");
   };
 
   const getStatusBadge = (status: string, progress: number) => {
