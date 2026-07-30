@@ -1,7 +1,10 @@
+"use client";
+
 import { motion } from "framer-motion"
 import { Building2, ShieldCheck, Activity, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 interface DashboardHeroProps {
   user: any;
@@ -11,6 +14,14 @@ interface DashboardHeroProps {
 export function DashboardHero({ user, kpis }: DashboardHeroProps) {
   const router = useRouter()
   const firstName = user?.full_name?.split(" ")[0] || "there"
+  const [greeting, setGreeting] = useState("Welcome")
+
+  useEffect(() => {
+    const hour = new Date().getHours()
+    if (hour < 12) setGreeting("Good Morning")
+    else if (hour < 18) setGreeting("Good Afternoon")
+    else setGreeting("Good Evening")
+  }, [])
 
   return (
     <div className="relative overflow-hidden bg-[#0c402d] rounded-lg p-8 md:p-10 shadow-xl mb-8 border border-[#082f22]">
@@ -29,7 +40,7 @@ export function DashboardHero({ user, kpis }: DashboardHeroProps) {
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-5xl font-extrabold text-white tracking-tight"
           >
-            Good Morning, {firstName} <span className="inline-block origin-[70%_70%] hover:animate-wave">👋</span>
+            {greeting}, {firstName} <span className="inline-block origin-[70%_70%] hover:animate-wave">👋</span>
           </motion.h1>
           
           <motion.p 
