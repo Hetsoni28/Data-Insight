@@ -38,7 +38,7 @@ export function DashboardEmptyState({ onUploadClick }: { onUploadClick?: () => v
   }
 
   return (
-    <div className="bg-white dark:bg-slate-950 rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden min-h-[400px]">
+    <div className="bg-white dark:bg-slate-950 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden min-h-[400px]">
       <StateLayout
         illustration={<DashboardBuilderIllustration />}
         headline="Let's bring your data to life"

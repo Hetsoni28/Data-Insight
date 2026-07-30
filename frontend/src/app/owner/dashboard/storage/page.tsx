@@ -21,7 +21,7 @@ export default function StoragePage() {
   const columns: Column<typeof MOCK_FILES[0]>[] = [
     { 
       header: "File Name", 
-      className: "font-medium text-slate-900",
+      className: "font-medium text-slate-900 dark:text-white",
       cell: (row) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -31,9 +31,9 @@ export default function StoragePage() {
         </div>
       )
     },
-    { header: "Type", accessorKey: "type", className: "text-slate-500" },
-    { header: "Size", accessorKey: "size", className: "text-slate-500 font-mono text-xs" },
-    { header: "Uploaded", accessorKey: "uploaded", className: "text-slate-500" },
+    { header: "Type", accessorKey: "type", className: "text-slate-500 dark:text-slate-400" },
+    { header: "Size", accessorKey: "size", className: "text-slate-500 dark:text-slate-400 font-mono text-xs" },
+    { header: "Uploaded", accessorKey: "uploaded", className: "text-slate-500 dark:text-slate-400" },
     { 
       header: "Actions", 
       className: "text-right",
@@ -62,13 +62,13 @@ export default function StoragePage() {
         <SettingCard title="Storage Quota" delay={0.1} className="lg:col-span-1 h-fit">
           <div className="space-y-4">
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Used Storage</span>
-              <span className="font-semibold text-slate-900">45.2 GB <span className="text-slate-400 font-normal">/ 100 GB</span></span>
+              <span className="text-slate-500 dark:text-slate-400">Used Storage</span>
+              <span className="font-semibold text-slate-900 dark:text-white">45.2 GB <span className="text-slate-400 font-normal">/ 100 GB</span></span>
             </div>
-            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2 overflow-hidden">
               <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '45%' }}></div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
               You have used 45% of your Enterprise plan storage quota.
             </p>
             <Button variant="outline" className="w-full mt-4" onClick={() => toast.info("Upgrade dialog opened")}>

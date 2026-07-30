@@ -72,30 +72,30 @@ export function OrganizationDataGrid() {
         return <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold uppercase tracking-wider">Professional</span>
       case 'starter':
       default:
-        return <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold uppercase tracking-wider">Starter</span>
+        return <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 text-xs font-semibold uppercase tracking-wider">Starter</span>
     }
   }
 
   return (
     <>
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden flex flex-col">
         {/* Toolbar */}
-        <div className="p-4 md:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+        <div className="p-4 md:p-5 border-b border-slate-100 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
           <div className="relative w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search organizations..." 
-              className="pl-9 h-10 bg-white border-slate-200 rounded-md focus-visible:ring-emerald-500 shadow-sm"
+              className="pl-9 h-10 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-md focus-visible:ring-emerald-500 shadow-sm"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 bg-white shadow-sm rounded-md">
+            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 bg-white dark:bg-white/5 shadow-sm rounded-md">
               <Filter className="h-4 w-4 mr-2" />
               Filters
             </Button>
-            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 bg-white shadow-sm rounded-md hidden md:flex">
+            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 bg-white dark:bg-white/5 shadow-sm rounded-md hidden md:flex">
               <Settings2 className="h-4 w-4 mr-2" />
               Columns
             </Button>
@@ -105,7 +105,7 @@ export function OrganizationDataGrid() {
         {/* Data Table */}
         <div className="overflow-x-auto min-h-[400px]">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+            <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Organization</th>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Plan</th>
@@ -120,19 +120,19 @@ export function OrganizationDataGrid() {
                 // Loading Skeleton Rows
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 rounded-md animate-pulse w-48" /></td>
-                    <td className="px-6 py-4"><div className="h-6 bg-slate-100 rounded-md animate-pulse w-24" /></td>
-                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 rounded-md animate-pulse w-32" /></td>
-                    <td className="px-6 py-4"><div className="h-6 bg-slate-100 rounded-md animate-pulse w-20" /></td>
-                    <td className="px-6 py-4"><div className="h-6 bg-slate-100 rounded-md animate-pulse w-24" /></td>
-                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 rounded-md animate-pulse w-8 ml-auto" /></td>
+                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-48" /></td>
+                    <td className="px-6 py-4"><div className="h-6 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-24" /></td>
+                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-32" /></td>
+                    <td className="px-6 py-4"><div className="h-6 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-20" /></td>
+                    <td className="px-6 py-4"><div className="h-6 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-24" /></td>
+                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-8 ml-auto" /></td>
                   </tr>
                 ))
               ) : filteredTenants.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
                     <Building2 className="h-10 w-10 mx-auto text-slate-300 mb-3" />
-                    <p className="text-base font-medium text-slate-900">No organizations found</p>
+                    <p className="text-base font-medium text-slate-900 dark:text-white">No organizations found</p>
                     <p className="text-sm">Try adjusting your search filters.</p>
                   </td>
                 </tr>
@@ -152,8 +152,8 @@ export function OrganizationDataGrid() {
                           <Building2 className="h-5 w-5" />
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-900">{tenant.name}</div>
-                          <div className="text-xs text-slate-500 mt-0.5">{tenant.slug}</div>
+                          <div className="font-semibold text-slate-900 dark:text-white">{tenant.name}</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tenant.slug}</div>
                         </div>
                       </div>
                     </td>
@@ -166,11 +166,11 @@ export function OrganizationDataGrid() {
                     {/* Usage Summary */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 text-slate-600" title="Active Users">
+                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400" title="Active Users">
                           <Users className="h-4 w-4 text-slate-400" />
                           <span className="font-medium">{tenant.users_count || 0}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-slate-600" title="Datasets">
+                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400" title="Datasets">
                           <Database className="h-4 w-4 text-slate-400" />
                           <span className="font-medium">{tenant.datasets_count || 0}</span>
                         </div>
@@ -191,7 +191,7 @@ export function OrganizationDataGrid() {
                     </td>
                     
                     {/* Created Date */}
-                    <td className="px-6 py-4 text-slate-600">
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                       {new Date(tenant.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </td>
                     
@@ -218,11 +218,11 @@ export function OrganizationDataGrid() {
         
         {/* Pagination Footer */}
         {!loading && filteredTenants.length > 0 && (
-          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-sm text-slate-500">
-            <div>Showing <span className="font-semibold text-slate-900">{filteredTenants.length}</span> organizations</div>
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+            <div>Showing <span className="font-semibold text-slate-900 dark:text-white">{filteredTenants.length}</span> organizations</div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white" disabled>Previous</Button>
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white">Next</Button>
+              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-white/5" disabled>Previous</Button>
+              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-white/5">Next</Button>
             </div>
           </div>
         )}
@@ -230,7 +230,7 @@ export function OrganizationDataGrid() {
 
       {/* Tenant Details Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:max-w-md border-l border-slate-200">
+        <SheetContent side="right" className="w-[400px] sm:max-w-md border-l border-slate-200 dark:border-white/10">
           {selectedTenant && (
             <div className="flex flex-col h-full">
               <SheetHeader className="mb-6">
@@ -247,29 +247,29 @@ export function OrganizationDataGrid() {
               
               <div className="flex-1 space-y-6 overflow-y-auto pr-2">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-3 uppercase tracking-wider">Overview</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider">Overview</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                      <div className="text-xs text-slate-500 mb-1">Status</div>
-                      <div className="font-semibold text-slate-900">{selectedTenant.is_active ? "Active" : "Suspended"}</div>
+                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Status</div>
+                      <div className="font-semibold text-slate-900 dark:text-white">{selectedTenant.is_active ? "Active" : "Suspended"}</div>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                      <div className="text-xs text-slate-500 mb-1">Plan</div>
-                      <div className="font-semibold text-slate-900 capitalize">{selectedTenant.plan}</div>
+                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Plan</div>
+                      <div className="font-semibold text-slate-900 dark:text-white capitalize">{selectedTenant.plan}</div>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                      <div className="text-xs text-slate-500 mb-1">Active Users</div>
-                      <div className="font-semibold text-slate-900">{selectedTenant.users_count || 0}</div>
+                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Active Users</div>
+                      <div className="font-semibold text-slate-900 dark:text-white">{selectedTenant.users_count || 0}</div>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                      <div className="text-xs text-slate-500 mb-1">Datasets</div>
-                      <div className="font-semibold text-slate-900">{selectedTenant.datasets_count || 0}</div>
+                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Datasets</div>
+                      <div className="font-semibold text-slate-900 dark:text-white">{selectedTenant.datasets_count || 0}</div>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-3 uppercase tracking-wider">Security</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider">Security</h3>
                   <Button variant="outline" className="w-full justify-start h-10 mb-2">
                     <Shield className="h-4 w-4 mr-2 text-blue-600" />
                     Impersonate Administrator

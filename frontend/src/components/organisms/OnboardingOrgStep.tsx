@@ -35,21 +35,21 @@ export function OnboardingOrgStep({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
-      className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10"
+      className="bg-white dark:bg-white/5 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-white/5 p-8 sm:p-10"
     >
       <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-emerald-100">
         <Building2 className="h-7 w-7 text-[#10B981]" />
       </div>
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">
+      <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
         Set up your organization
       </h1>
-      <p className="text-base text-slate-500 mb-8">
+      <p className="text-base text-slate-500 dark:text-slate-400 mb-8">
         Welcome{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}! Let's create a shared space for your team's analytics.
       </p>
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="orgName" className="text-sm font-semibold text-slate-700">Organization name <span className="text-red-500">*</span></Label>
+          <Label htmlFor="orgName" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Organization name <span className="text-red-500">*</span></Label>
           <Input
             id="orgName"
             placeholder="e.g. Acme Corp"
@@ -58,15 +58,15 @@ export function OnboardingOrgStep({
             onFocus={() => setFocusedField("orgName")}
             onBlur={() => setFocusedField(null)}
             className={cn(
-              "h-12 bg-slate-50/50 border-slate-200 transition-all duration-300",
-              focusedField === "orgName" && "border-[#10B981] ring-4 ring-[#10B981]/10 shadow-sm bg-white"
+              "h-12 bg-slate-50/50 border-slate-200 dark:border-white/10 transition-all duration-300",
+              focusedField === "orgName" && "border-[#10B981] ring-4 ring-[#10B981]/10 shadow-sm bg-white dark:bg-white/5"
             )}
             onKeyDown={(e) => e.key === "Enter" && handleCreateOrg()}
           />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-slate-700">Which industry describes your company best?</Label>
+          <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Which industry describes your company best?</Label>
           <div className="grid grid-cols-2 gap-3">
             {INDUSTRIES.map((ind) => (
               <button
@@ -77,7 +77,7 @@ export function OnboardingOrgStep({
                   "text-left px-4 py-3 rounded-xl text-sm transition-all border",
                   org.industry === ind
                     ? "border-[#10B981] bg-emerald-50 text-[#10B981] font-semibold shadow-sm ring-2 ring-[#10B981]/20"
-                    : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                    : "border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
                 )}
               >
                 {ind}

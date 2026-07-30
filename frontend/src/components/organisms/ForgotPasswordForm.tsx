@@ -57,8 +57,8 @@ export function ForgotPasswordForm() {
             className="space-y-6"
           >
             <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }} className="space-y-1">
-              <h1 className="text-2xl font-bold text-slate-900">Forgot your password?</h1>
-              <p className="text-sm text-slate-500">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Forgot your password?</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 No worries — enter your email and we&apos;ll send a reset link right away.
               </p>
             </motion.div>
@@ -69,10 +69,10 @@ export function ForgotPasswordForm() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }} className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email address</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">Email address</Label>
                 <Input id="email" type="email" placeholder="you@company.com" required autoFocus
                   value={email} onChange={e => setEmail(e.target.value)}
-                  className="h-10 bg-white border-slate-200 focus:border-[#10B981]" />
+                  className="h-10 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-[#10B981]" />
               </motion.div>
 
               {error && (
@@ -93,7 +93,7 @@ export function ForgotPasswordForm() {
             </form>
 
             <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-              <Link href="/login" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors w-fit">
+              <Link href="/login" className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors w-fit">
                 <ArrowLeft className="h-4 w-4" /> Back to sign in
               </Link>
             </motion.div>
@@ -109,10 +109,10 @@ export function ForgotPasswordForm() {
             </div>
 
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold text-slate-900">Check your inbox</h1>
-              <p className="text-sm text-slate-500 leading-relaxed">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Check your inbox</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                 We&apos;ve sent a password reset link to{" "}
-                <span className="font-medium text-slate-700">{email}</span>.
+                <span className="font-medium text-slate-700 dark:text-slate-300">{email}</span>.
                 The link expires in 30 minutes.
               </p>
             </div>
@@ -124,11 +124,11 @@ export function ForgotPasswordForm() {
               </button>.
             </div>
 
-            <Button variant="outline" className="w-full h-10 border-slate-200" onClick={() => setStep("email")}>
+            <Button variant="outline" className="w-full h-10 border-slate-200 dark:border-white/10" onClick={() => setStep("email")}>
               <ArrowLeft className="h-4 w-4 mr-2" /> Back to reset
             </Button>
 
-            <Link href="/login" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors w-fit mx-auto">
+            <Link href="/login" className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors w-fit mx-auto">
               Return to sign in →
             </Link>
           </motion.div>

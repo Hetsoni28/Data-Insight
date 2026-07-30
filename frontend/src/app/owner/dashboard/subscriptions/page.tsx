@@ -17,19 +17,19 @@ export default function SubscriptionsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
               <CreditCard className="h-5 w-5" />
             </div>
             Subscriptions
           </h1>
-          <p className="text-slate-500 text-sm mt-2">
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
             Manage all active tenant SaaS plans, billing cycles, and payment statuses.
           </p>
         </div>
         
         <div className="flex items-center gap-3">
-          <Button onClick={handleExport} variant="outline" className="h-9 px-4 rounded-md bg-white border-slate-200 text-slate-600 shadow-sm hover:text-slate-900 hover:bg-slate-50">
+          <Button onClick={handleExport} variant="outline" className="h-9 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>

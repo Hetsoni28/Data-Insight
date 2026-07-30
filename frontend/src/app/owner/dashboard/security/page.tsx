@@ -37,10 +37,10 @@ export default function SecurityPage() {
           icon={Fingerprint}
           delay={0.1}
         >
-          <div className="mt-6 p-4 rounded-xl border border-slate-200/60 bg-slate-50 flex items-center justify-between">
+          <div className="mt-6 p-4 rounded-xl border border-slate-200/60 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex items-center justify-between">
             <div>
-              <p className="font-medium text-slate-900">Enforce Organization-wide MFA</p>
-              <p className="text-sm text-slate-500 mt-1">Status will be applied globally.</p>
+              <p className="font-medium text-slate-900 dark:text-white">Enforce Organization-wide MFA</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Status will be applied globally.</p>
             </div>
             <ActionToggle 
               initialState={false} 
@@ -60,17 +60,17 @@ export default function SecurityPage() {
         >
           <div className="mt-6 space-y-4">
             <div>
-              <label className="text-sm font-medium text-slate-700">Idle Session Timeout (Minutes)</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Idle Session Timeout (Minutes)</label>
               <div className="flex gap-3 mt-1">
                 <input type="number" defaultValue={30} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 max-w-[120px]" />
                 <Button variant="outline" onClick={() => toast.success("Session timeout updated")}>Save</Button>
               </div>
             </div>
             
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div className="pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
               <div>
-                <p className="font-medium text-slate-900 text-sm">Force Log Out All Users</p>
-                <p className="text-xs text-slate-500 mt-1">Immediately invalidates all active sessions.</p>
+                <p className="font-medium text-slate-900 dark:text-white text-sm">Force Log Out All Users</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Immediately invalidates all active sessions.</p>
               </div>
               <Button 
                 variant="destructive" 

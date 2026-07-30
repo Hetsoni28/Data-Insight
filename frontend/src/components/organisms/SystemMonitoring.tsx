@@ -11,13 +11,13 @@ import { toast } from "sonner"
 const CustomTooltip = ({ active, payload, label, suffix = "" }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-slate-200 shadow-xl rounded-md p-3 text-sm">
-        <p className="font-semibold text-slate-900 mb-2">{label}</p>
+      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-xl rounded-md p-3 text-sm">
+        <p className="font-semibold text-slate-900 dark:text-white mb-2">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 mb-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-            <span className="text-slate-600 capitalize">{entry.name}:</span>
-            <span className="font-mono font-medium text-slate-900">{entry.value}{suffix}</span>
+            <span className="text-slate-600 dark:text-slate-400 capitalize">{entry.name}:</span>
+            <span className="font-mono font-medium text-slate-900 dark:text-white">{entry.value}{suffix}</span>
           </div>
         ))}
       </div>
@@ -66,10 +66,10 @@ export function SystemMonitoring() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-white border border-slate-200 rounded-lg p-5 h-32 animate-pulse" />
+          <div key={i} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 h-32 animate-pulse" />
         ))}
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-lg p-6 h-[300px] animate-pulse" />
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-lg p-6 h-[300px] animate-pulse" />
+        <div className="lg:col-span-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 h-[300px] animate-pulse" />
+        <div className="lg:col-span-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 h-[300px] animate-pulse" />
       </div>
     )
   }
@@ -84,7 +84,7 @@ export function SystemMonitoring() {
       
       {/* Top Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div className="p-2.5 rounded-md bg-emerald-50">
               <Server className="h-5 w-5 text-emerald-600" />
@@ -93,38 +93,38 @@ export function SystemMonitoring() {
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live
             </span>
           </div>
-          <h3 className="text-sm font-medium text-slate-500">System Uptime</h3>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{currentMetrics.uptime}%</p>
+          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">System Uptime</h3>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{currentMetrics.uptime}%</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div className="p-2.5 rounded-md bg-blue-50">
               <Activity className="h-5 w-5 text-blue-600" />
             </div>
           </div>
-          <h3 className="text-sm font-medium text-slate-500">Active Connections</h3>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{currentMetrics.active_connections.toLocaleString()}</p>
+          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Active Connections</h3>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{currentMetrics.active_connections.toLocaleString()}</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div className="p-2.5 rounded-md bg-rose-50">
               <AlertCircle className="h-5 w-5 text-rose-600" />
             </div>
           </div>
-          <h3 className="text-sm font-medium text-slate-500">Error Rate (5xx)</h3>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{currentMetrics.error_rate}%</p>
+          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Error Rate (5xx)</h3>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{currentMetrics.error_rate}%</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div className="p-2.5 rounded-md bg-amber-50">
               <Database className="h-5 w-5 text-amber-600" />
             </div>
           </div>
-          <h3 className="text-sm font-medium text-slate-500">Active Alerts</h3>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{currentMetrics.alerts.length}</p>
+          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Active Alerts</h3>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{currentMetrics.alerts.length}</p>
         </motion.div>
       </div>
 
@@ -136,15 +136,15 @@ export function SystemMonitoring() {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.5 }}
-          className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm"
+          className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Cpu className="h-4 w-4 text-blue-600" />
                 Cluster Resource Utilization
               </h3>
-              <p className="text-sm text-slate-500 mt-1">CPU and Memory mapped in real-time.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">CPU and Memory mapped in real-time.</p>
             </div>
           </div>
           <div className="h-[250px] w-full">
@@ -166,15 +166,15 @@ export function SystemMonitoring() {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
-          className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm"
+          className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Activity className="h-4 w-4 text-emerald-600" />
                 Global API Latency
               </h3>
-              <p className="text-sm text-slate-500 mt-1">Real-time p99 response time monitoring.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Real-time p99 response time monitoring.</p>
             </div>
           </div>
           <div className="h-[250px] w-full">
@@ -195,12 +195,12 @@ export function SystemMonitoring() {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.7 }}
-          className="lg:col-span-2 bg-white border border-slate-200 rounded-lg p-6 shadow-sm"
+          className="lg:col-span-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm"
         >
-          <h3 className="text-base font-bold text-slate-900 mb-4">Recent System Alerts</h3>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Recent System Alerts</h3>
           <div className="space-y-3">
             {currentMetrics.alerts.map((alert: any) => (
-              <div key={alert.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100">
+              <div key={alert.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
                 <div className="flex items-center gap-3">
                   {alert.level === 'warning' ? (
                     <AlertCircle className="h-5 w-5 text-amber-500" />
@@ -208,11 +208,11 @@ export function SystemMonitoring() {
                     <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                   )}
                   <div>
-                    <div className="font-medium text-slate-900 text-sm">{alert.message}</div>
-                    <div className="text-xs text-slate-500 font-mono mt-0.5">{alert.id}</div>
+                    <div className="font-medium text-slate-900 dark:text-white text-sm">{alert.message}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">{alert.id}</div>
                   </div>
                 </div>
-                <div className="text-xs text-slate-500">{alert.time}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{alert.time}</div>
               </div>
             ))}
           </div>

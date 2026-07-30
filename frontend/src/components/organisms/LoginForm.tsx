@@ -152,21 +152,21 @@ export function LoginForm() {
         
         {/* Toggle Tabs */}
         {!requestSuccess && loginStep === 1 && (
-          <div className="flex p-1 bg-slate-100 rounded-xl mb-8 relative">
+          <div className="flex p-1 bg-slate-100 dark:bg-white/10 rounded-xl mb-8 relative">
             <button
               onClick={() => { setMode("login"); setFieldError(""); }}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg z-10 transition-colors ${mode === "login" ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg z-10 transition-colors ${mode === "login" ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"}`}
             >
               Sign In
             </button>
             <button
               onClick={() => { setMode("request"); setFieldError(""); }}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg z-10 transition-colors ${mode === "request" ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg z-10 transition-colors ${mode === "request" ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"}`}
             >
               Request Access
             </button>
             <motion.div 
-              className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm"
+              className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-white/5 rounded-lg shadow-sm"
               initial={false}
               animate={{ left: mode === "login" ? 4 : "50%" }}
               transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
@@ -189,8 +189,8 @@ export function LoginForm() {
                 <CheckCircle2 className="h-8 w-8 text-emerald-600" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-slate-900">Request Submitted</h2>
-                <p className="text-sm text-slate-500 leading-relaxed">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Request Submitted</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                   Your access request has been sent to the Platform Owner for approval.
                   You will receive an email once your account has been activated.
                 </p>
@@ -215,15 +215,15 @@ export function LoginForm() {
                   REQUEST ACCESS FORM
                  ───────────────────────────────────────────────────────────── */}
               <div className="space-y-1 mb-8">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">Join the team</h1>
-                <p className="text-sm text-slate-500">Submit a request to access the workspace</p>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Join the team</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Submit a request to access the workspace</p>
               </div>
 
               {mounted ? (
                 <form onSubmit={handleRequestAccess} className="space-y-5" suppressHydrationWarning>
                   {/* Full Name */}
                   <div className="space-y-2 relative group">
-                    <Label htmlFor="full_name" className="text-sm font-semibold text-slate-700">Full Name</Label>
+                    <Label htmlFor="full_name" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Full Name</Label>
                     <Input
                       id="full_name"
                       type="text"
@@ -238,7 +238,7 @@ export function LoginForm() {
 
                   {/* Email */}
                   <div className="space-y-2 relative group">
-                    <Label htmlFor="email" className="text-sm font-semibold text-slate-700">Email address</Label>
+                    <Label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Email address</Label>
                     <Input
                       id="email"
                       type="email"
@@ -253,7 +253,7 @@ export function LoginForm() {
 
                   {/* Password */}
                   <div className="space-y-2 relative group">
-                    <Label htmlFor="password" className="text-sm font-semibold text-slate-700">Password</Label>
+                    <Label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Password</Label>
                     <div className="relative">
                       <Input
                         id="password"
@@ -269,7 +269,7 @@ export function LoginForm() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
                         tabIndex={-1}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -279,7 +279,7 @@ export function LoginForm() {
 
                   {/* Requested Role Dropdown */}
                   <div className="space-y-2 relative group">
-                    <Label htmlFor="requested_role" className="text-sm font-semibold text-slate-700">Requested Role</Label>
+                    <Label htmlFor="requested_role" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Requested Role</Label>
                     <select
                       id="requested_role"
                       value={form.requested_role}
@@ -349,15 +349,15 @@ export function LoginForm() {
                   LOGIN STEP 1 (Credentials)
                  ───────────────────────────────────────────────────────────── */}
               <div className="space-y-1 mb-8">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">Welcome back</h1>
-                <p className="text-sm text-slate-500">Sign in to your account to continue</p>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome back</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Sign in to your account to continue</p>
               </div>
 
               {mounted ? (
                 <form onSubmit={handleLoginStep1} className="space-y-5" suppressHydrationWarning>
                   {/* Email */}
                   <div className="space-y-2 relative group">
-                    <Label htmlFor="email" className="text-sm font-semibold text-slate-700">
+                    <Label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                       Email address
                     </Label>
                     <div className="relative">
@@ -372,7 +372,7 @@ export function LoginForm() {
                         disabled={isLoading}
                         className={cn(
                           "h-11 pl-4 pr-10 rounded-xl transition-all duration-300",
-                          focusedField === "email" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50/50 hover:bg-slate-50",
+                          focusedField === "email" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50/50 hover:bg-slate-50 dark:hover:bg-white/5",
                           !focusedField && form.email && !isValidEmail ? "border-red-300 bg-red-50/30" : ""
                         )}
                       />
@@ -394,7 +394,7 @@ export function LoginForm() {
                   {/* Password */}
                   <div className="space-y-2 relative group">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-sm font-semibold text-slate-700">
+                      <Label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         Password
                       </Label>
                       <Link href="/forgot-password" tabIndex={-1} className="text-xs font-semibold text-[#10B981] hover:text-[#059669] transition-colors">
@@ -413,13 +413,13 @@ export function LoginForm() {
                         disabled={isLoading}
                         className={cn(
                           "h-11 pl-4 pr-10 rounded-xl transition-all duration-300",
-                          focusedField === "password" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50/50 hover:bg-slate-50"
+                          focusedField === "password" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50/50 hover:bg-slate-50 dark:hover:bg-white/5"
                         )}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
                         tabIndex={-1}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -493,7 +493,7 @@ export function LoginForm() {
                   setForm(p => ({ ...p, otp: "" }))
                   setFieldError("")
                 }}
-                className="w-fit text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1 mb-8"
+                className="w-fit text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1 mb-8"
               >
                 <ArrowRight className="h-4 w-4 rotate-180" /> Back
               </button>
@@ -502,16 +502,16 @@ export function LoginForm() {
                 <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4 border border-emerald-200">
                   <Mail className="h-6 w-6 text-emerald-600" />
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900">Check your email</h2>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  We sent a 6-digit security code to <span className="font-semibold text-slate-700">{form.email}</span>. 
+                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Check your email</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                  We sent a 6-digit security code to <span className="font-semibold text-slate-700 dark:text-slate-300">{form.email}</span>. 
                   Please enter it below to verify your identity.
                 </p>
               </div>
 
               <form onSubmit={handleLoginStep2} className="space-y-6">
                 <div className="space-y-3">
-                  <Label htmlFor="otp" className="text-sm font-semibold text-slate-700 sr-only">
+                  <Label htmlFor="otp" className="text-sm font-semibold text-slate-700 dark:text-slate-300 sr-only">
                     Security Code
                   </Label>
                   <Input
@@ -533,7 +533,7 @@ export function LoginForm() {
                     disabled={isLoading}
                     className={cn(
                       "h-14 text-center text-2xl tracking-[0.5em] font-mono rounded-xl transition-all duration-300",
-                      focusedField === "otp" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50 hover:bg-slate-100",
+                      focusedField === "otp" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10",
                       fieldError ? "border-red-300 bg-red-50/30" : ""
                     )}
                   />

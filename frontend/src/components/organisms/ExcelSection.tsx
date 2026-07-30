@@ -48,10 +48,10 @@ export function ExcelSection() {
           initial="hidden" whileInView="visible"
           viewport={{ once: true, margin: "-80px" }} variants={stagger} className="space-y-6"
         >
-          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
             The AI Excel Generator
           </motion.h2>
-          <motion.p variants={fadeUp} className="text-slate-500 text-base leading-relaxed">
+          <motion.p variants={fadeUp} className="text-slate-500 dark:text-slate-400 text-base leading-relaxed">
             Our generator engine doesn&apos;t just fill cells. It builds a real workbook — every page AI-ready, formatted to impress stakeholders.
           </motion.p>
           <motion.div variants={stagger} className="space-y-5">
@@ -68,8 +68,8 @@ export function ExcelSection() {
                     <TooltipContent>{item.tooltip}</TooltipContent>
                   </Tooltip>
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-900 mb-0.5">{item.title}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-0.5">{item.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{item.desc}</p>
                   </div>
                 </motion.div>
               )
@@ -95,9 +95,9 @@ export function ExcelSection() {
           initial={{ opacity: 0, x: 48 }} whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }}
         >
-          <div className="rounded-2xl border-2 border-slate-200 shadow-2xl overflow-hidden bg-white flex flex-col h-[360px] sm:h-[400px]">
+          <div className="rounded-2xl border-2 border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden bg-white dark:bg-white/5 flex flex-col h-[360px] sm:h-[400px]">
             {/* Window Header */}
-            <div className="bg-slate-100 border-b flex items-center gap-1.5 px-4 py-2.5 shrink-0">
+            <div className="bg-slate-100 dark:bg-white/10 border-b flex items-center gap-1.5 px-4 py-2.5 shrink-0">
               <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
               <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
               <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
@@ -105,12 +105,12 @@ export function ExcelSection() {
             </div>
 
             {/* Tabs */}
-            <div className="bg-slate-50 border-b px-1 sm:px-2 flex gap-0 sm:gap-1 overflow-x-auto shrink-0 custom-scrollbar">
+            <div className="bg-slate-50 dark:bg-white/5 border-b px-1 sm:px-2 flex gap-0 sm:gap-1 overflow-x-auto shrink-0 custom-scrollbar">
               {TABS.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`text-[9px] sm:text-[10px] px-2 sm:px-4 py-2 font-medium cursor-pointer whitespace-nowrap transition-colors relative ${activeTab === tab ? "text-[#10B981]" : "text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-t-md"}`}
+                  className={`text-[9px] sm:text-[10px] px-2 sm:px-4 py-2 font-medium cursor-pointer whitespace-nowrap transition-colors relative ${activeTab === tab ? "text-[#10B981]" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-t-md"}`}
                 >
                   {activeTab === tab && (
                     <motion.div layoutId="excel-tab-indicator" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#10B981]" />
@@ -121,23 +121,23 @@ export function ExcelSection() {
             </div>
 
             {/* Tab Content */}
-            <div className="flex-1 p-3 overflow-y-auto custom-scrollbar relative bg-white">
+            <div className="flex-1 p-3 overflow-y-auto custom-scrollbar relative bg-white dark:bg-white/5">
               <AnimatePresence mode="wait">
                 {activeTab === "Dashboard" && (
                   <motion.div key="Dashboard" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="space-y-2">
                     {/* Horizontally scrollable on mobile so the 5-col table never squishes */}
                     <div className="overflow-x-auto -mx-1">
                       <div className="min-w-[320px] px-1">
-                        <div className="grid grid-cols-5 gap-px bg-slate-100 text-[9px] font-semibold text-slate-500 rounded-t-sm overflow-hidden border">
+                        <div className="grid grid-cols-5 gap-px bg-slate-100 dark:bg-white/10 text-[9px] font-semibold text-slate-500 dark:text-slate-400 rounded-t-sm overflow-hidden border">
                           {["METRIC", "JAN", "FEB", "MAR", "TREND"].map(h => (
-                            <div key={h} className="bg-slate-50 px-2 py-1.5 whitespace-nowrap">{h}</div>
+                            <div key={h} className="bg-slate-50 dark:bg-white/5 px-2 py-1.5 whitespace-nowrap">{h}</div>
                           ))}
                         </div>
                         <div className="border rounded-b-sm overflow-hidden">
                           {TABLE_ROWS.map((row, ri) => (
-                            <div key={ri} className={`grid grid-cols-5 gap-px text-[9px] ${ri % 2 === 0 ? "bg-white" : "bg-slate-50/60"}`}>
-                              <div className="px-2 py-2 font-medium text-slate-700 whitespace-nowrap">{row[0]}</div>
-                              {row.slice(1, 4).map((cell, ci) => <div key={ci} className="px-2 py-2 text-slate-600 whitespace-nowrap">{cell}</div>)}
+                            <div key={ri} className={`grid grid-cols-5 gap-px text-[9px] ${ri % 2 === 0 ? "bg-white dark:bg-white/5" : "bg-slate-50/60"}`}>
+                              <div className="px-2 py-2 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">{row[0]}</div>
+                              {row.slice(1, 4).map((cell, ci) => <div key={ci} className="px-2 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{cell}</div>)}
                               <div className={`px-2 py-2 font-bold ${row[4] === "▲" ? "text-emerald-600" : "text-red-500"}`}>{row[4]}</div>
                             </div>
                           ))}
@@ -146,7 +146,7 @@ export function ExcelSection() {
                     </div>
                     <div className="mt-3 rounded-lg bg-[#10B981]/10 border border-[#10B981]/20 p-3 flex items-start gap-3 shadow-sm">
                       <Bot className="h-4 w-4 text-[#10B981] mt-0.5 shrink-0" />
-                      <p className="text-[10px] text-slate-700 leading-relaxed">
+                      <p className="text-[10px] text-slate-700 dark:text-slate-300 leading-relaxed">
                         <span className="font-bold text-[#10B981]">AI Summary:</span> Revenue accelerated 14.6% in March driven by enterprise upsells. Churn is declining steadily, suggesting that the Q4 forecast will be exceeded by an estimated $120K.
                       </p>
                     </div>
@@ -161,13 +161,13 @@ export function ExcelSection() {
                       { title: "Net Revenue Retention", val: "112%", trend: "+2%", icon: TrendingUp, up: true },
                       { title: "Customer Acq. Cost", val: "$4,250", trend: "-$120", icon: TrendingDown, up: false } // lower is better, marked up: false but trend is green
                     ].map((kpi, i) => (
-                      <div key={i} className="border border-slate-100 shadow-sm rounded-xl p-3 flex flex-col justify-between bg-gradient-to-b from-white to-slate-50/50">
+                      <div key={i} className="border border-slate-100 dark:border-white/5 shadow-sm rounded-xl p-3 flex flex-col justify-between bg-gradient-to-b from-white to-slate-50/50">
                         <div className="flex justify-between items-start mb-2">
-                          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{kpi.title}</span>
+                          <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{kpi.title}</span>
                           <kpi.icon className="h-3.5 w-3.5 text-slate-300" />
                         </div>
                         <div className="flex items-end justify-between">
-                          <span className="text-xl font-bold text-slate-800">{kpi.val}</span>
+                          <span className="text-xl font-bold text-slate-800 dark:text-slate-200">{kpi.val}</span>
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${kpi.trend.includes('-') && kpi.up === false ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-100 text-emerald-700'}`}>
                             {kpi.trend}
                           </span>
@@ -180,7 +180,7 @@ export function ExcelSection() {
                 {activeTab === "Forecast" && (
                   <motion.div key="Forecast" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="h-full flex flex-col">
                     <div className="flex justify-between items-center mb-2 px-1">
-                      <span className="text-[10px] font-bold text-slate-700">Q4 ARR Trajectory</span>
+                      <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Q4 ARR Trajectory</span>
                       <span className="text-[9px] text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded-full font-medium">96% Confidence</span>
                     </div>
                     <div className="flex-1 -mx-2">
@@ -219,11 +219,11 @@ export function ExcelSection() {
                         API usage for "Enterprise Plan" users dropped by 45% between Mar 12 and Mar 14. This is a 3-sigma deviation from the historical rolling average.
                       </p>
                     </div>
-                    <div className="border border-slate-100 rounded-lg p-3 shadow-sm bg-white">
+                    <div className="border border-slate-100 dark:border-white/5 rounded-lg p-3 shadow-sm bg-white dark:bg-white/5">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-bold text-slate-700">Recommended Actions</span>
+                        <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Recommended Actions</span>
                       </div>
-                      <ul className="text-[9px] text-slate-600 space-y-2">
+                      <ul className="text-[9px] text-slate-600 dark:text-slate-400 space-y-2">
                         <li className="flex gap-2 items-start"><span className="text-[#10B981] font-bold">1.</span> Verify if there was a scheduled maintenance window affecting API gateways.</li>
                         <li className="flex gap-2 items-start"><span className="text-[#10B981] font-bold">2.</span> Check integration logs for top 5 enterprise clients.</li>
                       </ul>
@@ -232,12 +232,12 @@ export function ExcelSection() {
                 )}
 
                 {activeTab === "Narrative" && (
-                  <motion.div key="Narrative" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="prose prose-sm prose-slate max-w-none h-full bg-[#fcfcfc] p-4 rounded border border-slate-100 shadow-inner overflow-y-auto text-[10px]">
-                    <h3 className="text-xs font-bold text-slate-800 mb-2 font-serif">Quarterly Business Review - Executive Summary</h3>
-                    <p className="text-slate-600 leading-relaxed mb-3">
+                  <motion.div key="Narrative" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="prose prose-sm prose-slate max-w-none h-full bg-[#fcfcfc] p-4 rounded border border-slate-100 dark:border-white/5 shadow-inner overflow-y-auto text-[10px]">
+                    <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2 font-serif">Quarterly Business Review - Executive Summary</h3>
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
                       Q1 demonstrated robust financial health, with total revenue closing at <strong>$2.54M</strong>, outpacing our initial target by 14%. This growth was primarily driven by the successful launch of the new AI automation features, which accounted for a 35% increase in upsells among the existing enterprise cohort.
                     </p>
-                    <p className="text-slate-600 leading-relaxed">
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                       However, customer acquisition costs (CAC) saw a temporary spike in February due to the experimental ad campaigns in the EMEA region. The AI models suggest reallocating 20% of the EMEA budget toward North American inbound channels could yield a <strong>4.2x ROI</strong> by Q3.
                     </p>
                   </motion.div>

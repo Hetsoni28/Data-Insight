@@ -37,7 +37,7 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       whileHover={{ y: -2, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)" }}
-      className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl transition-all duration-300 relative overflow-hidden"
+      className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 rounded-2xl transition-all duration-300 relative overflow-hidden"
     >
       {/* Subtle background glow effect on hover */}
       <div className="absolute inset-0 bg-gradient-to-r from-slate-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
@@ -48,11 +48,11 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
         </div>
         
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-slate-900 truncate">
+          <h4 className="font-semibold text-slate-900 dark:text-white truncate">
             {user.full_name || "Anonymous User"}
           </h4>
           
-          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500 mt-1">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
             <span className="flex items-center gap-1 truncate">
               <Mail className="h-3.5 w-3.5 text-slate-400" />
               {user.email}
@@ -77,7 +77,7 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto justify-end z-10 border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0">
+      <div className="flex items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto justify-end z-10 border-t sm:border-t-0 border-slate-100 dark:border-white/5 pt-3 sm:pt-0">
         {isPending ? (
           <>
             <Button
@@ -103,7 +103,7 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
             variant="outline"
             size="sm"
             disabled={isProcessing}
-            className="text-slate-600 border-slate-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors w-full sm:w-auto"
+            className="text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors w-full sm:w-auto"
             onClick={() => onRevoke?.(user.id)}
           >
             <AlertTriangle className="h-4 w-4 mr-1 opacity-70 group-hover:opacity-100" /> Revoke Access

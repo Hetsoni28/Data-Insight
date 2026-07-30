@@ -29,10 +29,10 @@ export default function IntegrationsPage() {
       <div className="grid md:grid-cols-3 gap-6">
         <SettingCard title="Salesforce CRM" delay={0.1} icon={Cloud} className="h-full">
           <div className="flex flex-col h-full">
-            <p className="text-sm text-slate-500 mb-6 flex-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1">
               Sync accounts, opportunities, and custom objects in real-time.
             </p>
-            <div className="flex justify-end pt-4 border-t border-slate-100">
+            <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-white/5">
               <ActionToggle initialState={true} onToggle={handleToggle('Salesforce')} activeLabel="Connected" inactiveLabel="Disconnected" />
             </div>
           </div>
@@ -40,10 +40,10 @@ export default function IntegrationsPage() {
 
         <SettingCard title="Snowflake Data Cloud" delay={0.2} icon={Database} className="h-full">
           <div className="flex flex-col h-full">
-            <p className="text-sm text-slate-500 mb-6 flex-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1">
               Directly query your data warehouse without moving data.
             </p>
-            <div className="flex justify-end pt-4 border-t border-slate-100">
+            <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-white/5">
               <ActionToggle initialState={false} onToggle={handleToggle('Snowflake')} activeLabel="Connected" inactiveLabel="Disconnected" />
             </div>
           </div>
@@ -51,10 +51,10 @@ export default function IntegrationsPage() {
 
         <SettingCard title="Stripe Billing" delay={0.3} icon={Code} className="h-full">
           <div className="flex flex-col h-full">
-            <p className="text-sm text-slate-500 mb-6 flex-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1">
               Import transaction history and subscription metrics.
             </p>
-            <div className="flex justify-end pt-4 border-t border-slate-100">
+            <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-white/5">
               <ActionToggle initialState={true} onToggle={handleToggle('Stripe')} activeLabel="Connected" inactiveLabel="Disconnected" />
             </div>
           </div>

@@ -23,10 +23,10 @@ export function DataTable<T extends { id: string | number }>({
   className
 }: DataTableProps<T>) {
   return (
-    <div className={cn("rounded-xl border border-slate-200/60 overflow-hidden bg-slate-50/50 shadow-sm", className)}>
+    <div className={cn("rounded-xl border border-slate-200/60 dark:border-white/10 overflow-hidden bg-slate-50/50 shadow-sm", className)}>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="bg-slate-100/50 text-slate-500 font-medium border-b border-slate-200/60">
+          <thead className="bg-slate-100/50 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200/60 dark:border-white/10">
             <tr>
               {columns.map((col, idx) => (
                 <th key={idx} className={cn("px-6 py-4 whitespace-nowrap", col.className)}>
@@ -35,10 +35,10 @@ export function DataTable<T extends { id: string | number }>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200/60 bg-white">
+          <tbody className="divide-y divide-slate-200/60 bg-white dark:bg-white/5">
             {data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500">
+                <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
                   {emptyMessage}
                 </td>
               </tr>

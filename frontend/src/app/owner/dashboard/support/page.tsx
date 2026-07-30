@@ -37,8 +37,8 @@ export default function SupportCenterPage() {
               />
               
               <div>
-                <label className="text-[13px] font-medium text-slate-700 block mb-1.5">Severity Level</label>
-                <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200/60 rounded-xl text-sm text-slate-900 transition-all duration-200 focus:outline-none focus:bg-white focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10">
+                <label className="text-[13px] font-medium text-slate-700 dark:text-slate-300 block mb-1.5">Severity Level</label>
+                <select className="w-full px-4 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-white transition-all duration-200 focus:outline-none focus:bg-white dark:bg-white/5 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10">
                   <option>Low (General Inquiry)</option>
                   <option>Medium (Feature not working)</option>
                   <option>High (Data pipeline failing)</option>
@@ -68,19 +68,19 @@ export default function SupportCenterPage() {
         <div>
           <SettingCard title="Recent Tickets" delay={0.2} icon={MessageSquareText}>
             <div className="space-y-4 mt-2">
-              <div className="p-4 rounded-xl border border-slate-100 bg-slate-50">
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-sm font-medium text-slate-900">Issue with CSV Upload</span>
+                  <span className="text-sm font-medium text-slate-900 dark:text-white">Issue with CSV Upload</span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Resolved</span>
                 </div>
-                <p className="text-xs text-slate-500">Ticket #1042 • 2 days ago</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Ticket #1042 • 2 days ago</p>
               </div>
-              <div className="p-4 rounded-xl border border-slate-100 bg-slate-50">
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-sm font-medium text-slate-900">Billing Plan Upgrade</span>
+                  <span className="text-sm font-medium text-slate-900 dark:text-white">Billing Plan Upgrade</span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Resolved</span>
                 </div>
-                <p className="text-xs text-slate-500">Ticket #0981 • 1 week ago</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Ticket #0981 • 1 week ago</p>
               </div>
             </div>
           </SettingCard>

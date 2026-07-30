@@ -53,23 +53,23 @@ export default function AiUsagePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
               <Zap className="h-5 w-5" />
             </div>
             AI Usage Analytics
           </h1>
-          <p className="text-slate-500 text-sm mt-2">
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
             Monitor API token consumption, model distributions, and latency across the platform.
           </p>
         </div>
         
         <div className="flex items-center gap-3">
-          <Button onClick={() => toast.info("Date picker opening...")} variant="outline" className="h-9 px-4 rounded-md bg-white border-slate-200 text-slate-600 shadow-sm hover:text-slate-900 hover:bg-slate-50">
+          <Button onClick={() => toast.info("Date picker opening...")} variant="outline" className="h-9 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5">
             <Calendar className="h-4 w-4 mr-2" />
             Last 7 Days
           </Button>
-          <Button onClick={handleRefresh} variant="outline" className="h-9 px-4 rounded-md bg-white border-slate-200 text-slate-600 shadow-sm hover:text-slate-900 hover:bg-slate-50" disabled={isRefreshing}>
+          <Button onClick={handleRefresh} variant="outline" className="h-9 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5" disabled={isRefreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin text-emerald-600' : ''}`} />
             {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </Button>

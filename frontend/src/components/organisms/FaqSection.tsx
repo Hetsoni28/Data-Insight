@@ -28,10 +28,10 @@ export function FaqSection() {
           <motion.div variants={fadeUp}>
             <Badge className="bg-[#10B981]/10 text-[#10B981] border-0 text-xs mb-2">FAQ</Badge>
           </motion.div>
-          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
             Frequently Asked Questions
           </motion.h2>
-          <motion.p variants={fadeUp} className="text-slate-500">
+          <motion.p variants={fadeUp} className="text-slate-500 dark:text-slate-400">
             Everything you need to know before getting started.
           </motion.p>
         </motion.div>
@@ -43,11 +43,11 @@ export function FaqSection() {
           <Accordion type="single" collapsible className="space-y-2">
             {FAQS.map((faq, i) => (
               <motion.div key={i} variants={fadeUp}>
-                <AccordionItem value={`faq-${i}`} className="rounded-xl border bg-white px-5 shadow-sm">
-                  <AccordionTrigger className="hover:no-underline text-left text-sm font-medium text-slate-800 py-4">
+                <AccordionItem value={`faq-${i}`} className="rounded-xl border bg-white dark:bg-white/5 px-5 shadow-sm">
+                  <AccordionTrigger className="hover:no-underline text-left text-sm font-medium text-slate-800 dark:text-slate-200 py-4">
                     {faq.q}
                   </AccordionTrigger>
-                  <AccordionContent className="text-sm text-slate-500 leading-relaxed pb-4">
+                  <AccordionContent className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed pb-4">
                     {faq.a}
                   </AccordionContent>
                 </AccordionItem>

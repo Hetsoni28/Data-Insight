@@ -28,3 +28,14 @@ export async function getActiveUsers(): Promise<User[]> {
 export async function revokeUser(userId: string): Promise<void> {
   await api.delete(`/users/${userId}/revoke`)
 }
+
+/** PATCH /users/me → updates current user's profile */
+export async function updateMe(data: { full_name?: string; avatar_url?: string }): Promise<User> {
+  const response = await api.patch<User>("/users/me", data)
+  return response.data
+}
+
+/** POST /users/me/change-password → updates current user's password */
+export async function changePassword(data: any): Promise<void> {
+  await api.post("/users/me/change-password", data)
+}

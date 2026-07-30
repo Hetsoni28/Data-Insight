@@ -11,30 +11,30 @@ const LEGAL = [
 
 export function Footer() {
   return (
-    <footer className="border-t bg-white">
+    <footer className="border-t bg-white dark:bg-white/5">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10">
         <div className="grid sm:grid-cols-3 gap-8 mb-8">
           {/* Brand */}
           <div className="space-y-3">
-            <Logo size={20} textClassName="text-sm font-semibold text-slate-800" />
+            <Logo size={20} textClassName="text-sm font-semibold text-slate-800 dark:text-slate-200" />
             <p className="text-xs text-slate-400 leading-relaxed max-w-xs">
               AI-powered business intelligence that eliminates manual reporting and unlocks predictive insights.
             </p>
           </div>
           {/* Nav */}
           <div className="space-y-3">
-            <div className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Product</div>
+            <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Product</div>
             {NAV.map(n => (
               <a key={n} href={`#${n.toLowerCase()}`}
-                className="block text-sm text-slate-500 hover:text-slate-900 transition-colors">{n}</a>
+                className="block text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">{n}</a>
             ))}
           </div>
           {/* Legal */}
           <div className="space-y-3">
-            <div className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Company</div>
+            <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Company</div>
             {LEGAL.map(l => (
               <a key={l.label} href={l.href}
-                className="block text-sm text-slate-500 hover:text-slate-900 transition-colors">{l.label}</a>
+                className="block text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">{l.label}</a>
             ))}
           </div>
         </div>

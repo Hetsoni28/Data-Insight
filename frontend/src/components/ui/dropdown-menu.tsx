@@ -87,7 +87,7 @@ function DropdownMenuContent({
   return (
     <div
       className={cn(
-        "absolute z-50 mt-2 min-w-[8rem] rounded-md bg-white p-1 shadow-md ring-1 ring-black ring-opacity-5 focus:outline-none",
+        "absolute z-50 mt-2 min-w-[8rem] rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shadow-md focus:outline-none",
         alignmentClasses[align],
         className
       )}
@@ -110,7 +110,7 @@ function DropdownMenuItem({
   return (
     <div
       className={cn(
-        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100",
+        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 dark:hover:bg-white/10 focus:bg-slate-100 dark:focus:bg-white/10",
         disabled && "pointer-events-none opacity-50",
         className
       )}
@@ -127,7 +127,7 @@ function DropdownMenuItem({
 }
 
 function DropdownMenuSeparator({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("-mx-1 my-1 h-px bg-slate-200", className)} {...props} />
+  return <div className={cn("-mx-1 my-1 h-px bg-slate-200 dark:bg-slate-800", className)} {...props} />
 }
 
 function DropdownMenuLabel({

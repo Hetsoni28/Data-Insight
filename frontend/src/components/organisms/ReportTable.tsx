@@ -154,7 +154,7 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50"
+                    className="h-8 w-8 text-slate-500 dark:text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
                     disabled={!report.output_url || report.status.toUpperCase() !== "READY" && report.status.toUpperCase() !== "COMPLETED"}
                     onClick={() => handleDownload(report.output_url)}
                     title="Download Report"
@@ -164,7 +164,7 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-slate-500 hover:text-destructive hover:bg-destructive/10"
+                    className="h-8 w-8 text-slate-500 dark:text-slate-400 hover:text-destructive hover:bg-destructive/10"
                     onClick={() => handleDelete(report.id)}
                     title="Delete Report"
                   >

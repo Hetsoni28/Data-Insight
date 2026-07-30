@@ -42,10 +42,10 @@ export default function ApiManagementPage() {
   };
 
   const columns: Column<typeof keys[0]>[] = [
-    { header: "Name", accessorKey: "name", className: "font-medium text-slate-900" },
-    { header: "Secret Key", accessorKey: "key", className: "font-mono text-slate-500" },
-    { header: "Created", accessorKey: "created", className: "text-slate-500" },
-    { header: "Last Used", accessorKey: "lastUsed", className: "text-slate-500" },
+    { header: "Name", accessorKey: "name", className: "font-medium text-slate-900 dark:text-white" },
+    { header: "Secret Key", accessorKey: "key", className: "font-mono text-slate-500 dark:text-slate-400" },
+    { header: "Created", accessorKey: "created", className: "text-slate-500 dark:text-slate-400" },
+    { header: "Last Used", accessorKey: "lastUsed", className: "text-slate-500 dark:text-slate-400" },
     { 
       header: "Actions", 
       className: "text-right",

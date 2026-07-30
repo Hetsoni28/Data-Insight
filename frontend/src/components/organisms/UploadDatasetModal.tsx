@@ -111,18 +111,18 @@ export function UploadDatasetModal({ isOpen, onClose, workspaceId, onSuccess }: 
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-              className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden pointer-events-auto border border-slate-200/60"
+              className="bg-white dark:bg-white/5 w-full max-w-md rounded-2xl shadow-xl overflow-hidden pointer-events-auto border border-slate-200/60 dark:border-white/10"
             >
               {/* Header */}
-              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+              <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900 tracking-tight">Upload Dataset</h2>
-                  <p className="text-[13px] text-slate-500 mt-0.5">Upload a CSV, JSON, or XLSX file for AI analysis</p>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight">Upload Dataset</h2>
+                  <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Upload a CSV, JSON, or XLSX file for AI analysis</p>
                 </div>
                 <button 
                   onClick={handleClose}
                   disabled={isUploading}
-                  className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-xl transition-colors disabled:opacity-50"
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-400 rounded-xl transition-colors disabled:opacity-50"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -139,7 +139,7 @@ export function UploadDatasetModal({ isOpen, onClose, workspaceId, onSuccess }: 
                     className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
                       isDragging 
                         ? "border-emerald-500 bg-emerald-50" 
-                        : "border-slate-200 hover:border-emerald-400 hover:bg-slate-50"
+                        : "border-slate-200 dark:border-white/10 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-white/5"
                     }`}
                   >
                     <input 
@@ -152,23 +152,23 @@ export function UploadDatasetModal({ isOpen, onClose, workspaceId, onSuccess }: 
                       accept=".csv, .xlsx, .json, text/csv, application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     />
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${
-                      isDragging ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-400"
+                      isDragging ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 dark:bg-white/10 text-slate-400"
                     }`}>
                       <Upload className="h-6 w-6" />
                     </div>
-                    <p className="text-[14px] font-medium text-slate-700 mb-1">Click to upload or drag and drop</p>
-                    <p className="text-[12px] text-slate-500">CSV, XLSX, or JSON (max 50MB)</p>
+                    <p className="text-[14px] font-medium text-slate-700 dark:text-slate-300 mb-1">Click to upload or drag and drop</p>
+                    <p className="text-[12px] text-slate-500 dark:text-slate-400">CSV, XLSX, or JSON (max 50MB)</p>
                   </div>
                 ) : (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                     {/* Selected File Card */}
                     <div className="flex items-center gap-3 p-3 bg-emerald-50/50 border border-emerald-100/50 rounded-xl">
-                      <div className="w-10 h-10 rounded-lg bg-white border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+                      <div className="w-10 h-10 rounded-lg bg-white dark:bg-white/5 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
                         <FileSpreadsheet className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-semibold text-slate-900 truncate">{file.name}</p>
-                        <p className="text-[11px] text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        <p className="text-[13px] font-semibold text-slate-900 dark:text-white truncate">{file.name}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                       </div>
                       <button 
                         onClick={() => setFile(null)}
@@ -181,23 +181,23 @@ export function UploadDatasetModal({ isOpen, onClose, workspaceId, onSuccess }: 
 
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-[13px] font-medium text-slate-700 mb-1.5">Dataset Name <span className="text-red-500">*</span></label>
+                        <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-300 mb-1.5">Dataset Name <span className="text-red-500">*</span></label>
                         <input 
                           type="text" 
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200/60 rounded-xl text-[13px] outline-none focus:bg-white focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl text-[13px] outline-none focus:bg-white dark:bg-white/5 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all"
                           placeholder="e.g. Q3 Sales Data"
                           disabled={isUploading}
                         />
                       </div>
                       <div>
-                        <label className="block text-[13px] font-medium text-slate-700 mb-1.5">Description <span className="text-slate-400 font-normal">(Optional)</span></label>
+                        <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-300 mb-1.5">Description <span className="text-slate-400 font-normal">(Optional)</span></label>
                         <textarea 
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
                           rows={2}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200/60 rounded-xl text-[13px] outline-none focus:bg-white focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl text-[13px] outline-none focus:bg-white dark:bg-white/5 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none"
                           placeholder="Brief description of the dataset contents..."
                           disabled={isUploading}
                         />
@@ -208,12 +208,12 @@ export function UploadDatasetModal({ isOpen, onClose, workspaceId, onSuccess }: 
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end gap-3">
+              <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 dark:border-white/5 flex items-center justify-end gap-3">
                 <Button 
                   variant="outline" 
                   onClick={handleClose}
                   disabled={isUploading}
-                  className="h-9 px-4 text-[13px] border-slate-200/60 rounded-xl hover:bg-slate-100"
+                  className="h-9 px-4 text-[13px] border-slate-200/60 dark:border-white/10 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10"
                 >
                   Cancel
                 </Button>

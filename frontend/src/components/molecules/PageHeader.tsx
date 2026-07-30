@@ -14,17 +14,17 @@ export function PageHeader({ title, description, icon: Icon, action }: PageHeade
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/50 backdrop-blur-xl p-6 rounded-2xl border border-slate-200/60 shadow-sm shrink-0"
+      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/50 backdrop-blur-xl p-6 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm shrink-0"
     >
       <div className="flex items-center gap-4">
         <div className="p-3 bg-emerald-100/80 rounded-xl ring-1 ring-emerald-500/20">
           <Icon className="h-6 w-6 text-emerald-700" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             {title}
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
             {description}
           </p>
         </div>

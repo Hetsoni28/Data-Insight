@@ -15,12 +15,13 @@ class TenantCreateRequest(BaseModel):
 
 class TenantUpdateRequest(BaseModel):
     name: str | None = Field(None, max_length=255)
-    logo_url: str | None = None
-    industry: str | None = None
-    timezone: str | None = None
-    currency: str | None = None
-    domain: str | None = None
+    domain: str | None = Field(None, max_length=255)
+    industry: str | None = Field(None, max_length=100)
+    timezone: str | None = Field(None, max_length=50)
+    currency: str | None = Field(None, max_length=10)
     white_label_config: dict | None = None
+    sso_config: dict | None = None
+    custom_domain: str | None = Field(None, max_length=255)
 
 
 class TenantResponse(BaseModel):

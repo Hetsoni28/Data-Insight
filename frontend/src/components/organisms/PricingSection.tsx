@@ -35,7 +35,7 @@ function FeatureItem({ text, tip }: { text: string; tip: string }) {
       <TooltipTrigger>
         <div className="flex items-center gap-2.5 cursor-help">
           <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" />
-          <span className="text-sm text-slate-600">{text}</span>
+          <span className="text-sm text-slate-600 dark:text-slate-400">{text}</span>
         </div>
       </TooltipTrigger>
       <TooltipContent>
@@ -47,16 +47,16 @@ function FeatureItem({ text, tip }: { text: string; tip: string }) {
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-8 bg-white">
+    <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-8 bg-white dark:bg-white/5">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial="hidden" whileInView="visible"
           viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-12 space-y-3"
         >
-          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
             Enterprise-Ready Pricing
           </motion.h2>
-          <motion.p variants={fadeUp} className="text-slate-500">
+          <motion.p variants={fadeUp} className="text-slate-500 dark:text-slate-400">
             Scalable intelligence for organizations that demand growth.
           </motion.p>
         </motion.div>
@@ -67,11 +67,11 @@ export function PricingSection() {
         >
           {/* Starter */}
           <motion.div variants={fadeUp}>
-            <Card className="h-full border-slate-200 hover:shadow-lg transition-shadow flex flex-col">
+            <Card className="h-full border-slate-200 dark:border-white/10 hover:shadow-lg transition-shadow flex flex-col">
               <CardHeader className="pb-4">
-                <div className="text-sm text-slate-500 font-medium mb-1">STARTER</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">STARTER</div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-slate-900">$499</span>
+                  <span className="text-4xl font-bold text-slate-900 dark:text-white">$499</span>
                   <span className="text-slate-400 text-sm">/month</span>
                 </div>
                 <p className="text-xs text-slate-400 mt-1">Perfect for growing teams</p>
@@ -80,7 +80,7 @@ export function PricingSection() {
                 {STARTER_FEATURES.map(f => <FeatureItem key={f.text} {...f} />)}
                 <div className="mt-auto pt-4">
                   <Separator className="mb-4" />
-                  <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-[#10B981] hover:text-[#10B981] transition-colors")}>
+                  <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:border-[#10B981] hover:text-[#10B981] transition-colors")}>
                     Sign in
                   </a>
                 </div>
@@ -95,9 +95,9 @@ export function PricingSection() {
                 <Badge className="bg-[#10B981] text-white px-4 shadow-sm text-[10px]">BEST FOR COMPANIES</Badge>
               </div>
               <CardHeader className="pb-4">
-                <div className="text-sm text-slate-500 font-medium mb-1">BUSINESS</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">BUSINESS</div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-slate-900">$999</span>
+                  <span className="text-4xl font-bold text-slate-900 dark:text-white">$999</span>
                   <span className="text-slate-400 text-sm">/month</span>
                 </div>
                 <p className="text-xs text-slate-400 mt-1">For companies that move fast</p>

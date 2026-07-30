@@ -72,10 +72,10 @@ export default function InvitePage({ params }: { params: { token: string } }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-white/5 p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[440px] bg-white rounded-3xl p-8 sm:p-10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border border-slate-200/60"
+        className="w-full max-w-[440px] bg-white dark:bg-white/5 rounded-3xl p-8 sm:p-10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border border-slate-200/60 dark:border-white/10"
       >
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-50 mb-5 border border-emerald-100 shadow-sm">
@@ -83,15 +83,15 @@ export default function InvitePage({ params }: { params: { token: string } }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Accept Invitation</h1>
-          <p className="text-sm text-slate-500 mt-2">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Accept Invitation</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
             You&apos;ve been invited to join Data Insight. Set up your profile to get started.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName" className="text-sm font-semibold text-slate-700">
+            <Label htmlFor="fullName" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               Full name <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -100,14 +100,14 @@ export default function InvitePage({ params }: { params: { token: string } }) {
               onFocus={() => setFocusedField("fullName")} onBlur={() => setFocusedField(null)}
               placeholder="Your full name"
               className={cn(
-                "h-11 bg-white border-slate-200 transition-all duration-300",
+                "h-11 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 transition-all duration-300",
                 focusedField === "fullName" && "border-[#10B981] ring-4 ring-[#10B981]/10 shadow-sm"
               )}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-semibold text-slate-700">
+            <Label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               Set a password <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
@@ -117,13 +117,13 @@ export default function InvitePage({ params }: { params: { token: string } }) {
                 onFocus={() => setFocusedField("password")} onBlur={() => setFocusedField(null)}
                 placeholder="••••••••"
                 className={cn(
-                  "h-11 bg-white border-slate-200 pr-10 transition-all duration-300",
+                  "h-11 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 pr-10 transition-all duration-300",
                   focusedField === "password" && "border-[#10B981] ring-4 ring-[#10B981]/10 shadow-sm"
                 )}
               />
               <button
                 type="button" onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -142,7 +142,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
                         {passed
                           ? <Check className="h-3.5 w-3.5 text-[#10B981]" />
                           : <X className="h-3.5 w-3.5 text-slate-300" />}
-                        <span className={cn(passed ? "text-slate-700" : "text-slate-400")}>{rule.text}</span>
+                        <span className={cn(passed ? "text-slate-700 dark:text-slate-300" : "text-slate-400")}>{rule.text}</span>
                       </div>
                     )
                   })}

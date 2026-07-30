@@ -57,7 +57,7 @@ export function ActionToggle({
           }}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
           className={cn(
-            "pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-white shadow ring-0"
+            "pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-white/5 shadow ring-0"
           )}
         >
           {isLoading && <Loader2 className="h-3 w-3 animate-spin text-emerald-600" />}

@@ -50,9 +50,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // This completely prevents dashboard flickering!
   if (token && isLoading) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50 gap-4">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50 dark:bg-white/5 gap-4">
         <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
-        <p className="text-slate-500 font-medium animate-pulse">Authenticating...</p>
+        <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Authenticating...</p>
       </div>
     )
   }

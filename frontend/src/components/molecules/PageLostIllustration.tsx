@@ -8,7 +8,7 @@ export const PageLostIllustration: React.FC = () => {
     <div className="relative w-64 h-64 flex items-center justify-center">
       {/* Glow */}
       <motion.div
-        className="absolute inset-0 bg-slate-500/10 dark:bg-slate-500/5 rounded-full blur-3xl"
+        className="absolute inset-0 bg-slate-50 dark:bg-white/5 rounded-full blur-3xl"
         animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -20,7 +20,7 @@ export const PageLostIllustration: React.FC = () => {
         animate={{ y: [-5, 5, -5], rotate: [-5, 5, -5] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
-        <span className="text-4xl font-black text-slate-200 dark:text-slate-700 select-none">404</span>
+        <span className="text-4xl font-black text-slate-200 dark:text-slate-700 dark:text-slate-300 select-none">404</span>
         {/* Tear Line */}
         <div className="absolute top-1/2 left-0 right-0 border-t-2 border-dashed border-slate-300 dark:border-slate-600 rotate-12" />
       </motion.div>

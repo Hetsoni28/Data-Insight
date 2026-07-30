@@ -38,13 +38,13 @@ const latencyData = [
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-slate-200 shadow-xl rounded-md p-3 text-sm">
-        <p className="font-semibold text-slate-900 mb-2">{label}</p>
+      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-xl rounded-md p-3 text-sm">
+        <p className="font-semibold text-slate-900 dark:text-white mb-2">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 mb-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-            <span className="text-slate-600 capitalize">{entry.name}:</span>
-            <span className="font-mono font-medium text-slate-900">{entry.value.toLocaleString()}</span>
+            <span className="text-slate-600 dark:text-slate-400 capitalize">{entry.name}:</span>
+            <span className="font-mono font-medium text-slate-900 dark:text-white">{entry.value.toLocaleString()}</span>
           </div>
         ))}
       </div>
@@ -70,7 +70,7 @@ export function AiAnalyticsCharts() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
             key={idx} 
-            className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm"
+            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm"
           >
             <div className="flex justify-between items-start mb-4">
               <div className={`p-2.5 rounded-md ${metric.bg}`}>
@@ -80,8 +80,8 @@ export function AiAnalyticsCharts() {
                 {metric.change}
               </span>
             </div>
-            <h3 className="text-sm font-medium text-slate-500">{metric.title}</h3>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{metric.value}</p>
+            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">{metric.title}</h3>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{metric.value}</p>
           </motion.div>
         ))}
       </div>
@@ -94,15 +94,15 @@ export function AiAnalyticsCharts() {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="lg:col-span-2 bg-white border border-slate-200 rounded-lg p-6 shadow-sm"
+          className="lg:col-span-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Activity className="h-4 w-4 text-emerald-600" />
                 Token Usage by Model
               </h3>
-              <p className="text-sm text-slate-500 mt-1">Daily aggregation of input + output tokens across platform.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Daily aggregation of input + output tokens across platform.</p>
             </div>
           </div>
           <div className="h-[350px] w-full">
@@ -138,10 +138,10 @@ export function AiAnalyticsCharts() {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
-            className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm"
+            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm"
           >
-            <h3 className="text-base font-bold text-slate-900 mb-2">Model Distribution</h3>
-            <p className="text-sm text-slate-500 mb-4">Percentage of total API calls.</p>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Model Distribution</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Percentage of total API calls.</p>
             <div className="h-[200px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -166,15 +166,15 @@ export function AiAnalyticsCharts() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none flex-col">
-                <span className="text-2xl font-bold text-slate-900">100%</span>
-                <span className="text-xs text-slate-500">Total</span>
+                <span className="text-2xl font-bold text-slate-900 dark:text-white">100%</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">Total</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-4">
               {modelDistributionData.map((model, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: model.color }} />
-                  <span className="text-xs font-medium text-slate-600">{model.name}</span>
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{model.name}</span>
                 </div>
               ))}
             </div>
@@ -185,10 +185,10 @@ export function AiAnalyticsCharts() {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
-            className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm"
+            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm"
           >
-            <h3 className="text-base font-bold text-slate-900 mb-2">API Latency</h3>
-            <p className="text-sm text-slate-500 mb-4">p50 vs p99 response times (ms).</p>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">API Latency</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">p50 vs p99 response times (ms).</p>
             <div className="h-[140px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={latencyData}>

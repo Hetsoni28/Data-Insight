@@ -12,11 +12,11 @@ export default function AnalyticsPage() {
     <div className="p-8 max-w-7xl mx-auto h-[calc(100vh-theme(spacing.16))] flex flex-col">
       <div className="flex items-center justify-between shrink-0 mb-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             <LineChart className="h-6 w-6 text-orange-600" />
             Analytics
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Deep dive into your organization's KPIs and predictive models.
           </p>
         </div>

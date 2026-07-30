@@ -60,7 +60,7 @@ export default function OnboardingPage() {
   // Prevent rendering if not ready
   if (authLoading || loadingWs || !user || (user.tenant_id && workspaces.length > 0)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-white/5">
         <Loader2 className="h-8 w-8 animate-spin text-[#10B981]" />
       </div>
     )
@@ -112,7 +112,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-white/5 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Decorative Background */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-200/40 blur-[100px] rounded-full" />
@@ -128,7 +128,7 @@ export default function OnboardingPage() {
                 <div 
                   className={cn(
                     "flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-all duration-500",
-                    s < step ? "bg-[#10B981] text-white" : s === step ? "bg-white text-[#10B981] ring-2 ring-[#10B981] ring-offset-2 ring-offset-slate-50" : "bg-slate-200 text-slate-400"
+                    s < step ? "bg-[#10B981] text-white" : s === step ? "bg-white dark:bg-white/5 text-[#10B981] ring-2 ring-[#10B981] ring-offset-2 ring-offset-slate-50" : "bg-slate-200 text-slate-400"
                   )}
                 >
                   {s < step ? <Check className="h-4 w-4" /> : s}
@@ -139,7 +139,7 @@ export default function OnboardingPage() {
           </div>
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
           >
             <LogOut className="h-4 w-4" /> Sign out
           </button>

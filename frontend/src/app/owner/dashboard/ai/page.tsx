@@ -43,19 +43,19 @@ export default function AICopilotPage() {
             <Brain className="h-6 w-6 text-violet-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               AI Copilot
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Chat directly with your datasets. Fast, secure, and intelligent.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-white p-2 rounded-xl border shadow-sm">
+        <div className="flex items-center gap-3 bg-white dark:bg-white/5 p-2 rounded-xl border shadow-sm">
           <Database className="h-4 w-4 text-slate-400 ml-2" />
           {isLoading ? (
-            <div className="h-9 w-48 bg-slate-100 rounded-md animate-pulse"></div>
+            <div className="h-9 w-48 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse"></div>
           ) : (
             <select
               value={selectedDatasetId || ""}

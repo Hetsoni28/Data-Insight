@@ -65,7 +65,7 @@ export default function AiProvidersPage() {
               {providers.openai.status === "connected" ? (
                 <><CheckCircle2 className="w-4 h-4 text-emerald-500" /> <span className="text-emerald-700 font-medium">Connected successfully</span></>
               ) : (
-                <><XCircle className="w-4 h-4 text-slate-400" /> <span className="text-slate-500">Not connected</span></>
+                <><XCircle className="w-4 h-4 text-slate-400" /> <span className="text-slate-500 dark:text-slate-400">Not connected</span></>
               )}
               <span className="text-slate-300 mx-2">|</span>
               <a href="#" className="text-emerald-600 hover:underline inline-flex items-center">
@@ -101,7 +101,7 @@ export default function AiProvidersPage() {
               {providers.gemini.status === "connected" ? (
                 <><CheckCircle2 className="w-4 h-4 text-emerald-500" /> <span className="text-emerald-700 font-medium">Connected successfully</span></>
               ) : (
-                <><XCircle className="w-4 h-4 text-slate-400" /> <span className="text-slate-500">Not connected</span></>
+                <><XCircle className="w-4 h-4 text-slate-400" /> <span className="text-slate-500 dark:text-slate-400">Not connected</span></>
               )}
             </div>
           </div>

@@ -102,25 +102,25 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="relative w-full max-w-xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200"
+            className="relative w-full max-w-xl mx-4 bg-white dark:bg-white/5 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-white/10"
           >
-            <div className="flex items-center px-4 py-3 border-b border-slate-100">
+            <div className="flex items-center px-4 py-3 border-b border-slate-100 dark:border-white/5">
               <Search className="w-5 h-5 text-slate-400 mr-3" />
               <input
                 autoFocus
-                className="flex-1 bg-transparent border-none outline-none text-slate-900 placeholder:text-slate-400 text-base"
+                className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder:text-slate-400 text-base"
                 placeholder="Search commands, pages, and settings..."
                 value={query}
                 onChange={e => setQuery(e.target.value)}
               />
               <div className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono text-slate-500">ESC</kbd>
+                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded text-[10px] font-mono text-slate-500 dark:text-slate-400">ESC</kbd>
               </div>
             </div>
 
             <div className="max-h-[350px] overflow-y-auto p-2" ref={listRef}>
               {filteredItems.length === 0 ? (
-                <div className="py-8 text-center text-slate-500 text-sm">
+                <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
                   No results found for "{query}"
                 </div>
               ) : (
@@ -137,7 +137,7 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={cn(
                           "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left group transition-colors outline-none",
-                          isSelected ? "bg-emerald-50" : "hover:bg-slate-100"
+                          isSelected ? "bg-emerald-50" : "hover:bg-slate-100 dark:hover:bg-white/10"
                         )}
                       >
                         <div className="flex items-center">
@@ -145,15 +145,15 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
                             "w-8 h-8 rounded-lg flex items-center justify-center transition-colors mr-3 shadow-sm border",
                             isSelected 
                               ? "bg-emerald-100 border-emerald-200 text-emerald-600" 
-                              : "bg-white border-slate-200 text-slate-500"
+                              : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400"
                           )}>
                             <item.icon className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className={cn("text-sm font-medium", isSelected ? "text-emerald-900" : "text-slate-900")}>
+                            <p className={cn("text-sm font-medium", isSelected ? "text-emerald-900" : "text-slate-900 dark:text-white")}>
                               {item.label}
                             </p>
-                            <p className={cn("text-xs", isSelected ? "text-emerald-600/80" : "text-slate-500")}>
+                            <p className={cn("text-xs", isSelected ? "text-emerald-600/80" : "text-slate-500 dark:text-slate-400")}>
                               {item.desc}
                             </p>
                           </div>
@@ -166,14 +166,14 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
               )}
             </div>
             
-            <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center gap-4 text-xs text-slate-500">
+            <div className="px-4 py-3 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded shadow-sm font-mono font-medium">↑</kbd>
-                <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded shadow-sm font-mono font-medium">↓</kbd>
+                <kbd className="px-1.5 py-0.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded shadow-sm font-mono font-medium">↑</kbd>
+                <kbd className="px-1.5 py-0.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded shadow-sm font-mono font-medium">↓</kbd>
                 to navigate
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded shadow-sm font-mono font-medium">↵</kbd>
+                <kbd className="px-1.5 py-0.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded shadow-sm font-mono font-medium">↵</kbd>
                 to select
               </span>
             </div>

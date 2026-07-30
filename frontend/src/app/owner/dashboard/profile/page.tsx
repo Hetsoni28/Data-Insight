@@ -1,124 +1,129 @@
 "use client";
 
-import { useState } from "react";
-import { User, ShieldAlert, KeyRound, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Save, Loader2, ImageIcon, Terminal, Copy } from "lucide-react";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/molecules/PageHeader";
-import { SettingCard } from "@/components/molecules/SettingCard";
-import { FormInput } from "@/components/molecules/FormInput";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
 import { useAuth } from "@/hooks/useAuth";
+import { updateMe } from "@/lib/users.service";
+import { ApiKeysService, ApiKey } from "@/lib/apiKeys.service";
+import { ProfileService, FullProfile, UserSession, UserActivity, AuditLog } from "@/lib/profile.service";
 
-export default function ProfilePage() {
-  const { data: user } = useAuth();
+import { ProfileHeader } from "@/components/molecules/ProfileHeader";
+import { ProfileStatsSidebar } from "@/components/molecules/ProfileStatsSidebar";
+import { ProfileContentTabs } from "@/components/organisms/ProfileContentTabs";
+
+export default function PlatformOwnerProfilePage() {
+  const { data: user, mutate } = useAuth();
+  
+  const [profileData, setProfileData] = useState<FullProfile | null>(null);
+  const [sessions, setSessions] = useState<UserSession[]>([]);
+  const [activities, setActivities] = useState<UserActivity[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
 
-  const handleSaveProfile = () => {
+  const [formData, setFormData] = useState<any>({});
+  const [activeTab, setActiveTab] = useState("overview");
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+
+  const loadFullData = async () => {
+    setIsLoading(true);
+    try {
+      const [pData, sData, aData, logsData, keysData] = await Promise.all([
+        ProfileService.getFullProfile(),
+        ProfileService.getSessions().catch(() => []),
+        ProfileService.getActivity().catch(() => []),
+        ProfileService.getAuditLogs().catch(() => []),
+        ApiKeysService.getKeys().catch(() => [])
+      ]);
+      setProfileData(pData); setSessions(sData); setActivities(aData); setAuditLogs(logsData); setApiKeys(keysData);
+      setAvatarUrl(pData.user?.avatar_url || "");
+      setFormData({
+        full_name: pData.user?.full_name || "", phone: pData.profile?.phone || "",
+        alternate_email: pData.profile?.alternate_email || "", birth_date: pData.profile?.birth_date || "",
+        country: pData.profile?.country || "", state: pData.profile?.state || "", city: pData.profile?.city || "",
+        timezone: pData.profile?.timezone || "UTC", language: pData.profile?.language || "en",
+        short_bio: pData.profile?.short_bio || "", company_name: pData.profile?.company_name || "",
+        job_title: pData.profile?.job_title || "", department: pData.profile?.department || "",
+        industry: pData.profile?.industry || "", website: pData.profile?.website || "",
+        linkedin_url: pData.profile?.linkedin_url || "", github_url: pData.profile?.github_url || "",
+        twitter_url: pData.profile?.twitter_url || "", portfolio_url: pData.profile?.portfolio_url || "",
+        experience_years: pData.profile?.experience_years?.toString() || ""
+      });
+    } catch (err) { toast.error("Failed to load profile"); }
+    finally { setIsLoading(false); }
+  };
+
+  useEffect(() => { if (user) loadFullData(); }, [user]);
+
+  const handleSaveProfile = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success("Profile Updated", {
-        description: "Your personal information has been saved."
-      });
-    }, 1000);
+    try {
+      await updateMe({ full_name: formData.full_name, avatar_url: avatarUrl || undefined });
+      await ProfileService.updateProfile({ ...formData, experience_years: formData.experience_years ? parseInt(formData.experience_years) : undefined });
+      await mutate();
+      toast.success("Profile Updated", { description: "Your executive identity has been secured." });
+      setIsAvatarModalOpen(false);
+    } catch (err) { toast.error("Failed to save profile"); }
+    finally { setIsSaving(false); }
   };
 
-  const handlePasswordReset = () => {
-    setIsResetting(true);
-    setTimeout(() => {
-      setIsResetting(false);
-      toast.info("Password Reset Email Sent", {
-        description: "Please check your inbox for instructions to reset your password."
-      });
-    }, 1500);
-  };
+  if (isLoading) return <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[calc(100vh-100px)]"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>;
+
+  const tabs = [{ id: "overview", label: "Overview" }, { id: "identity", label: "Executive Identity" }, { id: "security", label: "Security & Access" }, { id: "activity", label: "Audit & Activity" }];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 pb-24">
-      <PageHeader 
-        title="My Profile" 
-        description="Manage your personal account settings, credentials, and avatar."
-        icon={User}
-        action={
-          <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? "Saving..." : "Save Changes"}
-          </Button>
-        }
-      />
+    <div className="p-8 max-w-[1600px] mx-auto space-y-8 pb-24">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div><h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Platform Identity Center</h1><p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your executive profile, security policies, and platform access.</p></div>
+        <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md rounded-full px-6">
+          {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />} Save Configurations
+        </Button>
+      </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Personal Info */}
-        <SettingCard 
-          title="Personal Information" 
-          description="Update your name, email, and avatar." 
-          icon={User} 
-          delay={0.1}
-        >
-          <div className="space-y-4 mt-4">
-            <div className="flex items-center gap-6 mb-6">
-              <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-2xl font-bold border-2 border-emerald-500/20">
-                {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
-              </div>
-              <div>
-                <Button variant="outline" size="sm" onClick={() => toast.info("Avatar upload opened")}>Change Avatar</Button>
-                <p className="text-xs text-slate-500 mt-2">JPG, GIF or PNG. 1MB max.</p>
-              </div>
-            </div>
-            
-            <FormInput 
-              label="Full Name" 
-              defaultValue={user?.full_name || ""} 
-              placeholder="Enter your full name"
-            />
-            <FormInput 
-              label="Email Address" 
-              type="email" 
-              defaultValue={user?.email || ""} 
-              disabled 
-              description="To change your email, please contact an organization administrator."
-            />
-          </div>
-        </SettingCard>
+      <ProfileHeader user={user} profileData={profileData} avatarUrl={avatarUrl} setIsAvatarModalOpen={setIsAvatarModalOpen} />
 
-        {/* Security & Credentials */}
-        <div className="space-y-6">
-          <SettingCard 
-            title="Password & Security" 
-            description="Manage your password and security credentials." 
-            icon={KeyRound} 
-            delay={0.2}
-          >
-            <div className="space-y-4 mt-4">
-              <div className="flex flex-col gap-2">
-                <Button onClick={handlePasswordReset} disabled={isResetting} variant="outline" className="w-full justify-start">
-                  <KeyRound className="w-4 h-4 mr-2" />
-                  {isResetting ? "Sending Email..." : "Send Password Reset Email"}
-                </Button>
-                <Button onClick={() => toast.info("2FA Setup Flow")} variant="outline" className="w-full justify-start">
-                  <ShieldAlert className="w-4 h-4 mr-2" />
-                  Setup Two-Factor Authentication
-                </Button>
-              </div>
-            </div>
-          </SettingCard>
-
-          <SettingCard 
-            title="Danger Zone" 
-            delay={0.3}
-            className="border-red-100 bg-red-50/30"
-          >
-            <div className="flex items-center justify-between mt-2">
-              <div>
-                <h4 className="text-sm font-medium text-slate-900">Delete Account</h4>
-                <p className="text-xs text-slate-500 mt-1">Permanently remove your personal account.</p>
-              </div>
-              <Button variant="destructive" size="sm" onClick={() => toast.error("Cannot delete account while you are an active Organization Owner.")}>Delete Account</Button>
-            </div>
-          </SettingCard>
+      <div className="border-b border-slate-200 dark:border-white/10">
+        <div className="flex space-x-8">
+          {tabs.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-4 text-sm font-medium transition-colors relative ${activeTab === tab.id ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}>
+              {tab.label} {activeTab === tab.id && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 dark:bg-emerald-400" />}
+            </button>
+          ))}
         </div>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <ProfileContentTabs 
+          activeTab={activeTab} user={user} profileData={profileData} formData={formData} setFormData={setFormData}
+          sessions={sessions} activities={activities} auditLogs={auditLogs} apiKeys={apiKeys}
+          setIsPasswordModalOpen={setIsPasswordModalOpen} setIsApiKeyModalOpen={setIsApiKeyModalOpen}
+          handleTerminateSession={async (id: string) => { if(confirm("Terminate?")) { await ProfileService.terminateSession(id); loadFullData(); } }}
+          handleTerminateAllOtherSessions={async () => { if(confirm("Sign out others?")) { await ProfileService.terminateAllOtherSessions(); loadFullData(); } }}
+          handleRevokeApiKey={async (id: string) => { if(confirm("Revoke token?")) { await ApiKeysService.revokeKey(id); loadFullData(); } }}
+        />
+        <ProfileStatsSidebar profileData={profileData} setActiveTab={setActiveTab} setIsApiKeyModalOpen={setIsApiKeyModalOpen} />
+      </div>
+
+      <Dialog open={isAvatarModalOpen} onOpenChange={setIsAvatarModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><ImageIcon className="h-5 w-5 text-emerald-600" /> Update Avatar</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4"><Label>Image URL</Label><Input type="url" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..." /></div>
+          <DialogFooter><Button variant="outline" onClick={() => setIsAvatarModalOpen(false)}>Cancel</Button><Button onClick={handleSaveProfile} className="bg-emerald-600 hover:bg-emerald-700">Save</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

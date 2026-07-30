@@ -14,7 +14,7 @@ function Progress({
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={value}
-      className={cn("relative flex h-1 w-full items-center overflow-hidden rounded-full bg-slate-100", className)}
+      className={cn("relative flex h-1 w-full items-center overflow-hidden rounded-full bg-slate-100 dark:bg-white/10", className)}
       {...props}
     >
       <div 

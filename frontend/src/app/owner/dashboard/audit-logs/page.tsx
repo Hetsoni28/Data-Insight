@@ -23,10 +23,10 @@ export default function AuditLogsPage() {
   };
 
   const columns: Column<typeof MOCK_LOGS[0]>[] = [
-    { header: "Action", accessorKey: "action", className: "font-medium text-slate-900" },
-    { header: "User", accessorKey: "user", className: "text-slate-500" },
+    { header: "Action", accessorKey: "action", className: "font-medium text-slate-900 dark:text-white" },
+    { header: "User", accessorKey: "user", className: "text-slate-500 dark:text-slate-400" },
     { header: "IP Address", accessorKey: "ip", className: "font-mono text-slate-400 text-xs" },
-    { header: "Time", accessorKey: "time", className: "text-slate-500" },
+    { header: "Time", accessorKey: "time", className: "text-slate-500 dark:text-slate-400" },
     { 
       header: "Status", 
       className: "text-right",
@@ -49,7 +49,7 @@ export default function AuditLogsPage() {
         description="Track all administrative actions, security events, and data modifications."
         icon={Activity}
         action={
-          <Button onClick={handleExport} variant="outline" className="bg-white">
+          <Button onClick={handleExport} variant="outline" className="bg-white dark:bg-white/5">
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
@@ -63,7 +63,7 @@ export default function AuditLogsPage() {
             <input 
               type="text" 
               placeholder="Search logs by action, user, or IP..." 
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm"
             />
           </div>
           <Button variant="outline" className="rounded-xl" onClick={() => toast.info("Filter menu opened")}>

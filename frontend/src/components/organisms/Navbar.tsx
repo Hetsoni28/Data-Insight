@@ -29,7 +29,7 @@ export function Navbar() {
         <nav className="hidden md:flex items-center gap-1 flex-1">
           {NAV.map(n => (
             <a key={n} href={`#${n.toLowerCase()}`}
-              className="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-900 rounded-md hover:bg-slate-50 transition-colors">
+              className="px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-md hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
               {n}
             </a>
           ))}
@@ -44,7 +44,7 @@ export function Navbar() {
         {/* Mobile — Sheet drawer */}
         <Sheet>
           <SheetTrigger asChild>
-            <button className="ml-auto md:hidden text-slate-500 p-2" aria-label="Open menu">
+            <button className="ml-auto md:hidden text-slate-500 dark:text-slate-400 p-2" aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
@@ -58,7 +58,7 @@ export function Navbar() {
               {NAV.map(n => (
                 <SheetClose asChild key={n}>
                   <a href={`#${n.toLowerCase()}`}
-                    className="flex items-center px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                    className="flex items-center px-3 py-2.5 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors">
                     {n}
                   </a>
                 </SheetClose>

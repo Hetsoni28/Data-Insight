@@ -159,7 +159,7 @@ function SheetContent({
       <SheetOverlay />
       <div
         className={cn(
-          "fixed z-50 flex flex-col gap-4 bg-white p-6 text-sm shadow-xl",
+          "fixed z-50 flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 text-sm shadow-xl",
           sideClasses[side],
           className
         )}
@@ -171,7 +171,7 @@ function SheetContent({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="absolute right-4 top-4 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="absolute right-4 top-4 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
           >
             <XIcon className="h-4 w-4" />
             <span className="sr-only">Close</span>
@@ -191,11 +191,11 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function SheetTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("text-lg font-semibold text-slate-900", className)} {...props} />
+  return <h2 className={cn("text-lg font-semibold text-slate-900 dark:text-white", className)} {...props} />
 }
 
 function SheetDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn("text-sm text-slate-500", className)} {...props} />
+  return <p className={cn("text-sm text-slate-500 dark:text-slate-400", className)} {...props} />
 }
 
 export {

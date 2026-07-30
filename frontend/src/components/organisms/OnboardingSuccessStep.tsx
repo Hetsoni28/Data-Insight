@@ -13,7 +13,7 @@ export function OnboardingSuccessStep({ router }: OnboardingSuccessStepProps) {
       key="step3"
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-12 text-center relative overflow-hidden"
+      className="bg-white dark:bg-white/5 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-white/5 p-8 sm:p-12 text-center relative overflow-hidden"
     >
       {/* Fake Confetti using framer motion */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -53,13 +53,13 @@ export function OnboardingSuccessStep({ router }: OnboardingSuccessStepProps) {
         <CheckCircle2 className="h-10 w-10 text-[#10B981]" />
       </motion.div>
 
-      <h1 className="text-4xl font-bold tracking-tight text-slate-900 mb-3 relative z-10">You&apos;re all set!</h1>
-      <p className="text-base text-slate-500 mb-10 max-w-[280px] mx-auto relative z-10">
+      <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-3 relative z-10">You&apos;re all set!</h1>
+      <p className="text-base text-slate-500 dark:text-slate-400 mb-10 max-w-[280px] mx-auto relative z-10">
         Your organization and workspace are ready. It's time to put your data to work.
       </p>
 
-      <div className="bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-100 text-left relative z-10">
-        <p className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Your Next Steps</p>
+      <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-6 mb-8 border border-slate-100 dark:border-white/5 text-left relative z-10">
+        <p className="text-sm font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider">Your Next Steps</p>
         <ul className="space-y-4">
           {[
             "Upload a dataset (CSV, XLSX, JSON)",
@@ -71,7 +71,7 @@ export function OnboardingSuccessStep({ router }: OnboardingSuccessStepProps) {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 + (i * 0.1) }}
-              className="flex items-center gap-3 text-sm font-medium text-slate-700"
+              className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                 <Check className="h-3.5 w-3.5 text-[#10B981]" />

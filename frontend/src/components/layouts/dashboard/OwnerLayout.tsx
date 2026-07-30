@@ -123,7 +123,7 @@ export function OwnerLayout({ children, user, handleLogout }: OwnerLayoutProps) 
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen bg-background text-foreground overflow-hidden">
       <DashboardSidebar
         user={user}
         workspaces={workspaces}

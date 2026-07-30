@@ -45,14 +45,14 @@ export function DashboardActivityFeed() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col h-full"
+      className="bg-white dark:bg-white/5 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden flex flex-col h-full"
     >
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+      <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
             <Clock className="h-4 w-4 text-blue-600" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-800">Recent Activity</h3>
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Recent Activity</h3>
         </div>
         <button 
           onClick={() => router.push("/dashboard/datasets")}
@@ -70,25 +70,25 @@ export function DashboardActivityFeed() {
         ) : datasets.length === 0 ? (
           <div className="h-40 flex flex-col items-center justify-center text-center px-6">
             <Database className="h-8 w-8 text-slate-300 mb-3" />
-            <p className="text-sm font-medium text-slate-600">No recent activity</p>
-            <p className="text-xs text-slate-500 mt-1">Upload a dataset to see it here.</p>
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">No recent activity</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Upload a dataset to see it here.</p>
           </div>
         ) : (
           <ul className="divide-y divide-slate-100">
             {datasets.map((item, index) => (
               <li 
                 key={item.id} 
-                className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group flex items-center gap-4"
+                className="p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group flex items-center gap-4"
                 onClick={() => router.push(`/dashboard/datasets/${item.id}`)}
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                   <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 truncate group-hover:text-emerald-700 transition-colors">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-emerald-700 transition-colors">
                     {item.filename}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     Uploaded {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
                   </p>
                 </div>

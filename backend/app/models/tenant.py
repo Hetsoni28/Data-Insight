@@ -43,6 +43,11 @@ class Tenant(Base):
     # White-label configuration
     white_label_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
+    # Enterprise features
+    sso_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    custom_domain: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True)
+    custom_domain_status: Mapped[str | None] = mapped_column(String(50), nullable=True) # pending, verified, failed
+
     # Stripe billing
     stripe_customer_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True, unique=True

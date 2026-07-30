@@ -31,7 +31,7 @@ export function DashboardUsageChart() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6 lg:col-span-2 relative overflow-hidden"
+      className="bg-white dark:bg-white/5 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm p-6 lg:col-span-2 relative overflow-hidden"
     >
       {/* Subtle top gradient */}
       <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-500" />
@@ -42,9 +42,9 @@ export function DashboardUsageChart() {
             <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
               <Activity className="h-4 w-4 text-emerald-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800">Processing Trends</h3>
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Processing Trends</h3>
           </div>
-          <p className="text-sm text-slate-500">Data rows processed by AI over the last 30 days</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Data rows processed by AI over the last 30 days</p>
         </div>
         <div className="text-right">
           <p className="text-sm font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
@@ -60,7 +60,7 @@ export function DashboardUsageChart() {
           </div>
         ) : data.length === 0 ? (
           <div className="w-full h-full flex items-center justify-center">
-            <p className="text-sm text-slate-500 font-medium">No usage data for the last 30 days</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">No usage data for the last 30 days</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">

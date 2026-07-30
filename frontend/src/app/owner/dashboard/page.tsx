@@ -48,7 +48,7 @@ export default function DashboardPage() {
           <div className="w-12 h-12 rounded-full border-4 border-emerald-100 border-t-emerald-500 animate-spin" />
           <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-transparent rounded-full blur-xl animate-pulse" />
         </div>
-        <p className="mt-4 text-sm font-medium text-slate-500 animate-pulse">Loading platform metrics...</p>
+        <p className="mt-4 text-sm font-medium text-slate-500 dark:text-slate-400 animate-pulse">Loading platform metrics...</p>
       </div>
     )
   }
@@ -62,8 +62,8 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-end justify-between mt-2">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Platform Health & KPIs</h2>
-          <p className="text-slate-500 text-sm mt-1">Real-time metrics across all organizations.</p>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Platform Health & KPIs</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Real-time metrics across all organizations.</p>
         </div>
       </div>
 
@@ -75,13 +75,13 @@ export default function DashboardPage() {
         
         {/* Left Column (Chart) */}
         <div className="lg:col-span-2">
-          <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-4">Platform Usage Trends</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight mb-4">Platform Usage Trends</h3>
           <DashboardUsageChart />
         </div>
 
         {/* Right Column (Quick Actions & Activity) */}
         <div className="space-y-6 lg:space-y-8 flex flex-col">
-          <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-4">Recent Activity</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight mb-4">Recent Activity</h3>
           <div className="flex-1 min-h-[400px]">
             <DashboardActivityFeed />
           </div>

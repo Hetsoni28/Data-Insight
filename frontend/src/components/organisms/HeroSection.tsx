@@ -25,7 +25,7 @@ export function HeroSection() {
   const [videoOpen, setVideoOpen] = useState(false)
 
   return (
-    <section className="pt-20 pb-16 px-4 sm:px-8 bg-white overflow-hidden">
+    <section className="pt-20 pb-16 px-4 sm:px-8 bg-white dark:bg-white/5 overflow-hidden">
       <div className="max-w-7xl mx-auto">
 
         {/* ── Top: copy (always full-width on mobile, left col on desktop) ── */}
@@ -45,7 +45,7 @@ export function HeroSection() {
 
             <motion.h1
               variants={fadeUp}
-              className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight tracking-tight"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight"
             >
               The 24/7 AI Analyst{" "}
               <br className="hidden sm:block" />
@@ -53,7 +53,7 @@ export function HeroSection() {
               <span className="text-[#10B981]">Enterprise</span>
             </motion.h1>
 
-            <motion.p variants={fadeUp} className="text-slate-500 text-sm sm:text-base leading-relaxed max-w-lg mx-auto lg:mx-0">
+            <motion.p variants={fadeUp} className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed max-w-lg mx-auto lg:mx-0">
               Replace spreadsheets and manual data entry with a blazing-fast AI intelligence platform.
             </motion.p>
 
@@ -74,7 +74,7 @@ export function HeroSection() {
                   <button
                     className={cn(
                       buttonVariants({ variant: "outline", size: "lg" }),
-                      "h-11 px-7 text-sm font-medium gap-2 border-slate-200 w-full sm:w-auto justify-center"
+                      "h-11 px-7 text-sm font-medium gap-2 border-slate-200 dark:border-white/10 w-full sm:w-auto justify-center"
                     )}
                   >
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#10B981]/10 shrink-0">
@@ -102,7 +102,7 @@ export function HeroSection() {
             {/* Trust pills */}
             <motion.div variants={fadeUp} className="flex flex-wrap gap-x-4 gap-y-2 pt-1 justify-center lg:justify-start">
               {["No credit card required", "14-day free trial", "Cancel anytime"].map(t => (
-                <div key={t} className="flex items-center gap-1.5 text-xs text-slate-500">
+                <div key={t} className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                   <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981] shrink-0" />{t}
                 </div>
               ))}
@@ -114,9 +114,9 @@ export function HeroSection() {
               className="grid grid-cols-3 gap-3 pt-2 lg:hidden"
             >
               {STATS.map(s => (
-                <div key={s.label} className="text-center rounded-xl border border-slate-100 bg-slate-50 py-3 px-2">
+                <div key={s.label} className="text-center rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 py-3 px-2">
                   <div className="text-lg font-black text-[#10B981]">{s.value}</div>
-                  <div className="text-[10px] text-slate-500 font-medium mt-0.5">{s.label}</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{s.label}</div>
                 </div>
               ))}
             </motion.div>

@@ -41,7 +41,7 @@ export function UsersList({
   if (filteredUsers.length === 0) {
     if (searchQuery) {
       return (
-        <div className="p-12 text-center text-slate-500 bg-slate-50/50 rounded-2xl border border-slate-200 border-dashed">
+        <div className="p-12 text-center text-slate-500 dark:text-slate-400 bg-slate-50/50 rounded-2xl border border-slate-200 dark:border-white/10 border-dashed">
           No users match your search "{searchQuery}"
         </div>
       )

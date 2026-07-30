@@ -112,10 +112,10 @@ export function AuthLayout({ children, variant }: AuthLayoutProps) {
       </div>
 
       {/* ── Right panel ── */}
-      <div className="relative flex items-center justify-center px-6 py-12 bg-white overflow-y-auto">
+      <div className="relative flex items-center justify-center px-6 py-12 bg-white dark:bg-white/5 overflow-y-auto">
         <Link 
           href="/" 
-          className="absolute top-6 right-6 md:top-8 md:right-8 flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-slate-900 transition-colors"
+          className="absolute top-6 right-6 md:top-8 md:right-8 flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="h-4 w-4" /> Back to home
         </Link>

@@ -97,7 +97,7 @@ export const StateLayout: React.FC<StateLayoutProps> = ({
             )}
             {keyboardShortcut && (
               <div className="text-xs text-slate-400 flex items-center gap-1">
-                Press <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-[10px] font-mono text-slate-500">{keyboardShortcut}</kbd> to focus
+                Press <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-[10px] font-mono text-slate-500 dark:text-slate-400">{keyboardShortcut}</kbd> to focus
               </div>
             )}
           </motion.div>

@@ -47,7 +47,7 @@ export function DashboardStatCard({ icon: Icon, label, value, sub, color, delay 
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: "easeOut" }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="relative overflow-hidden bg-white rounded-2xl border border-slate-200/60 p-6 shadow-sm hover:shadow-md transition-all group"
+      className="relative overflow-hidden bg-white dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/10 p-6 shadow-sm hover:shadow-md transition-all group"
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-50 to-transparent rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform duration-700" />
       
@@ -58,10 +58,10 @@ export function DashboardStatCard({ icon: Icon, label, value, sub, color, delay 
       </div>
       
       <div className="relative z-10">
-        <p className="text-3xl font-bold text-slate-900 tracking-tight">
+        <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
           {typeof value === 'number' || !isNaN(Number(value)) ? displayValue : value}
         </p>
-        <p className="text-[14px] font-medium text-slate-600 mt-1">{label}</p>
+        <p className="text-[14px] font-medium text-slate-600 dark:text-slate-400 mt-1">{label}</p>
         <p className="text-[12px] text-slate-400 mt-1.5">{sub}</p>
       </div>
     </motion.div>

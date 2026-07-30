@@ -171,7 +171,7 @@ function DialogContent({
         aria-modal="true"
         data-slot="dialog-content"
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 shadow-xl ring-1 ring-black/10 sm:max-w-lg",
+          "fixed left-1/2 top-1/2 z-50 w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white dark:bg-slate-900 p-6 shadow-xl ring-1 ring-black/10 sm:max-w-lg",
           className
         )}
         onClick={(e) => e.stopPropagation()}
@@ -182,7 +182,7 @@ function DialogContent({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="absolute right-3 top-3 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="absolute right-3 top-3 rounded-md p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
@@ -220,7 +220,7 @@ function DialogFooter({
         <button
           type="button"
           onClick={() => onOpenChange(false)}
-          className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium hover:bg-slate-50"
+          className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5"
         >
           Close
         </button>
@@ -237,7 +237,7 @@ function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingEl
 
 function DialogDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p data-slot="dialog-description" className={cn("text-sm text-slate-500 mt-1", className)} {...props} />
+    <p data-slot="dialog-description" className={cn("text-sm text-slate-500 dark:text-slate-400 mt-1", className)} {...props} />
   )
 }
 

@@ -81,7 +81,7 @@ export function MemberLayout({ children, user, handleLogout }: MemberLayoutProps
   ).map(({ icon, label, href }) => ({ icon, label, href }))
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 dark:bg-white/5 overflow-hidden">
       <DashboardSidebar
         user={user}
         workspaces={workspaces}
