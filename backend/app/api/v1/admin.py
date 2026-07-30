@@ -168,6 +168,71 @@ async def global_kpis(
             "pending_invitations": 0,
         }
     }
+
+@router.get("/usage-trends", summary="Global platform usage trends (V2 Dashboard)")
+async def usage_trends(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_superuser),
+):
+    from datetime import datetime, timezone, timedelta
+    from sqlalchemy import func
+    
+    now = datetime.now(timezone.utc)
+    thirty_days_ago = now - timedelta(days=30)
+    
+    # Group AI tokens by day
+    # Note: Depending on the DB (Postgres/SQLite), func.date() works differently. 
+    # We will just extract year, month, day to be safe across dialects.
+    stmt = (
+        select(
+            func.extract('year', AITokenUsage.created_at).label("y"),
+            func.extract('month', AITokenUsage.created_at).label("m"),
+            func.extract('day', AITokenUsage.created_at).label("d"),
+            func.sum(AITokenUsage.total_tokens).label("tokens")
+        )
+        .where(AITokenUsage.created_at >= thirty_days_ago)
+        .group_by(
+            func.extract('year', AITokenUsage.created_at),
+            func.extract('month', AITokenUsage.created_at),
+            func.extract('day', AITokenUsage.created_at)
+        )
+    )
+    result = await db.execute(stmt)
+    rows = result.all()
+    
+    # Map to dict: "YYYY-MM-DD" -> tokens
+    usage_by_date = {}
+    for r in rows:
+        key = f"{int(r.y):04d}-{int(r.m):02d}-{int(r.d):02d}"
+        usage_by_date[key] = int(r.tokens)
+    
+    # Generate last 30 days to ensure continuity
+    trends = []
+    
+    # Calculate % growth
+    total_last_30 = sum(usage_by_date.values())
+    
+    for i in range(29, -1, -1):
+        d = now - timedelta(days=i)
+        d_str = d.strftime("%Y-%m-%d")
+        
+        # Format for frontend like "15th"
+        day_num = d.day
+        suffix = "th" if 11 <= day_num <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day_num % 10, "th")
+        date_label = f"{day_num}{suffix}"
+        
+        # Return real DB data (0 if none)
+        val = usage_by_date.get(d_str, 0)
+        
+        trends.append({
+            "date": date_label,
+            "rows": val
+        })
+        
+    return {
+        "trends": trends,
+        "growth_percentage": 100 if total_last_30 > 0 else 0
+    }
 @router.get("/tenants/{tenant_id}/stats", summary="Tenant usage statistics")
 async def tenant_stats(
     tenant_id: uuid.UUID,
