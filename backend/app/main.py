@@ -11,14 +11,22 @@ from datetime import datetime, timezone
 
 from app.core.config import settings
 from app.core.exceptions import (
-    ResourceNotFoundException, resource_not_found_handler,
-    UnauthorizedException, unauthorized_handler,
-    ForbiddenException, forbidden_handler,
-    ConflictException, conflict_handler,
-    ValidationException, validation_handler,
-    TenantQuotaExceededException, quota_exceeded_handler,
-    StorageQuotaExceededException, storage_quota_handler,
-    AIServiceException, ai_service_handler,
+    ResourceNotFoundException,
+    resource_not_found_handler,
+    UnauthorizedException,
+    unauthorized_handler,
+    ForbiddenException,
+    forbidden_handler,
+    ConflictException,
+    conflict_handler,
+    ValidationException,
+    validation_handler,
+    TenantQuotaExceededException,
+    quota_exceeded_handler,
+    StorageQuotaExceededException,
+    storage_quota_handler,
+    AIServiceException,
+    ai_service_handler,
 )
 from app.api.v1.router import api_router
 from app.db.session import engine
@@ -47,6 +55,7 @@ logger.add(
 
 from app.db.redis import close_redis_pool
 
+
 # ─── Application Lifespan ─────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,13 +64,14 @@ async def lifespan(app: FastAPI):
     - Startup: Initialize connections, warm caches
     - Shutdown: Close DB + Redis connections cleanly
     """
-    logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION} [{settings.APP_ENV}]")
+    logger.info(
+        f"Starting {settings.APP_NAME} v{settings.APP_VERSION} [{settings.APP_ENV}]"
+    )
     yield
     logger.info(f"Shutting down {settings.APP_NAME}...")
     await engine.dispose()
     await close_redis_pool()
     logger.info("All connections closed.")
-
 
 
 # ─── Application Factory ──────────────────────────────────────────────────────
@@ -111,7 +121,9 @@ def create_app() -> FastAPI:
 
     # ─── Pydantic Validation Error Handler ───────────────────────────────────
     @app.exception_handler(RequestValidationError)
-    async def pydantic_validation_handler(request: Request, exc: RequestValidationError):
+    async def pydantic_validation_handler(
+        request: Request, exc: RequestValidationError
+    ):
         errors = []
         for error in exc.errors():
             field = " → ".join(str(loc) for loc in error["loc"])
@@ -125,7 +137,7 @@ def create_app() -> FastAPI:
                 "errors": errors,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "request_id": getattr(request.state, "request_id", str(uuid.uuid4())),
-            }
+            },
         )
 
     # ─── Global Unhandled Exception Handler ──────────────────────────────────
@@ -141,7 +153,7 @@ def create_app() -> FastAPI:
                 "code": "DI-BE-GLOBAL-001",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "request_id": request_id,
-            }
+            },
         )
 
     # ─── Register API Routes ──────────────────────────────────────────────
@@ -151,11 +163,15 @@ def create_app() -> FastAPI:
     import os
     from fastapi.staticfiles import StaticFiles
     from app.core.storage import LOCAL_UPLOADS_DIR, is_local_storage
-    
+
     if is_local_storage():
         os.makedirs(LOCAL_UPLOADS_DIR, exist_ok=True)
         # We mount it under /api/v1/storage so frontend proxy catches it
-        app.mount("/api/v1/storage", StaticFiles(directory=LOCAL_UPLOADS_DIR), name="local_storage")
+        app.mount(
+            "/api/v1/storage",
+            StaticFiles(directory=LOCAL_UPLOADS_DIR),
+            name="local_storage",
+        )
 
     # ─── Prometheus Metrics ───────────────────────────────────────────────
     Instrumentator(
@@ -165,6 +181,7 @@ def create_app() -> FastAPI:
         env_var_name="ENABLE_METRICS",
         excluded_handlers=["/health", "/metrics"],
     ).instrument(app).expose(app, endpoint="/metrics", tags=["System"])
+
     # ─── Health Check Endpoint ────────────────────────────────────────────────
     @app.get("/health", tags=["System"], summary="Health Check")
     async def health_check():

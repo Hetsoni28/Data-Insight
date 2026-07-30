@@ -5,6 +5,7 @@ POST /billing/checkout  → create Stripe checkout session, returns redirect URL
 POST /billing/webhook   → Stripe webhook (raw body, no auth required)
 GET  /billing/portal    → Stripe customer self-service portal URL
 """
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -22,6 +23,7 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
+
 class CheckoutRequest(BaseModel):
     plan: str  # "starter" | "professional"
 
@@ -36,6 +38,7 @@ class PortalResponse(BaseModel):
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
+
 @router.post(
     "/checkout",
     response_model=CheckoutResponse,
@@ -49,8 +52,10 @@ async def create_checkout(
 ) -> CheckoutResponse:
     """Create a Stripe checkout session for the requested plan."""
     if not current_user.tenant_id:
-        raise HTTPException(status_code=400, detail="User must belong to an organization.")
-        
+        raise HTTPException(
+            status_code=400, detail="User must belong to an organization."
+        )
+
     tenant_repo = TenantRepository(db)
     tenant = await tenant_repo.get_by_id(current_user.tenant_id)
     if not tenant:
@@ -85,8 +90,10 @@ async def billing_portal(
 ) -> PortalResponse:
     """Create a Stripe customer portal session for the current user."""
     if not current_user.tenant_id:
-        raise HTTPException(status_code=400, detail="User must belong to an organization.")
-        
+        raise HTTPException(
+            status_code=400, detail="User must belong to an organization."
+        )
+
     tenant_repo = TenantRepository(db)
     tenant = await tenant_repo.get_by_id(current_user.tenant_id)
     if not tenant:
@@ -94,18 +101,18 @@ async def billing_portal(
 
     try:
         url = await billing_service.get_customer_portal_url(
-            tenant=tenant, 
-            user_email=current_user.email
+            tenant=tenant, user_email=current_user.email
         )
-        
+
         # If the service created a new Stripe customer, update the Tenant in our DB
         if not tenant.stripe_customer_id:
             from app.services.billing import _get_or_create_customer
+
             customer_id = await _get_or_create_customer(tenant, current_user.email)
             if tenant.stripe_customer_id != customer_id:
                 tenant.stripe_customer_id = customer_id
                 await tenant_repo.save(tenant)
-                
+
         return PortalResponse(portal_url=url)
     except stripe.StripeError as exc:
         logger.error(f"[API /billing/portal] Stripe error: {exc}")
@@ -153,24 +160,29 @@ async def stripe_webhook(
             payload=payload,
             sig_header=stripe_signature,
         )
-        
+
         event_type = result.get("event")
         tenant_id_str = result.get("tenant_id")
-        
+
         if tenant_id_str:
             tenant_repo = TenantRepository(db)
             tenant = await tenant_repo.get_by_id(tenant_id_str)
-            
+
             if tenant:
                 if event_type == "checkout.session.completed":
                     # The payload might just be a string if plan is invalid, but let's assume valid PlanType
                     plan_val = result.get("plan")
                     if plan_val in [p.value for p in PlanType]:
                         tenant.plan = PlanType(plan_val)
-                    tenant.stripe_customer_id = result.get("stripe_customer_id") or tenant.stripe_customer_id
-                    tenant.stripe_subscription_id = result.get("stripe_subscription_id") or tenant.stripe_subscription_id
+                    tenant.stripe_customer_id = (
+                        result.get("stripe_customer_id") or tenant.stripe_customer_id
+                    )
+                    tenant.stripe_subscription_id = (
+                        result.get("stripe_subscription_id")
+                        or tenant.stripe_subscription_id
+                    )
                     await tenant_repo.save(tenant)
-                    
+
                 elif event_type == "customer.subscription.deleted":
                     tenant.plan = PlanType.starter
                     tenant.stripe_subscription_id = None
@@ -188,4 +200,3 @@ async def stripe_webhook(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Webhook processing failed.",
         )
-

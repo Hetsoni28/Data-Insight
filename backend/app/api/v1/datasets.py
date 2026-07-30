@@ -1,11 +1,16 @@
 """Dataset upload and management endpoints."""
+
 import uuid
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_current_active_tenant_user
 from app.models.user import User
-from app.schemas.dataset import DatasetResponse, DatasetProfileResponse, DatasetUploadResponse
+from app.schemas.dataset import (
+    DatasetResponse,
+    DatasetProfileResponse,
+    DatasetUploadResponse,
+)
 from app.services.dataset import DatasetService
 
 router = APIRouter(prefix="/datasets", tags=["Datasets"])
@@ -52,7 +57,11 @@ async def list_datasets(
     return await svc.list_datasets(workspace_id, current_user)
 
 
-@router.get("/{dataset_id}", response_model=DatasetProfileResponse, summary="Get dataset with profile")
+@router.get(
+    "/{dataset_id}",
+    response_model=DatasetProfileResponse,
+    summary="Get dataset with profile",
+)
 async def get_dataset(
     dataset_id: uuid.UUID,
     current_user: User = Depends(get_current_active_tenant_user),
@@ -62,7 +71,9 @@ async def get_dataset(
     return await svc.get_dataset(dataset_id, current_user)
 
 
-@router.get("/{dataset_id}/download-url", summary="Get signed download URL for dataset file")
+@router.get(
+    "/{dataset_id}/download-url", summary="Get signed download URL for dataset file"
+)
 async def get_download_url(
     dataset_id: uuid.UUID,
     current_user: User = Depends(get_current_active_tenant_user),

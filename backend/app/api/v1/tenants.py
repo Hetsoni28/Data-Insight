@@ -1,4 +1,5 @@
 """Tenant (organization) management endpoints."""
+
 import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +13,12 @@ from app.core.exceptions import ForbiddenException
 router = APIRouter(prefix="/tenants", tags=["Tenants"])
 
 
-@router.post("", response_model=TenantResponse, status_code=201, summary="Create a new organization")
+@router.post(
+    "",
+    response_model=TenantResponse,
+    status_code=201,
+    summary="Create a new organization",
+)
 async def create_tenant(
     body: TenantCreateRequest,
     current_user: User = Depends(get_current_user),
@@ -33,6 +39,7 @@ async def get_my_tenant(
 
 from app.api.deps import RequireRole
 
+
 @router.patch("/me", response_model=TenantResponse, summary="Update my organization")
 async def update_my_tenant(
     body: TenantUpdateRequest,
@@ -41,4 +48,6 @@ async def update_my_tenant(
 ):
     svc = TenantService(db)
     tenant = await svc.get_tenant(current_user.tenant_id)
-    return await svc.update_tenant(tenant, body.model_dump(exclude_none=True), actor=current_user)
+    return await svc.update_tenant(
+        tenant, body.model_dump(exclude_none=True), actor=current_user
+    )

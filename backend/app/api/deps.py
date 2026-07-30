@@ -1,4 +1,5 @@
 """FastAPI dependency injection — auth, DB session, Redis, current user."""
+
 from typing import AsyncGenerator
 from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,9 +22,10 @@ async def get_redis() -> AsyncGenerator[Redis, None]:
         redis_client = Redis(connection_pool=pool)
     except Exception:
         from loguru import logger
+
         logger.warning("[Redis] Not available — using in-memory OTP fallback")
         redis_client = Redis.from_url("redis://localhost:6379/0")
-        
+
     try:
         yield redis_client
     finally:
@@ -81,6 +83,7 @@ async def get_current_superuser(
     """Requires the user to be a platform super-admin."""
     if not current_user.is_superuser:
         from app.core.exceptions import ForbiddenException
+
         raise ForbiddenException("Super-admin access required.")
     return current_user
 
@@ -91,7 +94,10 @@ async def get_current_active_tenant_user(
     """Requires the user to belong to a tenant (i.e. be fully onboarded)."""
     if not current_user.tenant_id:
         from app.core.exceptions import ForbiddenException
-        raise ForbiddenException("You must belong to an organization to access this resource.")
+
+        raise ForbiddenException(
+            "You must belong to an organization to access this resource."
+        )
     return current_user
 
 
@@ -101,14 +107,20 @@ class RequireRole:
     Checks if the user's role is within the allowed roles.
     The platform OWNER always passes — they have unrestricted access.
     """
+
     def __init__(self, allowed_roles: list[str]):
         self.allowed_roles = allowed_roles
 
-    async def __call__(self, current_user: User = Depends(get_current_active_tenant_user)) -> User:
+    async def __call__(
+        self, current_user: User = Depends(get_current_active_tenant_user)
+    ) -> User:
         # Platform OWNER bypasses all role checks
         if current_user.is_owner:
             return current_user
         if current_user.role not in self.allowed_roles:
             from app.core.exceptions import ForbiddenException
-            raise ForbiddenException("You do not have permission to perform this action.")
+
+            raise ForbiddenException(
+                "You do not have permission to perform this action."
+            )
         return current_user

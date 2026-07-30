@@ -3,6 +3,7 @@ Redis connection pool — shared singleton across all requests.
 
 Uses redis.asyncio with connection pooling for efficiency.
 """
+
 from redis.asyncio import ConnectionPool
 from redis.asyncio import Redis
 from app.core.config import settings

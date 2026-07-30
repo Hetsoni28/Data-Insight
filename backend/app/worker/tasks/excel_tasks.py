@@ -45,16 +45,27 @@ def generate_excel_workbook_task(self, report_id: str, tenant_id: str, user_id: 
             )
 
         result = asyncio.run(_run())
-        logger.info(f"[Task: generate_excel_workbook] ✅ Completed | report_id={report_id}")
+        logger.info(
+            f"[Task: generate_excel_workbook] ✅ Completed | report_id={report_id}"
+        )
 
         # Trigger email notification to user
         from app.worker.tasks.email_tasks import send_report_ready_task
-        download_url = result.get("download_url", "") if isinstance(result, dict) else ""
-        report_name = result.get("name", "Your Report") if isinstance(result, dict) else "Your Report"
+
+        download_url = (
+            result.get("download_url", "") if isinstance(result, dict) else ""
+        )
+        report_name = (
+            result.get("name", "Your Report")
+            if isinstance(result, dict)
+            else "Your Report"
+        )
         # We'd need the user email here — in production fetch from DB
         # send_report_ready_task.delay(user_email, user_name, report_name, download_url)
 
         return result
     except Exception as exc:
-        logger.error(f"[Task: generate_excel_workbook] ❌ Failed | report_id={report_id} | {exc}")
+        logger.error(
+            f"[Task: generate_excel_workbook] ❌ Failed | report_id={report_id} | {exc}"
+        )
         raise self.retry(exc=exc)

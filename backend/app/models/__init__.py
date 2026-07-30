@@ -1,4 +1,5 @@
 """Models package — import all models so Alembic can detect them."""
+
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
 from app.models.tenant import Tenant, PlanType
@@ -10,13 +11,20 @@ from app.models.ai_token_usage import AITokenUsage
 from app.models.invitation import Invitation, InvitationStatus
 
 __all__ = [
-    "User", "UserRole",
+    "User",
+    "UserRole",
     "UserSession",
-    "Tenant", "PlanType",
+    "Tenant",
+    "PlanType",
     "Workspace",
-    "Dataset", "DatasetStatus", "DatasetFileType",
-    "Report", "ReportStatus", "ReportType",
+    "Dataset",
+    "DatasetStatus",
+    "DatasetFileType",
+    "Report",
+    "ReportStatus",
+    "ReportType",
     "AuditLog",
     "AITokenUsage",
-    "Invitation", "InvitationStatus",
+    "Invitation",
+    "InvitationStatus",
 ]

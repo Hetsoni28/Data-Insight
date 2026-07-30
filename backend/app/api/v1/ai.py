@@ -1,4 +1,5 @@
 """AI Copilot endpoints — chat, deep analysis, job status."""
+
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +16,9 @@ router = APIRouter(prefix="/ai", tags=["AI Copilot"])
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=4000)
     dataset_id: uuid.UUID
-    history: list[dict] | None = None  # [{"role": "user"/"assistant", "content": "..."}]
+    history: list[dict] | None = (
+        None  # [{"role": "user"/"assistant", "content": "..."}]
+    )
 
 
 class ChatResponse(BaseModel):
@@ -34,7 +37,11 @@ class JobStatusResponse(BaseModel):
     result: dict | None = None
 
 
-@router.post("/chat", response_model=ChatResponse, summary="AI Copilot — ask a question about your data")
+@router.post(
+    "/chat",
+    response_model=ChatResponse,
+    summary="AI Copilot — ask a question about your data",
+)
 async def copilot_chat(
     body: ChatRequest,
     current_user: User = Depends(get_current_active_tenant_user),
@@ -52,7 +59,9 @@ async def copilot_chat(
         )
     except Exception as e:
         # Return a clean error — never crash the server
-        raise HTTPException(status_code=503, detail=f"AI service temporarily unavailable: {str(e)}")
+        raise HTTPException(
+            status_code=503, detail=f"AI service temporarily unavailable: {str(e)}"
+        )
 
 
 @router.post("/analyze", status_code=202, summary="Trigger deep AI analysis (async)")
@@ -63,7 +72,10 @@ async def analyze_dataset(
 ):
     """Offloads deep analysis to Celery. Returns job_id to poll."""
     from app.worker.tasks.dataset_tasks import analyze_dataset_task
-    task = analyze_dataset_task.delay(str(body.dataset_id), str(current_user.id), body.analysis_type)
+
+    task = analyze_dataset_task.delay(
+        str(body.dataset_id), str(current_user.id), body.analysis_type
+    )
     return {
         "job_id": task.id,
         "status": "queued",
@@ -71,10 +83,15 @@ async def analyze_dataset(
     }
 
 
-@router.get("/jobs/{job_id}", response_model=JobStatusResponse, summary="Poll async AI job status")
+@router.get(
+    "/jobs/{job_id}",
+    response_model=JobStatusResponse,
+    summary="Poll async AI job status",
+)
 async def get_job_status(job_id: str):
     """Check the status of any async Celery task."""
     from app.worker.celery_app import celery_app
+
     result = celery_app.AsyncResult(job_id)
     return {
         "job_id": job_id,

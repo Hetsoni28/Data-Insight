@@ -1,4 +1,5 @@
 """Celery tasks — Dataset profiling and AI analysis."""
+
 import uuid
 import io
 import json
@@ -13,6 +14,7 @@ def profile_dataset_task(self, dataset_id: str):
     run Pandas profiling, and save results to the DB.
     """
     import asyncio
+
     asyncio.run(_profile_dataset(self, dataset_id))
 
 
@@ -38,18 +40,25 @@ async def _profile_dataset(task, dataset_id: str):
 
             # Download from Supabase Storage or read from local disk
             from app.core.storage import is_local_storage, LOCAL_UPLOADS_DIR
+
             if is_local_storage():
                 local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
                 file_bytes = local_path.read_bytes()
             else:
-                signed_url = get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=300)
+                signed_url = get_signed_url(
+                    DATASETS_BUCKET, dataset.file_url, expires_in=300
+                )
                 async with httpx.AsyncClient() as client:
                     response = await client.get(signed_url)
                     file_bytes = response.content
 
             # Load into Pandas
             # file_type may be a string or an Enum depending on DB driver
-            ext = dataset.file_type.value if hasattr(dataset.file_type, 'value') else str(dataset.file_type)
+            ext = (
+                dataset.file_type.value
+                if hasattr(dataset.file_type, "value")
+                else str(dataset.file_type)
+            )
             ext = ext.lower().strip()
             if ext == "csv":
                 df = pd.read_csv(io.BytesIO(file_bytes))
@@ -64,7 +73,11 @@ async def _profile_dataset(task, dataset_id: str):
             profile = _generate_profile(df)
 
             # Calculate data quality score
-            null_pct = df.isnull().sum().sum() / (df.shape[0] * df.shape[1]) if df.shape[1] > 0 else 0
+            null_pct = (
+                df.isnull().sum().sum() / (df.shape[0] * df.shape[1])
+                if df.shape[1] > 0
+                else 0
+            )
             dup_pct = df.duplicated().sum() / len(df) if len(df) > 0 else 0
             quality_score = max(0, int(100 - (null_pct * 40) - (dup_pct * 30)))
 
@@ -76,11 +89,15 @@ async def _profile_dataset(task, dataset_id: str):
                 quality_score=quality_score,
             )
             await session.commit()
-            logger.info(f"Dataset {dataset_id} profiled: {len(df)} rows, {len(df.columns)} cols, quality={quality_score}")
+            logger.info(
+                f"Dataset {dataset_id} profiled: {len(df)} rows, {len(df.columns)} cols, quality={quality_score}"
+            )
 
         except Exception as exc:
             logger.exception(f"Profiling failed for dataset {dataset_id}: {exc}")
-            await ds_repo.update_status(dataset, DatasetStatus.error, error_message=str(exc))
+            await ds_repo.update_status(
+                dataset, DatasetStatus.error, error_message=str(exc)
+            )
             await session.commit()
             raise task.retry(exc=exc)
 
@@ -108,16 +125,18 @@ def _generate_profile(df) -> dict:
         }
 
         if pd.api.types.is_numeric_dtype(series):
-            col_info.update({
-                "type": "numeric",
-                "min": _safe_val(series.min()),
-                "max": _safe_val(series.max()),
-                "mean": _safe_val(series.mean()),
-                "median": _safe_val(series.median()),
-                "std": _safe_val(series.std()),
-                "q25": _safe_val(series.quantile(0.25)),
-                "q75": _safe_val(series.quantile(0.75)),
-            })
+            col_info.update(
+                {
+                    "type": "numeric",
+                    "min": _safe_val(series.min()),
+                    "max": _safe_val(series.max()),
+                    "mean": _safe_val(series.mean()),
+                    "median": _safe_val(series.median()),
+                    "std": _safe_val(series.std()),
+                    "q25": _safe_val(series.quantile(0.25)),
+                    "q75": _safe_val(series.quantile(0.75)),
+                }
+            )
             # Outlier detection using IQR
             q1, q3 = series.quantile(0.25), series.quantile(0.75)
             iqr = q3 - q1
@@ -125,16 +144,20 @@ def _generate_profile(df) -> dict:
             col_info["outlier_count"] = len(outliers)
 
         elif pd.api.types.is_datetime64_any_dtype(series):
-            col_info.update({
-                "type": "datetime",
-                "min": str(series.min()),
-                "max": str(series.max()),
-            })
+            col_info.update(
+                {
+                    "type": "datetime",
+                    "min": str(series.min()),
+                    "max": str(series.max()),
+                }
+            )
         else:
-            col_info.update({
-                "type": "categorical",
-                "top_values": series.value_counts().head(10).to_dict(),
-            })
+            col_info.update(
+                {
+                    "type": "categorical",
+                    "top_values": series.value_counts().head(10).to_dict(),
+                }
+            )
 
         profile["columns"][col] = col_info
 
@@ -145,6 +168,7 @@ def _safe_val(v):
     """Convert numpy types to Python native for JSON serialization."""
     import math
     import numpy as np
+
     if v is None or (isinstance(v, float) and math.isnan(v)):
         return None
     if isinstance(v, (np.integer,)):
@@ -155,9 +179,12 @@ def _safe_val(v):
 
 
 @shared_task(bind=True, name="dataset.analyze", max_retries=2, default_retry_delay=60)
-def analyze_dataset_task(self, dataset_id: str, user_id: str, analysis_type: str = "general"):
+def analyze_dataset_task(
+    self, dataset_id: str, user_id: str, analysis_type: str = "general"
+):
     """AI deep analysis via Claude 3.5 Sonnet — runs in Celery."""
     import asyncio
+
     return asyncio.run(_analyze_dataset(self, dataset_id, user_id, analysis_type))
 
 

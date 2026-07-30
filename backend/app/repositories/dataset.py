@@ -1,4 +1,5 @@
 """DatasetRepository — tenant-scoped dataset queries."""
+
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, List
@@ -13,7 +14,11 @@ class DatasetRepository(BaseRepository[Dataset]):
         super().__init__(Dataset, session)
 
     async def get_workspace_datasets(
-        self, tenant_id: uuid.UUID, workspace_id: uuid.UUID, limit: int = 50, offset: int = 0
+        self,
+        tenant_id: uuid.UUID,
+        workspace_id: uuid.UUID,
+        limit: int = 50,
+        offset: int = 0,
     ) -> List[Dataset]:
         stmt = (
             select(Dataset)
@@ -29,7 +34,9 @@ class DatasetRepository(BaseRepository[Dataset]):
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_tenant_dataset(self, tenant_id: uuid.UUID, dataset_id: uuid.UUID) -> Optional[Dataset]:
+    async def get_tenant_dataset(
+        self, tenant_id: uuid.UUID, dataset_id: uuid.UUID
+    ) -> Optional[Dataset]:
         stmt = select(Dataset).where(
             Dataset.id == dataset_id,
             Dataset.tenant_id == tenant_id,
@@ -54,7 +61,14 @@ class DatasetRepository(BaseRepository[Dataset]):
             dataset.error_message = error_message
         return await self.save(dataset)
 
-    async def update_profile(self, dataset: Dataset, profile: dict, row_count: int, column_count: int, quality_score: int) -> Dataset:
+    async def update_profile(
+        self,
+        dataset: Dataset,
+        profile: dict,
+        row_count: int,
+        column_count: int,
+        quality_score: int,
+    ) -> Dataset:
         dataset.profile = profile
         dataset.row_count = row_count
         dataset.column_count = column_count

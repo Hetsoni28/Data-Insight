@@ -1,4 +1,5 @@
 """TenantService — business logic for organization management."""
+
 import re
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +9,11 @@ from app.models.user import User, UserRole
 from app.repositories.tenant import TenantRepository
 from app.repositories.user import UserRepository
 from app.repositories.audit_log import AuditLogRepository
-from app.core.exceptions import ConflictException, ResourceNotFoundException, ForbiddenException
+from app.core.exceptions import (
+    ConflictException,
+    ResourceNotFoundException,
+    ForbiddenException,
+)
 
 
 def _slugify(name: str) -> str:
@@ -68,11 +73,24 @@ class TenantService:
         return tenant
 
     async def update_tenant(self, tenant: Tenant, updates: dict, actor: User) -> Tenant:
-        allowed = {"name", "logo_url", "industry", "timezone", "currency", "domain", "white_label_config"}
+        allowed = {
+            "name",
+            "logo_url",
+            "industry",
+            "timezone",
+            "currency",
+            "domain",
+            "white_label_config",
+        }
         for field, value in updates.items():
             if field in allowed:
                 setattr(tenant, field, value)
         await self.tenant_repo.save(tenant)
-        await self.audit_repo.log("tenant.update", tenant_id=tenant.id, user_id=actor.id,
-                                  resource_type="tenant", resource_id=str(tenant.id))
+        await self.audit_repo.log(
+            "tenant.update",
+            tenant_id=tenant.id,
+            user_id=actor.id,
+            resource_type="tenant",
+            resource_id=str(tenant.id),
+        )
         return tenant

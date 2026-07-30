@@ -1,4 +1,5 @@
 """Supabase Storage helper — upload, download, signed URLs."""
+
 import uuid
 import mimetypes
 import os
@@ -11,10 +12,11 @@ from loguru import logger
 
 def is_local_storage() -> bool:
     return (
-        "your-project-id" in settings.SUPABASE_URL 
+        "your-project-id" in settings.SUPABASE_URL
         or "your-supabase-service" in settings.SUPABASE_SERVICE_ROLE_KEY
         or not settings.SUPABASE_URL
     )
+
 
 def _client() -> Client:
     if is_local_storage():
@@ -91,6 +93,8 @@ def dataset_storage_path(tenant_id: uuid.UUID, filename: str) -> str:
     return f"{tenant_id}/datasets/{uuid.uuid4()}_{safe_name}"
 
 
-def report_storage_path(tenant_id: uuid.UUID, report_id: uuid.UUID, filename: str) -> str:
+def report_storage_path(
+    tenant_id: uuid.UUID, report_id: uuid.UUID, filename: str
+) -> str:
     """Generate a deterministic storage path for a report output."""
     return f"{tenant_id}/reports/{report_id}/{filename}"

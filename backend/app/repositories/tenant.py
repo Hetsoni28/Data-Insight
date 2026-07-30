@@ -1,4 +1,5 @@
 """TenantRepository — queries for the Tenant model."""
+
 import uuid
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,6 +49,7 @@ class TenantRepository(BaseRepository[Tenant]):
 
     async def soft_delete(self, tenant: Tenant) -> Tenant:
         from datetime import datetime, timezone
+
         tenant.is_deleted = True
         tenant.deleted_at = datetime.now(timezone.utc)
         return await self.save(tenant)

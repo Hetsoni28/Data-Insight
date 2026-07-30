@@ -31,6 +31,7 @@ class Base(DeclarativeBase):
     All SQLAlchemy ORM models inherit from this Base.
     Import this in every model file.
     """
+
     pass
 
 

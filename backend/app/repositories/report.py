@@ -1,4 +1,5 @@
 """ReportRepository — tenant-scoped report queries."""
+
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, List
@@ -13,7 +14,11 @@ class ReportRepository(BaseRepository[Report]):
         super().__init__(Report, session)
 
     async def get_workspace_reports(
-        self, tenant_id: uuid.UUID, workspace_id: uuid.UUID, limit: int = 50, offset: int = 0
+        self,
+        tenant_id: uuid.UUID,
+        workspace_id: uuid.UUID,
+        limit: int = 50,
+        offset: int = 0,
     ) -> List[Report]:
         stmt = (
             select(Report)
@@ -29,7 +34,9 @@ class ReportRepository(BaseRepository[Report]):
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_tenant_report(self, tenant_id: uuid.UUID, report_id: uuid.UUID) -> Optional[Report]:
+    async def get_tenant_report(
+        self, tenant_id: uuid.UUID, report_id: uuid.UUID
+    ) -> Optional[Report]:
         stmt = select(Report).where(
             Report.id == report_id,
             Report.tenant_id == tenant_id,
@@ -43,7 +50,9 @@ class ReportRepository(BaseRepository[Report]):
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
-    async def update_status(self, report: Report, status: ReportStatus, progress: int = None, **kwargs) -> Report:
+    async def update_status(
+        self, report: Report, status: ReportStatus, progress: int = None, **kwargs
+    ) -> Report:
         report.status = status
         if progress is not None:
             report.progress = progress

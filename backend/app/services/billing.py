@@ -9,6 +9,7 @@ Handles:
 Set STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET in .env to enable.
 In development without keys, methods log a warning and return safe stubs.
 """
+
 import asyncio
 import stripe
 from loguru import logger
@@ -23,17 +24,18 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 # Create these in your Stripe dashboard under Products → Prices
 # then paste the price IDs here.
 PLAN_PRICE_IDS: dict[str, str] = {
-    "starter":  "price_starter_placeholder",   # $499/month
+    "starter": "price_starter_placeholder",  # $499/month
     "professional": "price_professional_placeholder",  # $999/month
 }
 
 PLAN_NAMES: dict[str, str] = {
-    "starter":  "Starter",
+    "starter": "Starter",
     "professional": "Professional",
 }
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
+
 
 async def create_checkout_session(tenant: Tenant, user_email: str, plan: str) -> str:
     """
@@ -42,7 +44,9 @@ async def create_checkout_session(tenant: Tenant, user_email: str, plan: str) ->
     Raises ValueError for unknown plans.
     """
     if plan not in PLAN_PRICE_IDS:
-        raise ValueError(f"Unknown plan '{plan}'. Valid options: {list(PLAN_PRICE_IDS)}")
+        raise ValueError(
+            f"Unknown plan '{plan}'. Valid options: {list(PLAN_PRICE_IDS)}"
+        )
 
     if not settings.STRIPE_SECRET_KEY:
         logger.warning(
@@ -84,7 +88,9 @@ async def create_checkout_session(tenant: Tenant, user_email: str, plan: str) ->
             raise RuntimeError("Failed to generate Stripe checkout session URL")
         return session.url
     except stripe.StripeError as exc:
-        logger.error(f"[Billing] ❌ Checkout session failed | tenant={tenant.name} | error: {exc}")
+        logger.error(
+            f"[Billing] ❌ Checkout session failed | tenant={tenant.name} | error: {exc}"
+        )
         raise
 
 
@@ -95,7 +101,9 @@ async def get_customer_portal_url(tenant: Tenant, user_email: str) -> str:
     Returns the portal URL.
     """
     if not settings.STRIPE_SECRET_KEY:
-        logger.warning("[Billing] STRIPE_SECRET_KEY not set — returning stub portal URL")
+        logger.warning(
+            "[Billing] STRIPE_SECRET_KEY not set — returning stub portal URL"
+        )
         return f"{settings.FRONTEND_URL}/dashboard?billing=portal_stub"
 
     # Look up or create the Stripe customer for this tenant
@@ -110,7 +118,9 @@ async def get_customer_portal_url(tenant: Tenant, user_email: str) -> str:
         logger.info(f"[Billing] ✅ Portal session created | tenant={tenant.name}")
         return session.url
     except stripe.StripeError as exc:
-        logger.error(f"[Billing] ❌ Portal session failed | tenant={tenant.name} | error: {exc}")
+        logger.error(
+            f"[Billing] ❌ Portal session failed | tenant={tenant.name} | error: {exc}"
+        )
         raise
 
 
@@ -125,7 +135,9 @@ async def handle_webhook(payload: bytes, sig_header: str) -> dict:
     not the parsed JSON — otherwise signature verification will fail.
     """
     if not settings.STRIPE_WEBHOOK_SECRET:
-        logger.warning("[Billing] STRIPE_WEBHOOK_SECRET not set — skipping webhook verification")
+        logger.warning(
+            "[Billing] STRIPE_WEBHOOK_SECRET not set — skipping webhook verification"
+        )
         return {"status": "webhook_secret_not_configured"}
 
     try:
@@ -148,20 +160,24 @@ async def handle_webhook(payload: bytes, sig_header: str) -> dict:
         plan = session.get("metadata", {}).get("plan")
         customer_id = session.get("customer")
         subscription_id = session.get("subscription")
-        logger.info(f"[Billing] 💳 Checkout completed | tenant_id={tenant_id} plan={plan}")
+        logger.info(
+            f"[Billing] 💳 Checkout completed | tenant_id={tenant_id} plan={plan}"
+        )
         return {
-            "event": event_type, 
-            "tenant_id": tenant_id, 
+            "event": event_type,
+            "tenant_id": tenant_id,
             "plan": plan,
             "stripe_customer_id": customer_id,
-            "stripe_subscription_id": subscription_id
+            "stripe_subscription_id": subscription_id,
         }
 
     elif event_type == "customer.subscription.updated":
         sub = event["data"]["object"]
         tenant_id = sub.get("metadata", {}).get("tenant_id")
         status = sub.get("status")
-        logger.info(f"[Billing] 🔄 Subscription updated | tenant_id={tenant_id} status={status}")
+        logger.info(
+            f"[Billing] 🔄 Subscription updated | tenant_id={tenant_id} status={status}"
+        )
         return {"event": event_type, "tenant_id": tenant_id, "status": status}
 
     elif event_type == "customer.subscription.deleted":
@@ -182,6 +198,7 @@ async def handle_webhook(payload: bytes, sig_header: str) -> dict:
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
+
 async def _get_or_create_customer(tenant: Tenant, user_email: str) -> str:
     """
     Look up a Stripe customer by email or create one if they don't exist.
@@ -191,9 +208,7 @@ async def _get_or_create_customer(tenant: Tenant, user_email: str) -> str:
         return tenant.stripe_customer_id
 
     # Search for existing customer by email
-    customers = await asyncio.to_thread(
-        stripe.Customer.list, email=user_email, limit=1
-    )
+    customers = await asyncio.to_thread(stripe.Customer.list, email=user_email, limit=1)
     if customers.data:
         return customers.data[0].id
 
@@ -204,5 +219,7 @@ async def _get_or_create_customer(tenant: Tenant, user_email: str) -> str:
         name=tenant.name,
         metadata={"tenant_id": str(tenant.id)},
     )
-    logger.info(f"[Billing] ✅ Stripe customer created | tenant={tenant.name} id={customer.id}")
+    logger.info(
+        f"[Billing] ✅ Stripe customer created | tenant={tenant.name} id={customer.id}"
+    )
     return customer.id

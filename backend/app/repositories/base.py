@@ -1,4 +1,5 @@
 """Generic async base repository — reusable CRUD for all entities."""
+
 import uuid
 from typing import Generic, TypeVar, Type, Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession

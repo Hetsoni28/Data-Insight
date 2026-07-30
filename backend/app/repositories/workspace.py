@@ -1,4 +1,5 @@
 """WorkspaceRepository — tenant-scoped workspace queries."""
+
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, List
@@ -30,7 +31,9 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
-    async def get_tenant_workspace(self, tenant_id: uuid.UUID, workspace_id: uuid.UUID) -> Optional[Workspace]:
+    async def get_tenant_workspace(
+        self, tenant_id: uuid.UUID, workspace_id: uuid.UUID
+    ) -> Optional[Workspace]:
         """Get a workspace only if it belongs to the given tenant."""
         stmt = select(Workspace).where(
             Workspace.id == workspace_id,

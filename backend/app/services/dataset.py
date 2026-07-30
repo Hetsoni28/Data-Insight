@@ -1,4 +1,5 @@
 """DatasetService — file upload, profiling trigger, and management."""
+
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,10 +8,18 @@ from app.models.user import User
 from app.repositories.dataset import DatasetRepository
 from app.repositories.workspace import WorkspaceRepository
 from app.repositories.audit_log import AuditLogRepository
-from app.core.storage import upload_file, dataset_storage_path, get_signed_url, delete_file, DATASETS_BUCKET
+from app.core.storage import (
+    upload_file,
+    dataset_storage_path,
+    get_signed_url,
+    delete_file,
+    DATASETS_BUCKET,
+)
 from app.core.exceptions import (
-    ResourceNotFoundException, ForbiddenException,
-    ValidationException, StorageQuotaExceededException,
+    ResourceNotFoundException,
+    ForbiddenException,
+    ValidationException,
+    StorageQuotaExceededException,
 )
 
 ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".json"}
@@ -52,7 +61,9 @@ class DatasetService:
         # Validate file type
         ext = Path(filename).suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
-            raise ValidationException(f"File type '{ext}' not supported. Allowed: CSV, XLSX, JSON.")
+            raise ValidationException(
+                f"File type '{ext}' not supported. Allowed: CSV, XLSX, JSON."
+            )
 
         # Validate file size
         if len(file_bytes) > MAX_FILE_SIZE_BYTES:
@@ -61,6 +72,7 @@ class DatasetService:
         # Check storage quota
         from app.models.tenant import Tenant
         from app.repositories.tenant import TenantRepository
+
         tenant_repo = TenantRepository(self.session)
         tenant = await tenant_repo.get_by_id(actor.tenant_id)
         used_bytes = await self.dataset_repo.get_tenant_storage_used(actor.tenant_id)
@@ -89,6 +101,7 @@ class DatasetService:
 
         # Trigger Celery profiling task
         from app.worker.tasks.dataset_tasks import profile_dataset_task
+
         task = profile_dataset_task.delay(str(dataset.id))
         dataset.celery_task_id = task.id
         await self.dataset_repo.save(dataset)
@@ -103,10 +116,14 @@ class DatasetService:
         )
         return dataset
 
-    async def list_datasets(self, workspace_id: uuid.UUID, actor: User) -> list[Dataset]:
+    async def list_datasets(
+        self, workspace_id: uuid.UUID, actor: User
+    ) -> list[Dataset]:
         if not actor.tenant_id:
             return []
-        return await self.dataset_repo.get_workspace_datasets(actor.tenant_id, workspace_id)
+        return await self.dataset_repo.get_workspace_datasets(
+            actor.tenant_id, workspace_id
+        )
 
     async def get_dataset(self, dataset_id: uuid.UUID, actor: User) -> Dataset:
         ds = await self.dataset_repo.get_tenant_dataset(actor.tenant_id, dataset_id)
@@ -126,5 +143,10 @@ class DatasetService:
         except Exception:
             pass  # Log but don't fail if storage delete fails
         await self.dataset_repo.soft_delete(ds)
-        await self.audit_repo.log("dataset.delete", tenant_id=actor.tenant_id, user_id=actor.id,
-                                  resource_type="dataset", resource_id=str(ds.id))
+        await self.audit_repo.log(
+            "dataset.delete",
+            tenant_id=actor.tenant_id,
+            user_id=actor.id,
+            resource_type="dataset",
+            resource_id=str(ds.id),
+        )

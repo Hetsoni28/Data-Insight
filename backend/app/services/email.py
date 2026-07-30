@@ -4,6 +4,7 @@ Email service — SMTP integration with HTML templates.
 Set SMTP_USER and SMTP_PASSWORD in .env to enable.
 In development, OTPs are logged to console if credentials are empty.
 """
+
 import asyncio
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -66,7 +67,8 @@ def _base_html(content: str) -> str:
 
 
 def _otp_template(greeting: str, purpose: str, otp: str, expiry: str) -> str:
-    return _base_html(f"""
+    return _base_html(
+        f"""
       <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">{greeting}</h2>
       <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">{purpose}</p>
 
@@ -84,12 +86,16 @@ def _otp_template(greeting: str, purpose: str, otp: str, expiry: str) -> str:
       <p style="margin:0;font-size:13px;color:#9ca3af;text-align:center;">
         ⏱ This code expires in <strong>{expiry}</strong>. Do not share it with anyone.
       </p>
-    """)
+    """
+    )
 
 
 # ── Public send functions ─────────────────────────────────────────────────────
 
-async def send_email_verification(to_email: str, full_name: str | None, otp: str) -> None:
+
+async def send_email_verification(
+    to_email: str, full_name: str | None, otp: str
+) -> None:
     """Send the 5-minute email verification OTP."""
     name = full_name.split()[0] if full_name else "there"
     html = _otp_template(
@@ -121,7 +127,8 @@ async def send_password_reset(to_email: str, otp: str) -> None:
 async def send_welcome_email(to_email: str, full_name: str | None) -> None:
     """Send a welcome email after successful email verification."""
     name = full_name.split()[0] if full_name else "there"
-    html = _base_html(f"""
+    html = _base_html(
+        f"""
       <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">
         You're in, {name}! 🎉
       </h2>
@@ -139,13 +146,17 @@ async def send_welcome_email(to_email: str, full_name: str | None) -> None:
       <p style="margin:0;font-size:13px;color:#9ca3af;text-align:center;">
         Questions? Reply to this email — we're here to help.
       </p>
-    """)
+    """
+    )
     await _send(to=to_email, subject=f"Welcome to Data Insight, {name}!", html=html)
 
 
-async def send_team_invite(to_email: str, invited_by: str, org_name: str, invite_url: str) -> None:
+async def send_team_invite(
+    to_email: str, invited_by: str, org_name: str, invite_url: str
+) -> None:
     """Send a team invitation email with an accept link."""
-    html = _base_html(f"""
+    html = _base_html(
+        f"""
       <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">
         You've been invited to {org_name}
       </h2>
@@ -163,14 +174,20 @@ async def send_team_invite(to_email: str, invited_by: str, org_name: str, invite
       <p style="margin:0;font-size:13px;color:#9ca3af;text-align:center;">
         This invitation expires in 7 days.
       </p>
-    """)
-    await _send(to=to_email, subject=f"You're invited to {org_name} on Data Insight", html=html)
+    """
+    )
+    await _send(
+        to=to_email, subject=f"You're invited to {org_name} on Data Insight", html=html
+    )
 
 
-async def send_report_ready(to_email: str, full_name: str | None, report_name: str, report_url: str) -> None:
+async def send_report_ready(
+    to_email: str, full_name: str | None, report_name: str, report_url: str
+) -> None:
     """Send a notification when an AI report has finished generating."""
     name = full_name.split()[0] if full_name else "there"
-    html = _base_html(f"""
+    html = _base_html(
+        f"""
       <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">
         Your report is ready, {name}! 📊
       </h2>
@@ -185,11 +202,13 @@ async def send_report_ready(to_email: str, full_name: str | None, report_name: s
           View Report →
         </a>
       </div>
-    """)
+    """
+    )
     await _send(to=to_email, subject=f'Your report "{report_name}" is ready', html=html)
 
 
 # ── Internal send ─────────────────────────────────────────────────────────────
+
 
 def _sync_send(to: str, subject: str, html: str) -> None:
     """Synchronous function to actually send the email via smtplib."""
@@ -228,5 +247,7 @@ async def _send(to: str, subject: str, html: str) -> None:
         await asyncio.to_thread(_sync_send, to, subject, html)
         logger.info(f"[Email] Sent to {to} via SMTP | subject='{subject}'")
     except Exception as exc:
-        logger.error(f"[Email] Failed to send to {to} | subject='{subject}' | error: {exc}")
+        logger.error(
+            f"[Email] Failed to send to {to} | subject='{subject}' | error: {exc}"
+        )
         # Don't re-raise — email failure should not crash the auth flow.

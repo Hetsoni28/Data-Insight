@@ -1,4 +1,5 @@
 """WorkspaceService — business logic for workspace management."""
+
 import re
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +8,11 @@ from app.models.workspace import Workspace
 from app.models.user import User, UserRole
 from app.repositories.workspace import WorkspaceRepository
 from app.repositories.audit_log import AuditLogRepository
-from app.core.exceptions import ConflictException, ResourceNotFoundException, ForbiddenException
+from app.core.exceptions import (
+    ConflictException,
+    ResourceNotFoundException,
+    ForbiddenException,
+)
 
 
 def _slugify(name: str) -> str:
@@ -32,7 +37,9 @@ class WorkspaceService:
         color: str | None = None,
     ) -> Workspace:
         if not actor.tenant_id:
-            raise ForbiddenException("You must belong to an organization to create a workspace.")
+            raise ForbiddenException(
+                "You must belong to an organization to create a workspace."
+            )
         if actor.role not in (UserRole.owner, UserRole.org_admin):
             raise ForbiddenException("Only Owners and Admins can create workspaces.")
 
@@ -68,13 +75,17 @@ class WorkspaceService:
 
     async def get_workspace(self, workspace_id: uuid.UUID, actor: User) -> Workspace:
         if not actor.tenant_id:
-            raise ForbiddenException("You must belong to an organization to access this workspace.")
+            raise ForbiddenException(
+                "You must belong to an organization to access this workspace."
+            )
         ws = await self.ws_repo.get_tenant_workspace(actor.tenant_id, workspace_id)
         if not ws:
             raise ResourceNotFoundException("Workspace", str(workspace_id))
         return ws
 
-    async def update_workspace(self, workspace_id: uuid.UUID, updates: dict, actor: User) -> Workspace:
+    async def update_workspace(
+        self, workspace_id: uuid.UUID, updates: dict, actor: User
+    ) -> Workspace:
         ws = await self.get_workspace(workspace_id, actor)
         if actor.role not in (UserRole.owner, UserRole.org_admin):
             raise ForbiddenException("Only Owners and Admins can update workspaces.")
@@ -83,8 +94,13 @@ class WorkspaceService:
             if field in allowed:
                 setattr(ws, field, value)
         await self.ws_repo.save(ws)
-        await self.audit_repo.log("workspace.update", tenant_id=actor.tenant_id, user_id=actor.id,
-                                  resource_type="workspace", resource_id=str(ws.id))
+        await self.audit_repo.log(
+            "workspace.update",
+            tenant_id=actor.tenant_id,
+            user_id=actor.id,
+            resource_type="workspace",
+            resource_id=str(ws.id),
+        )
         return ws
 
     async def delete_workspace(self, workspace_id: uuid.UUID, actor: User) -> None:
@@ -94,8 +110,13 @@ class WorkspaceService:
         if ws.is_default:
             raise ForbiddenException("The default workspace cannot be deleted.")
         await self.ws_repo.soft_delete(ws)
-        await self.audit_repo.log("workspace.delete", tenant_id=actor.tenant_id, user_id=actor.id,
-                                  resource_type="workspace", resource_id=str(ws.id))
+        await self.audit_repo.log(
+            "workspace.delete",
+            tenant_id=actor.tenant_id,
+            user_id=actor.id,
+            resource_type="workspace",
+            resource_id=str(ws.id),
+        )
 
     async def get_workspace_stats(self, workspace_id: uuid.UUID, actor: User) -> dict:
         ws = await self.get_workspace(workspace_id, actor)
@@ -105,15 +126,21 @@ class WorkspaceService:
         from sqlalchemy import select, func
 
         # Count datasets
-        ds_query = select(func.count(Dataset.id)).where(Dataset.workspace_id == workspace_id, Dataset.is_deleted == False)
+        ds_query = select(func.count(Dataset.id)).where(
+            Dataset.workspace_id == workspace_id, Dataset.is_deleted == False
+        )
         ds_count = await self.session.scalar(ds_query) or 0
 
         # Count reports
-        rp_query = select(func.count(Report.id)).where(Report.workspace_id == workspace_id, Report.is_deleted == False)
+        rp_query = select(func.count(Report.id)).where(
+            Report.workspace_id == workspace_id, Report.is_deleted == False
+        )
         rp_count = await self.session.scalar(rp_query) or 0
 
         # Count members (all users in the tenant)
-        mem_query = select(func.count(UserModel.id)).where(UserModel.tenant_id == actor.tenant_id, UserModel.is_active == True)
+        mem_query = select(func.count(UserModel.id)).where(
+            UserModel.tenant_id == actor.tenant_id, UserModel.is_active == True
+        )
         mem_count = await self.session.scalar(mem_query) or 0
 
         return {
