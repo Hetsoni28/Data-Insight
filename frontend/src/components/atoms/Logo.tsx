@@ -111,29 +111,25 @@ export function Logo({
     <div className={cn("flex items-center gap-2", className)}>
       {icon}
       {showText && (
-          <span
-            className={cn(
-              "font-bold leading-none select-none",
-              textClassName
-            )}
-            style={{
-              fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)",
-              letterSpacing: "-0.03em",
-            }}
-          >
-            {whiteMode ? (
-              <>
-                <span style={{ color: "#ffffff" }}>Data</span>
-                <span style={{ color: "rgba(255,255,255,0.75)" }}> Insight</span>
-              </>
-            ) : (
-              <>
-                <span style={{ color: "#0f172a" }}>Data</span>
-                <span style={{ color: "#10B981" }}> Insight</span>
-              </>
-            )}
-          </span>
-        )}
+        <span
+          className={cn(
+            "font-sans font-bold leading-none select-none tracking-tight",
+            textClassName
+          )}
+        >
+          {whiteMode ? (
+            <>
+              <span className="text-white">Data</span>
+              <span className="text-emerald-50"> Insight</span>
+            </>
+          ) : (
+            <>
+              <span className="text-slate-900 dark:text-white">Data</span>
+              <span className="text-emerald-500 dark:text-emerald-400"> Insight</span>
+            </>
+          )}
+        </span>
+      )}
     </div>
   )
 

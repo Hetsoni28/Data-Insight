@@ -14,6 +14,9 @@ from app.api.v1.api_keys import router as api_keys_router
 from app.api.v1.webhooks import router as webhooks_router
 from app.api.v1.profile import router as profile_router
 from app.api.v1.notifications import router as notifications_router
+from app.api.v1.support import router as support_router
+from app.api.v1.owner_billing import router as owner_billing_router
+from app.api.v1.owner_ai import router as owner_ai_router
 
 api_router = APIRouter()
 
@@ -31,3 +34,6 @@ api_router.include_router(api_keys_router)
 api_router.include_router(webhooks_router)
 api_router.include_router(profile_router)
 api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
+api_router.include_router(support_router, prefix="/support", tags=["Support"])
+api_router.include_router(owner_billing_router, prefix="/owner/subscriptions", tags=["Owner Billing"])
+api_router.include_router(owner_ai_router, prefix="/owner/ai", tags=["Owner AI"])

@@ -38,6 +38,10 @@ class AITokenUsage(Base):
     # Cost in USD (calculated at call time based on published pricing)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
 
+    # Performance and Error tracking
+    latency_ms: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    status_code: Mapped[int] = mapped_column(Integer, default=200, nullable=False)
+
     # Link to the job that triggered this (optional)
     report_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True

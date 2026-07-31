@@ -2,9 +2,12 @@ import axios, { AxiosError, type AxiosResponse } from "axios";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 
+const isServer = typeof window === "undefined";
+const defaultServerUrl = process.env.INTERNAL_API_URL ?? "http://backend:8000/api/v1";
+const defaultClientUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+
 // ─── Axios Instance ────────────────────────────────────────────────────────────
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1",
   timeout: 30000, // 30 seconds — AI operations may take longer
   headers: {
     "Content-Type": "application/json",
@@ -14,7 +17,10 @@ const api = axios.create({
 // ─── Request Interceptor — Attach JWT Token ────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-    if (typeof window !== "undefined") {
+    const isNode = typeof window === "undefined";
+    config.baseURL = isNode ? defaultServerUrl : defaultClientUrl;
+
+    if (!isNode) {
       const token = localStorage.getItem("access_token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;

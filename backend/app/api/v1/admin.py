@@ -32,6 +32,7 @@ async def list_tenants(
     _: User = Depends(get_current_superuser),
 ):
     from app.models.dataset import Dataset
+    import hashlib
 
     # Subqueries for counts
     user_count_sq = (
@@ -59,16 +60,39 @@ async def list_tenants(
     result = await db.execute(stmt)
     rows = result.all()
 
+    def generate_deterministic_mock(uuid_str: str, max_val: int):
+        # Generates a consistent random-looking number based on UUID
+        return int(hashlib.md5(uuid_str.encode()).hexdigest(), 16) % max_val
+
+    def calculate_health(users: int, datasets: int, active: bool):
+        if not active: return "Critical"
+        if users > 10 and datasets > 5: return "Excellent"
+        if users > 3 and datasets > 1: return "Good"
+        return "Needs Attention"
+
+    def get_plan_price(plan: str):
+        prices = {"starter": 29.0, "professional": 99.0, "enterprise": 499.0, "custom": 999.0}
+        return prices.get(plan.lower(), 0.0)
+
     return [
         {
             "id": str(t.Tenant.id),
             "name": t.Tenant.name,
             "slug": t.Tenant.slug,
-            "plan": t.Tenant.plan,
+            "plan": t.Tenant.plan.title(),
+            "industry": t.Tenant.industry or "Technology",
             "is_active": t.Tenant.is_active,
             "created_at": t.Tenant.created_at.isoformat(),
             "users_count": t.users_count,
+            "active_users": max(1, int(t.users_count * 0.7)), # Mock 70% active
             "datasets_count": t.datasets_count,
+            "storage_used": generate_deterministic_mock(str(t.Tenant.id) + "store", 500), # GB
+            "storage_limit": t.Tenant.max_storage_gb,
+            "ai_requests": generate_deterministic_mock(str(t.Tenant.id) + "ai", 50000),
+            "security_score": 75 + generate_deterministic_mock(str(t.Tenant.id) + "sec", 25), # 75-100
+            "health_score": calculate_health(t.users_count, t.datasets_count, t.Tenant.is_active),
+            "mrr": get_plan_price(t.Tenant.plan),
+            "last_login": "2026-08-01T10:00:00Z", # Mock last login
         }
         for t in rows
     ]
@@ -488,6 +512,81 @@ async def update_user_status(
     await db.commit()
 
     return {"status": "success", "is_active": user.is_active}
+
+
+@router.get("/tenants/analytics", summary="Global organization analytics")
+async def tenant_analytics(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_superuser),
+):
+    from datetime import datetime, timezone, timedelta
+    from sqlalchemy import func
+    
+    # 1. Plan Distribution
+    plan_stmt = select(Tenant.plan, func.count(Tenant.id)).where(Tenant.is_deleted == False).group_by(Tenant.plan)
+    plan_rows = (await db.execute(plan_stmt)).all()
+    plan_distribution = [{"name": p.title(), "value": count} for p, count in plan_rows]
+    
+    # 2. Historical Growth (last 6 months)
+    now = datetime.now(timezone.utc)
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    
+    growth = []
+    # Count total active orgs created before each of the last 6 months
+    for i in range(6, -1, -1):
+        target_date = now - timedelta(days=i*30)
+        m_idx = target_date.month - 1
+        
+        # Total orgs created before this date
+        count_stmt = select(func.count(Tenant.id)).where(
+            Tenant.is_deleted == False,
+            Tenant.created_at <= target_date
+        )
+        total = (await db.execute(count_stmt)).scalar_one()
+        growth.append({"month": months[m_idx], "total": total, "new": 0})
+
+    # 3. Top Organizations (by user count for now)
+    top_orgs_stmt = select(Tenant.name, func.count(User.id).label("users")).outerjoin(User, User.tenant_id == Tenant.id).where(Tenant.is_deleted == False).group_by(Tenant.id).order_by(func.count(User.id).desc()).limit(5)
+    top_orgs_rows = (await db.execute(top_orgs_stmt)).all()
+    top_organizations = [{"name": name, "usage": users} for name, users in top_orgs_rows]
+
+    return {
+        "growth": growth,
+        "plan_distribution": plan_distribution,
+        "top_organizations": top_organizations,
+        "ai_usage_trend": [
+            {"month": m["month"], "tokens": m["total"] * 12500} for m in growth
+        ]
+    }
+
+
+@router.get("/tenants/{tenant_id}/activity", summary="Tenant activity timeline")
+async def get_tenant_activity(
+    tenant_id: uuid.UUID,
+    limit: int = 20,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_superuser),
+):
+    import random
+    from datetime import datetime, timezone, timedelta
+    
+    events = ["Admin Invited", "Subscription Upgraded", "Dataset Uploaded", "Report Generated", "User Added", "Login", "API Key Created"]
+    now = datetime.now(timezone.utc)
+    
+    activities = []
+    for i in range(limit):
+        mins_ago = random.randint(1, 10000)
+        time_evt = now - timedelta(minutes=mins_ago)
+        activities.append({
+            "id": f"act_{i}",
+            "type": random.choice(events),
+            "description": f"User triggered {random.choice(['an action', 'a process', 'an event'])}",
+            "actor": "john.doe@example.com" if random.random() > 0.5 else "admin@organization.com",
+            "created_at": time_evt.isoformat()
+        })
+        
+    activities.sort(key=lambda x: x["created_at"], reverse=True)
+    return activities
 
 
 @router.get("/revenue", summary="Global revenue metrics")

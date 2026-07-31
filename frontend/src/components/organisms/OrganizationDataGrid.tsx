@@ -2,24 +2,22 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { 
-  Building2, Users, Database, MoreHorizontal, CheckCircle2, XCircle, Search, Filter, Shield, Settings2, Trash2, Power, Eye
+  Building2, Users, Database, Search, Filter, Shield, Settings2, Power, Eye, Activity, HardDrive
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { 
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription 
-} from "@/components/ui/sheet"
 import api from "@/lib/api"
 import { toast } from "sonner"
+import { OrganizationDetailsDrawer } from "./OrganizationDetailsDrawer"
 
 export function OrganizationDataGrid() {
   const [tenants, setTenants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
 
-  // Sheet State
+  // Drawer State
   const [selectedTenant, setSelectedTenant] = useState<any>(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   useEffect(() => {
     fetchTenants()
@@ -37,25 +35,25 @@ export function OrganizationDataGrid() {
     }
   }
 
-  const handleToggleStatus = async (tenantId: string, currentStatus: boolean) => {
+  const handleToggleStatus = async (tenantId: string, currentStatus: boolean, e: React.MouseEvent) => {
+    e.stopPropagation()
     try {
       const newStatus = !currentStatus
       await api.patch(`/admin/tenants/${tenantId}/status`, { is_active: newStatus })
       setTenants(prev => prev.map(t => t.id === tenantId ? { ...t, is_active: newStatus } : t))
       toast.success(`Organization ${newStatus ? 'activated' : 'suspended'} successfully.`)
     } catch (error) {
-      console.error("Failed to toggle status", error)
       toast.error("Failed to update organization status.")
     }
   }
 
   const handleViewDetails = (tenant: any) => {
     setSelectedTenant(tenant)
-    setIsSheetOpen(true)
+    setIsDrawerOpen(true)
   }
 
-  const handleImpersonate = (tenant: any) => {
-    // We would need to select a specific user to impersonate, so for now we show a toast.
+  const handleImpersonate = (tenant: any, e: React.MouseEvent) => {
+    e.stopPropagation()
     toast.info(`Impersonation mode initiated for ${tenant.name}.`)
   }
 
@@ -64,38 +62,26 @@ export function OrganizationDataGrid() {
     t.slug.toLowerCase().includes(search.toLowerCase())
   )
 
-  const getPlanBadge = (plan: string) => {
-    switch (plan.toLowerCase()) {
-      case 'enterprise':
-        return <span className="px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200 text-xs font-semibold uppercase tracking-wider">Enterprise</span>
-      case 'professional':
-        return <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold uppercase tracking-wider">Professional</span>
-      case 'starter':
-      default:
-        return <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 text-xs font-semibold uppercase tracking-wider">Starter</span>
-    }
-  }
-
   return (
     <>
-      <div className="bg-white dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
         {/* Toolbar */}
-        <div className="p-4 md:p-5 border-b border-slate-100 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+        <div className="p-4 md:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="relative w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search organizations..." 
-              className="pl-9 h-10 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-md focus-visible:ring-emerald-500 shadow-sm"
+              className="pl-9 h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 rounded-md focus-visible:ring-emerald-500 shadow-sm"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 bg-white dark:bg-white/5 shadow-sm rounded-md">
+            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 shadow-sm rounded-md">
               <Filter className="h-4 w-4 mr-2" />
-              Filters
+              Advanced Filters
             </Button>
-            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 bg-white dark:bg-white/5 shadow-sm rounded-md hidden md:flex">
+            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 shadow-sm rounded-md hidden md:flex">
               <Settings2 className="h-4 w-4 mr-2" />
               Columns
             </Button>
@@ -105,27 +91,26 @@ export function OrganizationDataGrid() {
         {/* Data Table */}
         <div className="overflow-x-auto min-h-[400px]">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Organization</th>
-                <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Plan</th>
-                <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Usage</th>
-                <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Created</th>
+                <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Plan & MRR</th>
+                <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Health</th>
+                <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Usage & Storage</th>
+                <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Security</th>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
-                // Loading Skeleton Rows
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-48" /></td>
-                    <td className="px-6 py-4"><div className="h-6 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-24" /></td>
-                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-32" /></td>
-                    <td className="px-6 py-4"><div className="h-6 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-20" /></td>
-                    <td className="px-6 py-4"><div className="h-6 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-24" /></td>
-                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-8 ml-auto" /></td>
+                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-48" /></td>
+                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-24" /></td>
+                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-24" /></td>
+                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-32" /></td>
+                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-16" /></td>
+                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-8 ml-auto" /></td>
                   </tr>
                 ))
               ) : filteredTenants.length === 0 ? (
@@ -141,70 +126,76 @@ export function OrganizationDataGrid() {
                   <motion.tr 
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
+                    transition={{ delay: idx * 0.03 }}
                     key={tenant.id} 
-                    className="hover:bg-slate-50/80 transition-colors group"
+                    onClick={() => handleViewDetails(tenant)}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer"
                   >
                     {/* Organization Info */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-sm">
-                          <Building2 className="h-5 w-5" />
+                        <div className="h-10 w-10 rounded-md bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm">
+                          <span className="font-bold text-lg">{tenant.name.charAt(0)}</span>
                         </div>
                         <div>
                           <div className="font-semibold text-slate-900 dark:text-white">{tenant.name}</div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tenant.slug}</div>
+                          <div className="text-xs text-slate-500 mt-0.5">{tenant.industry}</div>
                         </div>
                       </div>
                     </td>
                     
-                    {/* Plan */}
+                    {/* Plan & MRR */}
                     <td className="px-6 py-4">
-                      {getPlanBadge(tenant.plan)}
+                      <div className="flex flex-col">
+                        <span className="font-medium text-slate-900 dark:text-white">{tenant.plan}</span>
+                        <span className="text-xs text-slate-500">${tenant.mrr}/mo</span>
+                      </div>
                     </td>
                     
-                    {/* Usage Summary */}
+                    {/* Health Score */}
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400" title="Active Users">
-                          <Users className="h-4 w-4 text-slate-400" />
-                          <span className="font-medium">{tenant.users_count || 0}</span>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          tenant.health_score === 'Excellent' ? 'bg-emerald-500' :
+                          tenant.health_score === 'Good' ? 'bg-blue-500' :
+                          tenant.health_score === 'Needs Attention' ? 'bg-amber-500' : 'bg-rose-500'
+                        }`} />
+                        <span className={`text-sm font-medium ${
+                          tenant.health_score === 'Excellent' ? 'text-emerald-700 dark:text-emerald-400' :
+                          tenant.health_score === 'Good' ? 'text-blue-700 dark:text-blue-400' :
+                          tenant.health_score === 'Needs Attention' ? 'text-amber-700 dark:text-amber-400' : 'text-rose-700 dark:text-rose-400'
+                        }`}>{tenant.health_score}</span>
+                      </div>
+                    </td>
+                    
+                    {/* Usage & Storage */}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
+                          <span className="flex items-center gap-1" title="Active Users"><Users className="w-3 h-3" /> {tenant.active_users}/{tenant.users_count}</span>
+                          <span className="flex items-center gap-1" title="Storage Used"><HardDrive className="w-3 h-3" /> {tenant.storage_used} GB</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400" title="Datasets">
-                          <Database className="h-4 w-4 text-slate-400" />
-                          <span className="font-medium">{tenant.datasets_count || 0}</span>
+                        <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400" title="AI Requests">
+                          <Activity className="w-3 h-3" /> {(tenant.ai_requests/1000).toFixed(1)}k requests
                         </div>
                       </div>
                     </td>
                     
-                    {/* Status */}
+                    {/* Security */}
                     <td className="px-6 py-4">
-                      {tenant.is_active ? (
-                        <span className="inline-flex items-center gap-1.5 text-emerald-600 text-sm font-medium">
-                          <CheckCircle2 className="h-4 w-4" /> Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-rose-600 text-sm font-medium">
-                          <XCircle className="h-4 w-4" /> Suspended
-                        </span>
-                      )}
-                    </td>
-                    
-                    {/* Created Date */}
-                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                      {new Date(tenant.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      <div className="flex items-center gap-1.5 text-slate-900 dark:text-white font-medium">
+                        <Shield className="w-4 h-4 text-emerald-500" />
+                        {tenant.security_score}/100
+                      </div>
                     </td>
                     
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={() => handleViewDetails(tenant)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600 rounded-md" title="View Details">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button onClick={() => handleImpersonate(tenant)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-blue-600 rounded-md" title="Impersonate User">
+                        <Button onClick={(e) => handleImpersonate(tenant, e)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-blue-600 rounded-md" title="Impersonate User">
                           <Shield className="h-4 w-4" />
                         </Button>
-                        <Button onClick={() => handleToggleStatus(tenant.id, tenant.is_active)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 rounded-md" title={tenant.is_active ? "Suspend Organization" : "Activate Organization"}>
+                        <Button onClick={(e) => handleToggleStatus(tenant.id, tenant.is_active, e)} variant="ghost" size="icon" className={`h-8 w-8 text-slate-400 rounded-md ${tenant.is_active ? "hover:text-rose-600" : "hover:text-emerald-600"}`} title={tenant.is_active ? "Suspend Organization" : "Activate Organization"}>
                           <Power className="h-4 w-4" />
                         </Button>
                       </div>
@@ -218,72 +209,21 @@ export function OrganizationDataGrid() {
         
         {/* Pagination Footer */}
         {!loading && filteredTenants.length > 0 && (
-          <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
             <div>Showing <span className="font-semibold text-slate-900 dark:text-white">{filteredTenants.length}</span> organizations</div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-white/5" disabled>Previous</Button>
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-white/5">Next</Button>
+              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-slate-950" disabled>Previous</Button>
+              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-slate-950">Next</Button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Tenant Details Sheet */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:max-w-md border-l border-slate-200 dark:border-white/10">
-          {selectedTenant && (
-            <div className="flex flex-col h-full">
-              <SheetHeader className="mb-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="h-12 w-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-sm">
-                    <Building2 className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <SheetTitle className="text-xl">{selectedTenant.name}</SheetTitle>
-                    <SheetDescription className="text-xs font-mono">{selectedTenant.id}</SheetDescription>
-                  </div>
-                </div>
-              </SheetHeader>
-              
-              <div className="flex-1 space-y-6 overflow-y-auto pr-2">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider">Overview</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Status</div>
-                      <div className="font-semibold text-slate-900 dark:text-white">{selectedTenant.is_active ? "Active" : "Suspended"}</div>
-                    </div>
-                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Plan</div>
-                      <div className="font-semibold text-slate-900 dark:text-white capitalize">{selectedTenant.plan}</div>
-                    </div>
-                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Active Users</div>
-                      <div className="font-semibold text-slate-900 dark:text-white">{selectedTenant.users_count || 0}</div>
-                    </div>
-                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Datasets</div>
-                      <div className="font-semibold text-slate-900 dark:text-white">{selectedTenant.datasets_count || 0}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider">Security</h3>
-                  <Button variant="outline" className="w-full justify-start h-10 mb-2">
-                    <Shield className="h-4 w-4 mr-2 text-blue-600" />
-                    Impersonate Administrator
-                  </Button>
-                  <Button variant="outline" onClick={() => handleToggleStatus(selectedTenant.id, selectedTenant.is_active)} className={`w-full justify-start h-10 ${selectedTenant.is_active ? "text-rose-600 hover:text-rose-700 hover:bg-rose-50" : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"}`}>
-                    <Power className={`h-4 w-4 mr-2`} />
-                    {selectedTenant.is_active ? "Suspend Organization" : "Activate Organization"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
+      <OrganizationDetailsDrawer 
+        isOpen={isDrawerOpen} 
+        onClose={() => setIsDrawerOpen(false)} 
+        tenant={selectedTenant} 
+      />
     </>
   )
 }

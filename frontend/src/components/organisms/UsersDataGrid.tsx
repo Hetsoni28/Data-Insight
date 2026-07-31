@@ -86,24 +86,24 @@ export function UsersDataGrid() {
 
   return (
     <>
-      <div className="bg-white dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
         {/* Toolbar */}
-        <div className="p-4 md:p-5 border-b border-slate-100 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+        <div className="p-4 md:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="relative w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search users, emails, or orgs..." 
-              className="pl-9 h-10 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-md focus-visible:ring-blue-500 shadow-sm"
+              className="pl-9 h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md focus-visible:ring-blue-500 shadow-sm"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 bg-white dark:bg-white/5 shadow-sm rounded-md">
+            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 bg-white dark:bg-slate-900 shadow-sm rounded-md">
               <Filter className="h-4 w-4 mr-2" />
               Filters
             </Button>
-            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 bg-white dark:bg-white/5 shadow-sm rounded-md hidden md:flex">
+            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm rounded-md hidden md:flex">
               <Settings2 className="h-4 w-4 mr-2" />
               Columns
             </Button>
@@ -113,7 +113,7 @@ export function UsersDataGrid() {
         {/* Data Table */}
         <div className="overflow-x-auto min-h-[400px]">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">User</th>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Organization</th>
@@ -123,7 +123,7 @@ export function UsersDataGrid() {
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 // Loading Skeleton Rows
                 Array.from({ length: 5 }).map((_, i) => (
@@ -226,11 +226,11 @@ export function UsersDataGrid() {
         
         {/* Pagination Footer */}
         {!loading && filteredUsers.length > 0 && (
-          <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
             <div>Showing <span className="font-semibold text-slate-900 dark:text-white">{filteredUsers.length}</span> users</div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-white/5" disabled>Previous</Button>
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-white/5">Next</Button>
+              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800" disabled>Previous</Button>
+              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">Next</Button>
             </div>
           </div>
         )}
@@ -238,7 +238,7 @@ export function UsersDataGrid() {
 
       {/* User Details Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:max-w-md border-l border-slate-200 dark:border-white/10">
+        <SheetContent side="right" className="w-[400px] sm:max-w-md border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
           {selectedUser && (
             <div className="flex flex-col h-full">
               <SheetHeader className="mb-6">
@@ -257,15 +257,15 @@ export function UsersDataGrid() {
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider">Overview</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
                       <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Status</div>
                       <div className="font-semibold text-slate-900 dark:text-white">{selectedUser.is_active ? "Active" : "Suspended"}</div>
                     </div>
-                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
                       <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Role</div>
                       <div className="font-semibold text-slate-900 dark:text-white capitalize">{selectedUser.role.replace('_', ' ')}</div>
                     </div>
-                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5 col-span-2 flex items-center gap-3">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 col-span-2 flex items-center gap-3">
                       <Building2 className="h-5 w-5 text-slate-400" />
                       <div>
                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Organization</div>

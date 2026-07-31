@@ -1,93 +1,102 @@
-"use client"
+"use client";
 
-import { Zap, Download, RefreshCw, Calendar } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
-import { toast } from "sonner"
-import { AiAnalyticsCharts } from "@/components/organisms/AiAnalyticsCharts"
-import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { AiKpiGrid } from "@/components/organisms/AiKpiGrid";
+import { AiExecutiveBriefing } from "@/components/organisms/AiExecutiveBriefing";
+import { AiProviderAnalytics } from "@/components/organisms/AiProviderAnalytics";
+import { AiModelLeaderboard } from "@/components/organisms/AiModelLeaderboard";
+import { AiOrganizationUsage } from "@/components/organisms/AiOrganizationUsage";
+import { AiActivityTimeline } from "@/components/organisms/AiActivityTimeline";
+import { Button } from "@/components/ui/button";
+import { Download, RefreshCcw, Settings } from "lucide-react";
+import { useState } from "react";
+import api from "@/lib/api";
 
-export default function AiUsagePage() {
-  const [isRefreshing, setIsRefreshing] = useState(false)
+export default function OwnerAiDashboardPage() {
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true)
-    toast.info("Refreshing AI analytics...")
-    setTimeout(() => {
-      setIsRefreshing(false)
-      toast.success("AI Analytics are up to date.")
-    }, 800)
-  }
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    toast.info("Refreshing AI analytics...");
+    await queryClient.invalidateQueries({ queryKey: ["owner-ai-overview"] });
+    await queryClient.invalidateQueries({ queryKey: ["owner-ai-providers"] });
+    await queryClient.invalidateQueries({ queryKey: ["owner-ai-trends"] });
+    await queryClient.invalidateQueries({ queryKey: ["owner-ai-models"] });
+    await queryClient.invalidateQueries({ queryKey: ["owner-ai-organizations"] });
+    await queryClient.invalidateQueries({ queryKey: ["owner-ai-activity"] });
+    setIsRefreshing(false);
+    toast.success("AI Analytics are up to date.");
+  };
 
-  const handleExport = () => {
-    toast.info("Generating AI Usage CSV...")
+  const handleExport = async () => {
+    toast.info("Generating AI Usage CSV...");
     try {
-      // Generate a mock CSV for the AI Usage data
-      const headers = ["Date", "GPT-4 Tokens", "Claude Tokens", "Llama Tokens", "Total Tokens"]
-      const mockData = [
-        ["2026-07-23", "12000", "8000", "2000", "22000"],
-        ["2026-07-24", "15000", "9500", "2500", "27000"],
-        ["2026-07-25", "18000", "11000", "3000", "32000"],
-        ["2026-07-26", "14000", "9000", "2100", "25100"],
-        ["2026-07-27", "21000", "13000", "4000", "38000"],
-        ["2026-07-28", "25000", "16000", "5500", "46500"],
-        ["2026-07-29", "32000", "21000", "8000", "61000"],
-      ]
-      
-      const csvRows = [headers.join(","), ...mockData.map(row => row.join(","))]
-      const blob = new Blob([csvRows.join("\n")], { type: "text/csv" })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `ai_usage_report_${new Date().toISOString().split('T')[0]}.csv`
-      a.click()
-      toast.success("Export complete.")
+      const res = await api.get("/owner/ai/models");
+      const models = res.data?.data || [];
+      const headers = ["Model", "Requests", "Tokens", "Cost", "Latency"];
+      const csvRows = [headers.join(",")];
+      models.forEach((m: any) => {
+        csvRows.push([m.name, m.requests, m.tokens, m.cost, m.latency].join(","));
+      });
+      const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ai_usage_report_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      toast.success("Export complete.");
     } catch (e) {
-      toast.error("Failed to export data.")
+      toast.error("Failed to export data.");
     }
-  }
+  };
 
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-6 pb-20">
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div className="max-w-7xl mx-auto py-8 px-6">
+      {/* Top Hero Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
-              <Zap className="h-5 w-5" />
-            </div>
-            AI Usage Analytics
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
-            Monitor API token consumption, model distributions, and latency across the platform.
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">AI Usage Intelligence</h1>
+          <p className="text-slate-500 mt-1">
+            Monitor every AI request, model, provider, token, cost, and performance metric across the Data Insight platform.
           </p>
         </div>
         
         <div className="flex items-center gap-3">
-          <Button onClick={() => toast.info("Date picker opening...")} variant="outline" className="h-9 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5">
-            <Calendar className="h-4 w-4 mr-2" />
-            Last 7 Days
-          </Button>
-          <Button onClick={handleRefresh} variant="outline" className="h-9 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5" disabled={isRefreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin text-emerald-600' : ''}`} />
+          <Button onClick={handleRefresh} variant="outline" className="bg-white border-slate-200" disabled={isRefreshing}>
+            <RefreshCcw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin text-emerald-600' : ''}`} />
             {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
-          <Button onClick={handleExport} className="h-9 px-4 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-all">
-            <Download className="h-4 w-4 mr-2" />
-            Export Report
+          <Button onClick={handleExport} variant="outline" className="bg-white border-slate-200">
+            <Download className="w-4 h-4 mr-2" />
+            Export Analytics
+          </Button>
+          <Button onClick={() => toast.info("AI Settings panel coming soon.")} className="bg-[#0A3A2A] hover:bg-[#06261c] text-white">
+            <Settings className="w-4 h-4 mr-2" />
+            AI Settings
           </Button>
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <AiAnalyticsCharts />
-      </motion.div>
+      {/* KPI Dashboard */}
+      <AiKpiGrid />
 
+      {/* Executive Summary */}
+      <AiExecutiveBriefing />
+
+      {/* Charts & Analytics */}
+      <AiProviderAnalytics />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <AiModelLeaderboard />
+          <AiOrganizationUsage />
+        </div>
+        <div>
+          <AiActivityTimeline />
+        </div>
+      </div>
     </div>
-  )
+  );
 }

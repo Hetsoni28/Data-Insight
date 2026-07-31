@@ -12,7 +12,7 @@ import { AiCopilotIllustration } from "@/components/molecules/AiCopilotIllustrat
 import { NoDatasetsIllustration } from "@/components/molecules/NoDatasetsIllustration";
 
 const TypingIndicator = () => (
-  <div className="flex items-center space-x-1.5 p-2 px-4 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 shadow-sm rounded-2xl rounded-tl-sm h-10 w-fit">
+  <div className="flex items-center space-x-1.5 p-2 px-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm rounded-2xl rounded-tl-sm h-10 w-fit">
     <motion.div
       className="w-1.5 h-1.5 bg-slate-400 rounded-full"
       animate={{ y: [0, -4, 0] }}
@@ -90,9 +90,9 @@ export function CopilotChat({ datasetId }: CopilotChatProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white/60 backdrop-blur-2xl rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-xl overflow-hidden">
+    <div className="flex flex-col h-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-xl overflow-hidden">
       {/* Premium Header */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-slate-100 dark:border-white/5 px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="bg-gradient-to-br from-emerald-400 to-teal-500 p-2 rounded-xl text-white shadow-sm ring-1 ring-emerald-500/20">
             <Sparkles className="h-5 w-5" />
@@ -153,7 +153,7 @@ export function CopilotChat({ datasetId }: CopilotChatProps) {
                         "px-5 py-3.5 text-[15px] leading-relaxed shadow-sm",
                         msg.role === "user"
                           ? "bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-2xl rounded-br-sm ring-1 ring-slate-900/5"
-                          : "bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 text-slate-800 dark:text-slate-200 rounded-2xl rounded-bl-sm"
+                          : "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-2xl rounded-bl-sm"
                       )}
                     >
                       <span className="whitespace-pre-wrap">{msg.content}</span>
@@ -183,14 +183,14 @@ export function CopilotChat({ datasetId }: CopilotChatProps) {
       </div>
 
       {/* Static Input Area (No absolute positioning to prevent cutoffs) */}
-      <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100 dark:border-white/5 shrink-0">
+      <div className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 shrink-0">
         <form onSubmit={handleSend} className="max-w-4xl mx-auto relative group">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask a question about your data... (Press Enter to send)"
             disabled={isTyping}
-            className="w-full pl-6 pr-14 py-4 rounded-2xl border-slate-200 dark:border-white/10 border bg-white dark:bg-white/5 shadow-sm hover:border-emerald-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all duration-300 ease-out text-[15px] disabled:opacity-50"
+            className="w-full pl-6 pr-14 py-4 rounded-2xl border-slate-200 dark:border-slate-800 border bg-white dark:bg-slate-900 shadow-sm hover:border-emerald-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all duration-300 ease-out text-[15px] disabled:opacity-50"
           />
           <Button 
             type="submit" 

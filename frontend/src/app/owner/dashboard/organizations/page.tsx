@@ -1,12 +1,19 @@
 "use client"
-import { Building2, Plus, Download } from "lucide-react"
+import { Building2, Plus, Download, Command } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { OrganizationDataGrid } from "@/components/organisms/OrganizationDataGrid"
+import { LiveKpiDashboard } from "@/components/organisms/LiveKpiDashboard"
+import { OrganizationAnalytics } from "@/components/organisms/OrganizationAnalytics"
+import { CreateOrganizationModal } from "@/components/organisms/CreateOrganizationModal"
 import { motion } from "framer-motion"
 import { toast } from "sonner"
 import api from "@/lib/api"
+import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 
 export default function OrganizationsPage() {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const queryClient = useQueryClient()
   
   const handleExportCSV = async () => {
     toast.info("Generating CSV...")
@@ -16,7 +23,7 @@ export default function OrganizationsPage() {
         toast.error("No data to export.")
         return
       }
-      const headers = ["ID", "Name", "Plan", "Status", "Created At"]
+      const headers = ["ID", "Name", "Plan", "Status", "Created At", "MRR", "Health Score", "Security Score"]
       const csvRows = [headers.join(",")]
       
       data.forEach((t: any) => {
@@ -25,7 +32,10 @@ export default function OrganizationsPage() {
           `"${t.name}"`, 
           t.plan, 
           t.is_active ? "Active" : "Suspended", 
-          t.created_at
+          t.created_at,
+          t.mrr,
+          t.health_score,
+          t.security_score
         ].join(","))
       })
       
@@ -42,39 +52,60 @@ export default function OrganizationsPage() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-6 pb-20">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 pb-20">
+      {/* Header & Quick Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-emerald-600" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <Building2 className="h-8 w-8 text-[#0A3A2A]" />
             Organizations
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-            Manage all platform tenants, view usage limits, and handle subscriptions.
+          <p className="text-slate-500 dark:text-slate-400 text-base mt-2 max-w-2xl">
+            Manage every company using the Data Insight platform. Monitor health scores, usage limits, and enterprise subscriptions.
           </p>
         </div>
         
         <div className="flex items-center gap-3">
-          <Button onClick={handleExportCSV} variant="outline" className="h-9 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5">
+          <Button onClick={handleExportCSV} variant="outline" className="h-10 px-4 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
-          <Button onClick={() => toast.info("New Organization modal coming soon!")} className="h-9 px-4 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-all">
+          <Button onClick={() => setIsCreateModalOpen(true)} className="h-10 px-5 rounded-md bg-[#0A3A2A] hover:bg-[#06261c] text-white shadow-sm transition-all">
             <Plus className="h-4 w-4 mr-2" />
-            New Organization
+            Create Organization
           </Button>
         </div>
       </div>
+
+      {/* Live KPI Dashboard */}
+      <LiveKpiDashboard />
+
+      {/* Analytics Charts */}
+      <OrganizationAnalytics />
 
       {/* Main Grid */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
       >
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Organization Directory</h2>
+          <p className="text-sm text-slate-500">Detailed list of all customers, active trials, and suspended accounts.</p>
+        </div>
         <OrganizationDataGrid />
       </motion.div>
+
+      <CreateOrganizationModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['admin-global-kpis'] })
+          queryClient.invalidateQueries({ queryKey: ['admin-tenant-analytics'] })
+          // The grid has its own fetch, so we just reload window or grid refetch
+          window.location.reload()
+        }}
+      />
     </div>
   )
 }

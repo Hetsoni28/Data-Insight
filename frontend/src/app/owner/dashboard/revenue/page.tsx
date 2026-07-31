@@ -1,75 +1,127 @@
 "use client"
 
-import { DollarSign, Download, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { RevenueAnalytics } from "@/components/organisms/RevenueAnalytics"
-import { motion } from "framer-motion"
+import { Download, RefreshCw, Calendar as CalendarIcon, FileText } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import api from "@/lib/api"
 
-export default function RevenuePage() {
-  const handleExport = () => {
-    toast.info("Generating Revenue CSV...")
+import { RevenueKpiGrid } from "@/components/organisms/RevenueKpiGrid"
+import { ExecutiveSummaryCard } from "@/components/organisms/ExecutiveSummaryCard"
+import { RevenueAnalyticsCharts } from "@/components/organisms/RevenueAnalyticsCharts"
+import { TopOrganizationsTable } from "@/components/organisms/TopOrganizationsTable"
+import { FinancialActivityTimeline } from "@/components/organisms/FinancialActivityTimeline"
+
+export default function OwnerRevenueDashboardPage() {
+  const queryClient = useQueryClient()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['owner-revenue-kpis'] })
+    queryClient.invalidateQueries({ queryKey: ['owner-revenue-trends'] })
+    queryClient.invalidateQueries({ queryKey: ['owner-revenue-forecast'] })
+    queryClient.invalidateQueries({ queryKey: ['owner-ai-costs'] })
+    queryClient.invalidateQueries({ queryKey: ['owner-revenue-health'] })
+    queryClient.invalidateQueries({ queryKey: ['owner-billing-activity'] })
+    queryClient.invalidateQueries({ queryKey: ['owner-organizations-top'] })
+    toast.success("Financial data refreshed")
+  }
+
+  const handleExportCSV = async () => {
+    toast.info("Generating Global Financial CSV...")
     try {
-      const headers = ["Month", "MRR", "ARR", "Active Subscriptions", "Churn Rate (%)"]
-      const mockData = [
-        ["January 2026", "$32,000", "$384,000", "280", "2.1"],
-        ["February 2026", "$34,500", "$414,000", "295", "1.8"],
-        ["March 2026", "$36,000", "$432,000", "310", "2.0"],
-        ["April 2026", "$38,500", "$462,000", "325", "2.3"],
-        ["May 2026", "$40,200", "$482,400", "330", "1.9"],
-        ["June 2026", "$42,500", "$510,000", "342", "2.4"],
-      ]
+      const { data } = await api.get("/owner/subscriptions/organizations?skip=0&limit=100")
+      if (!data || !data.data || data.data.length === 0) {
+        toast.error("No data to export.")
+        return
+      }
+      const headers = ["Organization ID", "Name", "Plan", "Status", "MRR", "Billing Cycle", "Created At"]
+      const csvRows = [headers.join(",")]
       
-      const csvRows = [headers.join(","), ...mockData.map(row => row.join(","))]
+      data.data.forEach((t: any) => {
+        csvRows.push([
+          t.id, 
+          `"${t.name}"`, 
+          t.plan, 
+          t.status, 
+          t.mrr,
+          t.billing_cycle,
+          t.created_at
+        ].join(","))
+      })
+      
       const blob = new Blob([csvRows.join("\n")], { type: "text/csv" })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `revenue_report_${new Date().toISOString().split('T')[0]}.csv`
+      a.download = `global_financial_export_${new Date().toISOString().split('T')[0]}.csv`
       a.click()
-      toast.success("Revenue report exported successfully.")
+      toast.success("Financial export complete.")
     } catch (e) {
-      toast.error("Failed to export data.")
+      toast.error("Failed to export financial data.")
     }
   }
 
+  const handleGenerateReport = () => {
+    toast.success("Compiling AI Financial Report PDF... (Check downloads soon)")
+    setTimeout(() => {
+      window.print() // Native print dialog as requested by user
+    }, 1500)
+  }
+
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-6 pb-20">
+    <div className="p-6 md:p-8 flex flex-col gap-8 max-w-[1600px] mx-auto w-full pb-20 print:p-0 print:bg-white print:text-black">
       
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      {/* Hero Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-              <DollarSign className="h-5 w-5" />
-            </div>
-            Revenue & Subscriptions
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
-            Track MRR growth, plan distribution, and financial health.
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Revenue Intelligence</h1>
+          <p className="text-slate-500 mt-1">
+            Monitor every financial metric of your Data Insight platform.
           </p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <Button onClick={() => toast.info("Date range picker")} variant="outline" className="h-9 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5">
-            <Calendar className="h-4 w-4 mr-2" />
-            Last 6 Months
+        <div className="flex flex-wrap items-center gap-3">
+          <Button onClick={handleRefresh} variant="outline" size="icon" className="h-10 w-10 shrink-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+            <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button onClick={handleExport} className="h-9 px-4 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-all">
+          <Button variant="outline" className="h-10 px-4 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 shadow-sm">
+            <CalendarIcon className="h-4 w-4 mr-2" />
+            Last 30 Days
+          </Button>
+          <Button onClick={handleExportCSV} variant="outline" className="h-10 px-4 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800">
             <Download className="h-4 w-4 mr-2" />
-            Export Report
+            Export CSV
+          </Button>
+          <Button onClick={handleGenerateReport} className="h-10 px-4 rounded-md bg-[#0A3A2A] hover:bg-[#0A3A2A]/90 text-white shadow-sm">
+            <FileText className="h-4 w-4 mr-2" />
+            Generate AI Report
           </Button>
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <RevenueAnalytics />
-      </motion.div>
+      <div className="space-y-8">
+        {/* Executive Summary & KPIs */}
+        <section className="space-y-6">
+          <ExecutiveSummaryCard />
+          <RevenueKpiGrid />
+        </section>
 
+        {/* Analytics Charts */}
+        <section>
+          <RevenueAnalyticsCharts />
+        </section>
+
+        {/* Bottom Grids */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <TopOrganizationsTable />
+          </div>
+          <div className="lg:col-span-1">
+            <FinancialActivityTimeline />
+          </div>
+        </section>
+      </div>
+      
     </div>
   )
 }

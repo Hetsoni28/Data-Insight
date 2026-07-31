@@ -14,6 +14,9 @@ from app.models.invitation import Invitation, InvitationStatus
 from app.models.api_key import ApiKey
 from app.models.webhook import Webhook
 from app.models.notification import Notification
+from app.models.support import SupportTicket, PlatformIncident
+from app.models.invoice import Invoice, InvoiceStatus
+from app.models.billing_activity import BillingActivity
 
 __all__ = [
     "User",
@@ -38,4 +41,9 @@ __all__ = [
     "ApiKey",
     "Webhook",
     "Notification",
+    "SupportTicket",
+    "PlatformIncident",
+    "Invoice",
+    "InvoiceStatus",
+    "BillingActivity",
 ]

@@ -3,7 +3,7 @@
 import uuid
 import enum
 from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, DateTime, Text, JSON
+from sqlalchemy import String, Boolean, DateTime, Text, JSON, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.session import Base
@@ -55,6 +55,9 @@ class Tenant(Base):
     stripe_subscription_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
+    billing_cycle: Mapped[str] = mapped_column(String(20), default="monthly") # monthly, yearly
+    mrr: Mapped[float] = mapped_column(Float, default=0.0) # cached Monthly Recurring Revenue
+    trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
