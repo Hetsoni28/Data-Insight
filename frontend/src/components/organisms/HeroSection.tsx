@@ -25,7 +25,7 @@ export function HeroSection() {
   const [videoOpen, setVideoOpen] = useState(false)
 
   return (
-    <section className="pt-20 pb-16 px-4 sm:px-8 bg-white dark:bg-white/5 overflow-hidden">
+    <section className="pt-20 pb-16 px-4 sm:px-8 bg-white dark:bg-transparent overflow-hidden">
       <div className="max-w-7xl mx-auto">
 
         {/* ── Top: copy (always full-width on mobile, left col on desktop) ── */}

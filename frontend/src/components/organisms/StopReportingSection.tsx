@@ -81,7 +81,7 @@ export function StopReportingSection() {
             viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.55 }}
             className="h-full"
           >
-            <div className="rounded-2xl border bg-white dark:bg-white/5 shadow-lg p-4 sm:p-6 max-w-md mx-auto lg:ml-auto lg:mr-0 relative w-full h-full flex flex-col">
+            <div className="rounded-2xl border bg-white dark:bg-transparent shadow-lg p-4 sm:p-6 max-w-md mx-auto lg:ml-auto lg:mr-0 relative w-full h-full flex flex-col">
               <div className="flex justify-between items-center mb-4 shrink-0">
                 <div className="text-sm font-bold text-slate-800 dark:text-slate-200">Data Import Queue</div>
                 {processingState === "done" && (
@@ -97,7 +97,7 @@ export function StopReportingSection() {
                   <div className="w-full text-left flex-1 flex flex-col min-h-[140px]">
                     <div 
                       onClick={startUpload}
-                      className={`flex-1 flex flex-col justify-center gap-3 rounded-xl border-2 border-dashed p-4 transition-all duration-300 ${processingState === 'idle' ? 'border-slate-300 bg-slate-50 dark:bg-white/5 cursor-pointer hover:border-[#10B981] hover:bg-[#10B981]/5 group' : processingState === 'processing' ? 'border-[#10B981]/50 bg-[#10B981]/5 cursor-default shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'border-emerald-500 bg-emerald-50 cursor-default hidden'}`}
+                      className={`flex-1 flex flex-col justify-center gap-3 rounded-xl border-2 border-dashed p-4 transition-all duration-300 ${processingState === 'idle' ? 'border-slate-300 bg-slate-50 dark:bg-slate-900/50 cursor-pointer hover:border-[#10B981] hover:bg-[#10B981]/5 group' : processingState === 'processing' ? 'border-[#10B981]/50 bg-[#10B981]/5 cursor-default shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'border-emerald-500 bg-emerald-50 cursor-default hidden'}`}
                     >
                     {processingState === "idle" ? (
                       <div className="flex-1 flex flex-col items-center justify-center py-4">
@@ -177,13 +177,13 @@ export function StopReportingSection() {
               </CardHeader>
               <CardContent className="p-4 space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white dark:bg-white/5 border rounded-xl p-3 shadow-sm">
+                  <div className="bg-white dark:bg-transparent border rounded-xl p-3 shadow-sm">
                     <div className="text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Total Revenue</div>
                     <div className="text-2xl font-black text-slate-900 dark:text-white flex items-baseline gap-2">
                       $1.4M <span className="text-xs text-[#10B981] font-bold">+24.8%</span>
                     </div>
                   </div>
-                  <div className="bg-white dark:bg-white/5 border rounded-xl p-3 shadow-sm">
+                  <div className="bg-white dark:bg-transparent border rounded-xl p-3 shadow-sm">
                     <div className="text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider">AI Anomalies Found</div>
                     <div className="text-2xl font-black text-red-500 flex items-baseline gap-2">
                       03 <span className="text-[10px] text-red-400 font-medium">Requires attention</span>
@@ -193,9 +193,9 @@ export function StopReportingSection() {
                 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="h-8 bg-slate-100/80 p-1 w-full grid grid-cols-3">
-                    <TabsTrigger value="overview" className="text-[10px] data-[state=active]:bg-white dark:bg-white/5 data-[state=active]:shadow-sm rounded-md">Overview</TabsTrigger>
-                    <TabsTrigger value="variance" className="text-[10px] data-[state=active]:bg-white dark:bg-white/5 data-[state=active]:shadow-sm rounded-md">Variance</TabsTrigger>
-                    <TabsTrigger value="breakdown" className="text-[10px] data-[state=active]:bg-white dark:bg-white/5 data-[state=active]:shadow-sm rounded-md">Breakdown</TabsTrigger>
+                    <TabsTrigger value="overview" className="text-[10px] data-[state=active]:bg-white dark:bg-transparent data-[state=active]:shadow-sm rounded-md">Overview</TabsTrigger>
+                    <TabsTrigger value="variance" className="text-[10px] data-[state=active]:bg-white dark:bg-transparent data-[state=active]:shadow-sm rounded-md">Variance</TabsTrigger>
+                    <TabsTrigger value="breakdown" className="text-[10px] data-[state=active]:bg-white dark:bg-transparent data-[state=active]:shadow-sm rounded-md">Breakdown</TabsTrigger>
                   </TabsList>
                   
                   <div className="mt-4 h-[120px] bg-slate-50/50 rounded-xl border border-slate-100 dark:border-white/5 p-2">

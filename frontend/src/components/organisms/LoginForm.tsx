@@ -166,7 +166,7 @@ export function LoginForm() {
               Request Access
             </button>
             <motion.div 
-              className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-white/5 rounded-lg shadow-sm"
+              className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-transparent rounded-lg shadow-sm"
               initial={false}
               animate={{ left: mode === "login" ? 4 : "50%" }}
               transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
@@ -372,7 +372,7 @@ export function LoginForm() {
                         disabled={isLoading}
                         className={cn(
                           "h-11 pl-4 pr-10 rounded-xl transition-all duration-300",
-                          focusedField === "email" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50/50 hover:bg-slate-50 dark:hover:bg-white/5",
+                          focusedField === "email" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50/50 hover:bg-slate-50 dark:hover:bg-slate-900/50",
                           !focusedField && form.email && !isValidEmail ? "border-red-300 bg-red-50/30" : ""
                         )}
                       />
@@ -413,7 +413,7 @@ export function LoginForm() {
                         disabled={isLoading}
                         className={cn(
                           "h-11 pl-4 pr-10 rounded-xl transition-all duration-300",
-                          focusedField === "password" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50/50 hover:bg-slate-50 dark:hover:bg-white/5"
+                          focusedField === "password" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50/50 hover:bg-slate-50 dark:hover:bg-slate-900/50"
                         )}
                       />
                       <button
@@ -533,7 +533,7 @@ export function LoginForm() {
                     disabled={isLoading}
                     className={cn(
                       "h-14 text-center text-2xl tracking-[0.5em] font-mono rounded-xl transition-all duration-300",
-                      focusedField === "otp" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10",
+                      focusedField === "otp" ? "border-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.1)]" : "bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-white/10",
                       fieldError ? "border-red-300 bg-red-50/30" : ""
                     )}
                   />

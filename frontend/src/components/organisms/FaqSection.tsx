@@ -43,7 +43,7 @@ export function FaqSection() {
           <Accordion type="single" collapsible className="space-y-2">
             {FAQS.map((faq, i) => (
               <motion.div key={i} variants={fadeUp}>
-                <AccordionItem value={`faq-${i}`} className="rounded-xl border bg-white dark:bg-white/5 px-5 shadow-sm">
+                <AccordionItem value={`faq-${i}`} className="rounded-xl border bg-white dark:bg-transparent px-5 shadow-sm">
                   <AccordionTrigger className="hover:no-underline text-left text-sm font-medium text-slate-800 dark:text-slate-200 py-4">
                     {faq.q}
                   </AccordionTrigger>

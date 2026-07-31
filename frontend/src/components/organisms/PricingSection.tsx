@@ -47,7 +47,7 @@ function FeatureItem({ text, tip }: { text: string; tip: string }) {
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-8 bg-white dark:bg-white/5">
+    <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-8 bg-white dark:bg-transparent">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial="hidden" whileInView="visible"
@@ -80,7 +80,7 @@ export function PricingSection() {
                 {STARTER_FEATURES.map(f => <FeatureItem key={f.text} {...f} />)}
                 <div className="mt-auto pt-4">
                   <Separator className="mb-4" />
-                  <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:border-[#10B981] hover:text-[#10B981] transition-colors")}>
+                  <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:border-[#10B981] hover:text-[#10B981] transition-colors")}>
                     Sign in
                   </a>
                 </div>

@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/authStore"
 import { useAuth } from "@/hooks/useAuth"
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password"]
+const PUBLIC_ROUTES = ["/", "/login", "/forgot-password"]
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()

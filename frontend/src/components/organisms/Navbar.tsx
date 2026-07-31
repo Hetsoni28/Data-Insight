@@ -21,7 +21,7 @@ export function Navbar() {
   }, [])
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur shadow-sm border-b" : "bg-white/80 backdrop-blur"}`}>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 dark:bg-slate-950/95 backdrop-blur shadow-sm border-b dark:border-white/10" : "bg-white/80 dark:bg-slate-950/80 backdrop-blur"}`}>
       <div className="max-w-7xl mx-auto px-5 sm:px-8 flex h-14 items-center gap-8">
         <Logo size={24} textClassName="text-sm" />
 

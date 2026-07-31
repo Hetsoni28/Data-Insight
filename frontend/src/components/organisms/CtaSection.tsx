@@ -29,7 +29,7 @@ export function CtaSection() {
           </a>
           <a href="mailto:sales@datainsight.ai" className={cn(
             buttonVariants({ size: "lg" }),
-            "h-11 px-8 text-sm bg-white dark:bg-white/5 text-[#10B981] hover:bg-slate-50 dark:hover:bg-white/5 font-semibold shadow-lg gap-1.5 justify-center"
+            "h-11 px-8 text-sm bg-white dark:bg-transparent text-[#10B981] hover:bg-slate-50 dark:hover:bg-slate-900/50 font-semibold shadow-lg gap-1.5 justify-center"
           )}>
             Talk to Sales <ChevronRight className="h-4 w-4" />
           </a>

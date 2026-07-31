@@ -10,7 +10,7 @@ import { Footer } from "@/components/organisms/Footer"
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-white dark:bg-white/5 text-slate-800 dark:text-slate-200 overflow-x-hidden">
+    <main className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 overflow-x-hidden">
       <Navbar />
       <HeroSection />
       <StopReportingSection />

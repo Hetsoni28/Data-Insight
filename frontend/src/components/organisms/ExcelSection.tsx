@@ -95,7 +95,7 @@ export function ExcelSection() {
           initial={{ opacity: 0, x: 48 }} whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }}
         >
-          <div className="rounded-2xl border-2 border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden bg-white dark:bg-white/5 flex flex-col h-[360px] sm:h-[400px]">
+          <div className="rounded-2xl border-2 border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden bg-white dark:bg-transparent flex flex-col h-[360px] sm:h-[400px]">
             {/* Window Header */}
             <div className="bg-slate-100 dark:bg-white/10 border-b flex items-center gap-1.5 px-4 py-2.5 shrink-0">
               <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
@@ -105,7 +105,7 @@ export function ExcelSection() {
             </div>
 
             {/* Tabs */}
-            <div className="bg-slate-50 dark:bg-white/5 border-b px-1 sm:px-2 flex gap-0 sm:gap-1 overflow-x-auto shrink-0 custom-scrollbar">
+            <div className="bg-slate-50 dark:bg-slate-900/50 border-b px-1 sm:px-2 flex gap-0 sm:gap-1 overflow-x-auto shrink-0 custom-scrollbar">
               {TABS.map((tab) => (
                 <button
                   key={tab}
@@ -121,7 +121,7 @@ export function ExcelSection() {
             </div>
 
             {/* Tab Content */}
-            <div className="flex-1 p-3 overflow-y-auto custom-scrollbar relative bg-white dark:bg-white/5">
+            <div className="flex-1 p-3 overflow-y-auto custom-scrollbar relative bg-white dark:bg-transparent">
               <AnimatePresence mode="wait">
                 {activeTab === "Dashboard" && (
                   <motion.div key="Dashboard" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="space-y-2">
@@ -130,12 +130,12 @@ export function ExcelSection() {
                       <div className="min-w-[320px] px-1">
                         <div className="grid grid-cols-5 gap-px bg-slate-100 dark:bg-white/10 text-[9px] font-semibold text-slate-500 dark:text-slate-400 rounded-t-sm overflow-hidden border">
                           {["METRIC", "JAN", "FEB", "MAR", "TREND"].map(h => (
-                            <div key={h} className="bg-slate-50 dark:bg-white/5 px-2 py-1.5 whitespace-nowrap">{h}</div>
+                            <div key={h} className="bg-slate-50 dark:bg-slate-900/50 px-2 py-1.5 whitespace-nowrap">{h}</div>
                           ))}
                         </div>
                         <div className="border rounded-b-sm overflow-hidden">
                           {TABLE_ROWS.map((row, ri) => (
-                            <div key={ri} className={`grid grid-cols-5 gap-px text-[9px] ${ri % 2 === 0 ? "bg-white dark:bg-white/5" : "bg-slate-50/60"}`}>
+                            <div key={ri} className={`grid grid-cols-5 gap-px text-[9px] ${ri % 2 === 0 ? "bg-white dark:bg-transparent" : "bg-slate-50/60"}`}>
                               <div className="px-2 py-2 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">{row[0]}</div>
                               {row.slice(1, 4).map((cell, ci) => <div key={ci} className="px-2 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{cell}</div>)}
                               <div className={`px-2 py-2 font-bold ${row[4] === "▲" ? "text-emerald-600" : "text-red-500"}`}>{row[4]}</div>
@@ -219,7 +219,7 @@ export function ExcelSection() {
                         API usage for "Enterprise Plan" users dropped by 45% between Mar 12 and Mar 14. This is a 3-sigma deviation from the historical rolling average.
                       </p>
                     </div>
-                    <div className="border border-slate-100 dark:border-white/5 rounded-lg p-3 shadow-sm bg-white dark:bg-white/5">
+                    <div className="border border-slate-100 dark:border-white/5 rounded-lg p-3 shadow-sm bg-white dark:bg-transparent">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Recommended Actions</span>
                       </div>

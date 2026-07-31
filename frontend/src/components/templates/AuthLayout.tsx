@@ -8,7 +8,7 @@ import { Logo } from "@/components/atoms/Logo"
 
 interface AuthLayoutProps {
   children: React.ReactNode
-  variant: "login" | "register" | "forgot-password"
+  variant: "login" | "forgot-password" | "reset-password" | "verify-email" | "invite"
 }
 
 export function AuthLayout({ children, variant }: AuthLayoutProps) {
@@ -67,29 +67,17 @@ export function AuthLayout({ children, variant }: AuthLayoutProps) {
                 ))}
               </motion.div>
             </>
-          ) : variant === "register" ? (
+          ) : variant === "invite" ? (
             <>
+              <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+                <Badge className="bg-white/10 text-white border-white/20 text-xs backdrop-blur-sm">Team Invitation</Badge>
+              </motion.div>
               <motion.h2 variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="text-3xl font-bold text-white leading-tight">
-                Start turning data into<br />decisions today.
+                Join your team on<br />Data Insight.
               </motion.h2>
               <motion.p variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="text-white/60 text-sm leading-relaxed max-w-sm">
-                Set up your workspace in under 2 minutes and run your first AI report before your next meeting.
+                Accept your invitation to collaborate, access shared datasets, and view team dashboards.
               </motion.p>
-              <motion.ul variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } }} className="space-y-3">
-                {[
-                  "14-day free trial, no credit card",
-                  "Connect your first data source in minutes",
-                  "AI-generated reports from day one",
-                  "Cancel or downgrade anytime",
-                ].map(b => (
-                  <motion.li key={b} variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }} className="flex items-center gap-2.5 text-sm text-white/80">
-                    <div className="h-5 w-5 bg-[#10B981]/20 flex items-center justify-center shrink-0">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" />
-                    </div>
-                    {b}
-                  </motion.li>
-                ))}
-              </motion.ul>
             </>
           ) : (
             <>
@@ -112,7 +100,7 @@ export function AuthLayout({ children, variant }: AuthLayoutProps) {
       </div>
 
       {/* ── Right panel ── */}
-      <div className="relative flex items-center justify-center px-6 py-12 bg-white dark:bg-white/5 overflow-y-auto">
+      <div className="relative flex items-center justify-center px-6 py-12 bg-white dark:bg-transparent overflow-y-auto">
         <Link 
           href="/" 
           className="absolute top-6 right-6 md:top-8 md:right-8 flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"

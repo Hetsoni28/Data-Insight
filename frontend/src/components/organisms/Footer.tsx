@@ -11,7 +11,7 @@ const LEGAL = [
 
 export function Footer() {
   return (
-    <footer className="border-t bg-white dark:bg-white/5">
+    <footer className="border-t bg-white dark:bg-transparent">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10">
         <div className="grid sm:grid-cols-3 gap-8 mb-8">
           {/* Brand */}

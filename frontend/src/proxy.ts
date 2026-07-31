@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 // Routes that should bypass this middleware completely
-const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password"]
+const PUBLIC_ROUTES = ["/", "/login", "/forgot-password"]
 
 /**
  * Basic Edge-compatible JWT Decoder.
