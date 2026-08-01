@@ -18,6 +18,7 @@ import { SubscriptionDetailsDrawer } from "./SubscriptionDetailsDrawer"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import api from "@/lib/api"
+import { PaginationControls } from "@/components/molecules/PaginationControls"
 
 interface DataGridProps {
   data: any[]
@@ -27,6 +28,10 @@ interface DataGridProps {
 export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
   const [search, setSearch] = useState("")
   const [selectedTenant, setSelectedTenant] = useState<any | null>(null)
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   
   const queryClient = useQueryClient()
 
@@ -60,6 +65,11 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
     t.name.toLowerCase().includes(search.toLowerCase()) || 
     t.plan.toLowerCase().includes(search.toLowerCase())
   ) || []
+
+  // Pagination Logic
+  const totalItems = filteredData.length
+  const totalPages = Math.ceil(totalItems / pageSize)
+  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   return (
     <div className="mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden shadow-sm flex flex-col">
@@ -101,13 +111,13 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-            {filteredData.length === 0 ? (
+            {paginatedData.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                   No subscriptions found matching your search.
                 </td>
               </tr>
-            ) : filteredData.map((tenant: any) => (
+            ) : paginatedData.map((tenant: any) => (
               <tr 
                 key={tenant.id} 
                 className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer group"
@@ -154,8 +164,8 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
@@ -186,6 +196,18 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
           </tbody>
         </table>
       </div>
+      
+      {/* Pagination Footer */}
+      {!isLoading && filteredData.length > 0 && (
+        <PaginationControls 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
       
       {/* Drawer */}
       <SubscriptionDetailsDrawer 

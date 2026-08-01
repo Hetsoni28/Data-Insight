@@ -20,6 +20,9 @@ from app.models.billing_activity import BillingActivity
 from app.models.api_gateway import ApiRequestLog, OAuthClient, ApiRateLimit, ApiIntegration
 from app.models.storage import StorageBucket, StorageFile, StorageBackup, StorageLifecyclePolicy, StorageActivityLog
 from app.models.ai_ops import AIProvider, AIModel, AIRoutingRule, AIPromptTemplate, AIUsageLog
+from app.models.integration import IntegrationConnection, IntegrationLog, AutomationWorkflow
+from app.models.security import SecurityEvent, ThreatIntelligence, ComplianceReport
+from app.models.feature_flag import FeatureFlag, FeatureRollout, FeatureExperiment
 
 __all__ = [
     "User",
@@ -63,4 +66,13 @@ __all__ = [
     "AIRoutingRule",
     "AIPromptTemplate",
     "AIUsageLog",
+    "IntegrationConnection",
+    "IntegrationLog",
+    "AutomationWorkflow",
+    "SecurityEvent",
+    "ThreatIntelligence",
+    "ComplianceReport",
+    "FeatureFlag",
+    "FeatureRollout",
+    "FeatureExperiment",
 ]

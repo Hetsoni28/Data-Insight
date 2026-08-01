@@ -19,6 +19,7 @@ import { StateLayout } from "@/components/molecules/StateLayout";
 import { NoReportsIllustration } from "@/components/molecules/NoReportsIllustration";
 import { LoadingPulse } from "@/components/molecules/LoadingPulse";
 import { Plus } from "lucide-react";
+import { PaginationControls } from "@/components/molecules/PaginationControls";
 
 interface ReportTableProps {
   reports: Report[];
@@ -28,6 +29,12 @@ interface ReportTableProps {
 }
 
 export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: ReportTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalItems = reports.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const paginatedReports = reports.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const handleDelete = async (reportId: string) => {
     if (!window.confirm("Are you sure you want to delete this report?")) {
       return;
@@ -131,7 +138,7 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
           </TableRow>
         </TableHeader>
         <TableBody>
-          {reports.map((report) => (
+          {paginatedReports.map((report) => (
             <TableRow key={report.id}>
               <TableCell className="font-medium">
                 <div className="flex items-center space-x-2">
@@ -176,6 +183,16 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
           ))}
         </TableBody>
       </Table>
+      {reports.length > 0 && (
+        <PaginationControls 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

@@ -67,7 +67,7 @@ export function RevenueTrendChart() {
                 color: 'var(--card-foreground)'
               }}
               itemStyle={{ color: 'var(--foreground)' }}
-              formatter={(value: number) => [`$${value.toLocaleString()}`, "MRR"]}
+              formatter={(value: any) => [`$${Number(value || 0).toLocaleString()}`, "MRR"]}
             />
             <Area
               type="monotone"

@@ -19,7 +19,7 @@ import { ProfileStatsSidebar } from "@/components/molecules/ProfileStatsSidebar"
 import { ProfileContentTabs } from "@/components/organisms/ProfileContentTabs";
 
 export default function PlatformOwnerProfilePage() {
-  const { data: user, mutate } = useAuth();
+  const { data: user, refetch } = useAuth();
   
   const [profileData, setProfileData] = useState<FullProfile | null>(null);
   const [sessions, setSessions] = useState<UserSession[]>([]);
@@ -73,7 +73,7 @@ export default function PlatformOwnerProfilePage() {
     try {
       await updateMe({ full_name: formData.full_name, avatar_url: avatarUrl || undefined });
       await ProfileService.updateProfile({ ...formData, experience_years: formData.experience_years ? parseInt(formData.experience_years) : undefined });
-      await mutate();
+      await refetch();
       toast.success("Profile Updated", { description: "Your executive identity has been secured." });
       setIsAvatarModalOpen(false);
     } catch (err) { toast.error("Failed to save profile"); }

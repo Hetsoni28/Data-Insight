@@ -39,5 +39,20 @@ export const storageService = {
   getSecurity: async () => {
     const response = await api.get('/owner/storage/security');
     return response.data;
+  },
+
+  createBucket: async (data: { name: string; bucket_type?: string; is_public?: boolean; description?: string; region?: string }) => {
+    const response = await api.post('/owner/storage/buckets', data);
+    return response.data;
+  },
+
+  deleteBucket: async (bucketId: string) => {
+    const response = await api.delete(`/owner/storage/buckets/${bucketId}`);
+    return response.data;
+  },
+
+  deleteFile: async (fileId: string) => {
+    const response = await api.delete(`/owner/storage/files/${fileId}`);
+    return response.data;
   }
 };

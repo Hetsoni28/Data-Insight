@@ -8,12 +8,17 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import api from "@/lib/api"
 import { toast } from "sonner"
+import { PaginationControls } from "@/components/molecules/PaginationControls"
 import { OrganizationDetailsDrawer } from "./OrganizationDetailsDrawer"
 
 export function OrganizationDataGrid() {
   const [tenants, setTenants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   // Drawer State
   const [selectedTenant, setSelectedTenant] = useState<any>(null)
@@ -59,8 +64,19 @@ export function OrganizationDataGrid() {
 
   const filteredTenants = tenants.filter(t => 
     t.name.toLowerCase().includes(search.toLowerCase()) || 
-    t.slug.toLowerCase().includes(search.toLowerCase())
+    (t.slug && t.slug.toLowerCase().includes(search.toLowerCase())) ||
+    (t.industry && t.industry.toLowerCase().includes(search.toLowerCase()))
   )
+
+  // Pagination Logic
+  const totalItems = filteredTenants.length
+  const totalPages = Math.ceil(totalItems / pageSize)
+  const paginatedTenants = filteredTenants.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search])
 
   return (
     <>
@@ -122,7 +138,7 @@ export function OrganizationDataGrid() {
                   </td>
                 </tr>
               ) : (
-                filteredTenants.map((tenant, idx) => (
+                paginatedTenants.map((tenant, idx) => (
                   <motion.tr 
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -209,13 +225,14 @@ export function OrganizationDataGrid() {
         
         {/* Pagination Footer */}
         {!loading && filteredTenants.length > 0 && (
-          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-            <div>Showing <span className="font-semibold text-slate-900 dark:text-white">{filteredTenants.length}</span> organizations</div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-slate-950" disabled>Previous</Button>
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-slate-950">Next</Button>
-            </div>
-          </div>
+          <PaginationControls 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
         )}
       </div>
 

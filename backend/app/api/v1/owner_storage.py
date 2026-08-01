@@ -304,3 +304,97 @@ async def get_security(
             "health_score": 98 if (public_count or 0) < total * 0.1 else 85
         }
     }
+
+
+from pydantic import BaseModel
+
+class BucketCreate(BaseModel):
+    name: str
+    bucket_type: str = "temp"
+    is_public: bool = False
+    description: str | None = None
+    region: str = "us-east-1"
+
+
+@router.post("/buckets")
+async def create_bucket(
+    data: BucketCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+) -> Any:
+    """Create a new storage bucket."""
+    existing = await db.scalar(select(StorageBucket).where(StorageBucket.name == data.name))
+    if existing:
+        raise HTTPException(status_code=400, detail="Bucket name already exists")
+
+    # Try creating in Supabase Storage if not local
+    from app.core import storage as storage_core
+    if not storage_core.is_local_storage():
+        try:
+            client = storage_core._client()
+            client.storage.create_bucket(data.name, options={"public": data.is_public})
+        except Exception as e:
+            # Continue even if it exists in Supabase
+            pass
+
+    new_bucket = StorageBucket(
+        name=data.name,
+        bucket_type=data.bucket_type,
+        is_public=data.is_public,
+        description=data.description,
+        region=data.region
+    )
+    db.add(new_bucket)
+    await db.commit()
+    await db.refresh(new_bucket)
+    return {"message": "Bucket created successfully", "bucket_id": str(new_bucket.id)}
+
+
+@router.delete("/buckets/{bucket_id}")
+async def delete_bucket(
+    bucket_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+) -> Any:
+    """Delete a storage bucket."""
+    bucket = await db.scalar(select(StorageBucket).where(StorageBucket.id == bucket_id))
+    if not bucket:
+        raise HTTPException(status_code=404, detail="Bucket not found")
+
+    from app.core import storage as storage_core
+    if not storage_core.is_local_storage():
+        try:
+            client = storage_core._client()
+            client.storage.delete_bucket(bucket.name)
+        except Exception:
+            pass
+
+    await db.delete(bucket)
+    await db.commit()
+    return {"message": "Bucket deleted successfully"}
+
+
+@router.delete("/files/{file_id}")
+async def delete_file(
+    file_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+) -> Any:
+    """Delete a storage file."""
+    file = await db.scalar(select(StorageFile).where(StorageFile.id == file_id))
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    bucket = await db.scalar(select(StorageBucket).where(StorageBucket.id == file.bucket_id))
+    bucket_name = bucket.name if bucket else "datasets"
+
+    from app.core import storage as storage_core
+    try:
+        storage_core.delete_file(bucket_name, file.file_path)
+    except Exception:
+        pass
+
+    file.deleted_at = datetime.now(timezone.utc)
+    await db.commit()
+    return {"message": "File deleted successfully"}
+

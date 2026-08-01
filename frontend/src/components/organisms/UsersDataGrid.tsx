@@ -15,11 +15,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import api from "@/lib/api"
 import { toast } from "sonner"
+import { PaginationControls } from "@/components/molecules/PaginationControls"
 
 export function UsersDataGrid() {
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   // Sheet State
   const [selectedUser, setSelectedUser] = useState<any>(null)
@@ -71,6 +76,16 @@ export function UsersDataGrid() {
     (u.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
     (u.tenant_name || "").toLowerCase().includes(search.toLowerCase())
   )
+
+  // Pagination Logic
+  const totalItems = filteredUsers.length
+  const totalPages = Math.ceil(totalItems / pageSize)
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search])
 
   const getRoleBadge = (role: string) => {
     switch (role?.toLowerCase()) {
@@ -149,7 +164,7 @@ export function UsersDataGrid() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user, idx) => (
+                paginatedUsers.map((user, idx) => (
                   <motion.tr 
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -250,13 +265,14 @@ export function UsersDataGrid() {
         
         {/* Pagination Footer */}
         {!loading && filteredUsers.length > 0 && (
-          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-            <div>Showing <span className="font-semibold text-slate-900 dark:text-white">{filteredUsers.length}</span> users</div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800" disabled>Previous</Button>
-              <Button variant="outline" size="sm" className="h-8 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">Next</Button>
-            </div>
-          </div>
+          <PaginationControls 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
         )}
       </div>
 

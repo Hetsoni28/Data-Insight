@@ -15,9 +15,13 @@ export function StorageHeroBanner({ onSearch, onRefresh }: StorageHeroBannerProp
   }
 
   return (
-    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 border border-white/10 p-8 text-white shadow-xl">
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
-      <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/20 blur-[100px] rounded-full pointer-events-none translate-x-1/3 -translate-y-1/3"></div>
+    <div className="relative overflow-hidden bg-[#0c402d] rounded-lg p-8 md:p-10 shadow-xl mb-8 border border-[#082f22]">
+      {/* Animated Particles / Glows */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-500/20 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+      
+      {/* Grid Pattern Overlay */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10 pointer-events-none mix-blend-overlay" />
 
       <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-4 max-w-2xl">
@@ -28,7 +32,7 @@ export function StorageHeroBanner({ onSearch, onRefresh }: StorageHeroBannerProp
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
             Storage Operations
           </h1>
-          <p className="text-slate-300 text-lg max-w-xl leading-relaxed">
+          <p className="text-emerald-100/80 text-lg max-w-xl leading-relaxed">
             Monitor, secure, and optimize every file stored across the Data Insight platform. Manage quotas, backups, and lifecycles.
           </p>
         </div>

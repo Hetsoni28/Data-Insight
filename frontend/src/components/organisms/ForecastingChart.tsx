@@ -74,8 +74,8 @@ export function ForecastingChart() {
                 color: 'var(--card-foreground)'
               }}
               itemStyle={{ color: 'var(--foreground)' }}
-              formatter={(value: number, name: string) => [
-                `$${value.toLocaleString()}`, 
+              formatter={(value: any, name: any) => [
+                `$${Number(value || 0).toLocaleString()}`, 
                 name === "mrr_actual" ? "Actual MRR" : "Forecasted MRR"
               ]}
             />

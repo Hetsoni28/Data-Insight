@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Activity } from "lucide-react";
 
 export function AiOrganizationUsage() {
   const { data, isLoading } = useQuery({
@@ -47,11 +47,14 @@ export function AiOrganizationUsage() {
                 <td className="px-6 py-4 text-right text-slate-600 dark:text-slate-400">
                   {new Intl.NumberFormat("en-US", { notation: "compact" }).format(org.tokens)}
                 </td>
-                <td className="px-6 py-4 text-right text-slate-600 dark:text-slate-400">
-                  {org.latency.toFixed(0)}ms
+                <td className="p-3">
+                  <div className="flex items-center justify-end text-slate-500 dark:text-slate-400">
+                    <Activity className="w-3.5 h-3.5 mr-1" />
+                    {(org.latency || 0).toFixed(0)}ms
+                  </div>
                 </td>
-                <td className="px-6 py-4 text-right font-bold text-slate-900 dark:text-white">
-                  ${org.cost.toFixed(2)}
+                <td className="p-3 text-right font-medium text-slate-900 dark:text-white">
+                  ${(org.cost || 0).toFixed(2)}
                 </td>
               </tr>
             ))}

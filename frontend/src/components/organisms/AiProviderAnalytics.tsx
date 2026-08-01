@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -11,8 +11,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import api from "@/lib/api";
 
 export function AiProviderAnalytics() {
+  const [mounted, setMounted] = useState(false);
   const [providerTab, setProviderTab] = useState("cost");
   const [burnTab, setBurnTab] = useState("tokens");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: providerData, isLoading: providersLoading } = useQuery({
     queryKey: ["owner-ai-providers"],
@@ -24,7 +29,7 @@ export function AiProviderAnalytics() {
     queryFn: async () => (await api.get("/owner/ai/trends")).data,
   });
 
-  if (providersLoading || trendsLoading) {
+  if (!mounted || providersLoading || trendsLoading) {
     return <Skeleton className="w-full h-[400px] rounded-xl mb-8" />;
   }
 
@@ -50,7 +55,7 @@ export function AiProviderAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                 <XAxis type="number" tickFormatter={(val) => `$${val}`} />
                 <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, "Cost"]} />
+                <Tooltip formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, "Cost"]} />
                 <Bar dataKey="cost" fill="#0A3A2A" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -62,7 +67,7 @@ export function AiProviderAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip formatter={(value: number) => [new Intl.NumberFormat().format(value), "Tokens"]} />
+                <Tooltip formatter={(value: any) => [new Intl.NumberFormat().format(Number(value || 0)), "Tokens"]} />
                 <Bar dataKey="tokens" fill="#10b981" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -110,7 +115,7 @@ export function AiProviderAnalytics() {
                 <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={10} minTickGap={30} />
                 <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `$${v.toFixed(0)}`} />
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, "Cost"]} />
+                <Tooltip formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, "Cost"]} />
                 <Area type="monotone" dataKey="cost" stroke="#0A3A2A" fillOpacity={1} fill="url(#colorCost)" />
               </AreaChart>
             </ResponsiveContainer>

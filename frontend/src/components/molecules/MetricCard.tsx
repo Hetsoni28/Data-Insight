@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface MetricCardProps {
   title: string;
   value: string | number;
-  trend: number;
+  trend?: number;
   trendLabel?: string;
   icon: React.ReactNode;
   sparklineData?: any[];
@@ -20,7 +20,7 @@ interface MetricCardProps {
 export function MetricCard({
   title,
   value,
-  trend,
+  trend = 0,
   trendLabel = "vs last 30d",
   icon,
   sparklineData = [],

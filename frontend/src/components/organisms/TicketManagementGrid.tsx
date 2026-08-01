@@ -9,12 +9,36 @@ import {
   DropdownMenuItem, DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import { PaginationControls } from "@/components/molecules/PaginationControls";
 
 interface TicketManagementGridProps {
   tickets: any[];
 }
 
 export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
+  const [search, setSearch] = useState("");
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
+  const filteredTickets = tickets?.filter(t => 
+    (t.subject || "").toLowerCase().includes(search.toLowerCase()) || 
+    (t.requester || "").toLowerCase().includes(search.toLowerCase()) ||
+    (t.organization || "").toLowerCase().includes(search.toLowerCase())
+  ) || [];
+
+  // Pagination Logic
+  const totalItems = filteredTickets.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const paginatedTickets = filteredTickets.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical": return "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20";
@@ -44,6 +68,8 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
             <input 
               type="text" 
               placeholder="Search tickets, customers, or issues..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="pl-9 pr-4 py-1.5 text-sm w-64 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </div>
@@ -72,7 +98,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
 
       {/* Grid Rows */}
       <div className="divide-y divide-slate-100 dark:divide-slate-800">
-        {tickets?.map((ticket, i) => (
+        {paginatedTickets?.map((ticket, i) => (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -148,13 +174,25 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
             </div>
           </motion.div>
         ))}
-        {(!tickets || tickets.length === 0) && (
+        {paginatedTickets.length === 0 && (
           <div className="py-12 text-center text-slate-500 dark:text-slate-400 text-sm">
             <MessageSquare className="w-8 h-8 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-            No active support tickets. Queue is clear!
+            No active support tickets found.
           </div>
         )}
       </div>
+
+      {/* Pagination Footer */}
+      {filteredTickets.length > 0 && (
+        <PaginationControls 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

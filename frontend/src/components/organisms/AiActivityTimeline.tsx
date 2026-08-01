@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
-import { BrainCircuit, CheckCircle2, AlertCircle } from "lucide-react";
+import { BrainCircuit, CheckCircle2, AlertCircle, Activity, DollarSign } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export function AiActivityTimeline() {
@@ -62,16 +62,19 @@ export function AiActivityTimeline() {
                   <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
                     <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">{act.model}</span>
                     <span>•</span>
-                    <span>{act.tokens} tokens</span>
-                    <span>•</span>
-                    <span className={act.latency_ms > 4000 ? "text-amber-500" : ""}>{act.latency_ms.toFixed(0)}ms</span>
-                    <span>•</span>
-                    <span className="font-medium text-slate-700 dark:text-slate-300">${act.cost.toFixed(4)}</span>
+                    <div className="flex items-center gap-1">
+                      <Activity className="w-3.5 h-3.5 text-slate-400" />
+                      <span className={(act.latency_ms || 0) > 4000 ? "text-amber-500" : ""}>{(act.latency_ms || 0).toFixed(0)}ms</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="font-medium text-slate-700 dark:text-slate-300">${(act.cost || 0).toFixed(4)}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-xs text-slate-400 whitespace-nowrap">
-                    {formatDistanceToNow(new Date(act.date), { addSuffix: true })}
+                    {act.date ? formatDistanceToNow(new Date(act.date), { addSuffix: true }) : "Unknown time"}
                   </span>
                   {act.status === 200 ? (
                     <CheckCircle2 className="w-3 h-3 text-emerald-500" />

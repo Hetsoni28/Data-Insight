@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
+import { Activity } from "lucide-react";
 
 export function AiModelLeaderboard() {
   const { data, isLoading } = useQuery({
@@ -68,12 +69,13 @@ export function AiModelLeaderboard() {
                     {new Intl.NumberFormat("en-US", { notation: "compact" }).format(model.tokens)}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className={`font-medium ${model.latency > 3000 ? 'text-amber-600' : 'text-slate-600 dark:text-slate-400'}`}>
-                      {model.latency.toFixed(0)}ms
-                    </span>
+                    <div className="flex items-center justify-end text-slate-500 dark:text-slate-400">
+                      <Activity className="w-3.5 h-3.5 mr-1" />
+                      {(model.latency || 0).toFixed(0)}ms
+                    </div>
                   </td>
-                  <td className="px-6 py-4 text-right font-medium text-slate-900 dark:text-slate-200">
-                    ${model.cost.toFixed(4)}
+                  <td className="px-6 py-4 text-right font-medium text-slate-900 dark:text-white">
+                    ${(model.cost || 0).toFixed(4)}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Badge variant="secondary" className={`${badgeColor} border-none`}>

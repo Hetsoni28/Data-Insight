@@ -57,11 +57,11 @@ export function AiExecutiveBriefing() {
           <p className="text-emerald-100/80 leading-relaxed max-w-3xl">
             The platform has successfully processed <strong className="text-white">{new Intl.NumberFormat().format(data.total_requests)}</strong> AI requests 
             across <strong className="text-white">{data.active_organizations}</strong> active organizations. 
-            Overall success rate is <strong className="text-white">{data.success_rate.toFixed(2)}%</strong> with an average 
-            latency of <strong className="text-white">{data.avg_latency.toFixed(0)}ms</strong>. 
-            Total AI infrastructure cost sits at <strong className="text-white">${data.total_cost.toFixed(2)}</strong>, 
-            averaging <strong className="text-white">${data.average_cost_per_request.toFixed(4)}</strong> per request.
-            {data.failed_requests > 0 && ` We observed ${data.failed_requests} failed requests that may require attention.`}
+            Overall success rate is <strong className="text-white">{(data.success_rate || 0).toFixed(2)}%</strong> with an average 
+            latency of <strong className="text-white">{(data.avg_latency || 0).toFixed(0)}ms</strong>. 
+            Total AI infrastructure cost sits at <strong className="text-white">${(data.total_cost || 0).toFixed(2)}</strong>, 
+            averaging <strong className="text-white">${(data.average_cost_per_request || 0).toFixed(4)}</strong> per request.
+            {(data.failed_requests || 0) > 0 && ` We observed ${data.failed_requests} failed requests that may require attention.`}
           </p>
         </div>
 
@@ -69,13 +69,13 @@ export function AiExecutiveBriefing() {
           <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between">
             <span className="text-sm font-medium text-emerald-100/80">Success Rate</span>
             <span className="text-white font-bold flex items-center gap-1">
-              {data.success_rate.toFixed(1)}% <TrendingUp className="w-3 h-3 text-emerald-400" />
+              {(data.success_rate || 0).toFixed(1)}% <TrendingUp className="w-3 h-3 text-emerald-400" />
             </span>
           </div>
           <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between">
             <span className="text-sm font-medium text-emerald-100/80">Avg Latency</span>
             <span className="text-white font-bold flex items-center gap-1">
-              {data.avg_latency.toFixed(0)}ms <TrendingDown className="w-3 h-3 text-emerald-400" />
+              {(data.avg_latency || 0).toFixed(0)}ms <TrendingDown className="w-3 h-3 text-emerald-400" />
             </span>
           </div>
           <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between">

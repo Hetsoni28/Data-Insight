@@ -48,6 +48,13 @@ class AuditLog(Base):
     status: Mapped[str] = mapped_column(
         String(20), default="success", nullable=False
     )  # success | failure
+    
+    severity: Mapped[str] = mapped_column(String(50), default="info", nullable=False) # info, warning, critical
+    module: Mapped[str] = mapped_column(String(100), default="system", nullable=False, index=True) # authentication, api, ai, billing, storage
+    
+    old_value: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    new_value: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    correlation_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True

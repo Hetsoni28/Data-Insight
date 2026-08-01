@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { 
   User, ShieldAlert, KeyRound, Save, Loader2, Image as ImageIcon, Smartphone, 
   Mail, BellRing, Code, Globe, CheckCircle2, ShieldCheck, QrCode, Terminal, 
@@ -11,12 +11,12 @@ import { FormInput } from "@/components/molecules/FormInput";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.1 } }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };

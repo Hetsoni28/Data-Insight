@@ -1,4 +1,9 @@
-import { FileText, FileSpreadsheet, Image as ImageIcon, Database, FileCode, Archive, File, Download, Trash2, ExternalLink, ShieldAlert } from "lucide-react"
+import { useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { storageService } from "@/lib/storageService"
+import { FileText, FileSpreadsheet, Image as ImageIcon, Database, FileCode, Archive, File, Download, Trash2, ExternalLink, ShieldAlert, Loader2 } from "lucide-react"
+import { PaginationControls } from "@/components/molecules/PaginationControls"
 
 interface StorageFile {
   id: string
@@ -17,6 +22,38 @@ interface StorageFileExplorerProps {
 }
 
 export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
+  const queryClient = useQueryClient()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const deleteMutation = useMutation({
+    mutationFn: storageService.deleteFile,
+    onMutate: (id) => {
+      setDeletingId(id)
+    },
+    onSuccess: () => {
+      toast.success("File deleted successfully")
+      queryClient.invalidateQueries({ queryKey: ['owner-storage'] })
+    },
+    onError: () => {
+      toast.error("Failed to delete file")
+    },
+    onSettled: () => {
+      setDeletingId(null)
+    }
+  })
+
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to delete this file? This action cannot be undone.")) {
+      deleteMutation.mutate(id)
+    }
+  }
+
+  const totalItems = files.length
+  const totalPages = Math.ceil(totalItems / pageSize)
+  const paginatedFiles = files.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B'
     const k = 1024
@@ -73,7 +110,7 @@ export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-sm">
-            {files.map(file => (
+            {paginatedFiles.map(file => (
               <tr key={file.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group">
                 <td className="p-4 pl-6">
                   <div className="flex items-center gap-3">
@@ -117,8 +154,13 @@ export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
                     <button className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors" title="View details">
                       <ExternalLink className="h-4 w-4" />
                     </button>
-                    <button className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors" title="Delete">
-                      <Trash2 className="h-4 w-4" />
+                    <button 
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50" 
+                      title="Delete"
+                      onClick={() => handleDelete(file.id)}
+                      disabled={deletingId === file.id}
+                    >
+                      {deletingId === file.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                     </button>
                   </div>
                 </td>
@@ -138,6 +180,17 @@ export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
           </tbody>
         </table>
       </div>
+
+      {totalItems > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   )
 }

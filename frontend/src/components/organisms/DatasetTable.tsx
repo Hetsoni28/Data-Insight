@@ -19,8 +19,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { MoreHorizontal } from "lucide-react";
 import { StateLayout } from "@/components/molecules/StateLayout";
 import { NoDatasetsIllustration } from "@/components/molecules/NoDatasetsIllustration";
-import { LoadingPulse } from "@/components/molecules/LoadingPulse";
 import { Plus } from "lucide-react";
+import { LoadingPulse } from "@/components/molecules/LoadingPulse";
+import { useState } from "react";
+import { PaginationControls } from "@/components/molecules/PaginationControls";
 
 interface DatasetTableProps {
   datasets: Dataset[];
@@ -30,6 +32,12 @@ interface DatasetTableProps {
 }
 
 export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: DatasetTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
+  const totalItems = datasets.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const paginatedDatasets = datasets.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const handleDelete = async (datasetId: string) => {
     if (!window.confirm("Are you sure you want to delete this dataset? This action cannot be undone.")) {
       return;
@@ -115,7 +123,7 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
           </TableRow>
         </TableHeader>
         <TableBody>
-          {datasets.map((dataset) => (
+          {paginatedDatasets.map((dataset) => (
             <TableRow key={dataset.id}>
               <TableCell className="font-medium">
                 <div className="flex items-center space-x-2">
@@ -164,6 +172,16 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
           ))}
         </TableBody>
       </Table>
+      {datasets.length > 0 && (
+        <PaginationControls 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

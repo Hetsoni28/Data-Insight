@@ -1,5 +1,5 @@
 "use client"
-import DashboardSidebar, { NavItem } from "@/app/owner/dashboard/sidebar/page"
+import DashboardSidebar from "@/app/owner/dashboard/sidebar/page"
 import DashboardNavbar from "@/app/owner/dashboard/navbar/page"
 import { useEffect } from "react"
 import api from "@/lib/api"
@@ -9,7 +9,7 @@ import { UploadDatasetModal } from "@/components/organisms/UploadDatasetModal"
 import { 
   LayoutDashboard, Users, Building, Database, Brain, FileSpreadsheet, Receipt, 
   Settings, Activity, User, CreditCard, PieChart, Code, HardDrive, ShieldCheck, 
-  LifeBuoy, Bell, ToggleLeft, Cpu, ActivitySquare, Link, Zap, LayoutTemplate
+  LifeBuoy, Bell, ToggleLeft, Cpu, ActivitySquare, Link, Zap, LayoutTemplate, Palette
 } from "lucide-react"
 
 export interface NavItem {
@@ -70,6 +70,7 @@ const OWNER_NAV_GROUPS: NavGroup[] = [
   {
     title: "Settings",
     items: [
+      { icon: Palette, label: "Design System", href: "/owner/dashboard/design-system" },
       { icon: Bell, label: "Notifications", href: "/owner/dashboard/notifications" },
       { icon: LifeBuoy, label: "Support Center", href: "/owner/dashboard/support" },
       { icon: Settings, label: "System Settings", href: "/owner/dashboard/settings" },

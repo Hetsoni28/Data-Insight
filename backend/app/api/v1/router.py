@@ -20,6 +20,10 @@ from app.api.v1.owner_ai import router as owner_ai_router
 from app.api.v1.owner_analytics import router as owner_analytics_router
 from app.api.v1.owner_api_gateway import router as owner_api_gateway_router
 from app.api.v1.owner_storage import router as owner_storage_router
+from app.api.v1.owner_integrations import router as owner_integrations_router
+from app.api.v1.owner_security import router as owner_security_router
+from app.api.v1.owner_audit import router as owner_audit_router
+from app.api.v1.owner_features import router as owner_features_router
 
 api_router = APIRouter()
 
@@ -43,3 +47,7 @@ api_router.include_router(owner_ai_router, prefix="/owner/ai", tags=["Owner AI"]
 api_router.include_router(owner_analytics_router, prefix="/owner/analytics", tags=["Owner Analytics"])
 api_router.include_router(owner_api_gateway_router)
 api_router.include_router(owner_storage_router)
+api_router.include_router(owner_integrations_router, prefix="/owner/integrations", tags=["Owner Integrations"])
+api_router.include_router(owner_security_router, prefix="/owner/security", tags=["Owner Security"])
+api_router.include_router(owner_audit_router, prefix="/owner/audit", tags=["Owner Audit"])
+api_router.include_router(owner_features_router, prefix="/owner/features", tags=["Owner Features"])
