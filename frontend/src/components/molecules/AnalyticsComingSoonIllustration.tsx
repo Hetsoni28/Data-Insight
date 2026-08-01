@@ -4,6 +4,19 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const AnalyticsComingSoonIllustration: React.FC = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 4 }, (_, i) => ({
+      id: i,
+      left: `${30 + Math.random() * 40}%`,
+      top: `${30 + Math.random() * 40}%`,
+      yAnim: [0, -30 - Math.random() * 20] as [number, number],
+      duration: 2 + Math.random() * 2,
+      delay: Math.random() * 2,
+      value: Math.floor(Math.random() * 100),
+    })),
+    []
+  );
+
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
       {/* Glow */}
@@ -23,16 +36,11 @@ export const AnalyticsComingSoonIllustration: React.FC = () => {
         <div className="absolute top-3 left-3 flex gap-1">
           <div className="w-8 h-2 bg-slate-200 dark:bg-slate-700 rounded-full" />
         </div>
-        
-        {/* Animated Line Chart SVG */}
         <svg className="w-full h-12" viewBox="0 0 100 40" preserveAspectRatio="none">
           <motion.path
             d="M 0 40 L 20 30 L 40 35 L 60 15 L 80 20 L 100 5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            fill="none" stroke="currentColor" strokeWidth="3"
+            strokeLinecap="round" strokeLinejoin="round"
             className="text-orange-500"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
@@ -40,10 +48,8 @@ export const AnalyticsComingSoonIllustration: React.FC = () => {
           />
           <motion.path
             d="M 0 40 L 20 30 L 40 35 L 60 15 L 80 20 L 100 5 L 100 50 L 0 50 Z"
-            fill="currentColor"
-            className="text-orange-500/10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            fill="currentColor" className="text-orange-500/10"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ duration: 2, ease: "easeOut", repeat: Infinity, repeatDelay: 1 }}
           />
         </svg>
@@ -70,35 +76,16 @@ export const AnalyticsComingSoonIllustration: React.FC = () => {
         <span className="text-[8px] text-blue-500 font-medium">Views</span>
       </motion.div>
 
-      {/* Floating Numbers / Particles */}
-      {useMemo(() => [...Array(4)].map((_, i) => ({
-        id: i,
-        left: `${30 + Math.random() * 40}%`,
-        top: `${30 + Math.random() * 40}%`,
-        yAnim: [0, -30 - Math.random() * 20],
-        duration: 2 + Math.random() * 2,
-        delay: Math.random() * 2,
-        value: Math.floor(Math.random() * 100)
-      })), []).map((particle) => (
+      {/* Floating Particles */}
+      {particles.map((p) => (
         <motion.div
-          key={particle.id}
+          key={p.id}
           className="absolute text-orange-400/50 font-mono text-xs font-bold"
-          style={{
-            left: particle.left,
-            top: particle.top,
-          }}
-          animate={{
-            y: particle.yAnim,
-            opacity: [0, 1, 0],
-            scale: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration: particle.duration,
-            repeat: Infinity,
-            delay: particle.delay,
-          }}
+          style={{ left: p.left, top: p.top }}
+          animate={{ y: p.yAnim, opacity: [0, 1, 0], scale: [0.5, 1, 0.5] }}
+          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
         >
-          {particle.value}
+          {p.value}
         </motion.div>
       ))}
     </div>

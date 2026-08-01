@@ -9,6 +9,18 @@ interface OnboardingSuccessStepProps {
 }
 
 export function OnboardingSuccessStep({ router }: OnboardingSuccessStepProps) {
+  const confetti = useMemo(() =>
+    Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      xStart: `${Math.random() * 100}%`,
+      xEnd: `${Math.random() * 100}%`,
+      scale: Math.random() * 0.5 + 0.5,
+      duration: Math.random() * 2 + 1.5,
+      delay: Math.random() * 0.2,
+    })),
+    []
+  );
+
   return (
     <motion.div
       key="step3"
@@ -18,35 +30,15 @@ export function OnboardingSuccessStep({ router }: OnboardingSuccessStepProps) {
     >
       {/* Fake Confetti using framer motion */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {useMemo(() => [...Array(20)].map((_, i) => ({
-          id: i,
-          xStart: `${Math.random() * 100}%`,
-          xEnd: `${Math.random() * 100}%`,
-          scale: Math.random() * 0.5 + 0.5,
-          duration: Math.random() * 2 + 1.5,
-          delay: Math.random() * 0.2
-        })), []).map((particle) => (
+        {confetti.map((p) => (
           <motion.div
-            key={particle.id}
-            initial={{ 
-              y: "120%", 
-              x: particle.xStart,
-              rotate: 0,
-              scale: particle.scale
-            }}
-            animate={{ 
-              y: "-20%", 
-              x: particle.xEnd,
-              rotate: 360 
-            }}
-            transition={{ 
-              duration: particle.duration, 
-              ease: "easeOut",
-              delay: particle.delay
-            }}
+            key={p.id}
+            initial={{ y: "120%", x: p.xStart, rotate: 0, scale: p.scale }}
+            animate={{ y: "-20%", x: p.xEnd, rotate: 360 }}
+            transition={{ duration: p.duration, ease: "easeOut", delay: p.delay }}
             className={cn(
               "absolute w-3 h-3 rounded-sm",
-              ["bg-blue-500", "bg-emerald-500", "bg-yellow-400", "bg-pink-500", "bg-purple-500"][particle.id % 5]
+              ["bg-blue-500", "bg-emerald-500", "bg-yellow-400", "bg-pink-500", "bg-purple-500"][p.id % 5]
             )}
           />
         ))}

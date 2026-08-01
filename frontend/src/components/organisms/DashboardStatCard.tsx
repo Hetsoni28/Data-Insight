@@ -36,7 +36,7 @@ export function DashboardStatCard({ icon: Icon, label, value, sub, color, delay 
       }, incrementTime)
       return () => clearInterval(timer)
     } else {
-      // @ts-expect-error
+      // @ts-expect-error - value may be string or number, displayValue state accepts both
       setDisplayValue(value)
     }
   }, [value])

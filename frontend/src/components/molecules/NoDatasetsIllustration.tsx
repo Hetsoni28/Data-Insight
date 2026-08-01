@@ -4,6 +4,19 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const NoDatasetsIllustration: React.FC = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 6 }, (_, i) => ({
+      id: i,
+      left: `${10 + Math.random() * 80}%`,
+      top: `${10 + Math.random() * 80}%`,
+      xAnim: [0, (128 - (30 + Math.random() * 60))],
+      yAnim: [0, (128 - (30 + Math.random() * 60))],
+      duration: 1.5 + Math.random(),
+      delay: Math.random() * 2,
+    })),
+    []
+  );
+
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
       {/* Background Pulse */}
@@ -107,35 +120,19 @@ export const NoDatasetsIllustration: React.FC = () => {
       </motion.div>
 
       {/* Inward flowing particles */}
-      {useMemo(() => [...Array(6)].map((_, i) => ({
-        id: i,
-        left: `${10 + Math.random() * 80}%`,
-        top: `${10 + Math.random() * 80}%`,
-        xAnim: [0, (128 - (30 + Math.random() * 60))],
-        yAnim: [0, (128 - (30 + Math.random() * 60))],
-        duration: 1.5 + Math.random(),
-        delay: Math.random() * 2
-      })), []).map((particle) => (
+      {particles.map((p) => (
         <motion.div
-          key={particle.id}
+          key={p.id}
           className="absolute w-1 h-1 bg-blue-400 rounded-full"
-          style={{
-            left: particle.left,
-            top: particle.top,
-          }}
+          style={{ left: p.left, top: p.top }}
           initial={{ opacity: 0, scale: 0 }}
           animate={{
-            x: particle.xAnim, // Move towards center
-            y: particle.yAnim, // Move towards center
+            x: p.xAnim,
+            y: p.yAnim,
             opacity: [0, 1, 0],
             scale: [0, 1.5, 0],
           }}
-          transition={{
-            duration: particle.duration,
-            repeat: Infinity,
-            delay: particle.delay,
-            ease: "easeIn"
-          }}
+          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeIn" }}
         />
       ))}
     </div>

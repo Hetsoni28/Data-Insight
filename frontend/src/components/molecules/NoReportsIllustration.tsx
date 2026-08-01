@@ -4,6 +4,19 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const NoReportsIllustration: React.FC = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 5 }, (_, i) => ({
+      id: i,
+      left: `${40 + Math.random() * 20}%`,
+      top: `${40 + Math.random() * 20}%`,
+      yAnim: [0, -40 - Math.random() * 40] as [number, number],
+      xAnim: [(Math.random() - 0.5) * 40, (Math.random() - 0.5) * 80] as [number, number],
+      duration: 2 + Math.random() * 2,
+      delay: Math.random() * 2,
+    })),
+    []
+  );
+
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
       {/* Background glow */}
@@ -74,33 +87,13 @@ export const NoReportsIllustration: React.FC = () => {
       </motion.div>
       
       {/* Particles */}
-      {useMemo(() => [...Array(5)].map((_, i) => ({
-        id: i,
-        left: `${40 + Math.random() * 20}%`,
-        top: `${40 + Math.random() * 20}%`,
-        yAnim: [0, -40 - Math.random() * 40],
-        xAnim: [(Math.random() - 0.5) * 40, (Math.random() - 0.5) * 80],
-        duration: 2 + Math.random() * 2,
-        delay: Math.random() * 2
-      })), []).map((particle) => (
+      {particles.map((p) => (
         <motion.div
-          key={particle.id}
+          key={p.id}
           className="absolute w-1.5 h-1.5 bg-emerald-400 rounded-full"
-          style={{
-            left: particle.left,
-            top: particle.top,
-          }}
-          animate={{
-            y: particle.yAnim,
-            x: particle.xAnim,
-            opacity: [0, 1, 0],
-            scale: [0, 1.5, 0],
-          }}
-          transition={{
-            duration: particle.duration,
-            repeat: Infinity,
-            delay: particle.delay,
-          }}
+          style={{ left: p.left, top: p.top }}
+          animate={{ y: p.yAnim, x: p.xAnim, opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
+          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
         />
       ))}
     </div>

@@ -4,6 +4,16 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const SuccessIllustration: React.FC = () => {
+  const confetti = useMemo(() =>
+    Array.from({ length: 8 }, (_, i) => ({
+      id: i,
+      xAnim: (Math.random() - 0.5) * 200,
+      yAnim: (Math.random() - 0.5) * 200,
+      delay: Math.random() * 2,
+    })),
+    []
+  );
+
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
       {/* Glow */}
@@ -42,23 +52,13 @@ export const SuccessIllustration: React.FC = () => {
       </motion.div>
 
       {/* Confetti Particles */}
-      {useMemo(() => [...Array(8)].map((_, i) => ({
-        id: i,
-        xAnim: (Math.random() - 0.5) * 200,
-        yAnim: (Math.random() - 0.5) * 200,
-        delay: Math.random() * 2
-      })), []).map((particle) => (
+      {confetti.map((p) => (
         <motion.div
-          key={particle.id}
+          key={p.id}
           className="absolute w-2 h-2 bg-emerald-400 rounded-full"
           initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
-          animate={{
-            x: particle.xAnim,
-            y: particle.yAnim,
-            scale: [0, 1, 0],
-            opacity: [1, 1, 0]
-          }}
-          transition={{ duration: 1.5, repeat: Infinity, delay: particle.delay }}
+          animate={{ x: p.xAnim, y: p.yAnim, scale: [0, 1, 0], opacity: [1, 1, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, delay: p.delay }}
         />
       ))}
     </div>

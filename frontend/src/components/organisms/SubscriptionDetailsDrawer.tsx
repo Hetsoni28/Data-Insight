@@ -30,8 +30,10 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     onError: () => toast.error("Failed to cancel subscription.")
   })
 
-  const renewalDate = useMemo(() => new Date(Date.now() + 864000000), [])
-  const invoiceDates = useMemo(() => [1, 2, 3].map(i => new Date(Date.now() - i*864000000*3)), [])
+  // Compute stable dates - MUST be before any early return (Rules of Hooks)
+  const now = useMemo(() => Date.now(), [])
+  const renewalDate = useMemo(() => new Date(now + 864000000), [now])
+  const invoiceDates = useMemo(() => [1, 2, 3].map(i => new Date(now - i * 864000000 * 3)), [now])
 
   if (!isOpen || !tenant) return null
 

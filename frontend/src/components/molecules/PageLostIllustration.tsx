@@ -4,6 +4,19 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const PageLostIllustration: React.FC = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 3 }, (_, i) => ({
+      id: i,
+      left: `${20 + Math.random() * 60}%`,
+      top: `${20 + Math.random() * 60}%`,
+      yAnim: [0, -20 - Math.random() * 20] as [number, number],
+      rotate: (Math.random() - 0.5) * 45,
+      duration: 3 + Math.random() * 2,
+      delay: Math.random() * 2,
+    })),
+    []
+  );
+
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
       {/* Glow */}
@@ -38,33 +51,13 @@ export const PageLostIllustration: React.FC = () => {
       </motion.div>
       
       {/* Question Marks */}
-      {useMemo(() => [...Array(3)].map((_, i) => ({
-        id: i,
-        left: `${20 + Math.random() * 60}%`,
-        top: `${20 + Math.random() * 60}%`,
-        yAnim: [0, -20 - Math.random() * 20],
-        rotate: (Math.random() - 0.5) * 45,
-        duration: 3 + Math.random() * 2,
-        delay: Math.random() * 2
-      })), []).map((particle) => (
+      {particles.map((p) => (
         <motion.div
-          key={particle.id}
+          key={p.id}
           className="absolute text-slate-400/50 font-black text-xl"
-          style={{
-            left: particle.left,
-            top: particle.top,
-          }}
-          animate={{
-            y: particle.yAnim,
-            opacity: [0, 1, 0],
-            scale: [0.5, 1, 0.5],
-            rotate: particle.rotate
-          }}
-          transition={{
-            duration: particle.duration,
-            repeat: Infinity,
-            delay: particle.delay,
-          }}
+          style={{ left: p.left, top: p.top }}
+          animate={{ y: p.yAnim, opacity: [0, 1, 0], scale: [0.5, 1, 0.5], rotate: p.rotate }}
+          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
         >
           ?
         </motion.div>

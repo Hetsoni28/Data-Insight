@@ -4,6 +4,11 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const ServerErrorIllustration: React.FC = () => {
+  const sparks = useMemo(() => [
+    { id: 1, x: [0, Math.random() * 20 - 10] as [number, number], y: [0, -10 - Math.random() * 20] as [number, number], duration: 0.5, delay: 0.2 },
+    { id: 2, x: [0, Math.random() * 20 - 10] as [number, number], y: [0, -10 - Math.random() * 20] as [number, number], duration: 0.6, delay: 0.5 },
+  ], []);
+
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
       {/* Glow */}
@@ -68,21 +73,13 @@ export const ServerErrorIllustration: React.FC = () => {
       </motion.div>
 
       {/* Sparks */}
-      {useMemo(() => [
-        { id: 1, x: [0, Math.random() * 20 - 10], y: [0, -10 - Math.random() * 20], duration: 0.5, delay: 0.2 },
-        { id: 2, x: [0, Math.random() * 20 - 10], y: [0, -10 - Math.random() * 20], duration: 0.6, delay: 0.5 }
-      ], []).map((spark) => (
+      {sparks.map((s) => (
         <motion.div
-          key={spark.id}
+          key={s.id}
           className="absolute w-1 h-1 bg-yellow-400 rounded-full"
           style={{ left: '45%', top: '45%' }}
-          animate={{
-            x: spark.x,
-            y: spark.y,
-            opacity: [0, 1, 0],
-            scale: [0, 1.5, 0],
-          }}
-          transition={{ duration: spark.duration, repeat: Infinity, delay: spark.delay }}
+          animate={{ x: s.x, y: s.y, opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
+          transition={{ duration: s.duration, repeat: Infinity, delay: s.delay }}
         />
       ))}
     </div>

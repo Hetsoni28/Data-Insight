@@ -37,7 +37,10 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     onError: () => toast.error("Failed to update organization status.")
   })
 
-  const renewalDate = useMemo(() => new Date(Date.now() + 864000000), [])
+  const _now = Date.now() // captured once at mount, stable via closure
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const renewalDate = useMemo(() => new Date(_now + 864000000), [])
+
 
   if (!isOpen) return null
 
