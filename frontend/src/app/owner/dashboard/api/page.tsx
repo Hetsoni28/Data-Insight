@@ -1,103 +1,143 @@
-"use client";
+"use client"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useState, useCallback } from "react"
 
-import { useState } from "react";
-import { Key, Copy, RefreshCw, Trash2, ShieldAlert } from "lucide-react";
-import { toast } from "sonner";
-import { PageHeader } from "@/components/molecules/PageHeader";
-import { SettingCard } from "@/components/molecules/SettingCard";
-import { DataTable, Column } from "@/components/molecules/DataTable";
-import { Button } from "@/components/ui/button";
+import { gatewayService } from "@/lib/gatewayService"
+import { GatewayHeroBanner } from "@/components/organisms/GatewayHeroBanner"
+import { GatewayLiveKpis } from "@/components/organisms/GatewayLiveKpis"
+import { GatewayUsageCharts } from "@/components/organisms/GatewayUsageCharts"
+import { GatewaySecurityCenter } from "@/components/organisms/GatewaySecurityCenter"
+import { GatewayDeveloperApps } from "@/components/organisms/GatewayDeveloperApps"
+import { GatewayLiveStream } from "@/components/organisms/GatewayLiveStream"
 
-export default function ApiManagementPage() {
-  const [keys, setKeys] = useState([
-    { id: "key-1", name: "Production App", key: "sk_live_...9f82", created: "2026-07-15", lastUsed: "2 hours ago", status: "active" },
-    { id: "key-2", name: "Staging Testing", key: "sk_test_...3a4b", created: "2026-06-20", lastUsed: "5 days ago", status: "active" },
-  ]);
+export default function ApiGatewayPage() {
+  const queryClient = useQueryClient()
+  const [searchQuery, setSearchQuery] = useState("")
 
-  const [isGenerating, setIsGenerating] = useState(false);
+  // Fetch Overview Data (KPIs)
+  const { data: overview, isLoading: loadingOverview } = useQuery({
+    queryKey: ['api-gateway', 'overview'],
+    queryFn: gatewayService.getOverview,
+    refetchInterval: 30000
+  })
 
-  const handleGenerate = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setKeys([
-        { id: `key-${Date.now()}`, name: "New Application Key", key: "sk_live_..." + Math.random().toString(36).substring(2, 6), created: "Just now", lastUsed: "Never", status: "active" },
-        ...keys
-      ]);
-      setIsGenerating(false);
-      toast.success("New API Key generated successfully", {
-        description: "Make sure to copy it now. You won't be able to see it again."
-      });
-    }, 1000);
-  };
+  // Fetch Usage Trends
+  const { data: usage, isLoading: loadingUsage } = useQuery({
+    queryKey: ['api-gateway', 'usage'],
+    queryFn: gatewayService.getUsageTrends
+  })
 
-  const handleRevoke = (id: string) => {
-    toast.error("API Key Revoked", {
-      description: "Any application using this key will immediately lose access."
-    });
-    setKeys(keys.filter(k => k.id !== id));
-  };
+  // Fetch Error Analytics
+  const { data: errors } = useQuery({
+    queryKey: ['api-gateway', 'errors'],
+    queryFn: gatewayService.getErrors
+  })
 
-  const handleCopy = () => {
-    toast.info("API Key copied to clipboard");
-  };
+  // Fetch Live Stream
+  const { data: liveStream, refetch: refetchLive, isRefetching: isRefetchingLive } = useQuery({
+    queryKey: ['api-gateway', 'live-requests'],
+    queryFn: () => gatewayService.getLiveRequests(50),
+    refetchInterval: 10000
+  })
 
-  const columns: Column<typeof keys[0]>[] = [
-    { header: "Name", accessorKey: "name", className: "font-medium text-slate-900 dark:text-white" },
-    { header: "Secret Key", accessorKey: "key", className: "font-mono text-slate-500 dark:text-slate-400" },
-    { header: "Created", accessorKey: "created", className: "text-slate-500 dark:text-slate-400" },
-    { header: "Last Used", accessorKey: "lastUsed", className: "text-slate-500 dark:text-slate-400" },
-    { 
-      header: "Actions", 
-      className: "text-right",
-      cell: (row) => (
-        <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8 text-slate-400 hover:text-emerald-600 transition-colors">
-            <Copy className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => handleRevoke(row.id)} className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+  // Fetch Security Overview
+  const { data: security } = useQuery({
+    queryKey: ['api-gateway', 'security'],
+    queryFn: gatewayService.getSecurityOverview
+  })
+
+  // Fetch Developer Apps
+  const { data: apps } = useQuery({
+    queryKey: ['api-gateway', 'oauth-clients'],
+    queryFn: gatewayService.getOAuthClients
+  })
+
+  // Global refresh — invalidates all queries
+  const handleRefresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['api-gateway'] })
+  }, [queryClient])
+
+  // Filter live requests by search query
+  const allRequests = liveStream?.requests || []
+  const filteredRequests = searchQuery
+    ? allRequests.filter((r: any) =>
+        r.endpoint?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.ip_address?.includes(searchQuery) ||
+        r.method?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        String(r.status_code).includes(searchQuery)
       )
-    }
-  ];
+    : allRequests
+
+  // Loading State (Skeletons)
+  if (loadingOverview || loadingUsage) {
+    return (
+      <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6">
+        <div className="h-[280px] w-full bg-slate-200 dark:bg-slate-800 animate-pulse rounded-3xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+            <div key={i} className="h-28 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
+          ))}
+        </div>
+        <div className="h-[400px] bg-slate-200 dark:bg-slate-800 animate-pulse rounded-3xl" />
+      </div>
+    )
+  }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 pb-24">
-      <PageHeader 
-        title="API Management" 
-        description="Manage your API keys to authenticate requests from your applications."
-        icon={Key}
-        action={
-          <Button 
-            onClick={handleGenerate} 
-            disabled={isGenerating}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm transition-all"
-          >
-            {isGenerating ? (
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Key className="h-4 w-4 mr-2" />
-            )}
-            Generate New Key
-          </Button>
-        }
+    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 min-h-screen pb-24 bg-slate-50 dark:bg-transparent">
+      {/* Hero Banner — all 3 action buttons + search/filter wired */}
+      <GatewayHeroBanner
+        onSearch={setSearchQuery}
+        onRefresh={handleRefresh}
+        liveRequests={allRequests}
       />
 
-      <div className="grid gap-6">
-        <SettingCard 
-          title="Active API Keys" 
-          description="These keys grant full access to your workspace's API endpoints. Keep them secure."
-          icon={ShieldAlert}
-        >
-          <DataTable 
-            columns={columns} 
-            data={keys} 
-            emptyMessage="No API keys generated yet." 
-            className="mt-6"
+      {/* KPI Cards */}
+      <div className="mt-8">
+        <GatewayLiveKpis overview={overview} />
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <div className="xl:col-span-3">
+          <GatewayUsageCharts trends={usage?.trends} errors={errors?.errors} />
+
+          {/* Live Stream — passes filtered results & refetch */}
+          <GatewayLiveStream
+            requests={filteredRequests}
+            refetch={refetchLive}
+            isRefetching={isRefetchingLive}
           />
-        </SettingCard>
+
+          {/* Developer Apps — all row actions working */}
+          <GatewayDeveloperApps apps={apps?.clients} />
+        </div>
+
+        <div className="xl:col-span-1 space-y-6 mt-6">
+          <GatewaySecurityCenter security={security} />
+
+          {/* Platform Health Widget */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-sm">
+            <h3 className="font-semibold text-slate-800 dark:text-white mb-4">Platform Health</h3>
+            <div className="space-y-3">
+              {[
+                { label: "Auth Gateway", status: "healthy" },
+                { label: "Analytics Engine", status: "healthy" },
+                { label: "ML Prediction API", status: "healthy" },
+                { label: "Webhook Dispatcher", status: "healthy" },
+              ].map(item => (
+                <div key={item.label} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-emerald-500 font-medium">Healthy</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }

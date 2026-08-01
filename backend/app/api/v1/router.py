@@ -17,6 +17,9 @@ from app.api.v1.notifications import router as notifications_router
 from app.api.v1.support import router as support_router
 from app.api.v1.owner_billing import router as owner_billing_router
 from app.api.v1.owner_ai import router as owner_ai_router
+from app.api.v1.owner_analytics import router as owner_analytics_router
+from app.api.v1.owner_api_gateway import router as owner_api_gateway_router
+from app.api.v1.owner_storage import router as owner_storage_router
 
 api_router = APIRouter()
 
@@ -37,3 +40,6 @@ api_router.include_router(notifications_router, prefix="/notifications", tags=["
 api_router.include_router(support_router, prefix="/support", tags=["Support"])
 api_router.include_router(owner_billing_router, prefix="/owner/subscriptions", tags=["Owner Billing"])
 api_router.include_router(owner_ai_router, prefix="/owner/ai", tags=["Owner AI"])
+api_router.include_router(owner_analytics_router, prefix="/owner/analytics", tags=["Owner Analytics"])
+api_router.include_router(owner_api_gateway_router)
+api_router.include_router(owner_storage_router)

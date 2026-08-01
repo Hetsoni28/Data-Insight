@@ -1,91 +1,141 @@
-"use client";
+"use client"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useState, useCallback } from "react"
+import { motion } from "framer-motion"
 
-import { useState } from "react";
-import { HardDrive, UploadCloud, FileType, Trash2, Download } from "lucide-react";
-import { toast } from "sonner";
-import { PageHeader } from "@/components/molecules/PageHeader";
-import { SettingCard } from "@/components/molecules/SettingCard";
-import { DataTable, Column } from "@/components/molecules/DataTable";
-import { Button } from "@/components/ui/button";
+import { storageService } from "@/lib/storageService"
+import { StorageHeroBanner } from "@/components/organisms/StorageHeroBanner"
+import { StorageLiveKpis } from "@/components/organisms/StorageLiveKpis"
+import { StorageExecutiveSummary } from "@/components/organisms/StorageExecutiveSummary"
+import { StorageAnalyticsCharts } from "@/components/organisms/StorageAnalyticsCharts"
+import { StorageOrganizationUsage } from "@/components/organisms/StorageOrganizationUsage"
+import { StorageBucketManagement } from "@/components/organisms/StorageBucketManagement"
+import { StorageFileExplorer } from "@/components/organisms/StorageFileExplorer"
+import { StorageBackupCenter } from "@/components/organisms/StorageBackupCenter"
+import { StorageSecurityCenter } from "@/components/organisms/StorageSecurityCenter"
+import { StorageActivityTimeline } from "@/components/organisms/StorageActivityTimeline"
 
-const MOCK_FILES = [
-  { id: "f1", name: "q3_financial_report.csv", size: "2.4 MB", uploaded: "2 hours ago", type: "CSV" },
-  { id: "f2", name: "user_metrics_2025.json", size: "15.1 MB", uploaded: "1 day ago", type: "JSON" },
-  { id: "f3", name: "marketing_campaigns.xlsx", size: "8.9 MB", uploaded: "3 days ago", type: "XLSX" },
-];
+export default function StorageCommandCenterPage() {
+  const queryClient = useQueryClient()
+  const [searchQuery, setSearchQuery] = useState("")
 
-export default function StoragePage() {
-  const handleDownload = () => toast.success("Download started");
-  const handleDelete = () => toast.error("File deleted permanently");
+  // Fetch Overview (KPIs)
+  const { data: overview, isLoading: loadingOverview } = useQuery({
+    queryKey: ['owner-storage', 'overview'],
+    queryFn: storageService.getOverview,
+    refetchInterval: 30000
+  })
 
-  const columns: Column<typeof MOCK_FILES[0]>[] = [
-    { 
-      header: "File Name", 
-      className: "font-medium text-slate-900 dark:text-white",
-      cell: (row) => (
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <FileType className="h-4 w-4" />
-          </div>
-          {row.name}
+  // Fetch Analytics
+  const { data: analytics, isLoading: loadingAnalytics } = useQuery({
+    queryKey: ['owner-storage', 'analytics'],
+    queryFn: storageService.getAnalytics
+  })
+
+  // Fetch Organizations
+  const { data: organizations } = useQuery({
+    queryKey: ['owner-storage', 'organizations'],
+    queryFn: storageService.getOrganizations
+  })
+
+  // Fetch Buckets
+  const { data: buckets } = useQuery({
+    queryKey: ['owner-storage', 'buckets'],
+    queryFn: storageService.getBuckets
+  })
+
+  // Fetch Files
+  const { data: filesData } = useQuery({
+    queryKey: ['owner-storage', 'files', searchQuery],
+    queryFn: () => storageService.getFiles({ q: searchQuery, limit: 100 })
+  })
+
+  // Fetch Backups
+  const { data: backups } = useQuery({
+    queryKey: ['owner-storage', 'backups'],
+    queryFn: storageService.getBackups
+  })
+
+  // Fetch Security
+  const { data: security } = useQuery({
+    queryKey: ['owner-storage', 'security'],
+    queryFn: storageService.getSecurity
+  })
+
+  // Fetch Activity
+  const { data: activity } = useQuery({
+    queryKey: ['owner-storage', 'activity'],
+    queryFn: storageService.getActivity
+  })
+
+  // Global refresh
+  const handleRefresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['owner-storage'] })
+  }, [queryClient])
+
+
+  // Loading State
+  if (loadingOverview || loadingAnalytics) {
+    return (
+      <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6">
+        <div className="h-[280px] w-full bg-slate-200 dark:bg-slate-800 animate-pulse rounded-3xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-28 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
+          ))}
         </div>
-      )
-    },
-    { header: "Type", accessorKey: "type", className: "text-slate-500 dark:text-slate-400" },
-    { header: "Size", accessorKey: "size", className: "text-slate-500 dark:text-slate-400 font-mono text-xs" },
-    { header: "Uploaded", accessorKey: "uploaded", className: "text-slate-500 dark:text-slate-400" },
-    { 
-      header: "Actions", 
-      className: "text-right",
-      cell: (row) => (
-        <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="icon" onClick={handleDownload} className="h-8 w-8 text-slate-400 hover:text-emerald-600 transition-colors">
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={handleDelete} className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      )
-    }
-  ];
+        <div className="h-[200px] w-full bg-slate-200 dark:bg-slate-800 animate-pulse rounded-3xl" />
+        <div className="h-[400px] w-full bg-slate-200 dark:bg-slate-800 animate-pulse rounded-3xl" />
+      </div>
+    )
+  }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 pb-24">
-      <PageHeader 
-        title="Storage & Data" 
-        description="Manage datasets, view storage quotas, and handle file retention."
-        icon={HardDrive}
-      />
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 min-h-screen pb-24 bg-slate-50 dark:bg-transparent"
+    >
+      {/* 1. Hero Banner */}
+      <StorageHeroBanner onSearch={setSearchQuery} onRefresh={handleRefresh} />
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <SettingCard title="Storage Quota" delay={0.1} className="lg:col-span-1 h-fit">
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Used Storage</span>
-              <span className="font-semibold text-slate-900 dark:text-white">45.2 GB <span className="text-slate-400 font-normal">/ 100 GB</span></span>
-            </div>
-            <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2 overflow-hidden">
-              <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '45%' }}></div>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              You have used 45% of your Enterprise plan storage quota.
-            </p>
-            <Button variant="outline" className="w-full mt-4" onClick={() => toast.info("Upgrade dialog opened")}>
-              <UploadCloud className="w-4 h-4 mr-2" />
-              Upgrade Storage
-            </Button>
-          </div>
-        </SettingCard>
+      {/* 2. KPI Dashboard */}
+      <StorageLiveKpis overview={overview} />
 
-        <SettingCard title="Uploaded Datasets" delay={0.2} className="lg:col-span-2">
-          <DataTable 
-            columns={columns} 
-            data={MOCK_FILES} 
-            emptyMessage="No files uploaded yet." 
-          />
-        </SettingCard>
+      {/* 3. Executive AI Summary */}
+      <StorageExecutiveSummary overview={overview} />
+
+      {/* 4. Analytics */}
+      <StorageAnalyticsCharts trends={analytics?.trends} overview={overview} />
+
+      {/* 5. Main Content Grids */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 space-y-6">
+          <StorageFileExplorer files={filesData?.files} />
+        </div>
+        <div className="space-y-6">
+          <StorageOrganizationUsage organizations={organizations?.organizations} />
+        </div>
       </div>
-    </div>
-  );
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-1">
+          <StorageBucketManagement buckets={buckets?.buckets} />
+        </div>
+        <div className="xl:col-span-1">
+          <StorageBackupCenter backups={backups?.backups} />
+        </div>
+        <div className="xl:col-span-1">
+          <StorageSecurityCenter security={security?.security} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="xl:col-span-2">
+          <StorageActivityTimeline activities={activity?.activities} />
+        </div>
+      </div>
+
+    </motion.div>
+  )
 }

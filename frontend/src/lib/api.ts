@@ -31,6 +31,18 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Deduplicate toasts — prevent same error from stacking multiple times
+const activeToasts = new Set<string>();
+function showToastOnce(type: 'error' | 'warning', message: string) {
+  if (activeToasts.has(message)) return;
+  activeToasts.add(message);
+  const fn = type === 'error' ? toast.error : toast.warning;
+  fn(message, {
+    onDismiss: () => activeToasts.delete(message),
+    onAutoClose: () => activeToasts.delete(message),
+  });
+}
+
 // ─── Response Interceptor — Global Error Handling ─────────────────────────────
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
@@ -50,19 +62,19 @@ api.interceptors.response.use(
       }
 
       case 403:
-        toast.error(
+        showToastOnce('error',
           message ?? "You do not have permission to perform this action."
         );
         break;
 
       case 402:
-        toast.error(
+        showToastOnce('error',
           message ?? "You have reached your plan limit. Please upgrade."
         );
         break;
 
       case 429:
-        toast.warning(
+        showToastOnce('warning',
           message ?? "Too many requests. Please wait a moment and try again."
         );
         break;
@@ -71,7 +83,7 @@ api.interceptors.response.use(
       case 502:
       case 503:
       case 504:
-        toast.error(
+        showToastOnce('error',
           "We are experiencing technical difficulties. Please try again shortly."
         );
         break;
@@ -79,7 +91,7 @@ api.interceptors.response.use(
       default:
         if (!error.response) {
           // Network error — user is offline or backend is unreachable
-          toast.error(
+          showToastOnce('error',
             "Unable to reach the server. Please check your internet connection."
           );
         }

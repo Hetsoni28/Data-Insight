@@ -64,7 +64,7 @@ export function DashboardUsageChart() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <AreaChart data={data} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
               <defs>
                 <linearGradient id="colorRows" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
@@ -83,7 +83,7 @@ export function DashboardUsageChart() {
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fontSize: 12, fill: "#64748B" }} 
-                width={40}
+                width={50}
               />
               <Tooltip 
                 contentStyle={{ 

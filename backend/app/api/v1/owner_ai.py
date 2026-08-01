@@ -1,280 +1,198 @@
-import uuid
-from typing import Any
-from fastapi import APIRouter, Depends, Query
+from typing import Any, List, Dict
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, true, false
-from datetime import datetime, timezone, timedelta
+from sqlalchemy import select, func, and_, desc, asc
 
-from app.api.deps import get_current_superuser
-from app.db.session import get_async_session
-from app.models.ai_token_usage import AITokenUsage
-from app.models.tenant import Tenant
+from app.api.deps import get_db, get_current_user
 from app.models.user import User
+from app.models.ai_ops import (
+    AIProvider,
+    AIModel,
+    AIRoutingRule,
+    AIPromptTemplate,
+    AIUsageLog,
+    ProviderStatus,
+)
 
 router = APIRouter()
 
-def get_provider_from_model(model_name: str) -> str:
-    """Helper to classify model string into provider."""
-    model_name = model_name.lower()
-    if "gpt" in model_name or "text-embedding" in model_name:
-        return "OpenAI"
-    elif "claude" in model_name:
-        return "Anthropic"
-    elif "gemini" in model_name:
-        return "Google Vertex AI"
-    elif "llama" in model_name or "mistral" in model_name or "qwen" in model_name or "deepseek" in model_name:
-        return "Azure AI Studio" # Group open source models here as mock Azure/Bedrock deployment
-    return "Other / Local"
-
+def require_owner(current_user: User = Depends(get_current_user)):
+    if getattr(current_user, 'role', '') != 'owner' and not getattr(current_user, 'is_owner', False):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    return current_user
 
 @router.get("/overview")
-async def get_overview(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+async def get_ai_overview(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
 ) -> Any:
-    """High-level AI Usage overview."""
-    now = datetime.now(timezone.utc)
-    first_day_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    """Get high-level AI Ops KPIs for the dashboard."""
     
-    # Total requests
-    total_requests = await db.scalar(select(func.count(AITokenUsage.id))) or 0
-    monthly_requests = await db.scalar(select(func.count(AITokenUsage.id)).where(AITokenUsage.created_at >= first_day_of_month)) or 0
+    # Provider KPIs
+    providers_result = await db.execute(select(AIProvider))
+    providers = providers_result.scalars().all()
+    total_providers = len(providers)
+    online_providers = sum(1 for p in providers if p.status == ProviderStatus.ONLINE)
+    avg_health = sum(p.health_score for p in providers) / total_providers if total_providers else 100.0
     
-    # Token stats
-    total_tokens = await db.scalar(select(func.sum(AITokenUsage.total_tokens))) or 0
-    prompt_tokens = await db.scalar(select(func.sum(AITokenUsage.prompt_tokens))) or 0
-    completion_tokens = await db.scalar(select(func.sum(AITokenUsage.completion_tokens))) or 0
+    # Models
+    models_count = await db.scalar(select(func.count(AIModel.id)).where(AIModel.is_active == True))
     
-    # Cost
-    total_cost = await db.scalar(select(func.sum(AITokenUsage.cost_usd))) or 0.0
-    monthly_cost = await db.scalar(select(func.sum(AITokenUsage.cost_usd)).where(AITokenUsage.created_at >= first_day_of_month)) or 0.0
+    # Usage / Cost KPIs (Last 30 days)
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
     
-    # Latency & Success rate
-    avg_latency = await db.scalar(select(func.avg(AITokenUsage.latency_ms))) or 0.0
-    failed_requests = await db.scalar(select(func.count(AITokenUsage.id)).where(AITokenUsage.status_code >= 400)) or 0
+    # Aggregate usage metrics
+    usage_result = await db.execute(
+        select(
+            func.count(AIUsageLog.id),
+            func.sum(AIUsageLog.tokens_total),
+            func.sum(AIUsageLog.cost_usd),
+            func.avg(AIUsageLog.latency_ms),
+            func.sum(func.case((AIUsageLog.status_code != 200, 1), else_=0))
+        ).where(AIUsageLog.created_at >= thirty_days_ago)
+    )
+    usage_stats = usage_result.fetchone()
     
-    success_rate = 100.0
-    if total_requests > 0:
-        success_rate = ((total_requests - failed_requests) / total_requests) * 100
-        
-    # Active organizations
-    active_orgs = await db.scalar(select(func.count(func.distinct(AITokenUsage.tenant_id)))) or 0
-
+    total_requests = int(usage_stats[0] or 0)
+    total_tokens = int(usage_stats[1] or 0)
+    total_cost = float(usage_stats[2] or 0.0)
+    avg_latency = int(usage_stats[3] or 0)
+    total_errors = int(usage_stats[4] or 0)
+    
+    error_rate = (total_errors / total_requests * 100) if total_requests > 0 else 0.0
+    success_rate = 100.0 - error_rate
+    
     return {
-        "total_requests": total_requests,
-        "monthly_requests": monthly_requests,
-        "total_tokens": total_tokens,
-        "prompt_tokens": prompt_tokens,
-        "completion_tokens": completion_tokens,
-        "total_cost": float(total_cost),
-        "monthly_cost": float(monthly_cost),
-        "avg_latency": float(avg_latency),
-        "failed_requests": failed_requests,
-        "success_rate": success_rate,
-        "active_organizations": active_orgs,
-        "average_cost_per_request": (float(total_cost) / total_requests) if total_requests else 0,
-        "average_tokens_per_request": (total_tokens / total_requests) if total_requests else 0,
+        "kpis": {
+            "connected_providers": total_providers,
+            "online_providers": online_providers,
+            "available_models": models_count or 0,
+            "avg_health_score": round(avg_health, 1),
+            "monthly_requests": total_requests,
+            "monthly_tokens": total_tokens,
+            "monthly_cost_usd": round(total_cost, 2),
+            "avg_cost_per_req": round(total_cost / total_requests, 4) if total_requests else 0,
+            "avg_latency_ms": avg_latency,
+            "success_rate": round(success_rate, 2),
+        }
     }
-
 
 @router.get("/providers")
 async def get_providers(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
 ) -> Any:
-    """Group analytics by AI provider."""
-    records = (await db.execute(
-        select(
-            AITokenUsage.model,
-            func.count(AITokenUsage.id).label("requests"),
-            func.sum(AITokenUsage.total_tokens).label("tokens"),
-            func.sum(AITokenUsage.cost_usd).label("cost"),
-            func.avg(AITokenUsage.latency_ms).label("latency")
-        ).group_by(AITokenUsage.model)
-    )).all()
+    """Get all configured AI providers with their current status."""
+    result = await db.execute(
+        select(AIProvider).order_by(desc(AIProvider.health_score))
+    )
+    providers = result.scalars().all()
     
-    providers = {}
-    for r in records:
-        provider = get_provider_from_model(r.model)
-        if provider not in providers:
-            providers[provider] = {"name": provider, "requests": 0, "tokens": 0, "cost": 0.0, "latency_sum": 0.0}
-            
-        providers[provider]["requests"] += r.requests
-        providers[provider]["tokens"] += r.tokens
-        providers[provider]["cost"] += float(r.cost or 0)
-        providers[provider]["latency_sum"] += (float(r.latency or 0) * r.requests)
-        
-    result = []
-    for p in providers.values():
-        req = p["requests"]
-        p["avg_latency"] = p["latency_sum"] / req if req else 0
-        del p["latency_sum"]
-        result.append(p)
-        
-    return {"data": sorted(result, key=lambda x: x["requests"], reverse=True)}
-
+    return {
+        "providers": [
+            {
+                "id": str(p.id),
+                "name": p.name,
+                "base_url": p.base_url,
+                "status": p.status,
+                "health_score": p.health_score,
+                "latency_ms": p.latency_ms,
+                "is_active": p.is_active,
+                "environment": p.environment,
+            }
+            for p in providers
+        ]
+    }
 
 @router.get("/models")
 async def get_models(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
 ) -> Any:
-    """Analytics by exact model."""
-    records = (await db.execute(
-        select(
-            AITokenUsage.model,
-            func.count(AITokenUsage.id).label("requests"),
-            func.sum(AITokenUsage.total_tokens).label("tokens"),
-            func.sum(AITokenUsage.cost_usd).label("cost"),
-            func.avg(AITokenUsage.latency_ms).label("latency")
-        )
-        .group_by(AITokenUsage.model)
-        .order_by(desc("requests"))
-        .limit(10)
-    )).all()
+    """Get all AI models across all providers."""
+    result = await db.execute(
+        select(AIModel, AIProvider)
+        .join(AIProvider, AIModel.provider_id == AIProvider.id)
+        .order_by(AIProvider.name, AIModel.type)
+    )
     
-    return {"data": [
-        {
-            "name": r.model,
-            "requests": r.requests,
-            "tokens": r.tokens,
-            "cost": float(r.cost or 0),
-            "latency": float(r.latency or 0)
-        } for r in records
-    ]}
-
-
-@router.get("/trends")
-async def get_trends(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
-) -> Any:
-    """Last 30 days trends for tokens and costs."""
-    now = datetime.now(timezone.utc)
-    start_date = now - timedelta(days=30)
-    
-    records = (await db.execute(
-        select(
-            func.date_trunc('day', AITokenUsage.created_at).label("day"),
-            func.sum(AITokenUsage.total_tokens).label("tokens"),
-            func.sum(AITokenUsage.cost_usd).label("cost"),
-            func.count(AITokenUsage.id).label("requests")
-        )
-        .where(AITokenUsage.created_at >= start_date)
-        .group_by("day")
-        .order_by("day")
-    )).all()
-    
-    # Fill in missing days
-    days = {}
-    for i in range(30):
-        d = (now - timedelta(days=i)).strftime("%b %d")
-        days[d] = {"date": d, "tokens": 0, "cost": 0.0, "requests": 0}
+    models = []
+    for model, provider in result.all():
+        models.append({
+            "id": str(model.id),
+            "name": model.name,
+            "provider": provider.name,
+            "type": model.type,
+            "context_window": model.context_window,
+            "input_cost": float(model.input_cost_per_1k),
+            "output_cost": float(model.output_cost_per_1k),
+            "quality_score": model.quality_score,
+            "is_active": model.is_active
+        })
         
-    for r in records:
-        if r.day:
-            d = r.day.strftime("%b %d")
-            if d in days:
-                days[d] = {
-                    "date": d,
-                    "tokens": r.tokens or 0,
-                    "cost": float(r.cost or 0),
-                    "requests": r.requests or 0
-                }
-                
-    result = list(days.values())
-    result.reverse() # chronological
-    return {"data": result}
+    return {"models": models}
 
-
-@router.get("/organizations")
-async def get_organizations(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+@router.get("/routing")
+async def get_routing_rules(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
 ) -> Any:
-    """Top organizations by AI usage."""
-    records = (await db.execute(
-        select(
-            Tenant.name,
-            func.count(AITokenUsage.id).label("requests"),
-            func.sum(AITokenUsage.total_tokens).label("tokens"),
-            func.sum(AITokenUsage.cost_usd).label("cost"),
-            func.avg(AITokenUsage.latency_ms).label("latency")
-        )
-        .join(Tenant, AITokenUsage.tenant_id == Tenant.id)
-        .group_by(Tenant.name)
-        .order_by(desc("cost"))
-        .limit(10)
-    )).all()
+    """Get smart routing rules and fallbacks."""
+    result = await db.execute(
+        select(AIRoutingRule).order_by(asc(AIRoutingRule.task_type))
+    )
+    rules = result.scalars().all()
     
-    return {"data": [
-        {
-            "name": r.name,
-            "requests": r.requests,
-            "tokens": r.tokens,
-            "cost": float(r.cost or 0),
-            "latency": float(r.latency or 0)
-        } for r in records
-    ]}
+    # We need to fetch the model names to make the UI nice
+    rule_data = []
+    for r in rules:
+        p_model = await db.get(AIModel, r.primary_model_id) if r.primary_model_id else None
+        f_model = await db.get(AIModel, r.fallback_model_id) if r.fallback_model_id else None
+        
+        rule_data.append({
+            "id": str(r.id),
+            "task_type": r.task_type,
+            "primary_model": p_model.name if p_model else "None",
+            "fallback_model": f_model.name if f_model else "None",
+            "timeout_ms": r.timeout_ms,
+            "retry_count": r.retry_count,
+            "is_active": r.is_active
+        })
+        
+    return {"rules": rule_data}
 
-
-@router.get("/features")
-async def get_features(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+@router.get("/usage/timeseries")
+async def get_usage_timeseries(
+    days: int = Query(7, le=30),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
 ) -> Any:
-    """Usage by product feature."""
-    records = (await db.execute(
-        select(
-            AITokenUsage.feature,
-            func.count(AITokenUsage.id).label("requests"),
-            func.sum(AITokenUsage.total_tokens).label("tokens"),
-            func.sum(AITokenUsage.cost_usd).label("cost")
-        )
-        .group_by(AITokenUsage.feature)
-        .order_by(desc("requests"))
-    )).all()
+    """Get daily cost/request timeseries for charts."""
+    start_date = datetime.now(timezone.utc) - timedelta(days=days)
     
-    return {"data": [
-        {
-            "name": r.feature.replace("_", " ").title(),
-            "requests": r.requests,
-            "tokens": r.tokens,
-            "cost": float(r.cost or 0)
-        } for r in records
-    ]}
-
-
-@router.get("/activity")
-async def get_activity(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser),
-    limit: int = Query(20, ge=1, le=100)
-) -> Any:
-    """Latest individual AI requests."""
-    records = (await db.execute(
+    # Group by date
+    # Note: Using native Postgres DATE_TRUNC or casting for simplicity
+    query = (
         select(
-            AITokenUsage,
-            Tenant.name.label("tenant_name"),
-            User.email.label("user_email")
+            func.date_trunc('day', AIUsageLog.created_at).label('day'),
+            func.count(AIUsageLog.id).label('requests'),
+            func.sum(AIUsageLog.cost_usd).label('cost')
         )
-        .join(Tenant, AITokenUsage.tenant_id == Tenant.id)
-        .outerjoin(User, AITokenUsage.user_id == User.id)
-        .order_by(desc(AITokenUsage.created_at))
-        .limit(limit)
-    )).all()
+        .where(AIUsageLog.created_at >= start_date)
+        .group_by('day')
+        .order_by('day')
+    )
     
-    return {"data": [
-        {
-            "id": r.AITokenUsage.id,
-            "tenant": r.tenant_name,
-            "user": r.user_email or "System",
-            "feature": r.AITokenUsage.feature,
-            "model": r.AITokenUsage.model,
-            "tokens": r.AITokenUsage.total_tokens,
-            "cost": r.AITokenUsage.cost_usd,
-            "latency_ms": r.AITokenUsage.latency_ms,
-            "status": r.AITokenUsage.status_code,
-            "date": r.AITokenUsage.created_at.isoformat()
-        } for r in records
-    ]}
+    result = await db.execute(query)
+    
+    timeseries = []
+    for row in result.all():
+        timeseries.append({
+            "date": row.day.strftime("%Y-%m-%d"),
+            "requests": int(row.requests),
+            "cost": float(row.cost)
+        })
+        
+    return {"timeseries": timeseries}

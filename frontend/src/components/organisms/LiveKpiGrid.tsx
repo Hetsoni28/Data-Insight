@@ -13,28 +13,28 @@ export function LiveKpiGrid({ kpis }: LiveKpiGridProps) {
       <MetricCard 
         title="Total Organizations" 
         value={kpis.organizations.total} 
-        icon={Building2} 
+        icon={<Building2 className="h-5 w-5" />} 
         trend={12} 
         delay={0.1} 
       />
       <MetricCard 
         title="Active Users" 
         value={kpis.users.total} 
-        icon={Users} 
+        icon={<Users className="h-5 w-5" />} 
         trend={8.5} 
         delay={0.15} 
       />
       <MetricCard 
         title="Monthly Revenue (MRR)" 
         value={`$${kpis.billing.mrr.toLocaleString()}`} 
-        icon={DollarSign} 
+        icon={<DollarSign className="h-5 w-5" />} 
         trend={15.2} 
         delay={0.2} 
       />
       <MetricCard 
         title="Active Sessions" 
         value={kpis.users.active_sessions} 
-        icon={Activity} 
+        icon={<Activity className="h-5 w-5" />} 
         trend={-2.4}
         trendLabel="vs yesterday" 
         delay={0.25} 
@@ -43,35 +43,35 @@ export function LiveKpiGrid({ kpis }: LiveKpiGridProps) {
       <MetricCard 
         title="AI Tokens Used" 
         value={(kpis.ai.tokens_this_month / 1000).toFixed(1) + "k"} 
-        icon={Zap} 
+        icon={<Zap className="h-5 w-5" />} 
         trend={45.8} 
         delay={0.3} 
       />
       <MetricCard 
         title="Total Datasets" 
         value={kpis.usage.total_datasets} 
-        icon={Database} 
+        icon={<Database className="h-5 w-5" />} 
         trend={5.1} 
         delay={0.35} 
       />
       <MetricCard 
         title="Generated Reports" 
         value={kpis.usage.total_reports} 
-        icon={FileSpreadsheet} 
+        icon={<FileSpreadsheet className="h-5 w-5" />} 
         trend={22.4} 
         delay={0.4} 
       />
       <MetricCard 
         title="Storage Used" 
         value={`${(kpis.usage.storage_bytes / 1024 / 1024).toFixed(1)} MB`} 
-        icon={Server} 
+        icon={<Server className="h-5 w-5" />} 
         delay={0.45} 
       />
 
       <MetricCard 
         title="Avg Response Time" 
         value={`${kpis.system.avg_response_time_ms}ms`} 
-        icon={Clock} 
+        icon={<Clock className="h-5 w-5" />} 
         trend={-12.5}
         trendLabel="faster than last week"
         delay={0.5} 
@@ -79,7 +79,7 @@ export function LiveKpiGrid({ kpis }: LiveKpiGridProps) {
       <MetricCard 
         title="API Requests" 
         value={kpis.ai.requests_today} 
-        icon={Code} 
+        icon={<Code className="h-5 w-5" />} 
         trend={3.2}
         trendLabel="today" 
         delay={0.55} 
@@ -87,13 +87,13 @@ export function LiveKpiGrid({ kpis }: LiveKpiGridProps) {
       <MetricCard 
         title="Active AI Models" 
         value={kpis.ai.active_models} 
-        icon={Layers} 
+        icon={<Layers className="h-5 w-5" />} 
         delay={0.6} 
       />
       <MetricCard 
         title="Error Rate" 
         value={`${kpis.system.error_rate_percentage}%`} 
-        icon={AlertTriangle} 
+        icon={<AlertTriangle className="h-5 w-5" />} 
         trend={0.01} 
         delay={0.65} 
       />

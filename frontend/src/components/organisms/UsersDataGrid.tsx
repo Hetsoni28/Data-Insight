@@ -2,13 +2,17 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { 
-  User, Mail, Building2, MoreHorizontal, CheckCircle2, XCircle, Search, Filter, Shield, Settings2, Power, Eye, Key
+  User, Building2, MoreHorizontal, CheckCircle2, XCircle, Search, Filter, Settings2, Power, Eye, Shield, Key, Mail
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { 
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription 
 } from "@/components/ui/sheet"
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuHeader
+} from "@/components/ui/dropdown-menu"
 import api from "@/lib/api"
 import { toast } from "sonner"
 
@@ -204,19 +208,39 @@ export function UsersDataGrid() {
                     </td>
                     
                     {/* Actions */}
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={() => handleViewDetails(user)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-blue-600 rounded-md" title="View Details">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button onClick={() => handleImpersonate(user)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-purple-600 rounded-md" title="Impersonate User">
-                          <Shield className="h-4 w-4" />
-                        </Button>
-                        <Button onClick={() => handleToggleStatus(user.id, user.is_active)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 rounded-md" title={user.is_active ? "Suspend User" : "Activate User"}>
-                          <Power className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
+                     <td className="px-6 py-4 text-right">
+                       <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                           <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-md">
+                             <MoreHorizontal className="h-4 w-4" />
+                           </Button>
+                         </DropdownMenuTrigger>
+                         <DropdownMenuContent align="end" className="w-52">
+                           <DropdownMenuHeader
+                             title={user.full_name || user.email}
+                             subtitle={user.tenant_name ? `${user.tenant_name} · ${user.role}` : user.role}
+                           />
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem onClick={() => handleViewDetails(user)}>
+                             <Eye className="h-4 w-4 mr-2.5 text-blue-500" /> View Details
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => handleImpersonate(user)}>
+                             <Shield className="h-4 w-4 mr-2.5 text-violet-500" /> Impersonate User
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => handleResetPassword(user)}>
+                             <Key className="h-4 w-4 mr-2.5 text-amber-500" /> Reset Password
+                           </DropdownMenuItem>
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem
+                             onClick={() => handleToggleStatus(user.id, user.is_active)}
+                             className={user.is_active ? "text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10" : "text-emerald-600 dark:text-emerald-400"}
+                           >
+                             <Power className="h-4 w-4 mr-2.5" />
+                             {user.is_active ? "Suspend User" : "Activate User"}
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
+                       </DropdownMenu>
+                     </td>
                   </motion.tr>
                 ))
               )}

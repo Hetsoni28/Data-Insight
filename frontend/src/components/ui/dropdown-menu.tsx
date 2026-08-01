@@ -1,104 +1,194 @@
 "use client"
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
-// Context
+// Context — stores open state, a stable toggle, and refs to BOTH trigger & content
 // ---------------------------------------------------------------------------
 interface DropdownContextValue {
   open: boolean
-  setOpen: (open: boolean) => void
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>
+  triggerEl: HTMLElement | null
+  setTriggerEl: (el: HTMLElement | null) => void
+  contentEl: HTMLElement | null
+  setContentEl: (el: HTMLElement | null) => void
 }
+
 const DropdownContext = React.createContext<DropdownContextValue>({
   open: false,
   setOpen: () => {},
+  triggerEl: null,
+  setTriggerEl: () => {},
+  contentEl: null,
+  setContentEl: () => {},
 })
 
 // ---------------------------------------------------------------------------
-// Root
+// Root — tracks trigger + content elements for outside-click detection
 // ---------------------------------------------------------------------------
-function DropdownMenu({ children }: { children: React.ReactNode }) {
+export function DropdownMenu({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false)
-  const menuRef = React.useRef<HTMLDivElement>(null)
+  const [triggerEl, setTriggerEl] = React.useState<HTMLElement | null>(null)
+  const [contentEl, setContentEl] = React.useState<HTMLElement | null>(null)
 
   React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    if (!open) return
+    const handleDown = (e: MouseEvent) => {
+      const target = e.target as Node
+      const inTrigger = triggerEl?.contains(target)
+      const inContent = contentEl?.contains(target)
+      if (!inTrigger && !inContent) {
         setOpen(false)
       }
     }
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside)
+    // Use setTimeout so the click that opened the menu doesn't immediately close it
+    const id = setTimeout(() => document.addEventListener("mousedown", handleDown), 0)
+    return () => {
+      clearTimeout(id)
+      document.removeEventListener("mousedown", handleDown)
     }
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [open, triggerEl, contentEl])
+
+  // Close on Escape
+  React.useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false) }
+    document.addEventListener("keydown", handler)
+    return () => document.removeEventListener("keydown", handler)
   }, [open])
 
   return (
-    <DropdownContext.Provider value={{ open, setOpen }}>
-      <div className="relative inline-block text-left" ref={menuRef}>
+    <DropdownContext.Provider value={{ open, setOpen, triggerEl, setTriggerEl, contentEl, setContentEl }}>
+      <div className="relative inline-block text-left">
         {children}
       </div>
     </DropdownContext.Provider>
   )
 }
 
-function DropdownMenuTrigger({
+// ---------------------------------------------------------------------------
+// Trigger — attaches ref callback so triggerEl is always correct DOM node
+// ---------------------------------------------------------------------------
+export function DropdownMenuTrigger({
   children,
   asChild,
 }: {
   children: React.ReactNode
   asChild?: boolean
 }) {
-  const { open, setOpen } = React.useContext(DropdownContext)
-  
+  const { open, setOpen, setTriggerEl } = React.useContext(DropdownContext)
+
+  const refCallback = React.useCallback(
+    (el: HTMLElement | null) => setTriggerEl(el),
+    [setTriggerEl]
+  )
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setOpen((prev) => !prev)
+  }
+
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children as React.ReactElement<any>, {
+      ref: refCallback,
       onClick: (e: React.MouseEvent) => {
         ;(children as any).props?.onClick?.(e)
-        setOpen(!open)
+        handleClick(e)
       },
     })
   }
 
   return (
-    <button type="button" onClick={() => setOpen(!open)}>
+    <button
+      ref={refCallback as React.RefCallback<HTMLButtonElement>}
+      type="button"
+      onClick={handleClick}
+    >
       {children}
     </button>
   )
 }
 
-function DropdownMenuContent({
+// ---------------------------------------------------------------------------
+// Content — portal-rendered so overflow:hidden NEVER clips it
+// ---------------------------------------------------------------------------
+export function DropdownMenuContent({
   className,
   align = "start",
   children,
+  sideOffset = 6,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & { align?: "start" | "end" | "center" }) {
-  const { open } = React.useContext(DropdownContext)
-  
-  if (!open) return null
+}: React.HTMLAttributes<HTMLDivElement> & {
+  align?: "start" | "end" | "center"
+  sideOffset?: number
+}) {
+  const { open, triggerEl, setContentEl } = React.useContext(DropdownContext)
+  const [mounted, setMounted] = React.useState(false)
+  const [rect, setRect] = React.useState<DOMRect | null>(null)
 
-  const alignmentClasses = {
-    start: "left-0 origin-top-left",
-    end: "right-0 origin-top-right",
-    center: "left-1/2 -translate-x-1/2 origin-top",
-  }
+  React.useEffect(() => { setMounted(true) }, [])
 
-  return (
+  // Recalculate trigger position every time the menu opens
+  React.useEffect(() => {
+    if (open && triggerEl) {
+      setRect(triggerEl.getBoundingClientRect())
+    }
+  }, [open, triggerEl])
+
+  if (!mounted || !open || !rect) return null
+
+  // position: fixed uses viewport coords — getBoundingClientRect is already viewport-relative,
+  // so we must NOT add window.scrollY / window.scrollX here.
+  const viewportHeight = window.innerHeight
+  const spaceBelow = viewportHeight - rect.bottom - sideOffset
+  const spaceAbove = rect.top - sideOffset
+  const maxDropdownHeight = 320 // px
+
+  // Flip upward if not enough space below
+  const openUpward = spaceBelow < Math.min(maxDropdownHeight, 200) && spaceAbove > spaceBelow
+  const top = openUpward
+    ? rect.top - sideOffset
+    : rect.bottom + sideOffset
+
+  let left = rect.left
+  if (align === "end")    left = rect.right
+  else if (align === "center") left = rect.left + rect.width / 2
+
+  const transformY = openUpward ? "-100%" : "0%"
+  const transformX =
+    align === "end" ? "-100%" : align === "center" ? "-50%" : "0%"
+
+  return createPortal(
     <div
+      ref={(el) => setContentEl(el)}
+      style={{
+        position: "fixed",
+        top,
+        left,
+        transform: `translateX(${transformX}) translateY(${transformY})`,
+        zIndex: 99999,
+        maxHeight: `${maxDropdownHeight}px`,
+        overflowY: "auto",
+      }}
       className={cn(
-        "absolute z-50 mt-2 min-w-[8rem] rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shadow-md focus:outline-none",
-        alignmentClasses[align],
+        "min-w-[10rem] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1.5 shadow-2xl",
         className
       )}
+      onClick={(e) => e.stopPropagation()}
       {...props}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   )
 }
 
-function DropdownMenuItem({
+// ---------------------------------------------------------------------------
+// Item
+// ---------------------------------------------------------------------------
+export function DropdownMenuItem({
   className,
   onClick,
   children,
@@ -106,18 +196,31 @@ function DropdownMenuItem({
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & { disabled?: boolean }) {
   const { setOpen } = React.useContext(DropdownContext)
-  
+
   return (
     <div
+      role="menuitem"
+      tabIndex={disabled ? -1 : 0}
       className={cn(
-        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 dark:hover:bg-white/10 focus:bg-slate-100 dark:focus:bg-white/10",
-        disabled && "pointer-events-none opacity-50",
+        "flex cursor-pointer select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-all",
+        "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+        disabled && "pointer-events-none opacity-40",
         className
       )}
       onClick={(e) => {
         if (disabled) return
+        e.stopPropagation()
         onClick?.(e)
         setOpen(false)
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          if (!disabled) {
+            onClick?.(e as any)
+            setOpen(false)
+          }
+        }
       }}
       {...props}
     >
@@ -126,27 +229,38 @@ function DropdownMenuItem({
   )
 }
 
-function DropdownMenuSeparator({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+// ---------------------------------------------------------------------------
+// Separator
+// ---------------------------------------------------------------------------
+export function DropdownMenuSeparator({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("-mx-1 my-1 h-px bg-slate-200 dark:bg-slate-800", className)} {...props} />
 }
 
-function DropdownMenuLabel({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+// ---------------------------------------------------------------------------
+// Label  — used for section headings inside dropdown (e.g. "Actions")
+// ---------------------------------------------------------------------------
+export function DropdownMenuLabel({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("px-2 py-1.5 text-sm font-semibold", className)}
+      className={cn("px-3 py-1.5 text-[11px] font-semibold text-slate-400 select-none", className)}
       {...props}
     />
   )
 }
 
-export {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
+// ---------------------------------------------------------------------------
+// Header — used for entity name headers (org name, user name, etc.)
+// Shows the entity name in normal case with a subtitle below it
+// ---------------------------------------------------------------------------
+export function DropdownMenuHeader({
+  title,
+  subtitle,
+  className,
+}: { title: string; subtitle?: string; className?: string }) {
+  return (
+    <div className={cn("px-3 py-2.5 border-b border-slate-100 dark:border-slate-800 mb-1", className)}>
+      <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{title}</p>
+      {subtitle && <p className="text-xs text-slate-400 mt-0.5 truncate">{subtitle}</p>}
+    </div>
+  )
 }

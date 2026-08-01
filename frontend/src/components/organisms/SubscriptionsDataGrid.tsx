@@ -9,7 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  DropdownMenuHeader,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -138,9 +138,8 @@ export function SubscriptionsDataGrid() {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
+                    <DropdownMenuContent align="end" className="w-52">
+                      <DropdownMenuHeader title={sub.tenant_name} subtitle={`${sub.plan} · ${sub.status}`} />
                       <DropdownMenuItem onClick={() => toast.info("Opening plan editor...")}>
                         <Settings className="mr-2 h-4 w-4 text-slate-500 dark:text-slate-400" />
                         <span>Change Plan</span>

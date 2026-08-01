@@ -1,9 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search, Filter, MoreHorizontal, MessageSquare, Clock } from "lucide-react";
+import { Search, Filter, MoreHorizontal, MessageSquare, Clock, Eye, CheckCircle2, UserPlus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 interface TicketManagementGridProps {
@@ -106,22 +110,41 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
               </div>
             </div>
 
-            <div className="col-span-2 flex items-center justify-end gap-3">
+              <div className="col-span-2 flex items-center justify-end gap-3">
               <div className="flex items-center text-xs text-slate-500 whitespace-nowrap">
                 <Clock className="w-3.5 h-3.5 mr-1 text-slate-400" />
                 {ticket.sla}
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toast.info("Opening quick actions menu");
-                }}
-              >
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex-shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem onClick={() => toast.info(`Viewing ticket: ${ticket.subject}`)}>  
+                    <Eye className="h-4 w-4 mr-2.5 text-blue-500" /> View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => toast.success(`Ticket ${ticket.id} marked as resolved`)}>  
+                    <CheckCircle2 className="h-4 w-4 mr-2.5 text-emerald-500" /> Mark as Resolved
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => toast.info(`Reassigning ticket ${ticket.id}...`)}>  
+                    <UserPlus className="h-4 w-4 mr-2.5 text-violet-500" /> Reassign Ticket
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => toast.error(`Ticket ${ticket.id} closed`)}
+                    className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2.5" /> Close Ticket
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </motion.div>
         ))}

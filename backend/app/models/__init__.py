@@ -17,6 +17,9 @@ from app.models.notification import Notification
 from app.models.support import SupportTicket, PlatformIncident
 from app.models.invoice import Invoice, InvoiceStatus
 from app.models.billing_activity import BillingActivity
+from app.models.api_gateway import ApiRequestLog, OAuthClient, ApiRateLimit, ApiIntegration
+from app.models.storage import StorageBucket, StorageFile, StorageBackup, StorageLifecyclePolicy, StorageActivityLog
+from app.models.ai_ops import AIProvider, AIModel, AIRoutingRule, AIPromptTemplate, AIUsageLog
 
 __all__ = [
     "User",
@@ -46,4 +49,18 @@ __all__ = [
     "Invoice",
     "InvoiceStatus",
     "BillingActivity",
+    "ApiRequestLog",
+    "OAuthClient",
+    "ApiRateLimit",
+    "ApiIntegration",
+    "StorageBucket",
+    "StorageFile",
+    "StorageBackup",
+    "StorageLifecyclePolicy",
+    "StorageActivityLog",
+    "AIProvider",
+    "AIModel",
+    "AIRoutingRule",
+    "AIPromptTemplate",
+    "AIUsageLog",
 ]

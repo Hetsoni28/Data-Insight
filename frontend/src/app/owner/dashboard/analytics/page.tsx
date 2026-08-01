@@ -1,38 +1,63 @@
 "use client";
 
-import { StateLayout } from "@/components/molecules/StateLayout";
-import { AnalyticsComingSoonIllustration } from "@/components/molecules/AnalyticsComingSoonIllustration";
-import { LineChart } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { AnalyticsHeroBanner } from "@/components/organisms/AnalyticsHeroBanner";
+import { ExecutiveKpiGrid } from "@/components/organisms/ExecutiveKpiGrid";
+import { RevenueTrendChart } from "@/components/organisms/RevenueTrendChart";
+import { PlatformGrowthChart } from "@/components/organisms/PlatformGrowthChart";
+import { ForecastingChart } from "@/components/organisms/ForecastingChart";
+import { AnomalyDetectionFeed } from "@/components/organisms/AnomalyDetectionFeed";
+import { CustomerHealthMatrix } from "@/components/organisms/CustomerHealthMatrix";
+import { toast } from "sonner";
 
 export default function AnalyticsPage() {
-  const router = useRouter();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1);
+    toast.success("Dashboard metrics refreshed");
+  };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto h-[calc(100vh-theme(spacing.16))] flex flex-col">
-      <div className="flex items-center justify-between shrink-0 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <LineChart className="h-6 w-6 text-orange-600" />
-            Analytics
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Deep dive into your organization's KPIs and predictive models.
-          </p>
-        </div>
-      </div>
+    <div className="p-6 md:p-8 max-w-[1600px] mx-auto min-h-[calc(100vh-theme(spacing.16))] pb-20 space-y-8">
+      <AnalyticsHeroBanner onRefresh={handleRefresh} />
+      
+      {/* KPI Grid */}
+      <ExecutiveKpiGrid key={`kpi-${refreshKey}`} />
 
-      <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-        <StateLayout
-          illustration={<AnalyticsComingSoonIllustration />}
-          headline="Analytics Coming Soon"
-          description="We're currently training our AI models to provide you with advanced predictive analytics. In the meantime, upload your data to unlock insights."
-          primaryAction={{
-            label: "Upload Data",
-            onClick: () => router.push("/dashboard/datasets"),
-          }}
-          aiSuggestion="AI models are training on your uploaded datasets."
-        />
+      {/* Deep Analytics Modules (Phase 2 & 3) */}
+      <div className="pt-6 space-y-8">
+        
+        {/* Row 1: Historical Data */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <RevenueTrendChart key={`revenue-${refreshKey}`} />
+          </div>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <PlatformGrowthChart key={`growth-${refreshKey}`} />
+          </div>
+        </div>
+
+        {/* Row 2: Predictive & Risk */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <ForecastingChart key={`forecast-${refreshKey}`} />
+          </div>
+          
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <AnomalyDetectionFeed key={`anomaly-${refreshKey}`} />
+          </div>
+          
+        </div>
+
+        {/* Row 3: Customer Health */}
+        <div className="grid grid-cols-1 gap-6">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <CustomerHealthMatrix key={`health-${refreshKey}`} />
+          </div>
+        </div>
+
       </div>
     </div>
   );
