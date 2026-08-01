@@ -140,36 +140,42 @@ async def get_revenue_analytics(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    """
-    Returns 12-month MRR/ARR trend data.
-    """
-    # For Phase 2, we return mocked historical data structure to build the UI quickly,
-    # as aggregating 12 months of invoices via SQLAlchemy requires complex group_by date truncs.
-    
-    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    current_month_idx = datetime.now().month - 1
-    
-    # Generate 12 months of realistic looking trailing data ending at current month
+    """Returns 12-month revenue trend from real Invoice data."""
+    now = datetime.now(timezone.utc)
     data = []
-    base_mrr = 20000
-    
     for i in range(11, -1, -1):
-        month_name = months[(current_month_idx - i) % 12]
-        # Simulate ~3-8% MoM growth with some randomness
-        growth_factor = 1 + (0.03 + (0.05 * (12-i)/12)) 
-        base_mrr = base_mrr * growth_factor
-        
+        # Calculate month boundaries
+        month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        month_end = (month_start + timedelta(days=32)).replace(day=1)
+
+        revenue = await db.scalar(
+            select(func.coalesce(func.sum(Invoice.amount), 0.0))
+            .where(
+                Invoice.status == "paid",
+                Invoice.invoice_date >= month_start,
+                Invoice.invoice_date < month_end,
+            )
+        ) or 0.0
+
+        new_tenants = await db.scalar(
+            select(func.count(Tenant.id)).where(
+                Tenant.created_at >= month_start,
+                Tenant.created_at < month_end,
+                Tenant.is_deleted == False,
+            )
+        ) or 0
+
         data.append({
-            "month": month_name,
-            "mrr": round(base_mrr),
-            "arr": round(base_mrr * 12),
-            "churn": round(base_mrr * 0.02) # 2% churn
+            "month": month_start.strftime("%b"),
+            "mrr": round(revenue, 2),
+            "arr": round(revenue * 12, 2),
+            "churn": 0,  # Requires cancellation tracking model
+            "new_orgs": new_tenants,
         })
 
-    return {
-        "status": "success",
-        "data": data
-    }
+    return {"status": "success", "data": data}
 
 
 @router.get("/users", summary="User Analytics Trend")
@@ -177,32 +183,49 @@ async def get_user_analytics(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    """
-    Returns 12-month User/Org growth trend data.
-    """
-    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    current_month_idx = datetime.now().month - 1
-    
+    """Returns 12-month User/Org growth trend from real DB data."""
+    now = datetime.now(timezone.utc)
     data = []
-    base_users = 1000
-    base_orgs = 50
-    
     for i in range(11, -1, -1):
-        month_name = months[(current_month_idx - i) % 12]
-        base_users = base_users + int(base_users * 0.08) # 8% user growth
-        base_orgs = base_orgs + int(base_orgs * 0.05)    # 5% org growth
-        
+        month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        month_end = (month_start + timedelta(days=32)).replace(day=1)
+
+        new_users = await db.scalar(
+            select(func.count(User.id)).where(
+                User.created_at >= month_start,
+                User.created_at < month_end,
+            )
+        ) or 0
+
+        new_orgs = await db.scalar(
+            select(func.count(Tenant.id)).where(
+                Tenant.created_at >= month_start,
+                Tenant.created_at < month_end,
+                Tenant.is_deleted == False,
+            )
+        ) or 0
+
+        cumulative_users = await db.scalar(
+            select(func.count(User.id)).where(User.created_at < month_end)
+        ) or 0
+
+        cumulative_orgs = await db.scalar(
+            select(func.count(Tenant.id)).where(
+                Tenant.created_at < month_end, Tenant.is_deleted == False
+            )
+        ) or 0
+
         data.append({
-            "month": month_name,
-            "active_users": base_users,
-            "active_orgs": base_orgs,
-            "new_signups": int(base_users * 0.12)
+            "month": month_start.strftime("%b"),
+            "active_users": cumulative_users,
+            "active_orgs": cumulative_orgs,
+            "new_signups": new_users,
+            "new_orgs": new_orgs,
         })
 
-    return {
-        "status": "success",
-        "data": data
-    }
+    return {"status": "success", "data": data}
 
 
 @router.get("/forecast", summary="Predictive Forecasting")
@@ -210,25 +233,41 @@ async def get_predictive_forecast(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    """
-    Returns historical and AI-forecasted metrics for MRR and Server Load.
-    """
-    months = ["May", "Jun", "Jul", "Aug (Current)", "Sep (Forecast)", "Oct (Forecast)", "Nov (Forecast)"]
-    
-    data = [
-        {"month": "May", "mrr_actual": 21000, "mrr_forecast": None},
-        {"month": "Jun", "mrr_actual": 23500, "mrr_forecast": None},
-        {"month": "Jul", "mrr_actual": 25200, "mrr_forecast": None},
-        {"month": "Aug", "mrr_actual": 28000, "mrr_forecast": 28000},
-        {"month": "Sep", "mrr_actual": None, "mrr_forecast": 31500},
-        {"month": "Oct", "mrr_actual": None, "mrr_forecast": 34800},
-        {"month": "Nov", "mrr_actual": None, "mrr_forecast": 39000},
-    ]
+    """Returns 6 months actual + 6 months projected MRR based on real DB data."""
+    now = datetime.now(timezone.utc)
+    data = []
 
-    return {
-        "status": "success",
-        "data": data
-    }
+    # Last 6 months — actual paid invoice revenue
+    for i in range(5, -1, -1):
+        month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        month_end = (month_start + timedelta(days=32)).replace(day=1)
+        actual = await db.scalar(
+            select(func.coalesce(func.sum(Invoice.amount), 0.0))
+            .where(
+                Invoice.status == "paid",
+                Invoice.invoice_date >= month_start,
+                Invoice.invoice_date < month_end,
+            )
+        ) or 0.0
+        data.append({"month": month_start.strftime("%b"), "mrr_actual": round(actual, 2), "mrr_forecast": None})
+
+    # Current MRR base from Tenant.mrr
+    current_mrr = await db.scalar(
+        select(func.coalesce(func.sum(Tenant.mrr), 0.0))
+        .where(Tenant.is_active == True, Tenant.is_deleted == False)
+    ) or 0.0
+
+    # Next 6 months — 5% monthly growth projection
+    for i in range(1, 7):
+        month_start = (now.replace(day=1) + timedelta(days=i * 30)).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        projected = current_mrr * (1.05 ** i)
+        data.append({"month": month_start.strftime("%b"), "mrr_actual": None, "mrr_forecast": round(projected, 2)})
+
+    return {"status": "success", "data": data}
 
 
 @router.get("/anomalies", summary="System Anomaly Detection")

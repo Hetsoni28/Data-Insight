@@ -7,6 +7,8 @@ from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.integration import IntegrationConnection, IntegrationLog, AutomationWorkflow
 from app.models.webhook import Webhook
+from app.models.webhook_delivery import WebhookDeliveryLog
+from sqlalchemy import case
 
 router = APIRouter()
 
@@ -84,26 +86,50 @@ async def get_webhooks(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ) -> Any:
-    result = await db.execute(select(Webhook).order_by(desc(Webhook.created_at)))
-    webhooks = result.scalars().all()
+    # Subquery to calculate real stats from delivery logs
+    stats_subq = (
+        select(
+            WebhookDeliveryLog.webhook_id,
+            func.avg(WebhookDeliveryLog.latency_ms).label('avg_latency'),
+            func.sum(WebhookDeliveryLog.retry_count).label('total_retries'),
+            func.count(WebhookDeliveryLog.id).label('total_deliveries'),
+            func.sum(case((WebhookDeliveryLog.success == True, 1), else_=0)).label('success_count')
+        )
+        .group_by(WebhookDeliveryLog.webhook_id)
+        .subquery()
+    )
     
-    return {
-        "webhooks": [
-            {
-                "id": str(w.id),
-                "name": w.name,
-                "url": w.url,
-                "events": w.events,
-                "is_active": w.is_active,
-                "last_triggered_at": w.last_triggered_at.isoformat() if w.last_triggered_at else None,
-                # Mocked live stats
-                "latency_ms": 150,
-                "success_rate": 99.9,
-                "retries": 2
-            }
-            for w in webhooks
-        ]
-    }
+    query = (
+        select(Webhook, stats_subq)
+        .outerjoin(stats_subq, Webhook.id == stats_subq.c.webhook_id)
+        .order_by(desc(Webhook.created_at))
+    )
+    
+    result = await db.execute(query)
+    
+    webhooks_data = []
+    for row in result.all():
+        w = row.Webhook
+        avg_latency = float(row.avg_latency or 0)
+        total_retries = int(row.total_retries or 0)
+        total_deliveries = int(row.total_deliveries or 0)
+        success_count = int(row.success_count or 0)
+        
+        success_rate = (success_count / total_deliveries * 100) if total_deliveries > 0 else 100.0
+        
+        webhooks_data.append({
+            "id": str(w.id),
+            "name": w.name,
+            "url": w.url,
+            "events": w.events,
+            "is_active": w.is_active,
+            "last_triggered_at": w.last_triggered_at.isoformat() if w.last_triggered_at else None,
+            "latency_ms": int(avg_latency),
+            "success_rate": round(success_rate, 1),
+            "retries": total_retries
+        })
+    
+    return {"webhooks": webhooks_data}
 
 @router.get("/workflows")
 async def get_workflows(

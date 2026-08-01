@@ -213,7 +213,7 @@ class AuthService:
             # Still run a dummy hash check to prevent timing attacks
             verify_password(
                 "dummy",
-                "$2b$12$dummyhashplaceholder000000000000000000000000000000000000",
+                "$2b$12$e8uq2Bv2uV7s/F6uQJ2N6e5Fj2z9N3XvK3Ew2yU1K9n.q3gV6Nq0S",
             )
             raise UnauthorizedException("Incorrect email or password.")
 

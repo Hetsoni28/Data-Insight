@@ -68,10 +68,10 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xl font-bold text-slate-900 dark:text-white">{tenant?.plan.toUpperCase()} Plan</span>
+                  <span className="text-xl font-bold text-slate-900 dark:text-white">{tenant?.plan?.toUpperCase() ?? "FREE"} Plan</span>
                 </div>
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  ${tenant?.mrr.toLocaleString(undefined, {minimumFractionDigits: 2})} / {tenant?.billing_cycle}
+                  ${tenant?.mrr?.toLocaleString(undefined, {minimumFractionDigits: 2}) ?? "0.00"} / {tenant?.billing_cycle ?? "monthly"}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">Next invoice processing on {new Date(Date.now() + 864000000).toLocaleDateString()}</p>
               </div>
@@ -131,12 +131,12 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                       <CreditCard className="w-5 h-5 text-slate-500" />
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-slate-900 dark:text-white">INV-{Math.floor(Math.random()*10000)}</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white">INV-{1000 + i * 237}</div>
                       <div className="text-xs text-slate-500">{new Date(Date.now() - i*864000000*3).toLocaleDateString()}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold text-slate-900 dark:text-white">${tenant?.mrr.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                    <div className="text-sm font-bold text-slate-900 dark:text-white">${tenant?.mrr?.toLocaleString(undefined, {minimumFractionDigits: 2}) ?? "0.00"}</div>
                     <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 mt-1">Paid</Badge>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc, or_
 from datetime import datetime, timezone
+import math
 from pydantic import BaseModel
 
 from app.api.deps import get_db, get_current_user
@@ -124,6 +125,14 @@ async def get_experiments(
     experiments = []
     for exp, flag in result.all():
         total_success = exp.variation_a_success + exp.variation_b_success
+        # Calculate statistical confidence using a z-test for two proportions/Poisson rates
+        confidence = 0
+        if total_success > 0:
+            # Z = (A - B) / sqrt(A + B)
+            z_score = abs(exp.variation_a_success - exp.variation_b_success) / math.sqrt(total_success)
+            # erf(Z / sqrt(2)) gives the confidence level
+            confidence = math.erf(z_score / math.sqrt(2)) * 100
+
         experiments.append({
             "id": str(exp.id),
             "flag_key": flag.key,
@@ -131,7 +140,7 @@ async def get_experiments(
             "name": exp.name,
             "traffic_allocation": exp.traffic_allocation,
             "status": exp.status,
-            "confidence_score": 95 if total_success > 100 else 45, # Mock confidence
+            "confidence_score": round(confidence, 1),
             "winner": "variation_a" if exp.variation_a_success > exp.variation_b_success else ("variation_b" if exp.variation_b_success > exp.variation_a_success else None)
         })
         

@@ -19,15 +19,32 @@ interface StorageFile {
 
 interface StorageFileExplorerProps {
   files?: StorageFile[]
+  activeFilter?: string
 }
 
-export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
+export function StorageFileExplorer({ files = [], activeFilter = "All Files" }: StorageFileExplorerProps) {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [selectedFile, setSelectedFile] = useState<StorageFile | null>(null)
+
+  // Map filter names to file categories
+  const FILTER_MAP: Record<string, string[]> = {
+    "All Files":    [],
+    "Datasets":     ["data", "spreadsheet"],
+    "Reports":      ["document"],
+    "AI Generated": ["ai", "generated"],
+    "Archives":     ["archive"],
+    "Images":       ["image"],
+  }
+
+  const filteredFiles = useMemo(() => {
+    const cats = FILTER_MAP[activeFilter] ?? []
+    if (cats.length === 0) return files
+    return files.filter(f => cats.includes(f.category))
+  }, [files, activeFilter])
 
   const deleteMutation = useMutation({
     mutationFn: storageService.deleteFile,
@@ -52,11 +69,11 @@ export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
     }
   }
 
-  const totalItems = files.length
+  const totalItems = filteredFiles.length
   const totalPages = Math.ceil(totalItems / pageSize)
   const paginatedFiles = useMemo(() =>
-    files.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [files, currentPage, pageSize]
+    filteredFiles.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredFiles, currentPage, pageSize]
   )
 
   const formatBytes = (bytes: number) => {

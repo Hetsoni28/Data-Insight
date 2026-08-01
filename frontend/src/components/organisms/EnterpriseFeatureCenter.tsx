@@ -126,15 +126,17 @@ function FlagsGrid({ features, isLoading, onToggle }: { features?: FeatureFlag[]
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    if (isLoading) return <LoadingState />;
-    if (!features || features.length === 0) return <EmptyState />;
-
-    const totalItems = features.length;
+    // All hooks MUST be called before any conditional return (Rules of Hooks)
+    const safeFeatures = features ?? [];
+    const totalItems = safeFeatures.length;
     const totalPages = Math.ceil(totalItems / pageSize);
     const paginatedFeatures = useMemo(() =>
-        features.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-        [features, currentPage, pageSize]
+        safeFeatures.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [safeFeatures, currentPage, pageSize]
     );
+
+    if (isLoading) return <LoadingState />;
+    if (safeFeatures.length === 0) return <EmptyState />;
 
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between rounded-2xl">
@@ -205,15 +207,16 @@ function RolloutsGrid({ rollouts, isLoading }: { rollouts?: FeatureRollout[], is
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    if (isLoading) return <LoadingState />;
-    if (!rollouts || rollouts.length === 0) return <EmptyState />;
-
-    const totalItems = rollouts.length;
+    const safeRollouts = rollouts ?? [];
+    const totalItems = safeRollouts.length;
     const totalPages = Math.ceil(totalItems / pageSize);
     const paginatedRollouts = useMemo(() =>
-        rollouts.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-        [rollouts, currentPage, pageSize]
+        safeRollouts.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [safeRollouts, currentPage, pageSize]
     );
+
+    if (isLoading) return <LoadingState />;
+    if (safeRollouts.length === 0) return <EmptyState />;
 
     return (
         <div className="flex flex-col h-full justify-between">
@@ -267,15 +270,16 @@ function ExperimentsGrid({ experiments, isLoading }: { experiments?: FeatureExpe
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    if (isLoading) return <LoadingState />;
-    if (!experiments || experiments.length === 0) return <EmptyState />;
-
-    const totalItems = experiments.length;
+    const safeExperiments = experiments ?? [];
+    const totalItems = safeExperiments.length;
     const totalPages = Math.ceil(totalItems / pageSize);
     const paginatedExperiments = useMemo(() =>
-        experiments.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-        [experiments, currentPage, pageSize]
+        safeExperiments.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [safeExperiments, currentPage, pageSize]
     );
+
+    if (isLoading) return <LoadingState />;
+    if (safeExperiments.length === 0) return <EmptyState />;
 
     return (
         <div className="flex flex-col h-full justify-between">

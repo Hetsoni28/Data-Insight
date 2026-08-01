@@ -139,6 +139,14 @@ function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading
     const [pageSize, setPageSize] = useState(10);
     const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
 
+    const safeEvents = useMemo(() => events || [], [events]);
+    const totalItems = safeEvents.length;
+    const totalPages = Math.ceil(totalItems / pageSize) || 1;
+    const paginatedEvents = useMemo(() =>
+        safeEvents.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [safeEvents, currentPage, pageSize]
+    );
+
     if (isLoading) return <LoadingState />;
 
     if (!events || events.length === 0) {
@@ -149,13 +157,6 @@ function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading
             </div>
         )
     }
-
-    const totalItems = events.length;
-    const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedEvents = useMemo(() =>
-        events.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-        [events, currentPage, pageSize]
-    );
 
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between">
@@ -241,14 +242,14 @@ function AuditTimelineView({ timeline, isLoading }: { timeline?: AuditTimelineEv
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    if (isLoading) return <LoadingState />;
-
     const totalItems = timeline?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
     const paginatedTimeline = useMemo(() =>
         timeline?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
         [timeline, currentPage, pageSize]
     );
+
+    if (isLoading) return <LoadingState />;
 
     return (
         <div className="flex flex-col h-full justify-between p-8">

@@ -31,10 +31,12 @@ export function OrganizationDataGrid() {
   const fetchTenants = async () => {
     try {
       const { data } = await api.get("/admin/tenants")
-      setTenants(data)
+      const list = Array.isArray(data) ? data : (data?.items || data?.data || data?.tenants || [])
+      setTenants(Array.isArray(list) ? list : [])
     } catch (error) {
       console.error("Failed to fetch tenants", error)
       toast.error("Failed to load organizations.")
+      setTenants([])
     } finally {
       setLoading(false)
     }
@@ -45,7 +47,7 @@ export function OrganizationDataGrid() {
     try {
       const newStatus = !currentStatus
       await api.patch(`/admin/tenants/${tenantId}/status`, { is_active: newStatus })
-      setTenants(prev => prev.map(t => t.id === tenantId ? { ...t, is_active: newStatus } : t))
+      setTenants(prev => (Array.isArray(prev) ? prev : []).map(t => t.id === tenantId ? { ...t, is_active: newStatus } : t))
       toast.success(`Organization ${newStatus ? 'activated' : 'suspended'} successfully.`)
     } catch (error) {
       toast.error("Failed to update organization status.")
@@ -62,14 +64,14 @@ export function OrganizationDataGrid() {
     toast.info(`Impersonation mode initiated for ${tenant.name}.`)
   }
 
-  const filteredTenants = useMemo(() =>
-    tenants.filter(t => 
-      t.name.toLowerCase().includes(search.toLowerCase()) || 
-      (t.slug && t.slug.toLowerCase().includes(search.toLowerCase())) ||
-      (t.industry && t.industry.toLowerCase().includes(search.toLowerCase()))
-    ),
-    [tenants, search]
-  )
+  const filteredTenants = useMemo(() => {
+    const list = Array.isArray(tenants) ? tenants : []
+    return list.filter(t => 
+      (t?.name || "").toLowerCase().includes(search.toLowerCase()) || 
+      (t?.slug && t.slug.toLowerCase().includes(search.toLowerCase())) ||
+      (t?.industry && t.industry.toLowerCase().includes(search.toLowerCase()))
+    )
+  }, [tenants, search])
 
   // Pagination Logic
   const totalItems = filteredTenants.length

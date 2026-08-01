@@ -38,10 +38,10 @@ export function ProfileContentTabs({
             {/* QUICK STATS */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "AI Requests", value: profileData?.stats.ai_requests.toLocaleString() || "0", icon: Terminal, color: "text-blue-600", bg: "bg-blue-50" },
-                { label: "Reports Generated", value: profileData?.stats.reports_generated.toLocaleString() || "0", icon: Database, color: "text-emerald-600", bg: "bg-emerald-50" },
-                { label: "API Calls", value: profileData?.stats.api_calls.toLocaleString() || "0", icon: Code, color: "text-purple-600", bg: "bg-purple-50" },
-                { label: "Storage (MB)", value: profileData?.stats.storage_used_mb.toLocaleString() || "0", icon: Server, color: "text-amber-600", bg: "bg-amber-50" },
+                { label: "AI Requests", value: profileData?.stats?.ai_requests?.toLocaleString() ?? "0", icon: Terminal, color: "text-blue-600", bg: "bg-blue-50" },
+                { label: "Reports Generated", value: profileData?.stats?.reports_generated?.toLocaleString() ?? "0", icon: Database, color: "text-emerald-600", bg: "bg-emerald-50" },
+                { label: "API Calls", value: profileData?.stats?.api_calls?.toLocaleString() ?? "0", icon: Code, color: "text-purple-600", bg: "bg-purple-50" },
+                { label: "Storage (MB)", value: profileData?.stats?.storage_used_mb?.toLocaleString() ?? "0", icon: Server, color: "text-amber-600", bg: "bg-amber-50" },
               ].map((stat, i) => (
                 <motion.div variants={itemVariants} key={i} className="p-5 rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all cursor-default">
                   <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>

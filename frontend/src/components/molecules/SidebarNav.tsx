@@ -1,5 +1,5 @@
 import { useRouter, usePathname } from "next/navigation"
-import { NavGroup } from "@/app/owner/dashboard/sidebar/page"
+import { NavGroup } from "@/components/layouts/dashboard/DashboardSidebar"
 
 interface SidebarNavProps {
   navGroups: NavGroup[]

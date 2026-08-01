@@ -54,5 +54,13 @@ export const storageService = {
   deleteFile: async (fileId: string) => {
     const response = await api.delete(`/owner/storage/files/${fileId}`);
     return response.data;
-  }
+  },
+
+  uploadFile: async (formData: FormData) => {
+    const response = await api.post('/owner/storage/files/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
 };
+

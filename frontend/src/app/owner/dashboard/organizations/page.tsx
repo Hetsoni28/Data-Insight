@@ -18,15 +18,16 @@ export default function OrganizationsPage() {
   const handleExportCSV = async () => {
     toast.info("Generating CSV...")
     try {
-      const { data } = await api.get("/admin/tenants")
-      if (!data || data.length === 0) {
+      const res = await api.get("/admin/tenants")
+      const list = Array.isArray(res.data) ? res.data : (res.data?.data || res.data?.items || [])
+      if (!list || list.length === 0) {
         toast.error("No data to export.")
         return
       }
       const headers = ["ID", "Name", "Plan", "Status", "Created At", "MRR", "Health Score", "Security Score"]
       const csvRows = [headers.join(",")]
       
-      data.forEach((t: any) => {
+      list.forEach((t: any) => {
         csvRows.push([
           t.id, 
           `"${t.name}"`, 

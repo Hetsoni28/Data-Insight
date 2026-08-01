@@ -1,6 +1,6 @@
 "use client"
-import DashboardSidebar from "@/app/owner/dashboard/sidebar/page"
-import DashboardNavbar from "@/app/owner/dashboard/navbar/page"
+import DashboardSidebar from "@/components/layouts/dashboard/DashboardSidebar"
+import DashboardNavbar from "@/components/layouts/dashboard/DashboardNavbar"
 import { useEffect } from "react"
 import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"

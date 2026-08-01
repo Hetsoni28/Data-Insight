@@ -33,10 +33,12 @@ export function UsersDataGrid() {
   const fetchUsers = async () => {
     try {
       const { data } = await api.get("/admin/users")
-      setUsers(data)
+      const list = Array.isArray(data) ? data : (data?.items || data?.data || data?.users || [])
+      setUsers(Array.isArray(list) ? list : [])
     } catch (error) {
       console.error("Failed to fetch users", error)
       toast.error("Failed to load users.")
+      setUsers([])
     } finally {
       setLoading(false)
     }
@@ -50,7 +52,7 @@ export function UsersDataGrid() {
     try {
       const newStatus = !currentStatus
       await api.patch(`/admin/users/${userId}/status`, { is_active: newStatus })
-      setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_active: newStatus } : u))
+      setUsers(prev => (Array.isArray(prev) ? prev : []).map(u => u.id === userId ? { ...u, is_active: newStatus } : u))
       toast.success(`User ${newStatus ? 'activated' : 'suspended'} successfully.`)
     } catch (error) {
       console.error("Failed to toggle status", error)
@@ -71,14 +73,14 @@ export function UsersDataGrid() {
     toast.success(`Password reset email sent to ${user.email}.`)
   }
 
-  const filteredUsers = useMemo(() =>
-    users.filter(u => 
-      (u.email || "").toLowerCase().includes(search.toLowerCase()) || 
-      (u.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (u.tenant_name || "").toLowerCase().includes(search.toLowerCase())
-    ),
-    [users, search]
-  )
+  const filteredUsers = useMemo(() => {
+    const list = Array.isArray(users) ? users : []
+    return list.filter(u => 
+      (u?.email || "").toLowerCase().includes(search.toLowerCase()) || 
+      (u?.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (u?.tenant_name || "").toLowerCase().includes(search.toLowerCase())
+    )
+  }, [users, search])
 
   // Pagination Logic
   const totalItems = filteredUsers.length

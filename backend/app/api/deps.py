@@ -1,6 +1,7 @@
 """FastAPI dependency injection — auth, DB session, Redis, current user."""
 
 from typing import AsyncGenerator
+from contextlib import asynccontextmanager
 from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
@@ -34,6 +35,12 @@ async def get_redis() -> AsyncGenerator[Redis, None]:
 
 # ─── DB Session ───────────────────────────────────────────────────────────────
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """
+    FastAPI dependency that provides a scoped AsyncSession.
+    Uses async_sessionmaker context manager directly to avoid the
+    'generator didn't stop after athrow()' RuntimeError in Python 3.12+.
+    The AsyncSessionLocal context manager handles closing the session on exit.
+    """
     async with AsyncSessionLocal() as session:
         try:
             yield session
@@ -41,8 +48,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         except Exception:
             await session.rollback()
             raise
-        finally:
-            await session.close()
 
 
 # ─── Current User ─────────────────────────────────────────────────────────────

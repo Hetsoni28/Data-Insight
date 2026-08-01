@@ -9,8 +9,8 @@ interface Props {
 }
 
 export function ProfileStatsSidebar({ profileData, setActiveTab, setIsApiKeyModalOpen }: Props) {
-  const completionScore = profileData?.stats.profile_completion_percentage || 0;
-  const securityScore = profileData?.stats.security_score || 0;
+  const completionScore = profileData?.stats?.profile_completion_percentage || 0;
+  const securityScore = profileData?.stats?.security_score || 0;
 
   return (
     <div className="lg:col-span-1 space-y-6">

@@ -45,7 +45,7 @@ async def get_overview(
     # Backups
     total_backups = await db.scalar(select(func.count(StorageBackup.id)).where(StorageBackup.status == "completed"))
     
-    # Calculate costs (fake rate $0.023 per GB)
+    # Calculate costs (AWS S3 Standard rate $0.023 per GB)
     gb_used = float(total_size) / (1024**3)
     storage_cost = gb_used * 0.023
     
@@ -73,9 +73,8 @@ async def get_analytics(
     current_user: User = Depends(require_owner)
 ) -> Any:
     """Get timeseries analytics for storage growth."""
-    # Just generating a 30-day fake trend based on current total for demo,
-    # or we can query actual file created_at if we had time-series points.
-    # To be fully dynamic, we group by day for the last 30 days.
+    # Query actual file created_at for time-series points.
+    # We group by day for the last 30 days.
     
     thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
     
@@ -294,15 +293,33 @@ async def get_security(
     encrypted_count = await db.scalar(select(func.count(StorageFile.id)).where(StorageFile.is_encrypted == True, StorageFile.deleted_at.is_(None)))
     
     total = (public_count or 0) + (private_count or 0)
+    unencrypted_files = total - (encrypted_count or 0)
+    malware_scanned = await db.scalar(select(func.count(StorageFile.id)).where(StorageFile.is_malware_scanned == True)) or 0
     
+    # Calculate health score dynamically based on real security metrics
+    score = 100
+    if total > 0:
+        # Penalize for high public ratio
+        public_ratio = (public_count or 0) / total
+        if public_ratio > 0.1:
+            score -= (public_ratio * 30) # up to -30 points
+            
+        # Penalize for unencrypted files
+        unencrypted_ratio = unencrypted_files / total
+        score -= (unencrypted_ratio * 40) # up to -40 points
+        
+        # Penalize for unscanned files
+        unscanned_ratio = (total - malware_scanned) / total
+        score -= (unscanned_ratio * 20) # up to -20 points
+        
     return {
         "security": {
             "public_files": public_count or 0,
             "private_files": private_count or 0,
             "encrypted_files": encrypted_count or 0,
-            "unencrypted_files": total - (encrypted_count or 0),
-            "malware_scanned_files": await db.scalar(select(func.count(StorageFile.id)).where(StorageFile.is_malware_scanned == True)) or 0,
-            "health_score": 98 if (public_count or 0) < total * 0.1 else 85
+            "unencrypted_files": unencrypted_files,
+            "malware_scanned_files": malware_scanned,
+            "health_score": max(0, min(100, int(score)))
         }
     }
 

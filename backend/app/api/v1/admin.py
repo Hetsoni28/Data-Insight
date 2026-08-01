@@ -16,8 +16,20 @@ from app.models.tenant import Tenant
 from app.models.ai_token_usage import AITokenUsage
 from app.repositories.tenant import TenantRepository
 from app.repositories.audit_log import AuditLogRepository
+from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
+
+
+async def require_superuser_or_owner(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Allows access to platform owners and superusers."""
+    is_owner = getattr(current_user, 'role', '') == 'owner' or getattr(current_user, 'is_owner', False)
+    if not current_user.is_superuser and not is_owner:
+        from app.core.exceptions import ForbiddenException
+        raise ForbiddenException("Super-admin or owner access required.")
+    return current_user
 
 
 class ImpersonateRequest(BaseModel):
@@ -29,9 +41,13 @@ async def list_tenants(
     limit: int = 50,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_superuser_or_owner),
 ):
     from app.models.dataset import Dataset
+    from app.models.storage import StorageFile
+    from app.models.ai_token_usage import AITokenUsage
+    from app.models.user_session import UserSession
+    from app.models.user import User
     import hashlib
 
     # Subqueries for counts
@@ -45,12 +61,38 @@ async def list_tenants(
         .where(Dataset.tenant_id == Tenant.id, Dataset.is_deleted == False)
         .scalar_subquery()
     )
+    storage_sq = (
+        select(func.coalesce(func.sum(StorageFile.file_size_bytes), 0))
+        .where(StorageFile.tenant_id == Tenant.id, StorageFile.deleted_at == None)
+        .scalar_subquery()
+    )
+    ai_requests_sq = (
+        select(func.count(AITokenUsage.id))
+        .where(AITokenUsage.tenant_id == Tenant.id)
+        .scalar_subquery()
+    )
+    last_login_sq = (
+        select(func.max(UserSession.last_active_at))
+        .join(User, UserSession.user_id == User.id)
+        .where(User.tenant_id == Tenant.id)
+        .scalar_subquery()
+    )
+    active_users_sq = (
+        select(func.count(func.distinct(UserSession.user_id)))
+        .join(User, UserSession.user_id == User.id)
+        .where(User.tenant_id == Tenant.id, UserSession.is_active == True)
+        .scalar_subquery()
+    )
 
     stmt = (
         select(
             Tenant,
             user_count_sq.label("users_count"),
             dataset_count_sq.label("datasets_count"),
+            storage_sq.label("storage_bytes"),
+            ai_requests_sq.label("ai_requests_count"),
+            last_login_sq.label("last_login"),
+            active_users_sq.label("active_users_count"),
         )
         .where(Tenant.is_deleted == False)
         .order_by(Tenant.created_at.desc())
@@ -65,39 +107,31 @@ async def list_tenants(
         select(func.count(Tenant.id)).where(Tenant.is_deleted == False)
     ) or 0
 
-    def generate_deterministic_mock(uuid_str: str, max_val: int):
-        # Generates a consistent random-looking number based on UUID
-        return int(hashlib.md5(uuid_str.encode()).hexdigest(), 16) % max_val
-
     def calculate_health(users: int, datasets: int, active: bool):
         if not active: return "Critical"
         if users > 10 and datasets > 5: return "Excellent"
         if users > 3 and datasets > 1: return "Good"
         return "Needs Attention"
 
-    def get_plan_price(plan: str):
-        prices = {"starter": 29.0, "professional": 99.0, "enterprise": 499.0, "custom": 999.0}
-        return prices.get(plan.lower(), 0.0)
-
     data = [
         {
             "id": str(t.Tenant.id),
             "name": t.Tenant.name,
             "slug": t.Tenant.slug,
-            "plan": t.Tenant.plan.title(),
+            "plan": (t.Tenant.plan or "starter").title(),
             "industry": t.Tenant.industry or "Technology",
             "is_active": t.Tenant.is_active,
-            "created_at": t.Tenant.created_at.isoformat(),
-            "users_count": t.users_count,
-            "active_users": max(1, int(t.users_count * 0.7)), # Mock 70% active
-            "datasets_count": t.datasets_count,
-            "storage_used": generate_deterministic_mock(str(t.Tenant.id) + "store", 500), # GB
+            "created_at": t.Tenant.created_at.isoformat() if t.Tenant.created_at else None,
+            "users_count": t.users_count or 0,
+            "active_users": t.active_users_count or 0,
+            "datasets_count": t.datasets_count or 0,
+            "storage_used": round((t.storage_bytes or 0) / 1073741824, 2),  # bytes to GB
             "storage_limit": t.Tenant.max_storage_gb,
-            "ai_requests": generate_deterministic_mock(str(t.Tenant.id) + "ai", 50000),
-            "security_score": 75 + generate_deterministic_mock(str(t.Tenant.id) + "sec", 25), # 75-100
-            "health_score": calculate_health(t.users_count, t.datasets_count, t.Tenant.is_active),
-            "mrr": get_plan_price(t.Tenant.plan),
-            "last_login": "2026-08-01T10:00:00Z", # Mock last login
+            "ai_requests": t.ai_requests_count or 0,
+            "security_score": 100 if t.Tenant.is_active else 50,
+            "health_score": calculate_health(t.users_count or 0, t.datasets_count or 0, t.Tenant.is_active),
+            "mrr": t.Tenant.mrr or 0.0,
+            "last_login": t.last_login.isoformat() if t.last_login else None,
         }
         for t in rows
     ]
@@ -113,7 +147,7 @@ async def update_tenant_status(
     tenant_id: uuid.UUID,
     body: TenantStatusUpdate,
     db: AsyncSession = Depends(get_db),
-    admin: User = Depends(get_current_superuser),
+    _: User = Depends(require_superuser_or_owner),
 ):
     tenant = await db.get(Tenant, tenant_id)
     if not tenant:
@@ -192,7 +226,9 @@ async def global_kpis(
     ).scalar_one()
 
     # Storage (sum of bytes if we had it, but for now we'll mock based on dataset count * avg 2MB)
-    storage_bytes = total_datasets * 2 * 1024 * 1024
+    from app.models.storage import StorageFile
+    storage_result = await db.scalar(select(func.coalesce(func.sum(StorageFile.file_size_bytes), 0)))
+    storage_bytes = storage_result or 0
 
     # 4. AI Stats
     token_stmt = select(func.coalesce(func.sum(AITokenUsage.total_tokens), 0)).where(
@@ -207,9 +243,19 @@ async def global_kpis(
     )
     ai_requests_today = (await db.execute(ai_requests_today_stmt)).scalar_one()
 
+    from app.models.ai_ops import AIProvider
+    active_models_count = await db.scalar(select(func.count(AIProvider.id)).where(AIProvider.is_active == True)) or 0
+
     # 5. Billing (Mocked for now until Stripe integration)
-    mrr = active_orgs * 99  # Assuming $99/mo avg
+    mrr_result = await db.scalar(
+        select(func.coalesce(func.sum(Tenant.mrr), 0.0))
+        .where(Tenant.is_active == True, Tenant.is_deleted == False)
+    )
+    mrr = mrr_result or 0.0
     arr = mrr * 12
+
+    from app.models.invitation import Invitation
+    pending_invites = await db.scalar(select(func.count(Invitation.id)).where(Invitation.status == 'pending')) or 0
 
     return {
         "organizations": {
@@ -230,7 +276,7 @@ async def global_kpis(
         "ai": {
             "tokens_this_month": int(tokens_this_month),
             "requests_today": ai_requests_today,
-            "active_models": 3,
+            "active_models": active_models_count,
         },
         "billing": {
             "mrr": mrr,
@@ -240,7 +286,7 @@ async def global_kpis(
             "uptime_percentage": 99.98,
             "error_rate_percentage": 0.02,
             "avg_response_time_ms": 142,
-            "pending_invitations": 0,
+            "pending_invitations": pending_invites,
         },
     }
 
@@ -577,52 +623,73 @@ async def get_tenant_activity(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    import random
-    from datetime import datetime, timezone, timedelta
-    
-    events = ["Admin Invited", "Subscription Upgraded", "Dataset Uploaded", "Report Generated", "User Added", "Login", "API Key Created"]
-    now = datetime.now(timezone.utc)
-    
-    activities = []
-    for i in range(limit):
-        mins_ago = random.randint(1, 10000)
-        time_evt = now - timedelta(minutes=mins_ago)
-        activities.append({
-            "id": f"act_{i}",
-            "type": random.choice(events),
-            "description": f"User triggered {random.choice(['an action', 'a process', 'an event'])}",
-            "actor": "john.doe@example.com" if random.random() > 0.5 else "admin@organization.com",
-            "created_at": time_evt.isoformat()
-        })
-        
-    activities.sort(key=lambda x: x["created_at"], reverse=True)
-    return activities
+    from app.models.audit_log import AuditLog
+    from sqlalchemy import desc
+    result = await db.execute(
+        select(AuditLog)
+        .where(AuditLog.tenant_id == tenant_id)
+        .order_by(desc(AuditLog.created_at))
+        .limit(limit)
+    )
+    logs = result.scalars().all()
+    return [
+        {
+            "id": str(log.id),
+            "action": log.action,
+            "module": log.module,
+            "user": getattr(log, 'user_email', "system"),
+            "ip": log.ip_address or "—",
+            "severity": getattr(log, 'severity', 'info'),
+            "status": log.status,
+            "timestamp": log.created_at.isoformat(),
+        }
+        for log in logs
+    ]
 
 
 @router.get("/revenue", summary="Global revenue metrics")
-async def get_revenue(
+async def get_revenue_metrics(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    # Mock data for revenue analytics until Stripe integration
+    from app.models.invoice import Invoice
+    from sqlalchemy import desc
+    from datetime import datetime, timezone, timedelta
+    
+    total_mrr = await db.scalar(
+        select(func.coalesce(func.sum(Tenant.mrr), 0.0))
+        .where(Tenant.is_active == True, Tenant.is_deleted == False)
+    ) or 0.0
+    
+    active_count = await db.scalar(
+        select(func.count(Tenant.id)).where(Tenant.is_active == True, Tenant.is_deleted == False)
+    ) or 0
+    
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+    cancelled_count = await db.scalar(
+        select(func.count(Tenant.id)).where(
+            Tenant.is_active == False,
+            Tenant.updated_at >= thirty_days_ago,
+            Tenant.is_deleted == False
+        )
+    ) or 0
+    churn_rate = round((cancelled_count / max(active_count + cancelled_count, 1)) * 100, 2)
+    
+    total_invoice_revenue = await db.scalar(
+        select(func.coalesce(func.sum(Invoice.amount), 0.0))
+        .where(Invoice.status == 'paid')
+    ) or 0.0
+    
     return {
-        "mrr": 42500,
-        "arr": 510000,
-        "active_subscriptions": 342,
-        "churn_rate": 2.4,
-        "revenue_growth": [
-            {"month": "Jan", "mrr": 32000},
-            {"month": "Feb", "mrr": 34500},
-            {"month": "Mar", "mrr": 36000},
-            {"month": "Apr", "mrr": 38500},
-            {"month": "May", "mrr": 40200},
-            {"month": "Jun", "mrr": 42500},
-        ],
-        "plan_distribution": [
-            {"plan": "Enterprise", "count": 42},
-            {"plan": "Professional", "count": 150},
-            {"plan": "Starter", "count": 150},
-        ],
+        "status": "success",
+        "data": {
+            "mrr": round(total_mrr, 2),
+            "arr": round(total_mrr * 12, 2),
+            "total_revenue": round(total_invoice_revenue, 2),
+            "active_subscriptions": active_count,
+            "churn_rate": churn_rate,
+            "avg_revenue_per_user": round(total_mrr / max(active_count, 1), 2),
+        }
     }
 
 
@@ -680,54 +747,45 @@ async def get_monitoring(
 
 @router.get("/subscriptions", summary="List all SaaS subscriptions")
 async def list_subscriptions(
+    limit: int = 50,
+    offset: int = 0,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    # For now, return mock subscription data mapping to organizations
-    return [
-        {
-            "id": "sub_1",
-            "tenant_name": "Acme Corp",
-            "plan": "Enterprise",
-            "status": "active",
-            "amount": 999.00,
-            "billing_cycle": "annual",
-            "next_billing_date": "2027-01-15T00:00:00Z",
-        },
-        {
-            "id": "sub_2",
-            "tenant_name": "Stark Industries",
-            "plan": "Professional",
-            "status": "active",
-            "amount": 99.00,
-            "billing_cycle": "monthly",
-            "next_billing_date": "2026-08-10T00:00:00Z",
-        },
-        {
-            "id": "sub_3",
-            "tenant_name": "Wayne Enterprises",
-            "plan": "Enterprise",
-            "status": "past_due",
-            "amount": 999.00,
-            "billing_cycle": "annual",
-            "next_billing_date": "2026-07-25T00:00:00Z",
-        },
-        {
-            "id": "sub_4",
-            "tenant_name": "Daily Planet",
-            "plan": "Starter",
-            "status": "canceled",
-            "amount": 29.00,
-            "billing_cycle": "monthly",
-            "next_billing_date": "2026-07-01T00:00:00Z",
-        },
-        {
-            "id": "sub_5",
-            "tenant_name": "Globex",
-            "plan": "Professional",
-            "status": "active",
-            "amount": 99.00,
-            "billing_cycle": "monthly",
-            "next_billing_date": "2026-08-20T00:00:00Z",
-        },
-    ]
+    from app.models.invoice import Invoice
+    from sqlalchemy import desc
+    
+    # Note: The following loop executes an N+1 query (one per tenant). 
+    # This is acceptable for an admin dashboard with small limits.
+    stmt = (
+        select(Tenant)
+        .where(Tenant.is_deleted == False)
+        .order_by(desc(Tenant.created_at))
+        .limit(limit)
+        .offset(offset)
+    )
+    result = await db.execute(stmt)
+    tenants = result.scalars().all()
+    total = await db.scalar(select(func.count(Tenant.id)).where(Tenant.is_deleted == False)) or 0
+    
+    data = []
+    for t in tenants:
+        # Get last invoice
+        last_inv = await db.scalar(
+            select(Invoice)
+            .where(Invoice.tenant_id == t.id)
+            .order_by(desc(Invoice.invoice_date))
+        )
+        data.append({
+            "id": str(t.id),
+            "name": t.name,
+            "plan": t.plan.title(),
+            "mrr": t.mrr,
+            "status": "active" if t.is_active else "suspended",
+            "billing_cycle": getattr(t, 'billing_cycle', 'monthly'),
+            "created_at": t.created_at.isoformat(),
+            "last_payment": last_inv.invoice_date.isoformat() if last_inv else None,
+            "last_payment_amount": last_inv.amount if last_inv else 0.0,
+            "last_payment_status": last_inv.status.value if last_inv and hasattr(last_inv.status, 'value') else (last_inv.status if last_inv else None),
+        })
+    return {"data": data, "total": total}

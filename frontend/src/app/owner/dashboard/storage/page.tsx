@@ -1,6 +1,6 @@
 "use client"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { motion } from "framer-motion"
 
 import { storageService } from "@/lib/storageService"
@@ -18,6 +18,7 @@ import { StorageActivityTimeline } from "@/components/organisms/StorageActivityT
 export default function StorageCommandCenterPage() {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("")
+  const [activeFilter, setActiveFilter] = useState("All Files")
 
   // Fetch Overview (KPIs)
   const { data: overview, isLoading: loadingOverview } = useQuery({
@@ -97,7 +98,7 @@ export default function StorageCommandCenterPage() {
       className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 min-h-screen pb-24 bg-slate-50 dark:bg-transparent"
     >
       {/* 1. Hero Banner */}
-      <StorageHeroBanner onSearch={setSearchQuery} onRefresh={handleRefresh} />
+      <StorageHeroBanner onSearch={setSearchQuery} onRefresh={handleRefresh} onFilterChange={setActiveFilter} />
 
       {/* 2. KPI Dashboard */}
       <StorageLiveKpis overview={overview} />
@@ -111,7 +112,7 @@ export default function StorageCommandCenterPage() {
       {/* 5. Main Content Grids */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
-          <StorageFileExplorer files={filesData?.files} />
+          <StorageFileExplorer files={filesData?.files} activeFilter={activeFilter} />
         </div>
         <div className="space-y-6">
           <StorageOrganizationUsage organizations={organizations?.organizations} />

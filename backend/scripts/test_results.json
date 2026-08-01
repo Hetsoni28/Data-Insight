@@ -1,0 +1,1042 @@
+[
+  {
+    "category": "System",
+    "method": "GET",
+    "path": "/health",
+    "status_code": 200,
+    "duration_ms": 15.5,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Auth",
+    "method": "GET",
+    "path": "/api/v1/auth/me",
+    "status_code": 200,
+    "duration_ms": 163.37,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Auth",
+    "method": "POST",
+    "path": "/api/v1/auth/login",
+    "status_code": 401,
+    "duration_ms": 587.1,
+    "passed": true,
+    "is_500": false,
+    "detail": "Client response (401): {\"error\":\"UNAUTHORIZED\",\"message\":\"Incorrect email or password.\",\"code\":\"DI-BE-AUTH-401\",\"timestamp\":\"2026-08-01T21:16:46.319700+00:00\",\"request_id\":\""
+  },
+  {
+    "category": "Auth",
+    "method": "POST",
+    "path": "/api/v1/auth/request-access",
+    "status_code": 200,
+    "duration_ms": 782.95,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Auth",
+    "method": "POST",
+    "path": "/api/v1/auth/resend-otp",
+    "status_code": 409,
+    "duration_ms": 130.43,
+    "passed": true,
+    "is_500": false,
+    "detail": "Client response (409): {\"error\":\"CONFLICT\",\"message\":\"Email is already verified.\",\"code\":\"DI-BE-GLOBAL-409\",\"timestamp\":\"2026-08-01T21:16:47.233255+00:00\",\"request_id\":\"dd05"
+  },
+  {
+    "category": "Auth",
+    "method": "POST",
+    "path": "/api/v1/auth/forgot-password",
+    "status_code": 200,
+    "duration_ms": 118.46,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Users",
+    "method": "GET",
+    "path": "/api/v1/users/me",
+    "status_code": 200,
+    "duration_ms": 115.14,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Users",
+    "method": "PATCH",
+    "path": "/api/v1/users/me",
+    "status_code": 200,
+    "duration_ms": 139.68,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Users",
+    "method": "GET",
+    "path": "/api/v1/users/active",
+    "status_code": 200,
+    "duration_ms": 153.72,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Users",
+    "method": "GET",
+    "path": "/api/v1/users/pending",
+    "status_code": 200,
+    "duration_ms": 149.69,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Tenants",
+    "method": "GET",
+    "path": "/api/v1/tenants/me",
+    "status_code": 200,
+    "duration_ms": 132.55,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Tenants",
+    "method": "PATCH",
+    "path": "/api/v1/tenants/me",
+    "status_code": 200,
+    "duration_ms": 237.81,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Workspaces",
+    "method": "GET",
+    "path": "/api/v1/workspaces",
+    "status_code": 200,
+    "duration_ms": 158.88,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Workspaces",
+    "method": "GET",
+    "path": "/api/v1/workspaces/011efef2-228a-4036-8f30-aa3853d93c5c",
+    "status_code": 200,
+    "duration_ms": 136.12,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Workspaces",
+    "method": "GET",
+    "path": "/api/v1/workspaces/011efef2-228a-4036-8f30-aa3853d93c5c/stats",
+    "status_code": 200,
+    "duration_ms": 262.96,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Datasets",
+    "method": "GET",
+    "path": "/api/v1/datasets",
+    "status_code": 200,
+    "duration_ms": 156.1,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Datasets",
+    "method": "POST",
+    "path": "/api/v1/datasets/upload",
+    "status_code": 202,
+    "duration_ms": 467.69,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Datasets",
+    "method": "GET",
+    "path": "/api/v1/datasets/e5bf8640-1271-4a20-a700-eed072a9e840",
+    "status_code": 200,
+    "duration_ms": 153.82,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Datasets",
+    "method": "GET",
+    "path": "/api/v1/datasets/e5bf8640-1271-4a20-a700-eed072a9e840/download-url",
+    "status_code": 200,
+    "duration_ms": 131.58,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Reports",
+    "method": "GET",
+    "path": "/api/v1/reports",
+    "status_code": 200,
+    "duration_ms": 158.88,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Reports",
+    "method": "POST",
+    "path": "/api/v1/reports/generate",
+    "status_code": 202,
+    "duration_ms": 332.65,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Reports",
+    "method": "GET",
+    "path": "/api/v1/reports/8aaccb39-e1f7-4167-b5e6-e1b7ba997e0a",
+    "status_code": 200,
+    "duration_ms": 166.88,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "AI",
+    "method": "POST",
+    "path": "/api/v1/ai/chat",
+    "status_code": 200,
+    "duration_ms": 3697.13,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "AI",
+    "method": "POST",
+    "path": "/api/v1/ai/analyze",
+    "status_code": 202,
+    "duration_ms": 142.64,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/tenants",
+    "status_code": 200,
+    "duration_ms": 209.07,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/kpis",
+    "status_code": 200,
+    "duration_ms": 700.43,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/usage-trends",
+    "status_code": 200,
+    "duration_ms": 165.03,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/tenants/34237260-ab3b-40ef-9d6e-08d20df7839f/stats",
+    "status_code": 200,
+    "duration_ms": 345.19,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/tenants/34237260-ab3b-40ef-9d6e-08d20df7839f/activity",
+    "status_code": 200,
+    "duration_ms": 169.39,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/audit-logs",
+    "status_code": 200,
+    "duration_ms": 172.19,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/users",
+    "status_code": 200,
+    "duration_ms": 201.09,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/tenants/analytics",
+    "status_code": 200,
+    "duration_ms": 366.03,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/revenue",
+    "status_code": 200,
+    "duration_ms": 265.86,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/monitoring",
+    "status_code": 200,
+    "duration_ms": 2474.85,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Admin",
+    "method": "GET",
+    "path": "/api/v1/admin/subscriptions",
+    "status_code": 200,
+    "duration_ms": 1748.44,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Billing",
+    "method": "GET",
+    "path": "/api/v1/owner/subscriptions/kpis",
+    "status_code": 200,
+    "duration_ms": 544.47,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Billing",
+    "method": "GET",
+    "path": "/api/v1/owner/subscriptions/revenue-trends",
+    "status_code": 200,
+    "duration_ms": 268.94,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Billing",
+    "method": "GET",
+    "path": "/api/v1/owner/subscriptions/organizations",
+    "status_code": 200,
+    "duration_ms": 248.42,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Billing",
+    "method": "GET",
+    "path": "/api/v1/owner/subscriptions/invoices",
+    "status_code": 200,
+    "duration_ms": 138.25,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Billing",
+    "method": "GET",
+    "path": "/api/v1/owner/subscriptions/analytics/ai-costs",
+    "status_code": 200,
+    "duration_ms": 167.19,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Billing",
+    "method": "GET",
+    "path": "/api/v1/owner/subscriptions/analytics/forecast",
+    "status_code": 200,
+    "duration_ms": 240.8,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Billing",
+    "method": "GET",
+    "path": "/api/v1/owner/subscriptions/analytics/health",
+    "status_code": 200,
+    "duration_ms": 148.06,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Billing",
+    "method": "GET",
+    "path": "/api/v1/owner/subscriptions/activity",
+    "status_code": 200,
+    "duration_ms": 149.3,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner AI",
+    "method": "GET",
+    "path": "/api/v1/owner/ai/overview",
+    "status_code": 200,
+    "duration_ms": 271.13,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner AI",
+    "method": "GET",
+    "path": "/api/v1/owner/ai/providers",
+    "status_code": 200,
+    "duration_ms": 152.34,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner AI",
+    "method": "GET",
+    "path": "/api/v1/owner/ai/models",
+    "status_code": 200,
+    "duration_ms": 202.79,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner AI",
+    "method": "GET",
+    "path": "/api/v1/owner/ai/routing",
+    "status_code": 200,
+    "duration_ms": 304.46,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner AI",
+    "method": "GET",
+    "path": "/api/v1/owner/ai/usage/timeseries",
+    "status_code": 200,
+    "duration_ms": 159.67,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner AI",
+    "method": "GET",
+    "path": "/api/v1/owner/ai/trends",
+    "status_code": 200,
+    "duration_ms": 119.83,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner AI",
+    "method": "GET",
+    "path": "/api/v1/owner/ai/organizations",
+    "status_code": 200,
+    "duration_ms": 151.86,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner AI",
+    "method": "GET",
+    "path": "/api/v1/owner/ai/activity",
+    "status_code": 200,
+    "duration_ms": 160.29,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Analytics",
+    "method": "GET",
+    "path": "/api/v1/owner/analytics/overview",
+    "status_code": 200,
+    "duration_ms": 481.55,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Analytics",
+    "method": "GET",
+    "path": "/api/v1/owner/analytics/ai-summary",
+    "status_code": 200,
+    "duration_ms": 115.31,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Analytics",
+    "method": "GET",
+    "path": "/api/v1/owner/analytics/revenue",
+    "status_code": 200,
+    "duration_ms": 640.31,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Analytics",
+    "method": "GET",
+    "path": "/api/v1/owner/analytics/users",
+    "status_code": 200,
+    "duration_ms": 1074.82,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Analytics",
+    "method": "GET",
+    "path": "/api/v1/owner/analytics/forecast",
+    "status_code": 200,
+    "duration_ms": 273.02,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Analytics",
+    "method": "GET",
+    "path": "/api/v1/owner/analytics/anomalies",
+    "status_code": 200,
+    "duration_ms": 229.4,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Analytics",
+    "method": "GET",
+    "path": "/api/v1/owner/analytics/health",
+    "status_code": 200,
+    "duration_ms": 243.33,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner API Gateway",
+    "method": "GET",
+    "path": "/api/v1/owner/api-gateway/overview",
+    "status_code": 200,
+    "duration_ms": 323.02,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner API Gateway",
+    "method": "GET",
+    "path": "/api/v1/owner/api-gateway/usage-trends",
+    "status_code": 200,
+    "duration_ms": 149.71,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner API Gateway",
+    "method": "GET",
+    "path": "/api/v1/owner/api-gateway/errors",
+    "status_code": 200,
+    "duration_ms": 159.24,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner API Gateway",
+    "method": "GET",
+    "path": "/api/v1/owner/api-gateway/live-requests",
+    "status_code": 200,
+    "duration_ms": 154.55,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner API Gateway",
+    "method": "GET",
+    "path": "/api/v1/owner/api-gateway/keys",
+    "status_code": 200,
+    "duration_ms": 160.41,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner API Gateway",
+    "method": "GET",
+    "path": "/api/v1/owner/api-gateway/oauth-clients",
+    "status_code": 200,
+    "duration_ms": 150.64,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner API Gateway",
+    "method": "GET",
+    "path": "/api/v1/owner/api-gateway/integrations",
+    "status_code": 200,
+    "duration_ms": 147.78,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner API Gateway",
+    "method": "GET",
+    "path": "/api/v1/owner/api-gateway/security",
+    "status_code": 200,
+    "duration_ms": 248.56,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Storage",
+    "method": "GET",
+    "path": "/api/v1/owner/storage/overview",
+    "status_code": 200,
+    "duration_ms": 326.66,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Storage",
+    "method": "GET",
+    "path": "/api/v1/owner/storage/analytics",
+    "status_code": 200,
+    "duration_ms": 167.69,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Storage",
+    "method": "GET",
+    "path": "/api/v1/owner/storage/organizations",
+    "status_code": 200,
+    "duration_ms": 162.83,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Storage",
+    "method": "GET",
+    "path": "/api/v1/owner/storage/buckets",
+    "status_code": 200,
+    "duration_ms": 158.54,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Storage",
+    "method": "GET",
+    "path": "/api/v1/owner/storage/files",
+    "status_code": 200,
+    "duration_ms": 227.65,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Storage",
+    "method": "GET",
+    "path": "/api/v1/owner/storage/backups",
+    "status_code": 200,
+    "duration_ms": 143.85,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Storage",
+    "method": "GET",
+    "path": "/api/v1/owner/storage/activity",
+    "status_code": 200,
+    "duration_ms": 160.24,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Storage",
+    "method": "GET",
+    "path": "/api/v1/owner/storage/security",
+    "status_code": 200,
+    "duration_ms": 258.4,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Integrations",
+    "method": "GET",
+    "path": "/api/v1/owner/integrations/overview",
+    "status_code": 200,
+    "duration_ms": 373.21,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Integrations",
+    "method": "GET",
+    "path": "/api/v1/owner/integrations/connected",
+    "status_code": 200,
+    "duration_ms": 152.92,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Integrations",
+    "method": "GET",
+    "path": "/api/v1/owner/integrations/webhooks",
+    "status_code": 200,
+    "duration_ms": 155.71,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Integrations",
+    "method": "GET",
+    "path": "/api/v1/owner/integrations/workflows",
+    "status_code": 200,
+    "duration_ms": 144.06,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Integrations",
+    "method": "GET",
+    "path": "/api/v1/owner/integrations/logs",
+    "status_code": 200,
+    "duration_ms": 185.65,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Security",
+    "method": "GET",
+    "path": "/api/v1/owner/security/overview",
+    "status_code": 200,
+    "duration_ms": 258.83,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Security",
+    "method": "GET",
+    "path": "/api/v1/owner/security/events",
+    "status_code": 200,
+    "duration_ms": 156.45,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Security",
+    "method": "GET",
+    "path": "/api/v1/owner/security/threats",
+    "status_code": 200,
+    "duration_ms": 168.75,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Security",
+    "method": "GET",
+    "path": "/api/v1/owner/security/sessions",
+    "status_code": 200,
+    "duration_ms": 154.43,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Security",
+    "method": "GET",
+    "path": "/api/v1/owner/security/compliance",
+    "status_code": 200,
+    "duration_ms": 1844.3,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Audit",
+    "method": "GET",
+    "path": "/api/v1/owner/audit/overview",
+    "status_code": 200,
+    "duration_ms": 2540.52,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Audit",
+    "method": "GET",
+    "path": "/api/v1/owner/audit/events",
+    "status_code": 200,
+    "duration_ms": 329.76,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Audit",
+    "method": "GET",
+    "path": "/api/v1/owner/audit/timeline",
+    "status_code": 200,
+    "duration_ms": 348.62,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Features",
+    "method": "GET",
+    "path": "/api/v1/owner/features/overview",
+    "status_code": 200,
+    "duration_ms": 408.22,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Features",
+    "method": "GET",
+    "path": "/api/v1/owner/features",
+    "status_code": 200,
+    "duration_ms": 336.36,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Features",
+    "method": "GET",
+    "path": "/api/v1/owner/features/rollouts",
+    "status_code": 200,
+    "duration_ms": 233.4,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Owner Features",
+    "method": "GET",
+    "path": "/api/v1/owner/features/experiments",
+    "status_code": 200,
+    "duration_ms": 219.15,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Profile",
+    "method": "GET",
+    "path": "/api/v1/profile/me",
+    "status_code": 200,
+    "duration_ms": 425.26,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Profile",
+    "method": "PATCH",
+    "path": "/api/v1/profile/me",
+    "status_code": 200,
+    "duration_ms": 323.39,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Profile",
+    "method": "GET",
+    "path": "/api/v1/profile/sessions",
+    "status_code": 200,
+    "duration_ms": 143.61,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Profile",
+    "method": "GET",
+    "path": "/api/v1/profile/activity",
+    "status_code": 200,
+    "duration_ms": 147.83,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Profile",
+    "method": "GET",
+    "path": "/api/v1/profile/audit",
+    "status_code": 200,
+    "duration_ms": 160.41,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Notifications",
+    "method": "GET",
+    "path": "/api/v1/notifications",
+    "status_code": 200,
+    "duration_ms": 184.67,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Notifications",
+    "method": "GET",
+    "path": "/api/v1/notifications/stats",
+    "status_code": 200,
+    "duration_ms": 328.0,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Support",
+    "method": "GET",
+    "path": "/api/v1/support/dashboard",
+    "status_code": 200,
+    "duration_ms": 99.05,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Support",
+    "method": "GET",
+    "path": "/api/v1/support/tickets",
+    "status_code": 200,
+    "duration_ms": 215.99,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Support",
+    "method": "GET",
+    "path": "/api/v1/support/incidents",
+    "status_code": 200,
+    "duration_ms": 168.22,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "API Keys",
+    "method": "GET",
+    "path": "/api/v1/users/me/api-keys",
+    "status_code": 200,
+    "duration_ms": 136.0,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Webhooks",
+    "method": "GET",
+    "path": "/api/v1/tenants/me/webhooks",
+    "status_code": 200,
+    "duration_ms": 136.07,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  },
+  {
+    "category": "Invitations",
+    "method": "GET",
+    "path": "/api/v1/invitations",
+    "status_code": 200,
+    "duration_ms": 140.2,
+    "passed": true,
+    "is_500": false,
+    "detail": ""
+  }
+]

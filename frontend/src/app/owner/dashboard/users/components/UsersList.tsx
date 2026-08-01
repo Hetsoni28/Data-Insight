@@ -33,9 +33,10 @@ export function UsersList({
   onRevoke 
 }: UsersListProps) {
   
-  const filteredUsers = users.filter(u => {
-    const q = searchQuery.toLowerCase()
-    return (u.full_name?.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
+  const safeUsers = Array.isArray(users) ? users : []
+  const filteredUsers = safeUsers.filter(u => {
+    const q = (searchQuery || "").toLowerCase()
+    return (u?.full_name?.toLowerCase().includes(q) || u?.email?.toLowerCase().includes(q))
   })
 
   if (filteredUsers.length === 0) {

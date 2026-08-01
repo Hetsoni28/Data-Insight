@@ -242,23 +242,78 @@ async def get_org_usage(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ) -> Any:
-    """Mock for legacy ai-usage page"""
-    return {"data": [{"name": "Acme Corp", "requests": 5000, "cost": 150.0, "tokens": 200000}]}
+    """Real per-org AI usage grouped from AIUsageLog."""
+    from app.models.tenant import Tenant
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    result = await db.execute(
+        select(
+            Tenant.id,
+            Tenant.name,
+            func.count(AIUsageLog.id).label("requests"),
+            func.coalesce(func.sum(AIUsageLog.tokens_total), 0).label("tokens"),
+            func.coalesce(func.sum(AIUsageLog.cost_usd), Decimal("0.0")).label("cost"),
+        )
+        .join(AIUsageLog, AIUsageLog.tenant_id == Tenant.id)
+        .where(AIUsageLog.created_at >= seven_days_ago)
+        .group_by(Tenant.id, Tenant.name)
+        .order_by(func.sum(AIUsageLog.cost_usd).desc())
+        .limit(10)
+    )
+    rows = result.all()
+    return {
+        "data": [
+            {
+                "id": str(r.id),
+                "name": r.name,
+                "requests": r.requests,
+                "tokens": r.tokens,
+                "cost": round(float(r.cost), 4),
+            }
+            for r in rows
+        ]
+    }
+
 
 @router.get("/activity")
 async def get_activity(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ) -> Any:
-    """Mock for legacy ai-usage page"""
-    return {"data": [{
-        "id": "1", 
-        "tenant": "Acme Corp", 
-        "feature": "Data Summarization", 
-        "model": "gpt-4-turbo",
-        "latency_ms": 1200,
-        "cost": 0.0450,
-        "status": 200,
-        "date": datetime.now(timezone.utc).isoformat()
-    }]}
+    """Real AI activity feed from the latest AIUsageLog records."""
+    from app.models.tenant import Tenant
+    result = await db.execute(
+        select(
+            AIUsageLog.id,
+            AIUsageLog.task_type.label("feature"),
+            AIModel.name.label("model"),
+            AIUsageLog.tokens_total.label("tokens_used"),
+            AIUsageLog.cost_usd,
+            AIUsageLog.status_code,
+            AIUsageLog.latency_ms,
+            AIUsageLog.created_at,
+            Tenant.name.label("tenant_name"),
+        )
+        .join(Tenant, AIUsageLog.tenant_id == Tenant.id)
+        .outerjoin(AIModel, AIUsageLog.model_id == AIModel.id)
+        .order_by(desc(AIUsageLog.created_at))
+        .limit(20)
+    )
+    rows = result.all()
+    return {
+        "data": [
+            {
+                "id": str(r.id),
+                "tenant": r.tenant_name,
+                "feature": r.feature or "analysis",
+                "model": r.model or "Default",
+                "tokens": r.tokens_used or 0,
+                "cost": round(float(r.cost_usd or 0), 4),
+                "latency_ms": r.latency_ms or 0,
+                "status": "success" if r.status_code == 200 else "error",
+                "date": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ]
+    }
+
 

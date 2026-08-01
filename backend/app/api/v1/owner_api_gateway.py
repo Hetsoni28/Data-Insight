@@ -9,6 +9,7 @@ from app.api.deps import get_db, get_current_user
 from app.models.user import User, UserRole
 from app.models.api_gateway import ApiRequestLog, OAuthClient, ApiRateLimit, ApiIntegration
 from app.models.api_key import ApiKey
+from app.models.security import ThreatIntelligence
 
 router = APIRouter(prefix="/owner/api-gateway", tags=["owner-api-gateway"])
 
@@ -255,9 +256,23 @@ async def get_security_overview(
     )
     auth_failures = auth_failure_result.scalar_one_or_none() or 0
     
+    # Query actual blocked IPs from ThreatIntelligence
+    blocked_ips_result = await db.execute(
+        select(func.count(ThreatIntelligence.id))
+        .where(ThreatIntelligence.is_blocked == True)
+    )
+    blocked_ips_count = blocked_ips_result.scalar_one_or_none() or 0
+    
+    # Calculate dynamic threat level
+    threat_level = "Low"
+    if blocked_ips_count > 100 or auth_failures > 500:
+        threat_level = "High"
+    elif blocked_ips_count > 20 or auth_failures > 100:
+        threat_level = "Medium"
+        
     return {
         "rate_limit_violations": rate_limit_violations,
         "authentication_failures": auth_failures,
-        "blocked_ips_count": 0, # Placeholder
-        "threat_level": "Low"
+        "blocked_ips_count": blocked_ips_count,
+        "threat_level": threat_level
     }

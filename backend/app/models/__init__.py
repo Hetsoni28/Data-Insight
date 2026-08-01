@@ -23,6 +23,8 @@ from app.models.ai_ops import AIProvider, AIModel, AIRoutingRule, AIPromptTempla
 from app.models.integration import IntegrationConnection, IntegrationLog, AutomationWorkflow
 from app.models.security import SecurityEvent, ThreatIntelligence, ComplianceReport
 from app.models.feature_flag import FeatureFlag, FeatureRollout, FeatureExperiment
+from app.models.operating_expense import OperatingExpense
+from app.models.webhook_delivery import WebhookDeliveryLog
 
 __all__ = [
     "User",
@@ -75,4 +77,6 @@ __all__ = [
     "FeatureFlag",
     "FeatureRollout",
     "FeatureExperiment",
+    "OperatingExpense",
+    "WebhookDeliveryLog"
 ]

@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils"
 import type { AxiosError } from "axios"
 import type { ApiError } from "@/types"
 
-export function LoginForm() {
+export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "request" } = {}) {
   const router = useRouter()
   const { login } = useAuthStore()
   
@@ -23,7 +23,7 @@ export function LoginForm() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
-  const [mode, setMode] = useState<"login" | "request">("login")
+  const [mode, setMode] = useState<"login" | "request">(defaultMode)
   const [loginStep, setLoginStep] = useState<1 | 2>(1)
   const [requestSuccess, setRequestSuccess] = useState(false)
 

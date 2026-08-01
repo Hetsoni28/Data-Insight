@@ -53,6 +53,25 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
     onError: () => toast.error("Failed to update organization status.")
   })
 
+  // ─── All useMemo hooks MUST be above any conditional early return ────────────
+  const filteredData = useMemo(() =>
+    data?.filter(t => {
+      const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase()) || 
+                            t.plan.toLowerCase().includes(search.toLowerCase());
+      const matchesPlan = planFilter === "All" || t.plan.toLowerCase() === planFilter.toLowerCase();
+      const matchesStatus = statusFilter === "All" || t.status === statusFilter;
+      return matchesSearch && matchesPlan && matchesStatus;
+    }) || [],
+    [data, search, planFilter, statusFilter]
+  )
+
+  const totalItems = filteredData.length
+  const totalPages = Math.ceil(totalItems / pageSize)
+  const paginatedData = useMemo(() =>
+    filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredData, currentPage, pageSize]
+  )
+
   if (isLoading) {
     return (
       <div className="mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden">
@@ -65,26 +84,6 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
       </div>
     )
   }
-
-  const filteredData = useMemo(() =>
-    data?.filter(t => {
-      const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase()) || 
-                            t.plan.toLowerCase().includes(search.toLowerCase());
-      const matchesPlan = planFilter === "All" || t.plan.toLowerCase() === planFilter.toLowerCase();
-      const matchesStatus = statusFilter === "All" || t.status === statusFilter;
-      
-      return matchesSearch && matchesPlan && matchesStatus;
-    }) || [],
-    [data, search, planFilter, statusFilter]
-  )
-
-  // Pagination Logic
-  const totalItems = filteredData.length
-  const totalPages = Math.ceil(totalItems / pageSize)
-  const paginatedData = useMemo(() =>
-    filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [filteredData, currentPage, pageSize]
-  )
 
   return (
     <div className="mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden shadow-sm flex flex-col">

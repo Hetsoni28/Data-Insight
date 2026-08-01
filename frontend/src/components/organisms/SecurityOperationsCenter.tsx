@@ -90,14 +90,14 @@ function EventsTable({ events, isLoading }: { events?: SecurityEvent[], isLoadin
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    if (isLoading) return <LoadingState />;
-
     const totalItems = events?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
     const paginatedEvents = useMemo(() =>
         events?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
         [events, currentPage, pageSize]
     );
+
+    if (isLoading) return <LoadingState />;
 
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between">
@@ -170,14 +170,14 @@ function ThreatsBoard({ threats, isLoading }: { threats?: ThreatIntelligence[], 
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    if (isLoading) return <LoadingState />;
-
     const totalItems = threats?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
     const paginatedThreats = useMemo(() =>
         threats?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
         [threats, currentPage, pageSize]
     );
+
+    if (isLoading) return <LoadingState />;
 
     return (
         <div className="p-6 flex flex-col h-full justify-between">
@@ -228,14 +228,14 @@ function SessionsTable({ sessions, isLoading }: { sessions?: UserSession[], isLo
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    if (isLoading) return <LoadingState />;
-
     const totalItems = sessions?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
     const paginatedSessions = useMemo(() =>
         sessions?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
         [sessions, currentPage, pageSize]
     );
+
+    if (isLoading) return <LoadingState />;
 
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between">
@@ -308,14 +308,14 @@ function ComplianceBoard({ compliance, isLoading }: { compliance?: ComplianceRep
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    if (isLoading) return <LoadingState />;
-
     const totalItems = compliance?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
     const paginatedCompliance = useMemo(() =>
         compliance?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
         [compliance, currentPage, pageSize]
     );
+
+    if (isLoading) return <LoadingState />;
 
     return (
         <div className="flex flex-col h-full justify-between">
