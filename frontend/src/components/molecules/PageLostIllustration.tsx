@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const PageLostIllustration: React.FC = () => {
@@ -38,24 +38,32 @@ export const PageLostIllustration: React.FC = () => {
       </motion.div>
       
       {/* Question Marks */}
-      {[...Array(3)].map((_, i) => (
+      {useMemo(() => [...Array(3)].map((_, i) => ({
+        id: i,
+        left: `${20 + Math.random() * 60}%`,
+        top: `${20 + Math.random() * 60}%`,
+        yAnim: [0, -20 - Math.random() * 20],
+        rotate: (Math.random() - 0.5) * 45,
+        duration: 3 + Math.random() * 2,
+        delay: Math.random() * 2
+      })), []).map((particle) => (
         <motion.div
-          key={i}
+          key={particle.id}
           className="absolute text-slate-400/50 font-black text-xl"
           style={{
-            left: `${20 + Math.random() * 60}%`,
-            top: `${20 + Math.random() * 60}%`,
+            left: particle.left,
+            top: particle.top,
           }}
           animate={{
-            y: [0, -20 - Math.random() * 20],
+            y: particle.yAnim,
             opacity: [0, 1, 0],
             scale: [0.5, 1, 0.5],
-            rotate: (Math.random() - 0.5) * 45
+            rotate: particle.rotate
           }}
           transition={{
-            duration: 3 + Math.random() * 2,
+            duration: particle.duration,
             repeat: Infinity,
-            delay: Math.random() * 2,
+            delay: particle.delay,
           }}
         >
           ?

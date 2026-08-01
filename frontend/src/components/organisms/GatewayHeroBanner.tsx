@@ -222,7 +222,7 @@ function CreateApiKeyModal({ open, onClose }: { open: boolean; onClose: () => vo
                 <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertTriangle className="w-4 h-4 text-amber-400" />
-                    <p className="text-xs font-semibold text-amber-300">Copy this key now — it won't be shown again!</p>
+                    <p className="text-xs font-semibold text-amber-300">Copy this key now — it won&apos;t be shown again!</p>
                   </div>
                   <div className="flex items-center gap-2 mt-3 bg-black/30 rounded-lg p-3 font-mono text-sm">
                     <span className="flex-1 text-emerald-300 break-all text-xs">

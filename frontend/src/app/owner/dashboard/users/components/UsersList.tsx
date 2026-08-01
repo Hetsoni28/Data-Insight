@@ -43,7 +43,7 @@ export function UsersList({
     if (searchQuery) {
       return (
         <div className="p-12 text-center text-slate-500 dark:text-slate-400 bg-slate-50/50 rounded-2xl border border-slate-200 dark:border-white/10 border-dashed">
-          No users match your search "{searchQuery}"
+          No users match your search &quot;{searchQuery}&quot;
         </div>
       )
     }

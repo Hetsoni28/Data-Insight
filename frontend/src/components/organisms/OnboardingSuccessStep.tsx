@@ -1,3 +1,4 @@
+import React, { useMemo } from "react"
 import { motion } from "framer-motion"
 import { CheckCircle2, Check, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -17,28 +18,35 @@ export function OnboardingSuccessStep({ router }: OnboardingSuccessStepProps) {
     >
       {/* Fake Confetti using framer motion */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {useMemo(() => [...Array(20)].map((_, i) => ({
+          id: i,
+          xStart: `${Math.random() * 100}%`,
+          xEnd: `${Math.random() * 100}%`,
+          scale: Math.random() * 0.5 + 0.5,
+          duration: Math.random() * 2 + 1.5,
+          delay: Math.random() * 0.2
+        })), []).map((particle) => (
           <motion.div
-            key={i}
+            key={particle.id}
             initial={{ 
               y: "120%", 
-              x: `${Math.random() * 100}%`,
+              x: particle.xStart,
               rotate: 0,
-              scale: Math.random() * 0.5 + 0.5
+              scale: particle.scale
             }}
             animate={{ 
               y: "-20%", 
-              x: `${Math.random() * 100}%`,
+              x: particle.xEnd,
               rotate: 360 
             }}
             transition={{ 
-              duration: Math.random() * 2 + 1.5, 
+              duration: particle.duration, 
               ease: "easeOut",
-              delay: Math.random() * 0.2
+              delay: particle.delay
             }}
             className={cn(
               "absolute w-3 h-3 rounded-sm",
-              ["bg-blue-500", "bg-emerald-500", "bg-yellow-400", "bg-pink-500", "bg-purple-500"][i % 5]
+              ["bg-blue-500", "bg-emerald-500", "bg-yellow-400", "bg-pink-500", "bg-purple-500"][particle.id % 5]
             )}
           />
         ))}
@@ -55,7 +63,7 @@ export function OnboardingSuccessStep({ router }: OnboardingSuccessStepProps) {
 
       <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-3 relative z-10">You&apos;re all set!</h1>
       <p className="text-base text-slate-500 dark:text-slate-400 mb-10 max-w-[280px] mx-auto relative z-10">
-        Your organization and workspace are ready. It's time to put your data to work.
+        Your organization and workspace are ready. It&apos;s time to put your data to work.
       </p>
 
       <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-6 mb-8 border border-slate-100 dark:border-white/5 text-left relative z-10">

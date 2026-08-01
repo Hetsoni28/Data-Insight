@@ -91,7 +91,7 @@ export default function DesignSystemPage() {
               <h1 className="text-3xl font-bold text-white tracking-tight">Design System</h1>
             </div>
             <p className="text-emerald-100/70 text-sm max-w-xl">
-              The single source of truth for Data Insight's visual language — colours, typography, components, and interactions. All tokens use the brand palette: <span className="text-white font-semibold">Primary #10B981</span>.
+              The single source of truth for Data Insight&apos;s visual language — colours, typography, components, and interactions. All tokens use the brand palette: <span className="text-white font-semibold">Primary #10B981</span>.
             </p>
           </div>
           <div className="flex gap-3 shrink-0">
@@ -335,7 +335,7 @@ export default function DesignSystemPage() {
               </div>
               <div className="flex items-start gap-2 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30">
                 <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" />
-                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Info — Here's some helpful information.</p>
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Info — Here&apos;s some helpful information.</p>
               </div>
             </div>
           </div>

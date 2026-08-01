@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const ServerErrorIllustration: React.FC = () => {
@@ -68,28 +68,23 @@ export const ServerErrorIllustration: React.FC = () => {
       </motion.div>
 
       {/* Sparks */}
-      <motion.div
-        className="absolute w-1 h-1 bg-yellow-400 rounded-full"
-        style={{ left: '45%', top: '45%' }}
-        animate={{
-          x: [0, Math.random() * 20 - 10],
-          y: [0, -10 - Math.random() * 20],
-          opacity: [0, 1, 0],
-          scale: [0, 1.5, 0],
-        }}
-        transition={{ duration: 0.5, repeat: Infinity, delay: 0.2 }}
-      />
-      <motion.div
-        className="absolute w-1 h-1 bg-yellow-400 rounded-full"
-        style={{ left: '45%', top: '45%' }}
-        animate={{
-          x: [0, Math.random() * 20 - 10],
-          y: [0, -10 - Math.random() * 20],
-          opacity: [0, 1, 0],
-          scale: [0, 1.5, 0],
-        }}
-        transition={{ duration: 0.6, repeat: Infinity, delay: 0.5 }}
-      />
+      {useMemo(() => [
+        { id: 1, x: [0, Math.random() * 20 - 10], y: [0, -10 - Math.random() * 20], duration: 0.5, delay: 0.2 },
+        { id: 2, x: [0, Math.random() * 20 - 10], y: [0, -10 - Math.random() * 20], duration: 0.6, delay: 0.5 }
+      ], []).map((spark) => (
+        <motion.div
+          key={spark.id}
+          className="absolute w-1 h-1 bg-yellow-400 rounded-full"
+          style={{ left: '45%', top: '45%' }}
+          animate={{
+            x: spark.x,
+            y: spark.y,
+            opacity: [0, 1, 0],
+            scale: [0, 1.5, 0],
+          }}
+          transition={{ duration: spark.duration, repeat: Infinity, delay: spark.delay }}
+        />
+      ))}
     </div>
   );
 };

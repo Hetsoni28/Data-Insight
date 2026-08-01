@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Blocks, Key, Settings2, Trash2, X, Copy, Check, Loader2, AlertTriangle, Eye, EyeOff, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ function ViewSecretModal({ app, onClose }: { app: any; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
   const [show, setShow] = useState(false)
   // Simulated client secret
-  const fakeSecret = `cs_${app.id?.slice(0, 8)}_${Math.random().toString(36).slice(2, 18)}`
+  const fakeSecret = useMemo(() => `cs_${app.id?.slice(0, 8)}_${Math.random().toString(36).slice(2, 18)}`, [app.id])
 
   const handleCopy = () => {
     navigator.clipboard.writeText(fakeSecret)
@@ -176,7 +176,7 @@ function DeleteModal({ app, onClose, onConfirm }: { app: any; onClose: () => voi
             <Trash2 className="w-6 h-6 text-red-500" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Revoke Application</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">This will immediately revoke all access for <span className="text-slate-900 dark:text-white font-medium">"{app.name}"</span>. This action cannot be undone.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">This will immediately revoke all access for <span className="text-slate-900 dark:text-white font-medium">&quot;{app.name}&quot;</span>. This action cannot be undone.</p>
         </div>
 
         <div className="flex gap-3">

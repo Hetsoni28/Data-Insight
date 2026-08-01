@@ -2,7 +2,7 @@ import { useState, useMemo } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { storageService } from "@/lib/storageService"
-import { FileText, FileSpreadsheet, Image as ImageIcon, Database, FileCode, Archive, File, Download, Trash2, ExternalLink, ShieldAlert, Loader2 } from "lucide-react"
+import { FileText, FileSpreadsheet, Image as ImageIcon, Database, Archive, File, Download, Trash2, ExternalLink, ShieldAlert, Loader2 } from "lucide-react"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
 
 interface StorageFile {
@@ -22,6 +22,16 @@ interface StorageFileExplorerProps {
   activeFilter?: string
 }
 
+// Map filter names to file categories
+const FILTER_MAP: Record<string, string[]> = {
+  "All Files":    [],
+  "Datasets":     ["data", "spreadsheet"],
+  "Reports":      ["document"],
+  "AI Generated": ["ai", "generated"],
+  "Archives":     ["archive"],
+  "Images":       ["image"],
+}
+
 export function StorageFileExplorer({ files = [], activeFilter = "All Files" }: StorageFileExplorerProps) {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
@@ -30,15 +40,7 @@ export function StorageFileExplorer({ files = [], activeFilter = "All Files" }: 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [selectedFile, setSelectedFile] = useState<StorageFile | null>(null)
 
-  // Map filter names to file categories
-  const FILTER_MAP: Record<string, string[]> = {
-    "All Files":    [],
-    "Datasets":     ["data", "spreadsheet"],
-    "Reports":      ["document"],
-    "AI Generated": ["ai", "generated"],
-    "Archives":     ["archive"],
-    "Images":       ["image"],
-  }
+
 
   const filteredFiles = useMemo(() => {
     const cats = FILTER_MAP[activeFilter] ?? []

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const AnalyticsComingSoonIllustration: React.FC = () => {
@@ -71,26 +71,34 @@ export const AnalyticsComingSoonIllustration: React.FC = () => {
       </motion.div>
 
       {/* Floating Numbers / Particles */}
-      {[...Array(4)].map((_, i) => (
+      {useMemo(() => [...Array(4)].map((_, i) => ({
+        id: i,
+        left: `${30 + Math.random() * 40}%`,
+        top: `${30 + Math.random() * 40}%`,
+        yAnim: [0, -30 - Math.random() * 20],
+        duration: 2 + Math.random() * 2,
+        delay: Math.random() * 2,
+        value: Math.floor(Math.random() * 100)
+      })), []).map((particle) => (
         <motion.div
-          key={i}
+          key={particle.id}
           className="absolute text-orange-400/50 font-mono text-xs font-bold"
           style={{
-            left: `${30 + Math.random() * 40}%`,
-            top: `${30 + Math.random() * 40}%`,
+            left: particle.left,
+            top: particle.top,
           }}
           animate={{
-            y: [0, -30 - Math.random() * 20],
+            y: particle.yAnim,
             opacity: [0, 1, 0],
             scale: [0.5, 1, 0.5],
           }}
           transition={{
-            duration: 2 + Math.random() * 2,
+            duration: particle.duration,
             repeat: Infinity,
-            delay: Math.random() * 2,
+            delay: particle.delay,
           }}
         >
-          {Math.floor(Math.random() * 100)}
+          {particle.value}
         </motion.div>
       ))}
     </div>

@@ -216,7 +216,7 @@ export function ExcelSection() {
                         <span className="text-[10px] font-bold text-red-800">Critical Anomaly Detected</span>
                       </div>
                       <p className="text-[10px] text-red-600/90 leading-relaxed">
-                        API usage for "Enterprise Plan" users dropped by 45% between Mar 12 and Mar 14. This is a 3-sigma deviation from the historical rolling average.
+                        API usage for &quot;Enterprise Plan&quot; users dropped by 45% between Mar 12 and Mar 14. This is a 3-sigma deviation from the historical rolling average.
                       </p>
                     </div>
                     <div className="border border-slate-100 dark:border-white/5 rounded-lg p-3 shadow-sm bg-white dark:bg-transparent">

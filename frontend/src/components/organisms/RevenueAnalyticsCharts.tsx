@@ -12,6 +12,23 @@ import {
 
 const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444']
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-lg shadow-xl">
+        <p className="font-bold text-slate-900 dark:text-white mb-2">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} style={{ color: entry.color }} className="text-sm font-medium flex justify-between gap-4">
+            <span>{entry.name}:</span>
+            <span>${Number(entry.value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+          </p>
+        ))}
+      </div>
+    )
+  }
+  return null
+}
+
 export function RevenueAnalyticsCharts() {
   const [activeTab, setActiveTab] = useState("trends")
   const [mounted, setMounted] = useState(false)
@@ -41,22 +58,6 @@ export function RevenueAnalyticsCharts() {
     }
   })
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-lg shadow-xl">
-          <p className="font-bold text-slate-900 dark:text-white mb-2">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm font-medium flex justify-between gap-4">
-              <span>{entry.name}:</span>
-              <span>${Number(entry.value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-            </p>
-          ))}
-        </div>
-      )
-    }
-    return null
-  }
 
   if (!mounted) return <div className="w-full h-[320px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
 

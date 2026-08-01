@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const NoDatasetsIllustration: React.FC = () => {
@@ -107,25 +107,33 @@ export const NoDatasetsIllustration: React.FC = () => {
       </motion.div>
 
       {/* Inward flowing particles */}
-      {[...Array(6)].map((_, i) => (
+      {useMemo(() => [...Array(6)].map((_, i) => ({
+        id: i,
+        left: `${10 + Math.random() * 80}%`,
+        top: `${10 + Math.random() * 80}%`,
+        xAnim: [0, (128 - (30 + Math.random() * 60))],
+        yAnim: [0, (128 - (30 + Math.random() * 60))],
+        duration: 1.5 + Math.random(),
+        delay: Math.random() * 2
+      })), []).map((particle) => (
         <motion.div
-          key={i}
+          key={particle.id}
           className="absolute w-1 h-1 bg-blue-400 rounded-full"
           style={{
-            left: `${10 + Math.random() * 80}%`,
-            top: `${10 + Math.random() * 80}%`,
+            left: particle.left,
+            top: particle.top,
           }}
           initial={{ opacity: 0, scale: 0 }}
           animate={{
-            x: [0, (128 - (30 + Math.random() * 60))], // Move towards center
-            y: [0, (128 - (30 + Math.random() * 60))], // Move towards center
+            x: particle.xAnim, // Move towards center
+            y: particle.yAnim, // Move towards center
             opacity: [0, 1, 0],
             scale: [0, 1.5, 0],
           }}
           transition={{
-            duration: 1.5 + Math.random(),
+            duration: particle.duration,
             repeat: Infinity,
-            delay: Math.random() * 2,
+            delay: particle.delay,
             ease: "easeIn"
           }}
         />

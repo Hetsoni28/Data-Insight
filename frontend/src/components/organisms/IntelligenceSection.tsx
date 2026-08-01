@@ -219,7 +219,7 @@ export function IntelligenceSection() {
                             <div className="mt-1.5 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-white/5 font-mono p-3 rounded-lg text-[10px] overflow-x-auto whitespace-pre">
                               <span className="text-pink-600 font-semibold">SELECT</span> region, <span className="text-indigo-600 font-semibold">SUM</span>(revenue)<br/>
                               <span className="text-pink-600 font-semibold">FROM</span> sales<br/>
-                              <span className="text-pink-600 font-semibold">WHERE</span> quarter = <span className="text-emerald-600">'Q3'</span><br/>
+                              <span className="text-pink-600 font-semibold">WHERE</span> quarter = <span className="text-emerald-600">&apos;Q3&apos;</span><br/>
                               <span className="text-pink-600 font-semibold">GROUP BY</span> region;
                             </div>
                           )}

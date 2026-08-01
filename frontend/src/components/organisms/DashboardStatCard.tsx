@@ -23,10 +23,10 @@ export function DashboardStatCard({ icon: Icon, label, value, sub, color, delay 
         return
       }
       
-      let totalDuration = 800
-      let incrementTime = Math.max(10, totalDuration / end)
+      const totalDuration = 800
+      const incrementTime = Math.max(10, totalDuration / end)
       
-      let timer = setInterval(() => {
+      const timer = setInterval(() => {
         start += 1
         setDisplayValue(start)
         if (start >= end) {
@@ -36,7 +36,7 @@ export function DashboardStatCard({ icon: Icon, label, value, sub, color, delay 
       }, incrementTime)
       return () => clearInterval(timer)
     } else {
-      // @ts-ignore
+      // @ts-expect-error
       setDisplayValue(value)
     }
   }, [value])

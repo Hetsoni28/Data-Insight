@@ -1,5 +1,7 @@
 "use client"
 
+import { useMemo } from "react"
+
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -27,6 +29,9 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     },
     onError: () => toast.error("Failed to cancel subscription.")
   })
+
+  const renewalDate = useMemo(() => new Date(Date.now() + 864000000), [])
+  const invoiceDates = useMemo(() => [1, 2, 3].map(i => new Date(Date.now() - i*864000000*3)), [])
 
   if (!isOpen || !tenant) return null
 
@@ -73,7 +78,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   ${tenant?.mrr?.toLocaleString(undefined, {minimumFractionDigits: 2}) ?? "0.00"} / {tenant?.billing_cycle ?? "monthly"}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">Next invoice processing on {new Date(Date.now() + 864000000).toLocaleDateString()}</p>
+                <p className="text-xs text-slate-500 mt-1">Next invoice processing on {renewalDate.toLocaleDateString()}</p>
               </div>
               <div className="flex flex-col gap-2">
                 <Button size="sm" className="bg-[#0A3A2A] hover:bg-[#06261c] text-white" onClick={() => toast.success("Redirecting to Plan Management...")}>Manage Subscription</Button>
@@ -132,7 +137,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                     </div>
                     <div>
                       <div className="text-sm font-bold text-slate-900 dark:text-white">INV-{1000 + i * 237}</div>
-                      <div className="text-xs text-slate-500">{new Date(Date.now() - i*864000000*3).toLocaleDateString()}</div>
+                      <div className="text-xs text-slate-500">{invoiceDates[i-1].toLocaleDateString()}</div>
                     </div>
                   </div>
                   <div className="text-right">

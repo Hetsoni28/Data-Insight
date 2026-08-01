@@ -121,7 +121,7 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
             <div className="max-h-[350px] overflow-y-auto p-2" ref={listRef}>
               {filteredItems.length === 0 ? (
                 <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
-                  No results found for "{query}"
+                  No results found for &quot;{query}&quot;
                 </div>
               ) : (
                 <div className="space-y-1">

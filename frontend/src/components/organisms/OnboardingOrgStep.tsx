@@ -44,7 +44,7 @@ export function OnboardingOrgStep({
         Set up your organization
       </h1>
       <p className="text-base text-slate-500 dark:text-slate-400 mb-8">
-        Welcome{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}! Let's create a shared space for your team's analytics.
+        Welcome{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}! Let&apos;s create a shared space for your team&apos;s analytics.
       </p>
 
       <div className="space-y-6">

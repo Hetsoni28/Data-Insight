@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { HardDrive, Search, RefreshCw, Upload, HardDriveUpload } from "lucide-react";
+import { HardDrive, Search, RefreshCw, HardDriveUpload } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { storageService } from "@/lib/storageService";

@@ -12,6 +12,27 @@ interface ChartsProps {
   isLoading: boolean
 }
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-lg shadow-lg">
+        <p className="font-medium text-slate-900 dark:text-white mb-1">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              {entry.name}: <span className="font-bold text-slate-900 dark:text-white">
+                ${entry.value.toLocaleString()}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  return null
+}
+
 export function SubscriptionAnalyticsCharts({ data, isLoading }: ChartsProps) {
   if (isLoading) {
     return (
@@ -33,26 +54,6 @@ export function SubscriptionAnalyticsCharts({ data, isLoading }: ChartsProps) {
     'Custom': '#f59e0b' // amber-500
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-lg shadow-lg">
-          <p className="font-medium text-slate-900 dark:text-white mb-1">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm text-slate-600 dark:text-slate-400">
-                {entry.name}: <span className="font-bold text-slate-900 dark:text-white">
-                  ${entry.value.toLocaleString()}
-                </span>
-              </span>
-            </div>
-          ))}
-        </div>
-      )
-    }
-    return null
-  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">

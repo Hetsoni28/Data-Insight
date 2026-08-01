@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const SuccessIllustration: React.FC = () => {
@@ -42,18 +42,23 @@ export const SuccessIllustration: React.FC = () => {
       </motion.div>
 
       {/* Confetti Particles */}
-      {[...Array(8)].map((_, i) => (
+      {useMemo(() => [...Array(8)].map((_, i) => ({
+        id: i,
+        xAnim: (Math.random() - 0.5) * 200,
+        yAnim: (Math.random() - 0.5) * 200,
+        delay: Math.random() * 2
+      })), []).map((particle) => (
         <motion.div
-          key={i}
+          key={particle.id}
           className="absolute w-2 h-2 bg-emerald-400 rounded-full"
           initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
           animate={{
-            x: (Math.random() - 0.5) * 200,
-            y: (Math.random() - 0.5) * 200,
+            x: particle.xAnim,
+            y: particle.yAnim,
             scale: [0, 1, 0],
             opacity: [1, 1, 0]
           }}
-          transition={{ duration: 1.5, repeat: Infinity, delay: Math.random() * 2 }}
+          transition={{ duration: 1.5, repeat: Infinity, delay: particle.delay }}
         />
       ))}
     </div>

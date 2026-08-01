@@ -1,12 +1,13 @@
-import { X, Building2, Calendar, CreditCard, Users, Database, Shield, Zap, HardDrive, Activity } from "lucide-react"
+import { Building2, Calendar, CreditCard, Users, Database, Shield, Zap, HardDrive, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { motion, AnimatePresence } from "framer-motion"
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import api from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { toast } from "sonner"
+import { useMemo } from "react"
 
 export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen: boolean, onClose: () => void, tenant: any }) {
   const queryClient = useQueryClient()
@@ -36,6 +37,8 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     onError: () => toast.error("Failed to update organization status.")
   })
 
+  const renewalDate = useMemo(() => new Date(Date.now() + 864000000), [])
+
   if (!isOpen) return null
 
   return (
@@ -59,7 +62,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
               </h2>
               <div className="flex items-center text-sm text-slate-500 mt-1 gap-4">
                 <span className="flex items-center gap-1"><Building2 className="w-3 h-3" /> {tenant?.industry || "Technology"}</span>
-                <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(tenant?.created_at || Date.now()).toLocaleDateString()}</span>
+                <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(tenant?.created_at || 0).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
@@ -103,7 +106,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                   <span className="text-lg font-bold text-slate-900 dark:text-white">{tenant?.plan} Plan</span>
                   <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Current</Badge>
                 </div>
-                <p className="text-sm text-slate-500">${tenant?.mrr}/month • Renews {new Date(Date.now() + 864000000).toLocaleDateString()}</p>
+                <p className="text-sm text-slate-500">${tenant?.mrr}/month • Renews {renewalDate.toLocaleDateString()}</p>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => toast.success("Loading invoice history...")}>View Invoices</Button>

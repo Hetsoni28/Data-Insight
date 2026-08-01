@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export const NoReportsIllustration: React.FC = () => {
@@ -74,24 +74,32 @@ export const NoReportsIllustration: React.FC = () => {
       </motion.div>
       
       {/* Particles */}
-      {[...Array(5)].map((_, i) => (
+      {useMemo(() => [...Array(5)].map((_, i) => ({
+        id: i,
+        left: `${40 + Math.random() * 20}%`,
+        top: `${40 + Math.random() * 20}%`,
+        yAnim: [0, -40 - Math.random() * 40],
+        xAnim: [(Math.random() - 0.5) * 40, (Math.random() - 0.5) * 80],
+        duration: 2 + Math.random() * 2,
+        delay: Math.random() * 2
+      })), []).map((particle) => (
         <motion.div
-          key={i}
+          key={particle.id}
           className="absolute w-1.5 h-1.5 bg-emerald-400 rounded-full"
           style={{
-            left: `${40 + Math.random() * 20}%`,
-            top: `${40 + Math.random() * 20}%`,
+            left: particle.left,
+            top: particle.top,
           }}
           animate={{
-            y: [0, -40 - Math.random() * 40],
-            x: [(Math.random() - 0.5) * 40, (Math.random() - 0.5) * 80],
+            y: particle.yAnim,
+            x: particle.xAnim,
             opacity: [0, 1, 0],
             scale: [0, 1.5, 0],
           }}
           transition={{
-            duration: 2 + Math.random() * 2,
+            duration: particle.duration,
             repeat: Infinity,
-            delay: Math.random() * 2,
+            delay: particle.delay,
           }}
         />
       ))}
