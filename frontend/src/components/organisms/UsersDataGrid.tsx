@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import { 
   User, Building2, MoreHorizontal, CheckCircle2, XCircle, Search, Filter, Settings2, Power, Eye, Shield, Key, Mail
@@ -71,16 +71,22 @@ export function UsersDataGrid() {
     toast.success(`Password reset email sent to ${user.email}.`)
   }
 
-  const filteredUsers = users.filter(u => 
-    (u.email || "").toLowerCase().includes(search.toLowerCase()) || 
-    (u.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
-    (u.tenant_name || "").toLowerCase().includes(search.toLowerCase())
+  const filteredUsers = useMemo(() =>
+    users.filter(u => 
+      (u.email || "").toLowerCase().includes(search.toLowerCase()) || 
+      (u.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (u.tenant_name || "").toLowerCase().includes(search.toLowerCase())
+    ),
+    [users, search]
   )
 
   // Pagination Logic
   const totalItems = filteredUsers.length
   const totalPages = Math.ceil(totalItems / pageSize)
-  const paginatedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const paginatedUsers = useMemo(() =>
+    filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredUsers, currentPage, pageSize]
+  )
 
   // Reset page when search changes
   useEffect(() => {

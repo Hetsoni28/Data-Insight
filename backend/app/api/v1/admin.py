@@ -60,6 +60,11 @@ async def list_tenants(
     result = await db.execute(stmt)
     rows = result.all()
 
+    # Total count for pagination
+    total_count = await db.scalar(
+        select(func.count(Tenant.id)).where(Tenant.is_deleted == False)
+    ) or 0
+
     def generate_deterministic_mock(uuid_str: str, max_val: int):
         # Generates a consistent random-looking number based on UUID
         return int(hashlib.md5(uuid_str.encode()).hexdigest(), 16) % max_val
@@ -74,7 +79,7 @@ async def list_tenants(
         prices = {"starter": 29.0, "professional": 99.0, "enterprise": 499.0, "custom": 999.0}
         return prices.get(plan.lower(), 0.0)
 
-    return [
+    data = [
         {
             "id": str(t.Tenant.id),
             "name": t.Tenant.name,
@@ -96,6 +101,7 @@ async def list_tenants(
         }
         for t in rows
     ]
+    return {"data": data, "total": total_count}
 
 
 class TenantStatusUpdate(BaseModel):
@@ -476,7 +482,10 @@ async def list_users(
     result = await db.execute(stmt)
     rows = result.all()
 
-    return [
+    # Total count for pagination
+    total_count = await db.scalar(select(func.count(User.id))) or 0
+
+    data = [
         {
             "id": str(r.User.id),
             "email": r.User.email,
@@ -489,6 +498,7 @@ async def list_users(
         }
         for r in rows
     ]
+    return {"data": data, "total": total_count}
 
 
 class UserStatusUpdate(BaseModel):

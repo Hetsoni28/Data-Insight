@@ -11,7 +11,7 @@ from app.models.webhook import Webhook
 router = APIRouter()
 
 async def require_owner(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != "owner":
+    if not getattr(current_user, "is_owner", False) and current_user.role != "owner":
         raise HTTPException(status_code=403, detail="Only platform owners can access this endpoint")
     return current_user
 

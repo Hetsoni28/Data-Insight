@@ -7,6 +7,9 @@ import api from "@/lib/api";
 export function PlatformGrowthChart() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,6 +24,8 @@ export function PlatformGrowthChart() {
     };
     fetchData();
   }, []);
+
+  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
 
   if (loading) {
     return <div className="h-full w-full bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />;

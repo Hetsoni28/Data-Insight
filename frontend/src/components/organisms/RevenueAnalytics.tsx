@@ -30,6 +30,9 @@ const CustomTooltip = ({ active, payload, label, prefix = "" }: any) => {
 export function RevenueAnalytics() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     fetchRevenue()
@@ -46,6 +49,8 @@ export function RevenueAnalytics() {
       setLoading(false)
     }
   }
+
+  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
 
   if (loading) {
     return (

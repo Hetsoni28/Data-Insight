@@ -1,4 +1,5 @@
 from typing import Any
+import uuid
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -352,7 +353,7 @@ async def create_bucket(
 
 @router.delete("/buckets/{bucket_id}")
 async def delete_bucket(
-    bucket_id: str,
+    bucket_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ) -> Any:
@@ -376,7 +377,7 @@ async def delete_bucket(
 
 @router.delete("/files/{file_id}")
 async def delete_file(
-    file_id: str,
+    file_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ) -> Any:

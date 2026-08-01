@@ -108,7 +108,17 @@ export default function SettingsPage() {
       <StateLayout illustration={<AccessRestrictedIllustration />} headline="Access Restricted" description="No permission." primaryAction={{ label: "Dashboard", icon: <Building2 className="w-4 h-4" />, onClick: () => router.push("/dashboard") }} />
     </div>
   )
-  if (isLoading) return <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[calc(100vh-100px)]"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>
+  if (isLoading) return (
+    <div className="p-8 max-w-7xl mx-auto space-y-6">
+      <div className="h-12 w-72 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-48 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        ))}
+      </div>
+      <div className="h-32 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+    </div>
+  )
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 pb-24">

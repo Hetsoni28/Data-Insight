@@ -47,11 +47,14 @@ export default function NotificationsPage() {
   };
 
   const handleTogglePref = (pref: string) => async (newState: boolean) => {
-    return new Promise<void>(resolve => setTimeout(() => {
-      toast.success(`Preference updated`, { description: `Alerts via ${pref} ${newState ? 'enabled' : 'disabled'}.` });
-      resolve();
-    }, 800));
-  };
+    try {
+      await NotificationService.updatePreferences({ [pref.toLowerCase()]: newState })
+      toast.success(`${pref} alerts ${newState ? "enabled" : "disabled"}.`)
+    } catch {
+      toast.error(`Failed to update ${pref} preference.`)
+      throw new Error("API failed") // Re-throw so ActionToggle can revert
+    }
+  }
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto min-h-screen pb-24">

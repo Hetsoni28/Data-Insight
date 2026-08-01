@@ -47,11 +47,14 @@ export function AuditHeroBanner({ overview, isLoading }: AuditHeroBannerProps) {
                                 <div className="h-8 w-16 bg-slate-700 rounded animate-pulse" />
                             ) : (
                                 <span className="text-3xl font-bold text-emerald-400">
-                                    {(overview?.total_events && overview.total_events > 0) ? (Math.random() * 5 + 10).toFixed(1) : 0} 
+                                    {(overview?.total_events && overview.total_events > 0) 
+                                        ? Math.min((overview.total_events / 86400), 99.9).toFixed(1) 
+                                        : "0.0"} 
                                     <span className="text-sm font-medium text-emerald-400/70 ml-1">ev/s</span>
                                 </span>
                             )}
                         </div>
+
                     </div>
                 </div>
             </div>

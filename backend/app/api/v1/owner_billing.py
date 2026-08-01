@@ -4,18 +4,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text, desc
 from datetime import datetime, timezone, timedelta
 
-from app.api.deps import get_current_superuser
-from app.db.session import get_async_session
+from app.api.deps import get_db, get_current_user
 from app.models.tenant import Tenant, PlanType
 from app.models.invoice import Invoice, InvoiceStatus
 from app.models.billing_activity import BillingActivity
+from app.models.user import User
 
 router = APIRouter()
 
+async def require_owner(current_user: User = Depends(get_current_user)) -> User:
+    if getattr(current_user, 'role', '') != 'owner' and not getattr(current_user, 'is_owner', False):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    return current_user
+
 @router.get("/kpis")
 async def get_kpis(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner)
 ) -> Any:
     """Get high-level revenue and subscription KPIs."""
     # Active subscriptions
@@ -45,7 +50,17 @@ async def get_kpis(
     
     # Advanced KPIs
     arpu = (total_mrr / active_subs_count) if active_subs_count else 0.0
-    churn_rate = 2.4 # Mocked churn rate percentage for now based on typical SaaS
+    # Calculate churn: tenants that became inactive in the last 30 days
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+    cancelled_count = await db.scalar(
+        select(func.count(Tenant.id)).where(
+            Tenant.is_active == False,
+            Tenant.updated_at >= thirty_days_ago,
+            Tenant.is_deleted == False
+        )
+    ) or 0
+    total_start_count = max(active_subs_count + cancelled_count, 1)
+    churn_rate = round((cancelled_count / total_start_count) * 100, 2)
     ltv = (arpu / (churn_rate / 100)) if churn_rate > 0 else 0.0
     
     # Profitability mock based on revenue (assuming 85% gross margin, 40% net margin)
@@ -82,8 +97,8 @@ async def get_kpis(
 
 @router.get("/revenue-trends")
 async def get_revenue_trends(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner)
 ) -> Any:
     """Get revenue charts and plan distribution."""
     # Group by plan
@@ -130,8 +145,8 @@ async def get_revenue_trends(
 
 @router.get("/organizations")
 async def get_subscription_organizations(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser),
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100)
 ) -> Any:
@@ -161,8 +176,8 @@ async def get_subscription_organizations(
 
 @router.get("/invoices")
 async def get_invoices(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser),
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100)
 ) -> Any:
@@ -191,8 +206,8 @@ async def get_invoices(
 @router.post("/{tenant_id}/toggle-status")
 async def toggle_subscription_status(
     tenant_id: str,
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner)
 ) -> Any:
     """Toggle a tenant's active status."""
     tenant = await db.get(Tenant, tenant_id)
@@ -218,8 +233,8 @@ async def toggle_subscription_status(
 @router.post("/{tenant_id}/cancel")
 async def cancel_subscription(
     tenant_id: str,
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner)
 ) -> Any:
     """Cancel a tenant's subscription (sets MRR to 0 and suspends)."""
     tenant = await db.get(Tenant, tenant_id)
@@ -244,8 +259,8 @@ async def cancel_subscription(
 
 @router.get("/analytics/ai-costs")
 async def get_ai_costs(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner)
 ) -> Any:
     """Mock estimated AI provider costs dynamically based on total active MRR."""
     total_mrr = await db.scalar(
@@ -268,8 +283,8 @@ async def get_ai_costs(
 
 @router.get("/analytics/forecast")
 async def get_revenue_forecast(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner)
 ) -> Any:
     """Generate a simulated 6-month revenue forecast."""
     total_mrr = await db.scalar(
@@ -296,8 +311,8 @@ async def get_revenue_forecast(
 
 @router.get("/analytics/health")
 async def get_financial_health(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner)
 ) -> Any:
     """Calculate platform financial health score dynamically."""
     active_subs = await db.scalar(
@@ -329,8 +344,8 @@ async def get_financial_health(
 
 @router.get("/activity")
 async def get_global_billing_activity(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: Any = Depends(get_current_superuser)
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner)
 ) -> Any:
     """Fetch recent global billing events."""
     activities = (await db.execute(

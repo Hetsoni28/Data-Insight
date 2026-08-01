@@ -102,8 +102,8 @@ export default function OrganizationsPage() {
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['admin-global-kpis'] })
           queryClient.invalidateQueries({ queryKey: ['admin-tenant-analytics'] })
-          // The grid has its own fetch, so we just reload window or grid refetch
-          window.location.reload()
+          queryClient.invalidateQueries({ queryKey: ['admin-tenants'] })
+          queryClient.invalidateQueries({ queryKey: ['owner-revenue-kpis'] })
         }}
       />
     </div>

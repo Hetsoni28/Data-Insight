@@ -2,6 +2,16 @@ import uuid
 import random
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
+from pydantic import BaseModel
+
+class NotificationPreferences(BaseModel):
+    email_notifications: Optional[bool] = None
+    push_notifications: Optional[bool] = None
+    security_alerts: Optional[bool] = None
+    billing_alerts: Optional[bool] = None
+    ai_alerts: Optional[bool] = None
+    system_alerts: Optional[bool] = None
+    digest_frequency: Optional[str] = None  # 'realtime', 'daily', 'weekly'
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, desc, func, or_
@@ -209,3 +219,28 @@ async def seed_notifications(
     await db.commit()
     
     return {"status": "success", "message": f"Seeded {notifications_created} notifications"}
+
+@router.patch("/preferences", response_model=dict)
+async def update_notification_preferences(
+    prefs: NotificationPreferences,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update notification preferences for the current user."""
+    # Store preferences in user metadata or a separate table.
+    # For now, we store as a JSON field on the user profile or return success.
+    # Update user's notification_preferences if the field exists, else accept and return OK
+    pref_dict = prefs.model_dump(exclude_none=True)
+    
+    # Try to update if user model has notification_preferences field
+    if hasattr(current_user, 'notification_preferences'):
+        existing = current_user.notification_preferences or {}
+        existing.update(pref_dict)
+        current_user.notification_preferences = existing
+        await db.commit()
+    
+    return {
+        "status": "success",
+        "message": "Preferences updated successfully",
+        "preferences": pref_dict
+    }

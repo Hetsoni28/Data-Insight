@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
 import { Link, Cloud, Database, CreditCard, Mail, Cpu, BarChart2, CheckCircle2, XCircle, AlertTriangle, Wifi, WifiOff, Settings2, PlayCircle, GitBranch, ArrowRight, Webhook, Clock } from "lucide-react";
@@ -67,7 +67,10 @@ function ConnectionsTable({ integrations }: { integrations: IntegrationConnectio
 
   const totalItems = integrations.length;
   const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedIntegrations = integrations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedIntegrations = useMemo(() =>
+    integrations.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [integrations, currentPage, pageSize]
+  );
 
   return (
     <div className="overflow-x-auto flex flex-col h-full justify-between">
@@ -136,7 +139,10 @@ function WebhooksTable({ webhooks }: { webhooks: WebhookEndpoint[] }) {
 
   const totalItems = webhooks.length;
   const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedWebhooks = webhooks.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedWebhooks = useMemo(() =>
+    webhooks.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [webhooks, currentPage, pageSize]
+  );
 
   return (
     <div className="overflow-x-auto flex flex-col h-full justify-between">
@@ -199,7 +205,10 @@ function WorkflowsGrid({ workflows }: { workflows: AutomationWorkflow[] }) {
 
   const totalItems = workflows.length;
   const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedWorkflows = workflows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedWorkflows = useMemo(() =>
+    workflows.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [workflows, currentPage, pageSize]
+  );
 
   return (
     <div className="flex flex-col h-full justify-between">
@@ -250,7 +259,10 @@ function LogsTable({ logs }: { logs: IntegrationLog[] }) {
 
   const totalItems = logs.length;
   const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedLogs = logs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedLogs = useMemo(() =>
+    logs.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [logs, currentPage, pageSize]
+  );
 
   const getStatusColor = (code: number) => {
     if (code < 300) return "text-emerald-600 dark:text-green-400 bg-emerald-50 dark:bg-green-500/10 border-emerald-200 dark:border-green-500/20";

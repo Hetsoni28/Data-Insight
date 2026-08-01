@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
 import {
@@ -84,7 +84,10 @@ function ProvidersTable({ providers }: { providers: AIProvider[] }) {
 
   const totalItems = providers.length;
   const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedProviders = providers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedProviders = useMemo(() =>
+    providers.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [providers, currentPage, pageSize]
+  );
 
   return (
     <div className="overflow-x-auto flex flex-col h-full justify-between">
@@ -170,7 +173,10 @@ function ModelsTable({ models }: { models: AIModel[] }) {
 
   const totalItems = models.length;
   const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedModels = models.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedModels = useMemo(() =>
+    models.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [models, currentPage, pageSize]
+  );
 
   const typeColor = (t: string) => {
     if (t === "chat") return "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20";
@@ -289,7 +295,10 @@ function RoutingTable({ rules }: { rules: AIRoutingRule[] }) {
 
   const totalItems = rules.length;
   const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedRules = rules.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedRules = useMemo(() =>
+    rules.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [rules, currentPage, pageSize]
+  );
 
   return (
     <div className="flex flex-col h-full justify-between">

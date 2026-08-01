@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import datetime, timezone, timedelta
 
-from app.api.deps import get_db, get_current_superuser
+from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.tenant import Tenant
 from app.models.ai_token_usage import AITokenUsage
@@ -14,10 +14,15 @@ from app.models.user_session import UserSession
 
 router = APIRouter()
 
+async def require_owner(current_user: User = Depends(get_current_user)) -> User:
+    if getattr(current_user, 'role', '') != 'owner' and not getattr(current_user, 'is_owner', False):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    return current_user
+
 @router.get("/overview", summary="Executive Intelligence Overview KPIs")
 async def get_analytics_overview(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_owner),
 ):
     """
     Returns high-level KPIs for the Executive Intelligence Dashboard.
@@ -105,7 +110,7 @@ async def get_analytics_overview(
 @router.get("/ai-summary", summary="Daily Executive AI Briefing")
 async def get_ai_summary(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_owner),
 ):
     """
     Returns an AI-generated executive briefing.
@@ -133,7 +138,7 @@ async def get_ai_summary(
 @router.get("/revenue", summary="Revenue Analytics Trend")
 async def get_revenue_analytics(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_owner),
 ):
     """
     Returns 12-month MRR/ARR trend data.
@@ -170,7 +175,7 @@ async def get_revenue_analytics(
 @router.get("/users", summary="User Analytics Trend")
 async def get_user_analytics(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_owner),
 ):
     """
     Returns 12-month User/Org growth trend data.
@@ -203,7 +208,7 @@ async def get_user_analytics(
 @router.get("/forecast", summary="Predictive Forecasting")
 async def get_predictive_forecast(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_owner),
 ):
     """
     Returns historical and AI-forecasted metrics for MRR and Server Load.
@@ -229,53 +234,68 @@ async def get_predictive_forecast(
 @router.get("/anomalies", summary="System Anomaly Detection")
 async def get_anomalies(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_owner),
 ):
-    """
-    Returns recent system anomalies and security alerts detected by the platform.
-    """
-    now = datetime.now(timezone.utc)
+    from app.models.security import SecurityEvent
+    from app.models.audit_log import AuditLog
+    from sqlalchemy import or_, desc
     
-    anomalies = [
-        {
-            "id": "anm_1",
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=7)
+    
+    # Fetch recent high/critical security events
+    sec_result = await db.execute(
+        select(SecurityEvent)
+        .where(SecurityEvent.severity.in_(['high', 'critical']), SecurityEvent.created_at >= cutoff)
+        .order_by(desc(SecurityEvent.created_at))
+        .limit(5)
+    )
+    sec_events = sec_result.scalars().all()
+    
+    # Fetch recent critical audit failures
+    audit_result = await db.execute(
+        select(AuditLog)
+        .where(AuditLog.severity.in_(['warning', 'critical']), AuditLog.status == 'failure', AuditLog.created_at >= cutoff)
+        .order_by(desc(AuditLog.created_at))
+        .limit(5)
+    )
+    audit_events = audit_result.scalars().all()
+    
+    anomalies = []
+    for e in sec_events:
+        anomalies.append({
+            "id": str(e.id),
             "type": "security",
-            "severity": "high",
-            "title": "Unusual Login Origin",
-            "description": "5 failed login attempts from a new IP in Russia for admin@acme.com",
-            "timestamp": (now - timedelta(minutes=15)).isoformat(),
+            "severity": e.severity,
+            "title": e.event_type.replace('_', ' ').title(),
+            "description": f"{e.event_type} from {e.ip_address or 'unknown'}",
+            "timestamp": e.created_at.isoformat(),
+            "resolved": e.resolved
+        })
+    for e in audit_events:
+        anomalies.append({
+            "id": str(e.id),
+            "type": "audit",
+            "severity": e.severity,
+            "title": e.action.replace('_', ' ').title(),
+            "description": f"Failed {e.action} in {e.module}",
+            "timestamp": e.created_at.isoformat(),
             "resolved": False
-        },
-        {
-            "id": "anm_2",
-            "type": "performance",
-            "severity": "medium",
-            "title": "API Latency Spike",
-            "description": "The AI Generator endpoint experienced a 400ms latency spike for 2 minutes.",
-            "timestamp": (now - timedelta(hours=2)).isoformat(),
-            "resolved": True
-        },
-        {
-            "id": "anm_3",
-            "type": "usage",
-            "severity": "low",
-            "title": "High Token Consumption",
-            "description": "Organization 'TechCorp' has consumed 80% of their monthly AI token quota in 5 days.",
-            "timestamp": (now - timedelta(hours=14)).isoformat(),
-            "resolved": False
-        }
-    ]
-
+        })
+    
+    # Sort combined by timestamp desc
+    anomalies.sort(key=lambda x: x['timestamp'], reverse=True)
+    
     return {
         "status": "success",
-        "data": anomalies
+        "data": anomalies[:8]
     }
 
 
 @router.get("/health", summary="Customer Health Scores")
 async def get_customer_health(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_owner),
 ):
     """
     Returns a matrix of organizations and their calculated health scores.

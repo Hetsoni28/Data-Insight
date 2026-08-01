@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { motion } from "framer-motion"
 import api from "@/lib/api"
@@ -16,6 +17,11 @@ export function OrganizationAnalytics() {
     },
     refetchInterval: 60000
   })
+
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
+  if (!mounted) return <div className="w-full h-[320px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
 
   if (isLoading) {
     return (

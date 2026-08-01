@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { 
   Search, Filter, ChevronDown, MoreHorizontal, ArrowUpDown, 
   CheckCircle2, XCircle, AlertCircle, Eye, Edit, ShieldAlert,
@@ -28,6 +28,11 @@ interface DataGridProps {
 export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
   const [search, setSearch] = useState("")
   const [selectedTenant, setSelectedTenant] = useState<any | null>(null)
+  
+  // Advanced Filters State
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [planFilter, setPlanFilter] = useState("All")
+  const [statusFilter, setStatusFilter] = useState("All")
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
@@ -61,15 +66,25 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
     )
   }
 
-  const filteredData = data?.filter(t => 
-    t.name.toLowerCase().includes(search.toLowerCase()) || 
-    t.plan.toLowerCase().includes(search.toLowerCase())
-  ) || []
+  const filteredData = useMemo(() =>
+    data?.filter(t => {
+      const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase()) || 
+                            t.plan.toLowerCase().includes(search.toLowerCase());
+      const matchesPlan = planFilter === "All" || t.plan.toLowerCase() === planFilter.toLowerCase();
+      const matchesStatus = statusFilter === "All" || t.status === statusFilter;
+      
+      return matchesSearch && matchesPlan && matchesStatus;
+    }) || [],
+    [data, search, planFilter, statusFilter]
+  )
 
   // Pagination Logic
   const totalItems = filteredData.length
   const totalPages = Math.ceil(totalItems / pageSize)
-  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const paginatedData = useMemo(() =>
+    filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredData, currentPage, pageSize]
+  )
 
   return (
     <div className="mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden shadow-sm flex flex-col">
@@ -85,7 +100,11 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-10 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hidden sm:flex">
+          <Button 
+            variant={isFilterOpen ? "default" : "outline"}
+            className={`h-10 border-slate-200 dark:border-slate-800 ${isFilterOpen ? '' : 'text-slate-600 dark:text-slate-400'} hidden sm:flex`}
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+          >
             <Filter className="h-4 w-4 mr-2" />
             Advanced Filters
           </Button>
@@ -95,6 +114,38 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
           </Button>
         </div>
       </div>
+      
+      {/* Advanced Filters Panel */}
+      {isFilterOpen && (
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 flex gap-4 text-sm">
+            <div className="flex flex-col gap-1">
+                <label className="text-xs text-slate-500 font-medium">Plan</label>
+                <select 
+                    value={planFilter}
+                    onChange={(e) => setPlanFilter(e.target.value)}
+                    className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                    <option value="All">All Plans</option>
+                    <option value="Starter">Starter</option>
+                    <option value="Professional">Professional</option>
+                    <option value="Enterprise">Enterprise</option>
+                </select>
+            </div>
+            <div className="flex flex-col gap-1">
+                <label className="text-xs text-slate-500 font-medium">Status</label>
+                <select 
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                    <option value="All">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Suspended">Suspended</option>
+                    <option value="Trial">Trial</option>
+                </select>
+            </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="overflow-x-auto">

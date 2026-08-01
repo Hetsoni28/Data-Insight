@@ -1,13 +1,17 @@
 import { useState } from "react"
 import { Search, HardDriveUpload, RefreshCw, Filter, ArchiveRestore, DownloadCloud } from "lucide-react"
+import { toast } from "sonner"
 
 interface StorageHeroBannerProps {
   onSearch: (q: string) => void
   onRefresh: () => void
+  onUpload?: () => void
+  onFilterChange?: (filter: string) => void
 }
 
-export function StorageHeroBanner({ onSearch, onRefresh }: StorageHeroBannerProps) {
+export function StorageHeroBanner({ onSearch, onRefresh, onUpload, onFilterChange }: StorageHeroBannerProps) {
   const [search, setSearch] = useState("")
+  const [activeFilter, setActiveFilter] = useState("All Files")
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value)
@@ -59,6 +63,13 @@ export function StorageHeroBanner({ onSearch, onRefresh }: StorageHeroBannerProp
           </button>
 
           <button
+            onClick={() => {
+              if (onUpload) {
+                onUpload();
+              } else {
+                toast.info('Upload dialog — configure in storage/page.tsx');
+              }
+            }}
             className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-medium shadow-lg shadow-emerald-900/50 transition-all active:scale-95"
           >
             <HardDriveUpload className="h-4 w-4" />
@@ -70,7 +81,14 @@ export function StorageHeroBanner({ onSearch, onRefresh }: StorageHeroBannerProp
       {/* Quick Filters */}
       <div className="relative z-10 mt-8 flex flex-wrap gap-2">
         {['All Files', 'Datasets', 'Reports', 'AI Generated', 'Archives', 'Images'].map(f => (
-          <button key={f} className="px-4 py-1.5 text-xs font-medium rounded-full bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-colors">
+          <button 
+            key={f} 
+            onClick={() => {
+              setActiveFilter(f);
+              onFilterChange?.(f);
+            }}
+            className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-colors ${activeFilter === f ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white'}`}
+          >
             {f}
           </button>
         ))}

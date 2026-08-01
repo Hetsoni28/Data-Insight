@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SecurityEvent, ThreatIntelligence, UserSession, ComplianceReport } from '@/lib/securityOpsService';
 import { ShieldCheck, ShieldAlert, Globe, MonitorSmartphone, FileCheck2, AlertCircle, MapPin, Search } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { PaginationControls } from '@/components/molecules/PaginationControls';
+import api from '@/lib/api';
+import { toast } from 'sonner';
 
 interface SecurityOperationsCenterProps {
     events: SecurityEvent[] | undefined;
@@ -92,7 +94,10 @@ function EventsTable({ events, isLoading }: { events?: SecurityEvent[], isLoadin
 
     const totalItems = events?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedEvents = events?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [];
+    const paginatedEvents = useMemo(() =>
+        events?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
+        [events, currentPage, pageSize]
+    );
 
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between">
@@ -169,7 +174,10 @@ function ThreatsBoard({ threats, isLoading }: { threats?: ThreatIntelligence[], 
 
     const totalItems = threats?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedThreats = threats?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [];
+    const paginatedThreats = useMemo(() =>
+        threats?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
+        [threats, currentPage, pageSize]
+    );
 
     return (
         <div className="p-6 flex flex-col h-full justify-between">
@@ -224,7 +232,10 @@ function SessionsTable({ sessions, isLoading }: { sessions?: UserSession[], isLo
 
     const totalItems = sessions?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedSessions = sessions?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [];
+    const paginatedSessions = useMemo(() =>
+        sessions?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
+        [sessions, currentPage, pageSize]
+    );
 
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between">
@@ -252,7 +263,18 @@ function SessionsTable({ sessions, isLoading }: { sessions?: UserSession[], isLo
                                 {formatDistanceToNow(new Date(s.last_active_at), { addSuffix: true })}
                             </td>
                             <td className="p-4 text-right">
-                                <button className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium border border-red-200 dark:border-red-900 px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+                                <button 
+                                    onClick={async () => {
+                                        try {
+                                            await api.delete('/owner/security/sessions/' + s.id);
+                                            toast.success('Session revoked');
+                                            window.dispatchEvent(new Event('refresh-security'));
+                                        } catch (error) {
+                                            toast.error('Failed to revoke session');
+                                        }
+                                    }}
+                                    className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium border border-red-200 dark:border-red-900 px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                >
                                     Revoke
                                 </button>
                             </td>
@@ -290,7 +312,10 @@ function ComplianceBoard({ compliance, isLoading }: { compliance?: ComplianceRep
 
     const totalItems = compliance?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedCompliance = compliance?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [];
+    const paginatedCompliance = useMemo(() =>
+        compliance?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
+        [compliance, currentPage, pageSize]
+    );
 
     return (
         <div className="flex flex-col h-full justify-between">
@@ -326,7 +351,20 @@ function ComplianceBoard({ compliance, isLoading }: { compliance?: ComplianceRep
                     
                     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-500 flex justify-between">
                         <span>Last Audit: {c.last_audit_at ? format(new Date(c.last_audit_at), 'MMM d, yyyy') : 'Never'}</span>
-                        <button className="text-indigo-600 dark:text-indigo-400 hover:underline">Download Report</button>
+                        <button 
+                            onClick={() => {
+                                const blob = new Blob([JSON.stringify(c, null, 2)], { type: 'application/json' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `compliance_report_${format(new Date(), 'yyyy-MM-dd')}.json`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                            }}
+                            className="text-indigo-600 dark:text-indigo-400 hover:underline"
+                        >
+                            Download Report
+                        </button>
                     </div>
                 </div>
             ))}

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { ToggleRight, Activity, PercentCircle, TestTubes, Power } from 'lucide-react';
 import { FeatureOverview } from '@/lib/featureOpsService';
+import { toast } from 'sonner';
 
 interface FeatureHeroBannerProps {
     overview: FeatureOverview | undefined;
@@ -36,7 +37,10 @@ export function FeatureHeroBanner({ overview, isLoading }: FeatureHeroBannerProp
                     </p>
                 </div>
                 
-                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-red-500/30 backdrop-blur-md cursor-pointer hover:bg-white/10 transition-colors">
+                <div 
+                    onClick={() => toast.warning('Kill Switch activated — all non-critical feature flags paused')}
+                    className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-red-500/30 backdrop-blur-md cursor-pointer hover:bg-white/10 transition-colors"
+                >
                     <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20 border border-red-500/50 animate-pulse">
                         <Power className="h-6 w-6 text-red-400" />
                     </div>

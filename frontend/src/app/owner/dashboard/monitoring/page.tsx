@@ -6,21 +6,50 @@ import { SystemMonitoring } from "@/components/organisms/SystemMonitoring"
 import { motion } from "framer-motion"
 import { toast } from "sonner"
 import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import api from "@/lib/api"
 
 export default function MonitoringPage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const queryClient = useQueryClient()
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true)
-    toast.info("Syncing telemetry data...")
-    setTimeout(() => {
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["admin-monitoring"] })
+      await queryClient.invalidateQueries({ queryKey: ["monitoring"] })
+      toast.success("Telemetry synced successfully.")
+    } catch {
+      toast.error("Failed to sync telemetry data.")
+    } finally {
       setIsRefreshing(false)
-      toast.success("Telemetry up to date.")
-    }, 1200)
+    }
   }
 
-  const handleExport = () => {
-    toast.success("Diagnostics report generated.")
+  const handleExport = async () => {
+    setIsExporting(true)
+    toast.info("Compiling diagnostics report...")
+    try {
+      const { data } = await api.get("/admin/monitoring")
+      const report = {
+        exported_at: new Date().toISOString(),
+        platform: "Data Insight",
+        diagnostics: data,
+      }
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `diagnostics_report_${new Date().toISOString().split("T")[0]}.json`
+      a.click()
+      window.URL.revokeObjectURL(url)
+      toast.success("Diagnostics report exported.")
+    } catch {
+      toast.error("Failed to export diagnostics. Check API connection.")
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   return (
@@ -41,13 +70,22 @@ export default function MonitoringPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button onClick={handleRefresh} variant="outline" className="h-9 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5" disabled={isRefreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin text-emerald-600' : ''}`} />
-            {isRefreshing ? 'Syncing...' : 'Sync Data'}
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            className="h-9 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5"
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin text-emerald-600" : ""}`} />
+            {isRefreshing ? "Syncing..." : "Sync Data"}
           </Button>
-          <Button onClick={handleExport} className="h-9 px-4 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-all">
-            <Download className="h-4 w-4 mr-2" />
-            Export Diagnostics
+          <Button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="h-9 px-4 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-all"
+          >
+            <Download className={`h-4 w-4 mr-2 ${isExporting ? "animate-bounce" : ""}`} />
+            {isExporting ? "Exporting..." : "Export Diagnostics"}
           </Button>
         </div>
       </div>

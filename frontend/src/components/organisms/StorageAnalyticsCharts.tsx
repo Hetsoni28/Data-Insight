@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from "react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell } from "recharts"
 
 interface StorageAnalyticsChartsProps {
@@ -21,17 +22,22 @@ interface StorageAnalyticsChartsProps {
 export function StorageAnalyticsCharts({ trends = [], overview }: StorageAnalyticsChartsProps) {
   const categories = overview?.kpis?.categories || { dataset: 0, report: 0, ai_generated: 0, image: 0 }
   
-  const pieData = [
-    { name: 'Datasets', value: categories.dataset, color: '#10b981' },
-    { name: 'Reports', value: categories.report, color: '#3b82f6' },
-    { name: 'AI Gen', value: categories.ai_generated, color: '#8b5cf6' },
-    { name: 'Images', value: categories.image, color: '#f59e0b' }
-  ].filter(d => d.value > 0)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
 
-  // Fallback for pie data if empty
-  if (pieData.length === 0) {
-    pieData.push({ name: 'Empty', value: 1, color: '#cbd5e1' })
-  }
+  const pieData = useMemo(() => {
+    const data = [
+      { name: 'Datasets', value: categories.dataset, color: '#10b981' },
+      { name: 'Reports', value: categories.report, color: '#3b82f6' },
+      { name: 'AI Gen', value: categories.ai_generated, color: '#8b5cf6' },
+      { name: 'Images', value: categories.image, color: '#f59e0b' }
+    ].filter(d => d.value > 0)
+
+    if (data.length === 0) {
+      data.push({ name: 'Empty', value: 1, color: '#cbd5e1' })
+    }
+    return data
+  }, [categories])
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B'
@@ -44,6 +50,8 @@ export function StorageAnalyticsCharts({ trends = [], overview }: StorageAnalyti
   const formatGb = (bytes: number) => {
     return (bytes / (1024**3)).toFixed(1) + 'GB'
   }
+
+  if (!mounted) return <div className="w-full h-[280px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -80,5 +80,9 @@ export const NotificationService = {
   async seedDemoData(): Promise<any> {
     const response = await api.post('/notifications/seed');
     return response.data;
+  },
+
+  async updatePreferences(prefs: Record<string, boolean>): Promise<void> {
+    await api.patch('/notifications/preferences', prefs);
   }
 };

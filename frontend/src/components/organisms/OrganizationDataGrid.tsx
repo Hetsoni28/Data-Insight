@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import { 
   Building2, Users, Database, Search, Filter, Shield, Settings2, Power, Eye, Activity, HardDrive
@@ -62,16 +62,22 @@ export function OrganizationDataGrid() {
     toast.info(`Impersonation mode initiated for ${tenant.name}.`)
   }
 
-  const filteredTenants = tenants.filter(t => 
-    t.name.toLowerCase().includes(search.toLowerCase()) || 
-    (t.slug && t.slug.toLowerCase().includes(search.toLowerCase())) ||
-    (t.industry && t.industry.toLowerCase().includes(search.toLowerCase()))
+  const filteredTenants = useMemo(() =>
+    tenants.filter(t => 
+      t.name.toLowerCase().includes(search.toLowerCase()) || 
+      (t.slug && t.slug.toLowerCase().includes(search.toLowerCase())) ||
+      (t.industry && t.industry.toLowerCase().includes(search.toLowerCase()))
+    ),
+    [tenants, search]
   )
 
   // Pagination Logic
   const totalItems = filteredTenants.length
   const totalPages = Math.ceil(totalItems / pageSize)
-  const paginatedTenants = filteredTenants.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const paginatedTenants = useMemo(() =>
+    filteredTenants.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredTenants, currentPage, pageSize]
+  )
 
   // Reset page when search changes
   useEffect(() => {

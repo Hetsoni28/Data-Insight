@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import api from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -14,6 +14,8 @@ const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444']
 
 export function RevenueAnalyticsCharts() {
   const [activeTab, setActiveTab] = useState("trends")
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
 
   const { data: trends, isLoading: trendsLoading } = useQuery({
     queryKey: ['owner-revenue-trends'],
@@ -55,6 +57,8 @@ export function RevenueAnalyticsCharts() {
     }
     return null
   }
+
+  if (!mounted) return <div className="w-full h-[320px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
 
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-6 shadow-sm">

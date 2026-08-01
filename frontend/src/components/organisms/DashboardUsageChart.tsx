@@ -9,6 +9,11 @@ export function DashboardUsageChart() {
   const [data, setData] = useState<any[]>([])
   const [growth, setGrowth] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const fetchUsage = async () => {
@@ -25,6 +30,8 @@ export function DashboardUsageChart() {
 
     fetchUsage()
   }, [])
+
+  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
 
   return (
     <motion.div
@@ -55,9 +62,7 @@ export function DashboardUsageChart() {
 
       <div className="h-[280px] w-full mt-4">
         {loading ? (
-          <div className="w-full h-full flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-          </div>
+          <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
         ) : data.length === 0 ? (
           <div className="w-full h-full flex items-center justify-center">
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">No usage data for the last 30 days</p>

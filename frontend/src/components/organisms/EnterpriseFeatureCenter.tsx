@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FeatureFlag, FeatureRollout, FeatureExperiment, FeatureOverview, featureOpsService } from '@/lib/featureOpsService';
 import { ToggleRight, Activity, PercentCircle, TestTubes, Search, Power, Zap, AlertTriangle, Users, GitMerge } from 'lucide-react';
@@ -18,6 +18,7 @@ interface EnterpriseFeatureCenterProps {
 export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoading, refetchFeatures }: EnterpriseFeatureCenterProps) {
     const [activeTab, setActiveTab] = useState<'flags' | 'rollouts' | 'experiments'>('flags');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
 
     const tabs = [
         { id: 'flags', label: 'Global Flags', icon: <ToggleRight className="w-4 h-4" /> },
@@ -78,7 +79,13 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                                 className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" 
                             />
                         </div>
-                        <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <button 
+                            onClick={() => {
+                                setIsCreateOpen(!isCreateOpen);
+                                toast.info('Feature flag creation coming soon — use the API for now');
+                            }}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isCreateOpen ? 'bg-emerald-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
+                        >
                             Create Flag
                         </button>
                     </div>
@@ -124,7 +131,10 @@ function FlagsGrid({ features, isLoading, onToggle }: { features?: FeatureFlag[]
 
     const totalItems = features.length;
     const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedFeatures = features.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const paginatedFeatures = useMemo(() =>
+        features.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [features, currentPage, pageSize]
+    );
 
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between rounded-2xl">
@@ -200,7 +210,10 @@ function RolloutsGrid({ rollouts, isLoading }: { rollouts?: FeatureRollout[], is
 
     const totalItems = rollouts.length;
     const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedRollouts = rollouts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const paginatedRollouts = useMemo(() =>
+        rollouts.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [rollouts, currentPage, pageSize]
+    );
 
     return (
         <div className="flex flex-col h-full justify-between">
@@ -259,7 +272,10 @@ function ExperimentsGrid({ experiments, isLoading }: { experiments?: FeatureExpe
 
     const totalItems = experiments.length;
     const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedExperiments = experiments.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const paginatedExperiments = useMemo(() =>
+        experiments.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [experiments, currentPage, pageSize]
+    );
 
     return (
         <div className="flex flex-col h-full justify-between">

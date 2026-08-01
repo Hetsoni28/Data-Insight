@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AiKpiGrid } from "@/components/organisms/AiKpiGrid";
 import { AiExecutiveBriefing } from "@/components/organisms/AiExecutiveBriefing";
@@ -15,6 +16,7 @@ import api from "@/lib/api";
 
 export default function OwnerAiDashboardPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -72,7 +74,7 @@ export default function OwnerAiDashboardPage() {
             <Download className="w-4 h-4 mr-2" />
             Export Analytics
           </Button>
-          <Button onClick={() => toast.info("AI Settings panel coming soon.")} className="bg-[#0A3A2A] hover:bg-[#06261c] text-white">
+          <Button onClick={() => router.push("/owner/dashboard/settings")} className="bg-[#0A3A2A] hover:bg-[#06261c] text-white">
             <Settings className="w-4 h-4 mr-2" />
             AI Settings
           </Button>

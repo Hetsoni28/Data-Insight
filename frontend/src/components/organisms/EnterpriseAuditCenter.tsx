@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuditEvent, AuditTimelineEvent, AuditOverview } from '@/lib/auditOpsService';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -85,7 +85,27 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
                             <option value="warning">Warning</option>
                             <option value="critical">Critical</option>
                         </select>
-                        <button className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-200">
+                        <button onClick={() => {
+                            if (!events) return;
+                            const header = ['Timestamp', 'Action', 'Module', 'User', 'IP Address', 'Severity', 'Status'];
+                            const rows = events.map(e => [
+                                format(new Date(e.created_at), 'yyyy-MM-dd HH:mm:ss'),
+                                e.action,
+                                e.module,
+                                (e as any).actor || 'System',
+                                e.ip_address || '',
+                                e.severity,
+                                e.status
+                            ]);
+                            const csvContent = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+                            const blob = new Blob([csvContent], { type: 'text/csv' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `audit_log_export_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        }} className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-200">
                             <Download className="w-4 h-4" /> Export
                         </button>
                     </div>
@@ -117,6 +137,7 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
 function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading: boolean }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
 
     if (isLoading) return <LoadingState />;
 
@@ -131,7 +152,10 @@ function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading
 
     const totalItems = events.length;
     const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedEvents = events.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const paginatedEvents = useMemo(() =>
+        events.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [events, currentPage, pageSize]
+    );
 
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between">
@@ -149,7 +173,8 @@ function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                     {paginatedEvents.map((e) => (
-                        <tr key={e.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group">
+                        <React.Fragment key={e.id}>
+                        <tr onClick={() => setSelectedEvent(selectedEvent === e.id ? null : e.id)} className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group ${selectedEvent === e.id ? 'bg-slate-50 dark:bg-slate-800/50' : ''}`}>
                             <td className="p-4 text-slate-600 dark:text-slate-400 font-mono text-xs">
                                 {format(new Date(e.created_at), 'yyyy-MM-dd HH:mm:ss')}
                             </td>
@@ -181,10 +206,21 @@ function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading
                             </td>
                             <td className="p-4 text-right">
                                 <button className="text-slate-400 group-hover:text-cyan-500 transition-colors">
-                                    <ChevronRight className="w-5 h-5 inline-block" />
+                                    <ChevronRight className={`w-5 h-5 inline-block transition-transform ${selectedEvent === e.id ? 'rotate-90' : ''}`} />
                                 </button>
                             </td>
                         </tr>
+                        {selectedEvent === e.id && (
+                            <tr>
+                                <td colSpan={7} className="p-4 bg-slate-50 dark:bg-slate-800/20 border-b border-slate-100 dark:border-slate-800">
+                                    <div className="text-sm text-slate-600 dark:text-slate-300">
+                                        <strong>Expanded Details:</strong>
+                                        <pre className="mt-2 p-2 bg-slate-100 dark:bg-slate-900 rounded overflow-auto text-xs">{JSON.stringify(e, null, 2)}</pre>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                        </React.Fragment>
                     ))}
                 </tbody>
             </table>
@@ -209,7 +245,10 @@ function AuditTimelineView({ timeline, isLoading }: { timeline?: AuditTimelineEv
 
     const totalItems = timeline?.length || 0;
     const totalPages = Math.ceil(totalItems / pageSize);
-    const paginatedTimeline = timeline?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [];
+    const paginatedTimeline = useMemo(() =>
+        timeline?.slice((currentPage - 1) * pageSize, currentPage * pageSize) || [],
+        [timeline, currentPage, pageSize]
+    );
 
     return (
         <div className="flex flex-col h-full justify-between p-8">

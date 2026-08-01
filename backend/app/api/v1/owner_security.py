@@ -1,3 +1,4 @@
+import uuid
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -140,3 +141,23 @@ async def get_compliance(
             for r in reports
         ]
     }
+
+@router.delete("/sessions/{session_id}")
+async def revoke_session(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+) -> Any:
+    """Revoke an active user session (force logout)."""
+    result = await db.execute(
+        select(UserSession).where(UserSession.id == session_id)
+    )
+    session = result.scalar_one_or_none()
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    session.is_active = False
+    await db.commit()
+    
+    return {"status": "success", "message": "Session revoked successfully"}

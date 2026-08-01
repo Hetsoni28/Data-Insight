@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { storageService } from "@/lib/storageService"
@@ -26,6 +26,8 @@ export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
+  const [selectedFile, setSelectedFile] = useState<StorageFile | null>(null)
 
   const deleteMutation = useMutation({
     mutationFn: storageService.deleteFile,
@@ -52,7 +54,10 @@ export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
 
   const totalItems = files.length
   const totalPages = Math.ceil(totalItems / pageSize)
-  const paginatedFiles = files.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const paginatedFiles = useMemo(() =>
+    files.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [files, currentPage, pageSize]
+  )
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B'
@@ -87,16 +92,23 @@ export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
       <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.02]">
         <h3 className="font-semibold text-slate-800 dark:text-white">File Explorer</h3>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors">
+          <button 
+            onClick={() => setViewMode('grid')}
+            className={`px-3 py-1.5 text-xs font-medium border rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+          >
             Grid View
           </button>
-          <button className="px-3 py-1.5 text-xs font-medium bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-lg transition-colors">
+          <button 
+            onClick={() => setViewMode('list')}
+            className={`px-3 py-1.5 text-xs font-medium border rounded-lg transition-colors ${viewMode === 'list' ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+          >
             List View
           </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className={viewMode === 'list' ? "overflow-x-auto" : "p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"}>
+        {viewMode === 'list' ? (
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] text-xs font-medium text-slate-500 dark:text-slate-400">
@@ -148,10 +160,16 @@ export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
                 </td>
                 <td className="p-4 pr-6">
                   <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors" title="Download">
+                    <button 
+                      onClick={() => window.open((file as any).url || (file as any).path || `/api/owner/storage/files/${file.id}/download`, '_blank')}
+                      className="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors" title="Download"
+                    >
                       <Download className="h-4 w-4" />
                     </button>
-                    <button className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors" title="View details">
+                    <button 
+                      onClick={() => setSelectedFile(file)}
+                      className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors" title="View details"
+                    >
                       <ExternalLink className="h-4 w-4" />
                     </button>
                     <button 
@@ -179,7 +197,82 @@ export function StorageFileExplorer({ files = [] }: StorageFileExplorerProps) {
             )}
           </tbody>
         </table>
+        ) : (
+          <>
+            {paginatedFiles.map(file => (
+              <div key={file.id} className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-xl p-4 flex flex-col gap-3 group relative">
+                <div className="flex justify-between items-start">
+                  <div className="p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-white/5">
+                    {getFileIcon(file.category)}
+                  </div>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => window.open((file as any).url || (file as any).path || `/api/owner/storage/files/${file.id}/download`, '_blank')}
+                      className="p-1.5 text-slate-400 hover:text-emerald-500 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => setSelectedFile(file)}
+                      className="p-1.5 text-slate-400 hover:text-blue-500 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-medium text-slate-800 dark:text-white truncate" title={file.file_name}>{file.file_name}</p>
+                  <p className="text-xs text-slate-500 mt-1">{formatBytes(file.size_bytes)} • {formatDate(file.created_at)}</p>
+                </div>
+              </div>
+            ))}
+            {files.length === 0 && (
+              <div className="col-span-full p-12 text-center text-slate-500 flex flex-col items-center justify-center">
+                <ShieldAlert className="h-10 w-10 mb-3 opacity-20" />
+                <p>No files found.</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
+
+      {selectedFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedFile(null)}>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full m-4 shadow-xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-4 dark:text-white">File Details</h3>
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-3 gap-2 py-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Name</span>
+                <span className="col-span-2 font-medium dark:text-white truncate" title={selectedFile.file_name}>{selectedFile.file_name}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 py-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Size</span>
+                <span className="col-span-2 dark:text-white">{formatBytes(selectedFile.size_bytes)}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 py-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Type</span>
+                <span className="col-span-2 dark:text-white">{selectedFile.file_type}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 py-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Created</span>
+                <span className="col-span-2 dark:text-white">{formatDate(selectedFile.created_at)}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 py-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 dark:text-slate-400">Path/URL</span>
+                <span className="col-span-2 dark:text-white truncate" title={(selectedFile as any).url || (selectedFile as any).path}>{(selectedFile as any).url || (selectedFile as any).path || '-'}</span>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={() => setSelectedFile(null)}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-sm font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {totalItems > 0 && (
         <PaginationControls

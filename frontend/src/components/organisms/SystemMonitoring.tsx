@@ -30,6 +30,9 @@ export function SystemMonitoring() {
   const [currentMetrics, setCurrentMetrics] = useState<any>(null)
   const [history, setHistory] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     // Initial fetch
@@ -61,6 +64,8 @@ export function SystemMonitoring() {
       console.error("Failed to fetch monitoring data", error)
     }
   }
+
+  if (!mounted) return <div className="w-full h-[200px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
 
   if (loading || !currentMetrics) {
     return (

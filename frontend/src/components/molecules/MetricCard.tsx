@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Area, AreaChart, ResponsiveContainer, YAxis } from "recharts";
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
@@ -28,6 +29,9 @@ export function MetricCard({
   color = "emerald",
   delay = 0,
 }: MetricCardProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const isPositive = trend > 0;
   const isNeutral = trend === 0;
   const TrendIcon = isNeutral ? Minus : isPositive ? ArrowUpRight : ArrowDownRight;
@@ -100,8 +104,11 @@ export function MetricCard({
       {/* Background Sparkline */}
       {sparklineData.length > 0 && (
         <div className="absolute bottom-0 left-0 right-0 h-16 opacity-20 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={sparklineData}>
+          {!mounted ? (
+            <div className="w-full h-[64px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={sparklineData}>
               <defs>
                 <linearGradient id={`gradient-${title.replace(/\s+/g, '-')}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={theme.stroke} stopOpacity={0.8} />
@@ -120,6 +127,7 @@ export function MetricCard({
               />
             </AreaChart>
           </ResponsiveContainer>
+          )}
         </div>
       )}
     </motion.div>

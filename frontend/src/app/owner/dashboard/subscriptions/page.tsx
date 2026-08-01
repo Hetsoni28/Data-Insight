@@ -1,8 +1,19 @@
 "use client"
 
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { Plus, Download, RefreshCw } from "lucide-react"
+import { Plus, Download, RefreshCw, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import api from "@/lib/api"
 import { toast } from "sonner"
 import { SubscriptionRevenueKpi } from "@/components/organisms/SubscriptionRevenueKpi"
@@ -10,6 +21,11 @@ import { SubscriptionAnalyticsCharts } from "@/components/organisms/Subscription
 import { SubscriptionDataGrid } from "@/components/organisms/SubscriptionDataGrid"
 
 export default function SubscriptionsPage() {
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newOrgId, setNewOrgId] = useState("")
+  const [newPlan, setNewPlan] = useState("starter")
+
   // Fetch KPIs
   const { 
     data: kpis, 
@@ -90,11 +106,32 @@ export default function SubscriptionsPage() {
     }
   }
 
-  const handleCreateSubscription = () => {
-    toast.success("Opening checkout flow (Coming Soon)")
+  const handleCreateSubscription = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newOrgId.trim()) {
+      toast.error("Please enter an Organization ID.")
+      return
+    }
+    setIsCreating(true)
+    try {
+      await api.post(`/owner/subscriptions/${newOrgId.trim()}/upgrade`, { plan: newPlan })
+      toast.success(`Subscription created — org upgraded to ${newPlan} plan.`)
+      setIsCreateOpen(false)
+      setNewOrgId("")
+      setNewPlan("starter")
+      refetchKpis()
+      refetchTrends()
+      refetchSubscriptions()
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || "Failed to create subscription."
+      toast.error(msg)
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   return (
+    <>
     <div className="p-6 md:p-8 flex flex-col gap-6 max-w-[1600px] mx-auto w-full pb-20">
       
       {/* Hero Header */}
@@ -114,7 +151,7 @@ export default function SubscriptionsPage() {
             <Download className="h-4 w-4 mr-2" />
             Export Revenue
           </Button>
-          <Button onClick={handleCreateSubscription} className="h-10 px-4 rounded-md bg-[#0A3A2A] hover:bg-[#06261c] text-white shadow-sm">
+          <Button onClick={() => setIsCreateOpen(true)} className="h-10 px-4 rounded-md bg-[#0A3A2A] hover:bg-[#06261c] text-white shadow-sm">
             <Plus className="h-4 w-4 mr-2" />
             Create Subscription
           </Button>
@@ -136,5 +173,65 @@ export default function SubscriptionsPage() {
       </div>
 
     </div>
+
+    {/* Create Subscription Modal */}
+    <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5 text-emerald-600" />
+            Create Subscription
+          </DialogTitle>
+          <DialogDescription>
+            Upgrade an existing organization to a paid plan. The organization must already be registered.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleCreateSubscription} className="space-y-4 mt-2">
+          <div className="space-y-2">
+            <Label htmlFor="org-id">Organization ID</Label>
+            <Input
+              id="org-id"
+              placeholder="e.g. org_01j9abc..."
+              value={newOrgId}
+              onChange={(e) => setNewOrgId(e.target.value)}
+              disabled={isCreating}
+              required
+              autoFocus
+            />
+            <p className="text-xs text-slate-500">Find IDs in the Organizations tab.</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="plan-select">Subscription Plan</Label>
+            <select
+              id="plan-select"
+              value={newPlan}
+              onChange={(e) => setNewPlan(e.target.value)}
+              disabled={isCreating}
+              className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
+            >
+              <option value="starter">Starter</option>
+              <option value="pro">Pro</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+          </div>
+
+          <DialogFooter className="mt-6">
+            <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} disabled={isCreating}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isCreating || !newOrgId.trim()} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              {isCreating ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating...</>
+              ) : (
+                <><Plus className="h-4 w-4 mr-2" />Create Subscription</>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }

@@ -38,12 +38,17 @@ async def create_invitation(
     ]:
         raise ForbiddenException("Managers can only invite Analysts or Viewers.")
 
-    # Check if user already exists
+    # Check if user already exists (globally)
     stmt = select(User).where(User.email == body.email)
     existing_user = (await db.execute(stmt)).scalars().first()
 
-    if existing_user and existing_user.tenant_id == current_user.tenant_id:
-        raise ConflictException("User is already a member of this organization.")
+    if existing_user:
+        if existing_user.tenant_id == current_user.tenant_id:
+            raise ConflictException("User is already a member of this organization.")
+        # User exists in another org — they cannot accept this invite due to global email uniqueness
+        raise ConflictException(
+            "A user with this email already has an account. They must contact support to transfer organizations."
+        )
 
     # Generate token
     token = secrets.token_urlsafe(32)

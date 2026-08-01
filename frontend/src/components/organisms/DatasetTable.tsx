@@ -21,7 +21,7 @@ import { StateLayout } from "@/components/molecules/StateLayout";
 import { NoDatasetsIllustration } from "@/components/molecules/NoDatasetsIllustration";
 import { Plus } from "lucide-react";
 import { LoadingPulse } from "@/components/molecules/LoadingPulse";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
 
 interface DatasetTableProps {
@@ -37,7 +37,10 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
   
   const totalItems = datasets.length;
   const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedDatasets = datasets.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedDatasets = useMemo(() =>
+    datasets.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [datasets, currentPage, pageSize]
+  );
   const handleDelete = async (datasetId: string) => {
     if (!window.confirm("Are you sure you want to delete this dataset? This action cannot be undone.")) {
       return;

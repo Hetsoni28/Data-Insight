@@ -43,12 +43,20 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="h-full min-h-[60vh] flex flex-col items-center justify-center">
-        <div className="relative">
-          <div className="w-12 h-12 rounded-full border-4 border-emerald-100 border-t-emerald-500 animate-spin" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-transparent rounded-full blur-xl animate-pulse" />
+      <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 pb-20">
+        {/* Hero skeleton */}
+        <div className="h-40 w-full rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        {/* KPI grid skeleton — 12 cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="h-28 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+          ))}
         </div>
-        <p className="mt-4 text-sm font-medium text-slate-500 dark:text-slate-400 animate-pulse">Loading platform metrics...</p>
+        {/* Charts skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-12">
+          <div className="lg:col-span-2 h-72 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+          <div className="h-72 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        </div>
       </div>
     )
   }
