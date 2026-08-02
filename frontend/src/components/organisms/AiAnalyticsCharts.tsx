@@ -55,16 +55,31 @@ export function AiAnalyticsCharts() {
 
   const kpis = overview?.kpis;
 
+  // Compute real period-over-period trends from the timeseries
+  const computeTrend = (arr: any[], key: string): string => {
+    if (!arr || arr.length < 2) return "Live";
+    const first = Number(arr[0]?.[key] ?? 0);
+    const last = Number(arr[arr.length - 1]?.[key] ?? 0);
+    if (first === 0) return last > 0 ? "+∞" : "Stable";
+    const pct = ((last - first) / first) * 100;
+    return (pct >= 0 ? "+" : "") + pct.toFixed(1) + "%";
+  };
+
+  const requestsTrend = computeTrend(tokenUsageData, "requests");
+  const costTrend = computeTrend(tokenUsageData, "cost");
+  const latencyTrend = computeTrend(latencyData, "p50");
+  const modelsTrend = (kpis?.available_models ?? 0) > 0 ? "Stable" : "None";
+
   return (
     <div className="space-y-6">
       
       {/* Top Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { title: "Total Monthly Requests", value: (kpis?.monthly_requests || 0).toLocaleString(), change: "+18%", icon: Zap, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { title: "Active AI Models", value: (kpis?.available_models || 0).toString(), change: "Stable", icon: Bot, color: "text-blue-600", bg: "bg-blue-50" },
-          { title: "Avg. Latency", value: `${kpis?.avg_latency_ms || 0}ms`, change: "-120ms", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-          { title: "Monthly AI Cost", value: `$${(kpis?.monthly_cost_usd || 0).toLocaleString()}`, change: "+5%", icon: Coins, color: "text-purple-600", bg: "bg-purple-50" },
+          { title: "Total Monthly Requests", value: (kpis?.monthly_requests || 0).toLocaleString(), change: requestsTrend, icon: Zap, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { title: "Active AI Models", value: (kpis?.available_models || 0).toString(), change: modelsTrend, icon: Bot, color: "text-blue-600", bg: "bg-blue-50" },
+          { title: "Avg. Latency", value: `${kpis?.avg_latency_ms || 0}ms`, change: latencyTrend, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+          { title: "Monthly AI Cost", value: `$${(kpis?.monthly_cost_usd || 0).toLocaleString()}`, change: costTrend, icon: Coins, color: "text-purple-600", bg: "bg-purple-50" },
         ].map((metric, idx) => (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -77,7 +92,11 @@ export function AiAnalyticsCharts() {
               <div className={`p-2.5 rounded-md ${metric.bg}`}>
                 <metric.icon className={`h-5 w-5 ${metric.color}`} />
               </div>
-              <span className={`text-xs font-semibold px-2 py-1 rounded-md ${metric.change.startsWith('+') && !metric.change.includes('%') ? 'bg-rose-50 text-rose-600' : metric.change.startsWith('-') || metric.change === 'Stable' ? 'bg-emerald-50 text-emerald-600' : 'bg-emerald-50 text-emerald-600'}`}>
+              <span className={`text-xs font-semibold px-2 py-1 rounded-md ${
+                metric.change.startsWith('+') ? 'bg-emerald-50 text-emerald-600' :
+                metric.change.startsWith('-') ? 'bg-rose-50 text-rose-600' :
+                'bg-slate-100 text-slate-500'
+              }`}>
                 {metric.change}
               </span>
             </div>

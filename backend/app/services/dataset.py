@@ -82,7 +82,7 @@ class DatasetService:
 
         # Upload to Supabase Storage
         storage_path = dataset_storage_path(actor.tenant_id, filename)
-        upload_file(DATASETS_BUCKET, file_bytes, storage_path)
+        await upload_file(DATASETS_BUCKET, file_bytes, storage_path)
 
         # Create dataset record
         dataset = Dataset(
@@ -133,13 +133,13 @@ class DatasetService:
 
     async def get_preview_url(self, dataset_id: uuid.UUID, actor: User) -> str:
         ds = await self.get_dataset(dataset_id, actor)
-        return get_signed_url(DATASETS_BUCKET, ds.file_url, expires_in=900)  # 15 min
+        return await get_signed_url(DATASETS_BUCKET, ds.file_url, expires_in=900)  # 15 min
 
     async def delete_dataset(self, dataset_id: uuid.UUID, actor: User) -> None:
         ds = await self.get_dataset(dataset_id, actor)
         # Delete from Supabase Storage
         try:
-            delete_file(DATASETS_BUCKET, ds.file_url)
+            await delete_file(DATASETS_BUCKET, ds.file_url)
         except Exception:
             pass  # Log but don't fail if storage delete fails
         await self.dataset_repo.soft_delete(ds)

@@ -194,10 +194,14 @@ async def get_usage_timeseries(
     start_date = datetime.now(timezone.utc) - timedelta(days=days)
     
     # Group by date
-    # Note: Using native Postgres DATE_TRUNC or casting for simplicity
+    if db.bind.dialect.name == "sqlite":
+        day_expr = func.strftime("%Y-%m-%d", AIUsageLog.created_at).label("day")
+    else:
+        day_expr = func.date_trunc("day", AIUsageLog.created_at).label("day")
+
     query = (
         select(
-            func.date_trunc('day', AIUsageLog.created_at).label('day'),
+            day_expr,
             func.count(AIUsageLog.id).label('requests'),
             func.sum(AIUsageLog.cost_usd).label('cost')
         )
@@ -211,7 +215,7 @@ async def get_usage_timeseries(
     timeseries = []
     for row in result.all():
         timeseries.append({
-            "date": row.day.strftime("%Y-%m-%d"),
+            "date": row.day if isinstance(row.day, str) else row.day.strftime("%Y-%m-%d"),
             "requests": int(row.requests),
             "cost": float(row.cost)
         })
@@ -324,9 +328,14 @@ async def get_analytics_charts(
     """Return real data for the AI Analytics Charts (Usage, Distribution, Latency)."""
     # 1. Usage Over Time (last 7 days, requests and cost)
     seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    if db.bind.dialect.name == "sqlite":
+        day_expr = func.strftime("%Y-%m-%d", AIUsageLog.created_at).label("day")
+    else:
+        day_expr = func.date_trunc("day", AIUsageLog.created_at).label("day")
+
     usage_query = (
         select(
-            func.date_trunc('day', AIUsageLog.created_at).label('day'),
+            day_expr,
             func.count(AIUsageLog.id).label('requests'),
             func.sum(AIUsageLog.cost_usd).label('cost')
         )
@@ -337,8 +346,15 @@ async def get_analytics_charts(
     usage_res = await db.execute(usage_query)
     token_usage_data = []
     for row in usage_res.all():
+        if isinstance(row.day, str):
+            import datetime as dt
+            parsed_date = dt.datetime.strptime(row.day, "%Y-%m-%d")
+            date_str = parsed_date.strftime("%b %d")
+        else:
+            date_str = row.day.strftime("%b %d")
+
         token_usage_data.append({
-            "date": row.day.strftime("%b %d"),
+            "date": date_str,
             "requests": int(row.requests),
             "cost": float(row.cost)
         })
@@ -364,9 +380,14 @@ async def get_analytics_charts(
 
     # 3. Latency (hourly for today)
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    if db.bind.dialect.name == "sqlite":
+        hour_expr = func.strftime("%Y-%m-%d %H:00:00", AIUsageLog.created_at).label("hour")
+    else:
+        hour_expr = func.date_trunc("hour", AIUsageLog.created_at).label("hour")
+
     latency_query = (
         select(
-            func.date_trunc('hour', AIUsageLog.created_at).label('hour'),
+            hour_expr,
             func.avg(AIUsageLog.latency_ms).label('p50'),
             func.max(AIUsageLog.latency_ms).label('p99')
         )
@@ -377,8 +398,15 @@ async def get_analytics_charts(
     latency_res = await db.execute(latency_query)
     latency_data = []
     for row in latency_res.all():
+        if isinstance(row.hour, str):
+            import datetime as dt
+            parsed_hour = dt.datetime.strptime(row.hour, "%Y-%m-%d %H:00:00")
+            hour_str = parsed_hour.strftime("%H:00")
+        else:
+            hour_str = row.hour.strftime("%H:00")
+
         latency_data.append({
-            "time": row.hour.strftime("%H:%00"),
+            "time": hour_str,
             "p50": int(row.p50 or 0),
             "p99": int(row.p99 or 0)
         })

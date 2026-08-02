@@ -143,7 +143,11 @@ class AuthService:
 
         if user.is_email_verified:
             # Already verified — just return a token
-            return create_access_token(subject=str(user.id))
+            return create_access_token(
+                subject=str(user.id),
+                role=user.role,
+                tenant_id=str(user.tenant_id) if user.tenant_id else None,
+            )
 
         valid = await otp_service.verify_email_otp(self.redis, email, otp)
         if not valid:

@@ -24,6 +24,8 @@ _mem_store: dict = {}
 
 # Once we detect Redis is down, skip it entirely for the process lifetime
 _redis_ok: bool | None = None  # None = not yet tested
+_last_checked: float = 0.0
+CHECK_INTERVAL: float = 30.0
 
 
 def _mem_set(key: str, value: str, ex: int) -> None:
@@ -64,12 +66,16 @@ def _mem_incr(key: str, ex: int) -> int:
 
 async def _redis_is_ok(redis) -> bool:
     """
-    Test Redis connectivity once with a 300ms timeout.
-    Result is cached for the process lifetime — no repeated waits.
+    Test Redis connectivity.
+    Result is cached but re-tested every 30 seconds if Redis was down
+    to support self-healing on reconnection.
     """
-    global _redis_ok
-    if _redis_ok is not None:
+    global _redis_ok, _last_checked
+    now = time.time()
+    
+    if _redis_ok is True or (_redis_ok is False and (now - _last_checked) < CHECK_INTERVAL):
         return _redis_ok
+        
     try:
         await asyncio.wait_for(redis.ping(), timeout=0.3)
         _redis_ok = True
@@ -79,6 +85,8 @@ async def _redis_is_ok(redis) -> bool:
         logger.warning(
             "[OTP] Redis not reachable — using in-memory fallback (dev mode)"
         )
+        
+    _last_checked = now
     return _redis_ok
 
 

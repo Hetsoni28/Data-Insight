@@ -211,27 +211,36 @@ async def get_invoices(
     db: AsyncSession = Depends(get_db),
     current_user: Any = Depends(require_owner),
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100)
+    limit: int = Query(20, ge=1, le=100),
+    tenant_id: str | None = Query(None, description="Filter invoices by tenant UUID")
 ) -> Any:
-    """Fetch global invoices."""
-    invoices = (await db.execute(
+    """Fetch global invoices, optionally filtered by tenant_id."""
+    query = (
         select(Invoice, Tenant.name.label("tenant_name"))
         .join(Tenant, Invoice.tenant_id == Tenant.id)
         .order_by(desc(Invoice.invoice_date))
-        .offset(skip).limit(limit)
-    )).all()
-    
+    )
+
+    if tenant_id:
+        from uuid import UUID as PyUUID
+        try:
+            query = query.where(Invoice.tenant_id == PyUUID(tenant_id))
+        except ValueError:
+            pass  # invalid UUID — ignore filter gracefully
+
+    invoices = (await db.execute(query.offset(skip).limit(limit))).all()
+
     result = []
     for inv, tenant_name in invoices:
         result.append({
-            "id": inv.id,
+            "id": str(inv.id),
             "tenant_name": tenant_name,
-            "amount": inv.amount,
+            "amount": float(inv.amount),
             "currency": inv.currency,
             "status": inv.status.value,
             "date": inv.invoice_date.isoformat()
         })
-        
+
     return {"data": result}
 
 

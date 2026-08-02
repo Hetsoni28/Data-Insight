@@ -79,15 +79,20 @@ async def get_analytics(
     thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
     
     # Growth by day
+    if db.bind.dialect.name == "sqlite":
+        day_expr = func.strftime("%Y-%m-%d", StorageFile.created_at).label("day")
+    else:
+        day_expr = func.date_trunc("day", StorageFile.created_at).label("day")
+
     growth_query = (
         select(
-            func.date_trunc('day', StorageFile.created_at).label('day'),
-            func.sum(StorageFile.file_size_bytes).label('size')
+            day_expr,
+            func.sum(StorageFile.file_size_bytes).label("size")
         )
         .where(StorageFile.created_at >= thirty_days_ago)
         .where(StorageFile.deleted_at.is_(None))
-        .group_by('day')
-        .order_by('day')
+        .group_by("day")
+        .order_by("day")
     )
     growth_res = await db.execute(growth_query)
     
@@ -96,7 +101,7 @@ async def get_analytics(
     for row in growth_res.all():
         cumulative += int(row.size or 0)
         trends.append({
-            "date": row.day.strftime("%Y-%m-%d"),
+            "date": row.day if isinstance(row.day, str) else row.day.strftime("%Y-%m-%d"),
             "daily_bytes": int(row.size or 0),
             "cumulative_bytes": cumulative
         })

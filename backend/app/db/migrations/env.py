@@ -19,7 +19,7 @@ import app.models  # noqa: E402 — registers all models on Base.metadata
 config = context.config
 
 # Use asyncpg URL directly
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

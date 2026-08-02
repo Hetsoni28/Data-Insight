@@ -2,7 +2,15 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 // Routes that should bypass this middleware completely
-const PUBLIC_ROUTES = ["/", "/login", "/forgot-password"]
+const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/onboarding",
+]
 
 /**
  * Basic Edge-compatible JWT Decoder.
@@ -25,7 +33,7 @@ function decodeJwtPayload(token: string) {
   }
 }
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Ignore static assets and API routes
@@ -46,9 +54,10 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get("access_token")?.value
 
   if (!token) {
-    // If they try to access a protected route without a token, Next.js Middleware doesn't strictly need to redirect,
-    // because AuthProvider will catch it anyway. But we can redirect to be safe.
-    if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) {
+    // If they try to access a protected route without a token, Next.js Middleware redirects to /login
+    if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin") || 
+        pathname.startsWith("/owner") || pathname.startsWith("/organization-admin") ||
+        pathname.startsWith("/manager") || pathname.startsWith("/analyst") || pathname.startsWith("/viewer")) {
       return NextResponse.redirect(new URL("/login", request.url))
     }
     return NextResponse.next()
@@ -70,7 +79,7 @@ export function proxy(request: NextRequest) {
   }
 
   // Define the valid roles that map to our folder structure
-  const validRoles = ["owner", "organization-admin", "manager", "analyst", "viewer", "org_admin"]
+  const validRoles = ["owner", "organization-admin", "manager", "analyst", "viewer"]
   
   // If their role is completely unrecognized, kick them to login
   if (!validRoles.includes(role)) {
@@ -80,7 +89,7 @@ export function proxy(request: NextRequest) {
   }
 
   // Ensure they don't manually access another role's dashboard directly
-  const rolePaths = ["/owner", "/organization-admin", "/manager", "/analyst", "/viewer", "/org_admin"]
+  const rolePaths = ["/owner", "/organization-admin", "/manager", "/analyst", "/viewer"]
   
   for (const rPath of rolePaths) {
     if (pathname.startsWith(rPath)) {

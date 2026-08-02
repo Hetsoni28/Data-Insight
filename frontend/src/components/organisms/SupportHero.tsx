@@ -19,7 +19,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function SupportHero() {
+interface SupportHeroProps {
+  activeIncidents?: number;
+}
+
+export function SupportHero({ activeIncidents = 0 }: SupportHeroProps) {
   const queryClient = useQueryClient();
   const [ticketOpen, setTicketOpen] = useState(false);
   const [incidentOpen, setIncidentOpen] = useState(false);
@@ -93,10 +97,17 @@ export function SupportHero() {
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <Badge variant="outline" className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse" />
-              Systems Operational
-            </Badge>
+            {activeIncidents > 0 ? (
+              <Badge variant="outline" className="bg-amber-500/20 text-amber-300 border-amber-500/30">
+                <span className="w-2 h-2 rounded-full bg-amber-400 mr-2 animate-pulse" />
+                {activeIncidents} Active Incident{activeIncidents > 1 ? 's' : ''}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse" />
+                Systems Operational
+              </Badge>
+            )}
             <span className="text-sm font-medium text-emerald-100/70">{currentDate}</span>
           </div>
           

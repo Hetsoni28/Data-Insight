@@ -98,7 +98,7 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
 
       await login(access_token)
       toast.success("Welcome back! 👋")
-      router.push("/owner/dashboard")
+      router.push("/dashboard")
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>
       const msg =

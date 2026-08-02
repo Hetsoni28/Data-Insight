@@ -49,7 +49,7 @@ export default function SupportCenterPage() {
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto space-y-2 pb-24">
-      <SupportHero />
+      <SupportHero activeIncidents={dashboardData?.kpis?.activeIncidents ?? 0} />
       <SupportKpiDashboard data={dashboardData} />
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">

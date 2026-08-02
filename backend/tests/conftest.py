@@ -14,6 +14,13 @@ from app.core.config import settings
 
 # ─── In-Memory SQLite Engine for Tests ───────────────────────────────────────
 # Uses SQLite in-memory database — no Postgres required for unit tests
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.dialects.postgresql import JSONB
+
+@compiles(JSONB, "sqlite")
+def compile_jsonb_sqlite(element, compiler, **kw):
+    return "JSON"
+
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 test_engine = create_async_engine(

@@ -30,61 +30,70 @@ REPORTS_BUCKET = "reports"
 LOCAL_UPLOADS_DIR = Path("uploads")
 
 
-def upload_file(
+import asyncio
+
+async def upload_file(
     bucket: str,
     file_bytes: bytes,
     destination_path: str,
     content_type: str | None = None,
 ) -> str:
     """Upload file bytes to Supabase Storage (or local disk fallback). Returns the storage path."""
-    if not content_type:
-        content_type, _ = mimetypes.guess_type(destination_path)
-        content_type = content_type or "application/octet-stream"
+    def _sync():
+        nonlocal content_type
+        if not content_type:
+            content_type, _ = mimetypes.guess_type(destination_path)
+            content_type = content_type or "application/octet-stream"
 
-    if is_local_storage():
-        # Fallback to local storage
-        local_path = LOCAL_UPLOADS_DIR / bucket / destination_path
-        local_path.parent.mkdir(parents=True, exist_ok=True)
-        local_path.write_bytes(file_bytes)
-        logger.info(f"[Local Storage] Saved file to {local_path}")
+        if is_local_storage():
+            # Fallback to local storage
+            local_path = LOCAL_UPLOADS_DIR / bucket / destination_path
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            local_path.write_bytes(file_bytes)
+            logger.info(f"[Local Storage] Saved file to {local_path}")
+            return destination_path
+
+        # Supabase upload
+        client = _client()
+        client.storage.from_(bucket).upload(
+            path=destination_path,
+            file=file_bytes,
+            file_options={"content-type": content_type, "upsert": "true"},
+        )
         return destination_path
 
-    # Supabase upload
-    client = _client()
-    client.storage.from_(bucket).upload(
-        path=destination_path,
-        file=file_bytes,
-        file_options={"content-type": content_type, "upsert": "true"},
-    )
-    return destination_path
+    return await asyncio.to_thread(_sync)
 
 
-def get_signed_url(bucket: str, path: str, expires_in: int = 3600) -> str:
+async def get_signed_url(bucket: str, path: str, expires_in: int = 3600) -> str:
     """Generate a signed download URL valid for `expires_in` seconds (or local URL fallback)."""
-    if is_local_storage():
-        # Fallback to local API endpoint that serves the uploads directory
-        # The backend API root is typically on port 8000
-        # In a real app we'd use request.base_url, but here we can just use a relative path
-        # since the frontend accesses the backend via /api proxy.
-        logger.info(f"[Local Storage] Generating local URL for {bucket}/{path}")
-        return f"/api/v1/storage/{bucket}/{path}"
+    def _sync():
+        if is_local_storage():
+            # Fallback to local API endpoint that serves the uploads directory
+            logger.info(f"[Local Storage] Generating local URL for {bucket}/{path}")
+            return f"/api/v1/storage/{bucket}/{path}"
 
-    client = _client()
-    result = client.storage.from_(bucket).create_signed_url(path, expires_in)
-    return result["signedURL"]
+        client = _client()
+        result = client.storage.from_(bucket).create_signed_url(path, expires_in)
+        return result["signedURL"]
+
+    return await asyncio.to_thread(_sync)
 
 
-def delete_file(bucket: str, path: str) -> None:
+async def delete_file(bucket: str, path: str) -> None:
     """Delete a file from Supabase Storage (or local disk fallback)."""
-    if is_local_storage():
-        local_path = LOCAL_UPLOADS_DIR / bucket / path
-        if local_path.exists():
-            local_path.unlink()
-            logger.info(f"[Local Storage] Deleted file {local_path}")
-        return
+    def _sync():
+        if is_local_storage():
+            local_path = LOCAL_UPLOADS_DIR / bucket / path
+            if local_path.exists():
+                local_path.unlink()
+                logger.info(f"[Local Storage] Deleted file {local_path}")
+            return
 
-    client = _client()
-    client.storage.from_(bucket).remove([path])
+        client = _client()
+        client.storage.from_(bucket).remove([path])
+
+    return await asyncio.to_thread(_sync)
 
 
 def dataset_storage_path(tenant_id: uuid.UUID, filename: str) -> str:

@@ -61,7 +61,7 @@ async def _run_excel_pipeline(task, report_id: str):
                 local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
                 file_bytes = local_path.read_bytes()
             else:
-                signed_url = get_signed_url(
+                signed_url = await get_signed_url(
                     DATASETS_BUCKET, dataset.file_url, expires_in=600
                 )
                 async with httpx.AsyncClient() as client:
@@ -203,13 +203,13 @@ async def _run_excel_pipeline(task, report_id: str):
                 local_report_path.write_bytes(excel_bytes)
                 output_url = f"/api/v1/storage/{REPORTS_BUCKET}/{storage_path}"
             else:
-                upload_file(
+                await upload_file(
                     REPORTS_BUCKET,
                     excel_bytes,
                     storage_path,
                     content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 )
-                output_url = get_signed_url(
+                output_url = await get_signed_url(
                     REPORTS_BUCKET, storage_path, expires_in=86400
                 )
 

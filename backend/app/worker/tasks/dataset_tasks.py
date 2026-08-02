@@ -45,7 +45,7 @@ async def _profile_dataset(task, dataset_id: str):
                 local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
                 file_bytes = local_path.read_bytes()
             else:
-                signed_url = get_signed_url(
+                signed_url = await get_signed_url(
                     DATASETS_BUCKET, dataset.file_url, expires_in=300
                 )
                 async with httpx.AsyncClient() as client:
