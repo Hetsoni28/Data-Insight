@@ -16,6 +16,7 @@ import {
 import api from "@/lib/api"
 import { toast } from "sonner"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 export function UsersDataGrid() {
   const [users, setUsers] = useState<any[]>([])
@@ -29,6 +30,42 @@ export function UsersDataGrid() {
   // Sheet State
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ userId, isActive }: { userId: string, isActive: boolean }) => {
+      const res = await api.patch(`/admin/users/${userId}/status`, { is_active: isActive })
+      return res.data
+    },
+    onSuccess: (data, variables) => {
+      toast.success(`User ${variables.isActive ? 'activated' : 'suspended'} successfully.`)
+      setUsers(prev => (Array.isArray(prev) ? prev : []).map(u => u.id === variables.userId ? { ...u, is_active: variables.isActive } : u))
+      queryClient.invalidateQueries({ queryKey: ['admin-global-kpis'] })
+    },
+    onError: () => toast.error("Failed to update user status.")
+  })
+  
+  const impersonateMutation = useMutation({
+    mutationFn: async ({ tenantId, userId, reason }: { tenantId: string, userId: string, reason: string }) => {
+      const res = await api.post(`/admin/tenants/${tenantId}/impersonate/${userId}`, { reason })
+      return res.data
+    },
+    onSuccess: (data, variables) => {
+      toast.success(`Impersonation mode initiated. Redirecting...`)
+      // Normally this would reload the window with new token
+      // window.location.href = "/dashboard"
+    },
+    onError: () => toast.error("Failed to impersonate user.")
+  })
+  
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const res = await api.post(`/auth/forgot-password`, { email })
+      return res.data
+    },
+    onSuccess: (_, email) => toast.success(`Password reset email sent to ${email}.`),
+    onError: () => toast.error("Failed to send password reset email.")
+  })
 
   const fetchUsers = async () => {
     try {
@@ -48,16 +85,8 @@ export function UsersDataGrid() {
     fetchUsers()
   }, [])
 
-  const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
-    try {
-      const newStatus = !currentStatus
-      await api.patch(`/admin/users/${userId}/status`, { is_active: newStatus })
-      setUsers(prev => (Array.isArray(prev) ? prev : []).map(u => u.id === userId ? { ...u, is_active: newStatus } : u))
-      toast.success(`User ${newStatus ? 'activated' : 'suspended'} successfully.`)
-    } catch (error) {
-      console.error("Failed to toggle status", error)
-      toast.error("Failed to update user status.")
-    }
+  const handleToggleStatus = (userId: string, currentStatus: boolean) => {
+    toggleStatusMutation.mutate({ userId, isActive: !currentStatus })
   }
 
   const handleViewDetails = (user: any) => {
@@ -66,11 +95,17 @@ export function UsersDataGrid() {
   }
 
   const handleImpersonate = (user: any) => {
-    toast.info(`Impersonation mode initiated for ${user.email}.`)
+    if (!user.tenant_id || !user.id) {
+      toast.error("User or Tenant ID missing.")
+      return
+    }
+    toast.info(`Initiating impersonation for ${user.email}...`)
+    impersonateMutation.mutate({ tenantId: user.tenant_id, userId: user.id, reason: "Admin Support" })
   }
   
   const handleResetPassword = (user: any) => {
-    toast.success(`Password reset email sent to ${user.email}.`)
+    if (!user.email) return
+    resetPasswordMutation.mutate(user.email)
   }
 
   const filteredUsers = useMemo(() => {

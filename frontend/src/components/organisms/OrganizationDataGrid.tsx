@@ -10,6 +10,7 @@ import api from "@/lib/api"
 import { toast } from "sonner"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
 import { OrganizationDetailsDrawer } from "./OrganizationDetailsDrawer"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 export function OrganizationDataGrid() {
   const [tenants, setTenants] = useState<any[]>([])
@@ -23,6 +24,21 @@ export function OrganizationDataGrid() {
   // Drawer State
   const [selectedTenant, setSelectedTenant] = useState<any>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ tenantId, isActive }: { tenantId: string, isActive: boolean }) => {
+      const res = await api.patch(`/admin/tenants/${tenantId}/status`, { is_active: isActive })
+      return res.data
+    },
+    onSuccess: (data, variables) => {
+      toast.success(`Organization ${variables.isActive ? 'activated' : 'suspended'} successfully.`)
+      // Optimistically update local state so we don't have to refetch immediately, or just invalidate
+      setTenants(prev => (Array.isArray(prev) ? prev : []).map(t => t.id === variables.tenantId ? { ...t, is_active: variables.isActive } : t))
+      queryClient.invalidateQueries({ queryKey: ['admin-global-kpis'] })
+    },
+    onError: () => toast.error("Failed to update organization status.")
+  })
 
   useEffect(() => {
     fetchTenants()
@@ -42,16 +58,9 @@ export function OrganizationDataGrid() {
     }
   }
 
-  const handleToggleStatus = async (tenantId: string, currentStatus: boolean, e: React.MouseEvent) => {
+  const handleToggleStatus = (tenantId: string, currentStatus: boolean, e: React.MouseEvent) => {
     e.stopPropagation()
-    try {
-      const newStatus = !currentStatus
-      await api.patch(`/admin/tenants/${tenantId}/status`, { is_active: newStatus })
-      setTenants(prev => (Array.isArray(prev) ? prev : []).map(t => t.id === tenantId ? { ...t, is_active: newStatus } : t))
-      toast.success(`Organization ${newStatus ? 'activated' : 'suspended'} successfully.`)
-    } catch (error) {
-      toast.error("Failed to update organization status.")
-    }
+    toggleStatusMutation.mutate({ tenantId, isActive: !currentStatus })
   }
 
   const handleViewDetails = (tenant: any) => {

@@ -81,24 +81,24 @@ export function AiProviderAnalytics() {
         
         <Tabs value={burnTab} onValueChange={setBurnTab} className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="tokens">Token Burn</TabsTrigger>
+            <TabsTrigger value="requests">Request Burn</TabsTrigger>
             <TabsTrigger value="cost">Cost Burn</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="tokens" className="h-[300px]">
+          <TabsContent value="requests" className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData.data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorTokens" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={10} minTickGap={30} />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={10} minTickGap={30} />
                 <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <Tooltip />
-                <Area type="monotone" dataKey="tokens" stroke="#10b981" fillOpacity={1} fill="url(#colorTokens)" />
+                <Area type="monotone" dataKey="requests" stroke="#10b981" fillOpacity={1} fill="url(#colorRequests)" />
               </AreaChart>
             </ResponsiveContainer>
           </TabsContent>
@@ -112,7 +112,7 @@ export function AiProviderAnalytics() {
                     <stop offset="95%" stopColor="#0A3A2A" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={10} minTickGap={30} />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={10} minTickGap={30} />
                 <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `$${v.toFixed(0)}`} />
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <Tooltip formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, "Cost"]} />

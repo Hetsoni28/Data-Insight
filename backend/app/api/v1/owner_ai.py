@@ -316,4 +316,75 @@ async def get_activity(
         ]
     }
 
+@router.get("/analytics-charts")
+async def get_analytics_charts(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+) -> Any:
+    """Return real data for the AI Analytics Charts (Usage, Distribution, Latency)."""
+    # 1. Usage Over Time (last 7 days, requests and cost)
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    usage_query = (
+        select(
+            func.date_trunc('day', AIUsageLog.created_at).label('day'),
+            func.count(AIUsageLog.id).label('requests'),
+            func.sum(AIUsageLog.cost_usd).label('cost')
+        )
+        .where(AIUsageLog.created_at >= seven_days_ago)
+        .group_by('day')
+        .order_by('day')
+    )
+    usage_res = await db.execute(usage_query)
+    token_usage_data = []
+    for row in usage_res.all():
+        token_usage_data.append({
+            "date": row.day.strftime("%b %d"),
+            "requests": int(row.requests),
+            "cost": float(row.cost)
+        })
 
+    # 2. Model Distribution (based on usage)
+    dist_query = (
+        select(AIModel.name, func.count(AIUsageLog.id).label('count'))
+        .join(AIUsageLog, AIUsageLog.model_id == AIModel.id)
+        .group_by(AIModel.name)
+        .order_by(desc('count'))
+        .limit(4)
+    )
+    dist_res = await db.execute(dist_query)
+    
+    colors = ['#10b981', '#8b5cf6', '#f59e0b', '#3b82f6', '#ef4444']
+    model_distribution_data = []
+    for idx, row in enumerate(dist_res.all()):
+        model_distribution_data.append({
+            "name": row.name,
+            "value": int(row.count),
+            "color": colors[idx % len(colors)]
+        })
+
+    # 3. Latency (hourly for today)
+    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    latency_query = (
+        select(
+            func.date_trunc('hour', AIUsageLog.created_at).label('hour'),
+            func.avg(AIUsageLog.latency_ms).label('p50'),
+            func.max(AIUsageLog.latency_ms).label('p99')
+        )
+        .where(AIUsageLog.created_at >= today)
+        .group_by('hour')
+        .order_by('hour')
+    )
+    latency_res = await db.execute(latency_query)
+    latency_data = []
+    for row in latency_res.all():
+        latency_data.append({
+            "time": row.hour.strftime("%H:%00"),
+            "p50": int(row.p50 or 0),
+            "p99": int(row.p99 or 0)
+        })
+
+    return {
+        "tokenUsageData": token_usage_data,
+        "modelDistributionData": model_distribution_data,
+        "latencyData": latency_data
+    }

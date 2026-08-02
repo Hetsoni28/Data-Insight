@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FeatureFlag, FeatureRollout, FeatureExperiment, FeatureOverview, featureOpsService } from '@/lib/featureOpsService';
-import { ToggleRight, Activity, PercentCircle, TestTubes, Search, Power, Zap, AlertTriangle, Users, GitMerge } from 'lucide-react';
+import { ToggleRight, Activity, PercentCircle, TestTubes, Search, Power, Zap, AlertTriangle, Users, GitMerge, X } from 'lucide-react';
 import { PaginationControls } from '@/components/molecules/PaginationControls';
 import { toast } from 'sonner';
 
@@ -19,6 +20,29 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
     const [activeTab, setActiveTab] = useState<'flags' | 'rollouts' | 'experiments'>('flags');
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [newFlagData, setNewFlagData] = useState({ key: '', name: '', description: '', environment: 'production' });
+
+    const createFeatureMutation = useMutation({
+        mutationFn: featureOpsService.createFeature,
+        onSuccess: () => {
+            toast.success("Feature flag created successfully!");
+            refetchFeatures();
+            setIsCreateOpen(false);
+            setNewFlagData({ key: '', name: '', description: '', environment: 'production' });
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.detail || "Failed to create feature flag");
+        }
+    });
+
+    const handleCreateFlag = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newFlagData.key || !newFlagData.name) {
+            toast.error("Key and Name are required");
+            return;
+        }
+        createFeatureMutation.mutate(newFlagData);
+    };
 
     const tabs = [
         { id: 'flags', label: 'Global Flags', icon: <ToggleRight className="w-4 h-4" /> },
@@ -80,10 +104,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                             />
                         </div>
                         <button 
-                            onClick={() => {
-                                setIsCreateOpen(!isCreateOpen);
-                                toast.info('Feature flag creation coming soon — use the API for now');
-                            }}
+                            onClick={() => setIsCreateOpen(true)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isCreateOpen ? 'bg-emerald-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
                         >
                             Create Flag
@@ -115,6 +136,100 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Create Feature Flag Modal */}
+            <AnimatePresence>
+                {isCreateOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+                            onClick={() => setIsCreateOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800"
+                        >
+                            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+                                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Create Feature Flag</h3>
+                                <button
+                                    onClick={() => setIsCreateOpen(false)}
+                                    className="p-2 text-slate-400 hover:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <form onSubmit={handleCreateFlag} className="p-6 space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Flag Key</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. new_dashboard_ui"
+                                        value={newFlagData.key}
+                                        onChange={(e) => setNewFlagData({...newFlagData, key: e.target.value})}
+                                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Name</label>
+                                    <input
+                                        type="text"
+                                        placeholder="New Dashboard UI"
+                                        value={newFlagData.name}
+                                        onChange={(e) => setNewFlagData({...newFlagData, name: e.target.value})}
+                                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
+                                    <textarea
+                                        placeholder="Brief description of the feature..."
+                                        value={newFlagData.description}
+                                        onChange={(e) => setNewFlagData({...newFlagData, description: e.target.value})}
+                                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none h-24"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Environment</label>
+                                    <select
+                                        value={newFlagData.environment}
+                                        onChange={(e) => setNewFlagData({...newFlagData, environment: e.target.value})}
+                                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    >
+                                        <option value="production">Production</option>
+                                        <option value="staging">Staging</option>
+                                        <option value="development">Development</option>
+                                    </select>
+                                </div>
+
+                                <div className="pt-4 flex items-center justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCreateOpen(false)}
+                                        className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={createFeatureMutation.isPending}
+                                        className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                        {createFeatureMutation.isPending ? "Creating..." : "Create Feature Flag"}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

@@ -145,3 +145,83 @@ async def get_experiments(
         })
         
     return {"experiments": experiments}
+
+class FeatureFlagCreate(BaseModel):
+    key: str
+    name: str
+    description: str | None = None
+    environment: str = "production"
+
+@router.post("")
+async def create_feature_flag(
+    payload: FeatureFlagCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+) -> Any:
+    # Check if key exists
+    existing = await db.execute(select(FeatureFlag).where(FeatureFlag.key == payload.key))
+    if existing.scalars().first():
+        raise HTTPException(status_code=400, detail="Feature flag with this key already exists")
+    
+    new_flag = FeatureFlag(
+        key=payload.key,
+        name=payload.name,
+        description=payload.description,
+        is_enabled=False,
+        environment=payload.environment
+    )
+    db.add(new_flag)
+    
+    # Audit log
+    from app.services.audit_service import AuditService
+    await AuditService.log(
+        db=db,
+        action="feature.create",
+        resource_type="feature_flag",
+        resource_id=payload.key,
+        user_id=current_user.id,
+        tenant_id=current_user.tenant_id
+    )
+    
+    await db.commit()
+    await db.refresh(new_flag)
+    
+    return {
+        "id": str(new_flag.id),
+        "key": new_flag.key,
+        "name": new_flag.name,
+        "description": new_flag.description,
+        "is_enabled": new_flag.is_enabled,
+        "environment": new_flag.environment,
+        "tags": new_flag.tags,
+        "updated_at": new_flag.updated_at.isoformat()
+    }
+
+@router.post("/kill-switch")
+async def trigger_kill_switch(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+) -> Any:
+    # Disable all active feature flags
+    result = await db.execute(select(FeatureFlag).where(FeatureFlag.is_enabled == True))
+    flags = result.scalars().all()
+    count = 0
+    for flag in flags:
+        flag.is_enabled = False
+        flag.updated_at = datetime.now(timezone.utc)
+        count += 1
+        
+    # Audit log
+    from app.services.audit_service import AuditService
+    await AuditService.log(
+        db=db,
+        action="feature.kill_switch",
+        resource_type="feature_flag",
+        resource_id="all",
+        user_id=current_user.id,
+        tenant_id=current_user.tenant_id,
+        extra_metadata={"disabled_count": count}
+    )
+    
+    await db.commit()
+    return {"status": "success", "disabled_count": count}

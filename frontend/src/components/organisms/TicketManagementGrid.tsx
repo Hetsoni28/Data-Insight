@@ -11,6 +11,8 @@ import {
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/lib/api";
 
 interface TicketManagementGridProps {
   tickets: any[];
@@ -18,10 +20,41 @@ interface TicketManagementGridProps {
 
 export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
   const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  
+  const updateTicketMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const res = await api.patch(`/support/tickets/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['support-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['support-tickets'] });
+      toast.success("Ticket updated successfully");
+    },
+    onError: () => {
+      toast.error("Failed to update ticket");
+    }
+  });
+
+  const deleteTicketMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.delete(`/support/tickets/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['support-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['support-tickets'] });
+      toast.success("Ticket closed successfully");
+    },
+    onError: () => {
+      toast.error("Failed to close ticket");
+    }
+  });
   
   const filteredTickets = tickets?.filter(t => 
     (t.subject || "").toLowerCase().includes(search.toLowerCase()) || 
@@ -156,7 +189,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
                   <DropdownMenuItem onClick={() => toast.info(`Viewing ticket: ${ticket.subject}`)}>  
                     <Eye className="h-4 w-4 mr-2.5 text-blue-500" /> View Details
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => toast.success(`Ticket ${ticket.id} marked as resolved`)}>  
+                  <DropdownMenuItem onClick={() => updateTicketMutation.mutate({ id: ticket.id, data: { status: 'resolved' } })}>  
                     <CheckCircle2 className="h-4 w-4 mr-2.5 text-emerald-500" /> Mark as Resolved
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => toast.info(`Reassigning ticket ${ticket.id}...`)}>  
@@ -164,7 +197,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => toast.error(`Ticket ${ticket.id} closed`)}
+                    onClick={() => deleteTicketMutation.mutate(ticket.id)}
                     className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
                   >
                     <Trash2 className="h-4 w-4 mr-2.5" /> Close Ticket

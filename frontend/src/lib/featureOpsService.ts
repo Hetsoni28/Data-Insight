@@ -63,5 +63,15 @@ export const featureOpsService = {
     getExperiments: async (): Promise<FeatureExperiment[]> => {
         const response = await api.get('/owner/features/experiments');
         return response.data.experiments;
+    },
+
+    createFeature: async (data: { key: string; name: string; description: string; environment: string }): Promise<FeatureFlag> => {
+        const response = await api.post('/owner/features', data);
+        return response.data;
+    },
+
+    triggerKillSwitch: async (): Promise<{ status: string; disabled_count: number }> => {
+        const response = await api.post('/owner/features/kill-switch');
+        return response.data;
     }
 };

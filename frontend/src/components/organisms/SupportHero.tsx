@@ -2,11 +2,79 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { LifeBuoy, Plus, Megaphone, Bell, ShieldAlert } from "lucide-react";
+import { Plus, Megaphone, ShieldAlert, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/lib/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function SupportHero() {
+  const queryClient = useQueryClient();
+  const [ticketOpen, setTicketOpen] = useState(false);
+  const [incidentOpen, setIncidentOpen] = useState(false);
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
+
+  // Form states
+  const [ticketData, setTicketData] = useState({ subject: "", description: "", priority: "medium", category: "General" });
+  const [incidentData, setIncidentData] = useState({ title: "", description: "", severity: "minor" });
+  const [broadcastData, setBroadcastData] = useState({ message: "" });
+
+  const createTicket = useMutation({
+    mutationFn: async (data: typeof ticketData) => {
+      const res = await api.post("/support/tickets", data);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Support ticket created");
+      setTicketOpen(false);
+      setTicketData({ subject: "", description: "", priority: "medium", category: "General" });
+      queryClient.invalidateQueries({ queryKey: ['support-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['support-tickets'] });
+    },
+    onError: () => toast.error("Failed to create ticket")
+  });
+
+  const createIncident = useMutation({
+    mutationFn: async (data: typeof incidentData) => {
+      const res = await api.post("/support/incidents", {
+        ...data, status: "investigating"
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Platform incident reported");
+      setIncidentOpen(false);
+      setIncidentData({ title: "", description: "", severity: "minor" });
+      queryClient.invalidateQueries({ queryKey: ['support-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['support-incidents'] });
+    },
+    onError: () => toast.error("Failed to report incident")
+  });
+
+  const sendBroadcast = useMutation({
+    mutationFn: async (data: typeof broadcastData) => {
+      const res = await api.post("/support/broadcast", data);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Broadcast sent successfully");
+      setBroadcastOpen(false);
+      setBroadcastData({ message: "" });
+    },
+    onError: () => toast.error("Failed to send broadcast")
+  });
+
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -41,29 +109,173 @@ export function SupportHero() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            className="bg-white/5 border-white/10 text-white hover:bg-white/10"
-            onClick={() => toast.info("Incident reporting form will open here")}
-          >
-            <ShieldAlert className="w-4 h-4 mr-2 text-rose-400" />
-            Report Incident
-          </Button>
-          <Button 
-            variant="outline" 
-            className="bg-white/5 border-white/10 text-white hover:bg-white/10"
-            onClick={() => toast.info("Broadcast messaging modal will open here")}
-          >
-            <Megaphone className="w-4 h-4 mr-2 text-indigo-300" />
-            Broadcast
-          </Button>
-          <Button 
-            className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-none"
-            onClick={() => toast.info("Ticket creation modal will open here")}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Ticket
-          </Button>
+          
+          {/* Incident Modal */}
+          <Dialog open={incidentOpen} onOpenChange={setIncidentOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+                <ShieldAlert className="w-4 h-4 mr-2 text-rose-400" />
+                Report Incident
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+              <DialogHeader>
+                <DialogTitle>Report Platform Incident</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Incident Title</Label>
+                  <Input 
+                    value={incidentData.title} 
+                    onChange={e => setIncidentData({...incidentData, title: e.target.value})} 
+                    placeholder="e.g. API Gateway Latency" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <textarea 
+                    value={incidentData.description} 
+                    onChange={e => setIncidentData({...incidentData, description: e.target.value})}
+                    className="w-full flex min-h-[80px] rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" 
+                    placeholder="Provide details about the issue..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Severity</Label>
+                  <select 
+                    value={incidentData.severity}
+                    onChange={e => setIncidentData({...incidentData, severity: e.target.value})}
+                    className="w-full flex h-10 items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                  >
+                    <option value="minor">Minor</option>
+                    <option value="major">Major</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIncidentOpen(false)}>Cancel</Button>
+                <Button 
+                  onClick={() => createIncident.mutate(incidentData)} 
+                  disabled={!incidentData.title || createIncident.isPending}
+                  className="bg-rose-600 hover:bg-rose-700 text-white"
+                >
+                  {createIncident.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Report Incident
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Broadcast Modal */}
+          <Dialog open={broadcastOpen} onOpenChange={setBroadcastOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+                <Megaphone className="w-4 h-4 mr-2 text-indigo-300" />
+                Broadcast
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+              <DialogHeader>
+                <DialogTitle>Send Platform Broadcast</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Message</Label>
+                  <textarea 
+                    value={broadcastData.message} 
+                    onChange={e => setBroadcastData({...broadcastData, message: e.target.value})}
+                    className="w-full flex min-h-[100px] rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" 
+                    placeholder="This message will appear for all active organizations..."
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setBroadcastOpen(false)}>Cancel</Button>
+                <Button 
+                  onClick={() => sendBroadcast.mutate(broadcastData)} 
+                  disabled={!broadcastData.message || sendBroadcast.isPending}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  {sendBroadcast.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Send Broadcast
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Ticket Modal */}
+          <Dialog open={ticketOpen} onOpenChange={setTicketOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-none">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Ticket
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+              <DialogHeader>
+                <DialogTitle>Create Support Ticket</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Subject</Label>
+                  <Input 
+                    value={ticketData.subject} 
+                    onChange={e => setTicketData({...ticketData, subject: e.target.value})} 
+                    placeholder="Brief description of the issue" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <select 
+                    value={ticketData.category}
+                    onChange={e => setTicketData({...ticketData, category: e.target.value})}
+                    className="w-full flex h-10 items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                  >
+                    <option value="General">General Question</option>
+                    <option value="Billing">Billing & Subscription</option>
+                    <option value="Database">Database Connection</option>
+                    <option value="AI">AI Integration</option>
+                    <option value="IAM">User Access</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <select 
+                    value={ticketData.priority}
+                    onChange={e => setTicketData({...ticketData, priority: e.target.value})}
+                    className="w-full flex h-10 items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <textarea 
+                    value={ticketData.description} 
+                    onChange={e => setTicketData({...ticketData, description: e.target.value})}
+                    className="w-full flex min-h-[100px] rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" 
+                    placeholder="Provide as much detail as possible..."
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setTicketOpen(false)}>Cancel</Button>
+                <Button 
+                  onClick={() => createTicket.mutate(ticketData)} 
+                  disabled={!ticketData.subject || !ticketData.description || createTicket.isPending}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {createTicket.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Submit Ticket
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
         </div>
       </div>
     </div>

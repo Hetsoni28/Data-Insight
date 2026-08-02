@@ -28,7 +28,7 @@ export function SubscriptionsDataGrid() {
   const fetchSubs = async () => {
     try {
       const res = await api.get("/admin/subscriptions")
-      setSubs(res.data)
+      setSubs(Array.isArray(res.data) ? res.data : (res.data?.data || []))
     } catch (error) {
       console.error("Failed to fetch subscriptions", error)
       toast.error("Failed to load subscriptions.")
@@ -37,9 +37,14 @@ export function SubscriptionsDataGrid() {
     }
   }
 
-  const handleCancelSub = (id: string, name: string) => {
-    toast.success(`Subscription for ${name} has been marked for cancellation at the end of the billing cycle.`)
-    setSubs(subs.map(s => s.id === id ? { ...s, status: 'canceled' } : s))
+  const handleCancelSub = async (id: string, name: string) => {
+    try {
+      await api.post(`/owner/subscriptions/${id}/cancel`)
+      toast.success(`Subscription for ${name} has been marked for cancellation at the end of the billing cycle.`)
+      setSubs(subs.map(s => s.id === id ? { ...s, status: 'suspended' } : s))
+    } catch (error) {
+      toast.error("Failed to cancel subscription.")
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -140,11 +145,11 @@ export function SubscriptionsDataGrid() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52">
                       <DropdownMenuHeader title={sub.tenant_name} subtitle={`${sub.plan} · ${sub.status}`} />
-                      <DropdownMenuItem onClick={() => toast.info("Opening plan editor...")}>
+                      <DropdownMenuItem onClick={() => window.open("https://dashboard.stripe.com/test/customers", "_blank")}>
                         <Settings className="mr-2 h-4 w-4 text-slate-500 dark:text-slate-400" />
                         <span>Change Plan</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toast.info("Downloading latest invoice PDF...")}>
+                      <DropdownMenuItem onClick={() => window.open("https://dashboard.stripe.com/test/invoices", "_blank")}>
                         <FileText className="mr-2 h-4 w-4 text-slate-500 dark:text-slate-400" />
                         <span>View Invoices</span>
                       </DropdownMenuItem>

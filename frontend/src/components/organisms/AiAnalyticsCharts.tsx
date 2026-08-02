@@ -1,38 +1,13 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
+import api from "@/lib/api"
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend, LineChart, Line, PieChart, Pie, Cell
 } from "recharts"
 import { Bot, Zap, Clock, Coins, Activity } from "lucide-react"
-
-// Mock Data
-const tokenUsageData = [
-  { date: "Jul 23", gpt4: 12000, claude: 8000, llama: 2000 },
-  { date: "Jul 24", gpt4: 15000, claude: 9500, llama: 2500 },
-  { date: "Jul 25", gpt4: 18000, claude: 11000, llama: 3000 },
-  { date: "Jul 26", gpt4: 14000, claude: 9000, llama: 2100 },
-  { date: "Jul 27", gpt4: 21000, claude: 13000, llama: 4000 },
-  { date: "Jul 28", gpt4: 25000, claude: 16000, llama: 5500 },
-  { date: "Jul 29", gpt4: 32000, claude: 21000, llama: 8000 },
-]
-
-const modelDistributionData = [
-  { name: 'GPT-4o', value: 45, color: '#10b981' }, // Emerald
-  { name: 'Claude 3.5', value: 35, color: '#8b5cf6' }, // Violet
-  { name: 'Llama 3', value: 15, color: '#f59e0b' }, // Amber
-  { name: 'Other', value: 5, color: '#94a3b8' }, // Slate
-]
-
-const latencyData = [
-  { time: "00:00", p50: 240, p99: 850 },
-  { time: "04:00", p50: 230, p99: 820 },
-  { time: "08:00", p50: 280, p99: 1100 },
-  { time: "12:00", p50: 310, p99: 1450 },
-  { time: "16:00", p50: 290, p99: 1250 },
-  { time: "20:00", p50: 250, p99: 900 },
-]
 
 // Custom Tooltip for Area Chart
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -54,16 +29,42 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function AiAnalyticsCharts() {
+  const { data: chartsData, isLoading } = useQuery({
+    queryKey: ['owner-ai-analytics-charts'],
+    queryFn: async () => {
+      const res = await api.get('/owner/ai/analytics-charts');
+      return res.data;
+    }
+  });
+
+  const { data: overview } = useQuery({
+    queryKey: ['owner-ai-overview'],
+    queryFn: async () => {
+      const res = await api.get('/owner/ai/overview');
+      return res.data;
+    }
+  });
+
+  const tokenUsageData = chartsData?.tokenUsageData || [];
+  const modelDistributionData = chartsData?.modelDistributionData || [];
+  const latencyData = chartsData?.latencyData || [];
+
+  if (isLoading) {
+    return <div className="w-full h-[500px] bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
+  }
+
+  const kpis = overview?.kpis;
+
   return (
     <div className="space-y-6">
       
       {/* Top Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { title: "Total Tokens Generated", value: "1.24M", change: "+18%", icon: Zap, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { title: "Active AI Models", value: "4", change: "Stable", icon: Bot, color: "text-blue-600", bg: "bg-blue-50" },
-          { title: "Avg. Latency (p99)", value: "1,150ms", change: "-120ms", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-          { title: "Est. AI Cost", value: "$4,250", change: "+5%", icon: Coins, color: "text-purple-600", bg: "bg-purple-50" },
+          { title: "Total Monthly Requests", value: (kpis?.monthly_requests || 0).toLocaleString(), change: "+18%", icon: Zap, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { title: "Active AI Models", value: (kpis?.available_models || 0).toString(), change: "Stable", icon: Bot, color: "text-blue-600", bg: "bg-blue-50" },
+          { title: "Avg. Latency", value: `${kpis?.avg_latency_ms || 0}ms`, change: "-120ms", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+          { title: "Monthly AI Cost", value: `$${(kpis?.monthly_cost_usd || 0).toLocaleString()}`, change: "+5%", icon: Coins, color: "text-purple-600", bg: "bg-purple-50" },
         ].map((metric, idx) => (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -100,31 +101,31 @@ export function AiAnalyticsCharts() {
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Activity className="h-4 w-4 text-emerald-600" />
-                Token Usage by Model
+                API Usage (Requests & Cost)
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Daily aggregation of input + output tokens across platform.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Daily aggregation of API requests and estimated cost.</p>
             </div>
           </div>
           <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={tokenUsageData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorGpt4" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
-                  <linearGradient id="colorClaude" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
                     <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `${val / 1000}k`} />
+                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `${val > 1000 ? val / 1000 + 'k' : val}`} />
+                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `$${val}`} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="gpt4" stackId="1" stroke="#10b981" strokeWidth={2} fill="url(#colorGpt4)" />
-                <Area type="monotone" dataKey="claude" stackId="1" stroke="#8b5cf6" strokeWidth={2} fill="url(#colorClaude)" />
-                <Area type="monotone" dataKey="llama" stackId="1" stroke="#f59e0b" strokeWidth={2} fill="#f59e0b" fillOpacity={0.1} />
+                <Area yAxisId="left" type="monotone" dataKey="requests" stroke="#10b981" strokeWidth={2} fill="url(#colorRequests)" />
+                <Area yAxisId="right" type="monotone" dataKey="cost" stroke="#8b5cf6" strokeWidth={2} fill="url(#colorCost)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -180,31 +181,36 @@ export function AiAnalyticsCharts() {
             </div>
           </motion.div>
 
-          {/* Latency Line Chart */}
+          {/* Latency Chart */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
-            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm"
+            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm flex-1"
           >
-            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">API Latency</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">p50 vs p99 response times (ms).</p>
-            <div className="h-[140px]">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <Clock className="h-4 w-4 text-amber-500" />
+              API Latency (p99)
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Average response time for LLM calls today.</p>
+            <div className="h-[140px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={latencyData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={5} />
+                <LineChart data={latencyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={5} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(val) => `${val}ms`} />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '6px', fontSize: '12px', border: '1px solid #e2e8f0' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    itemStyle={{ color: '#0f172a', fontWeight: 500 }}
                   />
-                  <Line type="monotone" dataKey="p99" stroke="#ef4444" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="p50" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="p99" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="p50" stroke="#94a3b8" strokeWidth={2} dot={{ r: 0 }} activeDot={{ r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </motion.div>
-        </div>
 
+        </div>
       </div>
     </div>
   )

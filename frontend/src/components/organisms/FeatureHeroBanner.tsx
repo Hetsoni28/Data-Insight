@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ToggleRight, Activity, PercentCircle, TestTubes, Power } from 'lucide-react';
-import { FeatureOverview } from '@/lib/featureOpsService';
+import { FeatureOverview, featureOpsService } from '@/lib/featureOpsService';
 import { toast } from 'sonner';
 
 interface FeatureHeroBannerProps {
@@ -11,6 +12,20 @@ interface FeatureHeroBannerProps {
 }
 
 export function FeatureHeroBanner({ overview, isLoading }: FeatureHeroBannerProps) {
+    const queryClient = useQueryClient();
+
+    const killSwitchMutation = useMutation({
+        mutationFn: featureOpsService.triggerKillSwitch,
+        onSuccess: (data) => {
+            toast.error(`KILL SWITCH ACTIVATED: ${data.disabled_count} flags disabled`);
+            queryClient.invalidateQueries({ queryKey: ['feature-flags'] });
+            queryClient.invalidateQueries({ queryKey: ['feature-overview'] });
+        },
+        onError: () => {
+            toast.error("Failed to activate kill switch");
+        }
+    });
+
     return (
         <div className="relative overflow-hidden bg-[#0c402d] rounded-lg p-8 shadow-xl mb-8 border border-[#082f22] text-white">
             {/* Animated Particles / Glows */}
@@ -37,18 +52,21 @@ export function FeatureHeroBanner({ overview, isLoading }: FeatureHeroBannerProp
                     </p>
                 </div>
                 
-                <div 
-                    onClick={() => toast.warning('Kill Switch activated — all non-critical feature flags paused')}
-                    className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-red-500/30 backdrop-blur-md cursor-pointer hover:bg-white/10 transition-colors"
+                <button 
+                    onClick={() => killSwitchMutation.mutate()}
+                    disabled={killSwitchMutation.isPending}
+                    className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-red-500/30 backdrop-blur-md cursor-pointer hover:bg-white/10 transition-colors disabled:opacity-50 text-left"
                 >
                     <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20 border border-red-500/50 animate-pulse">
                         <Power className="h-6 w-6 text-red-400" />
                     </div>
                     <div>
                         <p className="text-sm text-white/90 font-bold uppercase tracking-widest">Kill Switch Center</p>
-                        <p className="text-xs text-white/60">0 Active Overrides</p>
+                        <p className="text-xs text-white/60">
+                            {killSwitchMutation.isPending ? "Activating..." : "0 Active Overrides"}
+                        </p>
                     </div>
-                </div>
+                </button>
             </div>
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">

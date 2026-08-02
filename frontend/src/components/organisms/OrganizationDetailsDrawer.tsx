@@ -25,7 +25,8 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
 
   const toggleStatusMutation = useMutation({
     mutationFn: async (tenantId: string) => {
-      const res = await api.post(`/owner/subscriptions/${tenantId}/toggle-status`)
+      const newStatus = !tenant?.is_active
+      const res = await api.patch(`/admin/tenants/${tenantId}/status`, { is_active: newStatus })
       return res.data
     },
     onSuccess: (data) => {
@@ -36,6 +37,16 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     },
     onError: () => toast.error("Failed to update organization status.")
   })
+  
+  const handleManagePlan = () => {
+    // In a real app, this redirects to Stripe Billing Portal or opens a plan management modal
+    toast.success("Redirecting to Stripe Billing Portal...")
+    window.open("https://dashboard.stripe.com/test/customers", "_blank")
+  }
+  
+  const handleViewInvoices = () => {
+    toast.success("Loading invoice history...")
+  }
 
   const _now = Date.now() // captured once at mount, stable via closure
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,8 +123,8 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                 <p className="text-sm text-slate-500">${tenant?.mrr}/month • Renews {renewalDate.toLocaleDateString()}</p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => toast.success("Loading invoice history...")}>View Invoices</Button>
-                <Button size="sm" onClick={() => toast.success("Redirecting to Plan Management...")}>Manage Plan</Button>
+                <Button variant="outline" size="sm" onClick={handleViewInvoices}>View Invoices</Button>
+                <Button size="sm" onClick={handleManagePlan}>Manage Plan</Button>
               </div>
             </div>
           </div>
