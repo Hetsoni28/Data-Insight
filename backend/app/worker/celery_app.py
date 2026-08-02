@@ -11,8 +11,6 @@ celery_app = Celery(
         "app.worker.tasks.dataset_tasks",
         "app.worker.tasks.report_tasks",
         "app.worker.tasks.email_tasks",
-        "app.worker.tasks.ai_tasks",
-        "app.worker.tasks.excel_tasks",
     ],
 )
 
@@ -39,16 +37,12 @@ celery_app.conf.update(
         "app.worker.tasks.dataset_tasks.*": {"rate_limit": "20/m"},
         "app.worker.tasks.report_tasks.*": {"rate_limit": "5/m"},
         "app.worker.tasks.email_tasks.*": {"rate_limit": "30/m"},
-        "app.worker.tasks.ai_tasks.*": {"rate_limit": "10/m"},
-        "app.worker.tasks.excel_tasks.*": {"rate_limit": "5/m"},
     },
     # Routing — separate queues per workload type
     task_routes={
         "app.worker.tasks.dataset_tasks.*": {"queue": "datasets"},
         "app.worker.tasks.report_tasks.*": {"queue": "reports"},
         "app.worker.tasks.email_tasks.*": {"queue": "emails"},
-        "app.worker.tasks.ai_tasks.*": {"queue": "ai"},
-        "app.worker.tasks.excel_tasks.*": {"queue": "reports"},
     },
 )
 
