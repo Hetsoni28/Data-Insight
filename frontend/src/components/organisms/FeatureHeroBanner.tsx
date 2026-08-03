@@ -106,7 +106,7 @@ export function FeatureHeroBanner({ overview, isLoading }: FeatureHeroBannerProp
 
 function MetricCard({ title, value, icon, isLoading, trend }: { title: string; value?: number; icon: React.ReactNode; isLoading: boolean; trend: string }) {
     return (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-sm flex flex-col justify-between hover:bg-white/10 transition-colors">
+        <div className="bg-white/5 border border-white/10 rounded-none p-4 backdrop-blur-sm flex flex-col justify-between hover:bg-white/10 transition-colors">
             <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium text-white/70">{title}</p>
                 {icon}

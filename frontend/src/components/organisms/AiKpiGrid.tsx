@@ -22,7 +22,7 @@ export function AiKpiGrid() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Skeleton key={i} className="h-32 rounded-xl" />
+          <Skeleton key={i} className="h-32 rounded-none" />
         ))}
       </div>
     );
@@ -30,7 +30,7 @@ export function AiKpiGrid() {
 
   if (isError || !data) {
     return (
-      <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 p-4 rounded-xl mb-8 flex items-center">
+      <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 p-4 rounded-none mb-8 flex items-center">
         <AlertCircle className="w-5 h-5 mr-2" />
         Failed to load AI operations data. Please check connection.
       </div>
@@ -90,7 +90,7 @@ export function AiKpiGrid() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: idx * 0.05 }}
-          className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden"
+          className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-none p-5 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden"
         >
           {/* Subtle background glow effect on hover */}
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-2xl" />

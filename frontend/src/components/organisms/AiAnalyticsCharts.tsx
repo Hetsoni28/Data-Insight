@@ -86,7 +86,7 @@ export function AiAnalyticsCharts() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
             key={idx} 
-            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm"
+            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-none p-5 shadow-sm"
           >
             <div className="flex justify-between items-start mb-4">
               <div className={`p-2.5 rounded-md ${metric.bg}`}>

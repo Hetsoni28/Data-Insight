@@ -70,7 +70,7 @@ export function StorageLiveKpis({ overview }: StorageLiveKpisProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card, i) => (
-        <div key={i} className="group relative bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div key={i} className="group relative bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-none p-6 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
           
           <div className="flex justify-between items-start mb-4">
             <div className="space-y-1">

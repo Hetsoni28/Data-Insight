@@ -21,7 +21,7 @@ export function RevenueKpiGrid() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array(8).fill(0).map((_, i) => (
-          <Skeleton key={i} className="h-32 w-full rounded-xl" />
+          <Skeleton key={i} className="h-32 w-full rounded-none" />
         ))}
       </div>
     )
@@ -45,7 +45,7 @@ export function RevenueKpiGrid() {
         return (
           <div 
             key={index} 
-            className="group p-5 rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 hover:shadow-lg transition-all duration-300 relative overflow-hidden flex flex-col justify-between"
+            className="group p-5 rounded-none border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 hover:shadow-lg transition-all duration-300 relative overflow-hidden flex flex-col justify-between"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500/5 to-transparent dark:from-emerald-500/10 rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
             

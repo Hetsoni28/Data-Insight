@@ -438,3 +438,101 @@ async def get_analytics_charts(
         "modelDistributionData": model_distribution_data,
         "latencyData": latency_data
     }
+
+
+# ─── OWNER AI COMMAND CENTER ENDPOINTS (GEMINI POWERED) ─────────────────────
+
+from fastapi.responses import StreamingResponse
+from fastapi import UploadFile, File, Form
+from pydantic import BaseModel
+from app.services.gemini_service import GeminiService
+
+class OwnerChatRequest(BaseModel):
+    question: str
+    history: List[Dict[str, str]]
+    model: str = "gemini-2.5-flash"
+
+@router.post("/chat")
+async def owner_copilot_chat(
+    body: OwnerChatRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+):
+    """Streams Gemini response with live PostgreSQL platform context injected."""
+    gemini_svc = GeminiService()
+    context = await gemini_svc.get_platform_context(db)
+    
+    async def stream_generator():
+        import json
+        async for chunk in gemini_svc.generate_chat_stream(
+            question=body.question,
+            history=body.history,
+            platform_context=context,
+            model=body.model
+        ):
+            yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+            
+    return StreamingResponse(stream_generator(), media_type="text/event-stream")
+
+
+@router.post("/analyze")
+async def owner_copilot_analyze(
+    file: UploadFile = File(...),
+    question: str = Form(...),
+    model: str = Form("gemini-2.5-flash"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+):
+    """Multi-modal analysis for files/images combining platform stats."""
+    gemini_svc = GeminiService()
+    context = await gemini_svc.get_platform_context(db)
+    
+    file_bytes = await file.read()
+    mime_type = file.content_type
+    file_name = file.filename
+    
+    response = await gemini_svc.analyze_file(
+        file_bytes=file_bytes,
+        file_name=file_name,
+        mime_type=mime_type,
+        question=question,
+        platform_context=context,
+        model=model
+    )
+    return {"answer": response}
+
+
+HISTORY_FILE = "scratch/owner_ai_history.json"
+
+@router.get("/history")
+async def get_owner_chat_history(
+    current_user: User = Depends(require_owner)
+):
+    """Get previous chat history for the platform owner."""
+    import os
+    import json
+    if not os.path.exists(HISTORY_FILE):
+        return {"sessions": []}
+    try:
+        with open(HISTORY_FILE, "r") as f:
+            return json.load(f)
+    except Exception:
+        return {"sessions": []}
+
+
+@router.post("/history")
+async def save_owner_chat_history(
+    history_data: Dict[str, Any],
+    current_user: User = Depends(require_owner)
+):
+    """Save owner chat conversations for persistence across dashboard visits."""
+    import os
+    import json
+    os.makedirs(os.path.dirname(HISTORY_FILE) or ".", exist_ok=True)
+    try:
+        with open(HISTORY_FILE, "w") as f:
+            json.dump(history_data, f, indent=2)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save history: {str(e)}")
+

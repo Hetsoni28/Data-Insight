@@ -76,7 +76,7 @@ export function MetricCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay, ease: "easeOut" }}
-      className="group relative overflow-hidden bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300"
+      className="group relative overflow-hidden bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-none p-5 hover:shadow-lg transition-all duration-300"
     >
       <div className="relative z-10 flex flex-col h-full justify-between">
         <div className="flex items-start justify-between mb-4">
