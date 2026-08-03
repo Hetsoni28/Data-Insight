@@ -241,7 +241,7 @@ export function BillingCard(props: any) {
         </div>
       </div>
       <div className="flex flex-col gap-3 justify-center">
-        <Button className="bg-slate-900 hover:bg-slate-800 text-white w-full" onClick={props.onManageClick}>Manage Subscription</Button>
+        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white w-full shadow-sm" onClick={props.onManageClick}>Manage Subscription</Button>
       </div>
     </div>
   )

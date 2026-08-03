@@ -28,13 +28,13 @@ export const AnalyticsComingSoonIllustration: React.FC = () => {
 
       {/* Main Chart Card */}
       <motion.div
-        className="relative z-10 w-32 h-24 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-3 overflow-hidden flex flex-col justify-end"
+        className="relative z-10 w-32 h-24 bg-white dark:bg-white/10 rounded-2xl shadow-xl border border-slate-200/60 dark:border-white/10 p-3 overflow-hidden flex flex-col justify-end"
         initial={{ y: 0 }}
         animate={{ y: [-4, 4, -4] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       >
         <div className="absolute top-3 left-3 flex gap-1">
-          <div className="w-8 h-2 bg-slate-200 dark:bg-slate-700 rounded-full" />
+          <div className="w-8 h-2 bg-slate-200 dark:bg-white/10 rounded-full" />
         </div>
         <svg className="w-full h-12" viewBox="0 0 100 40" preserveAspectRatio="none">
           <motion.path
@@ -57,7 +57,7 @@ export const AnalyticsComingSoonIllustration: React.FC = () => {
 
       {/* Floating KPI Cards */}
       <motion.div
-        className="absolute z-20 top-4 right-2 w-16 h-12 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-2 flex flex-col items-center justify-center"
+        className="absolute z-20 top-4 right-2 w-16 h-12 bg-white dark:bg-white/10 rounded-xl shadow-lg border border-slate-200/60 dark:border-white/10 p-2 flex flex-col items-center justify-center"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0, y: [-2, 2, -2] }}
         transition={{ opacity: { duration: 0.5 }, x: { duration: 0.5 }, y: { duration: 3, repeat: Infinity, delay: 0.5 } }}
@@ -67,7 +67,7 @@ export const AnalyticsComingSoonIllustration: React.FC = () => {
       </motion.div>
 
       <motion.div
-        className="absolute z-0 bottom-6 left-2 w-14 h-12 bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-2 flex flex-col items-center justify-center"
+        className="absolute z-0 bottom-6 left-2 w-14 h-12 bg-white dark:bg-white/10 rounded-xl shadow-md border border-slate-200/60 dark:border-white/10 p-2 flex flex-col items-center justify-center"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0, y: [2, -2, 2] }}
         transition={{ opacity: { duration: 0.5, delay: 0.2 }, x: { duration: 0.5, delay: 0.2 }, y: { duration: 3.5, repeat: Infinity, delay: 0.2 } }}

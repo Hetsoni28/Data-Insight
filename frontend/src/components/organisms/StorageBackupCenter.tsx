@@ -43,20 +43,20 @@ export function StorageBackupCenter({ backups = [] }: StorageBackupCenterProps) 
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px]">
-      <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+    <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px]">
+      <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
         <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
           <HardDrive className="h-5 w-5 text-emerald-500" />
           Backup Center
         </h3>
-        <button className="px-3 py-1.5 text-xs font-medium bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-lg transition-colors">
+        <button className="px-3 py-1.5 text-xs font-medium bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg transition-colors">
           Run Manual Backup
         </button>
       </div>
 
       <div className="overflow-y-auto p-4 flex-1 space-y-3 custom-scrollbar">
         {backups.map(backup => (
-          <div key={backup.id} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 group hover:border-emerald-500/30 transition-colors">
+          <div key={backup.id} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-emerald-500/30 transition-colors">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center gap-2">
                 {getStatusIcon(backup.status)}
@@ -78,7 +78,7 @@ export function StorageBackupCenter({ backups = [] }: StorageBackupCenterProps) 
                 <p className="mb-1 uppercase tracking-wider text-[10px] text-slate-400">Size</p>
                 <p className="font-medium text-slate-700 dark:text-slate-300">{formatBytes(backup.size_bytes)}</p>
               </div>
-              <div className="col-span-2 flex justify-between items-center pt-2 mt-2 border-t border-slate-200 dark:border-white/5">
+              <div className="col-span-2 flex justify-between items-center pt-2 mt-2 border-t border-slate-200/60 dark:border-white/10">
                 <span>Created: {new Date(backup.created_at).toLocaleDateString()}</span>
                 <button className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">Restore</button>
               </div>

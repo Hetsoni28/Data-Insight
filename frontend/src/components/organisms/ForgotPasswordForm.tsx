@@ -7,6 +7,9 @@ import { Logo } from "@/components/atoms/Logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { requestPasswordReset } from "@/lib/auth.service"
+import type { AxiosError } from "axios"
+import type { ApiError } from "@/types"
 
 type Step = "email" | "sent"
 
@@ -21,19 +24,11 @@ export function ForgotPasswordForm() {
     setError("")
     setIsLoading(true)
     try {
-      const res = await fetch("/api/v1/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.detail ?? "Something went wrong. Please try again.")
-        return
-      }
+      await requestPasswordReset({ email })
       setStep("sent")
-    } catch {
-      setError("Network error. Please try again.")
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>
+      setError(axiosErr.response?.data?.message ?? "Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
     }

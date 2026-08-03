@@ -25,10 +25,10 @@ export function PlatformGrowthChart() {
     fetchData();
   }, []);
 
-  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-white/10 animate-pulse" />
 
   if (loading) {
-    return <div className="h-full w-full bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />;
+    return <div className="h-full w-full bg-slate-100 dark:bg-white/10 rounded-2xl animate-pulse" />;
   }
 
   return (
@@ -40,9 +40,9 @@ export function PlatformGrowthChart() {
         </div>
       </div>
       
-      <div className="flex-1 min-h-[300px]">
+      <div className="h-[320px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
             <XAxis 
               dataKey="month" 

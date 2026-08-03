@@ -23,7 +23,7 @@ export function NotificationSidebar({ activeCategory, setActiveCategory, stats }
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-between
-                ${activeCategory === cat ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                ${activeCategory === cat ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'}`}
             >
               <span>{cat}</span>
               {cat === 'All' && <span className="text-xs bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">{stats?.total || 0}</span>}

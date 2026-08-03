@@ -31,7 +31,7 @@ export function DashboardUsageChart() {
     fetchUsage()
   }, [])
 
-  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />
 
   return (
     <motion.div
@@ -46,15 +46,15 @@ export function DashboardUsageChart() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <Activity className="h-4 w-4 text-emerald-600" />
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/20">
+              <Activity className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             </div>
             <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Processing Trends</h3>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400">Data rows processed by AI over the last 30 days</p>
         </div>
         <div className="text-right">
-          <p className="text-sm font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+          <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-100 dark:border-emerald-500/20">
             +{growth}% vs last month
           </p>
         </div>
@@ -62,7 +62,7 @@ export function DashboardUsageChart() {
 
       <div className="h-[280px] w-full mt-4">
         {loading ? (
-          <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+          <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />
         ) : data.length === 0 ? (
           <div className="w-full h-full flex items-center justify-center">
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">No usage data for the last 30 days</p>

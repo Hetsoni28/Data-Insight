@@ -17,8 +17,8 @@ export function TopOrganizationsTable() {
   })
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm flex flex-col h-[500px]">
-      <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+    <div className="rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm flex flex-col h-[500px]">
+      <div className="p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Crown className="w-5 h-5 text-amber-500" />
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">Top Paying Organizations</h3>
@@ -30,14 +30,14 @@ export function TopOrganizationsTable() {
 
       <div className="flex-1 overflow-auto p-0">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50/50 dark:bg-slate-900/50 sticky top-0">
+          <thead className="text-xs text-slate-500 uppercase bg-slate-50/50 dark:bg-white/[0.03] sticky top-0">
             <tr>
               <th className="px-6 py-4 font-medium">Organization</th>
               <th className="px-6 py-4 font-medium">Plan</th>
               <th className="px-6 py-4 font-medium text-right">MRR</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+          <tbody className="divide-y divide-slate-100 dark:divide-white/10">
             {isLoading ? (
               Array(5).fill(0).map((_, i) => (
                 <tr key={i}>
@@ -52,21 +52,23 @@ export function TopOrganizationsTable() {
               </tr>
             ) : (
               data?.data?.sort((a: any, b: any) => b.mrr - a.mrr).slice(0, 5).map((org: any) => (
-                <tr key={org.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer group">
+                <tr key={org.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">
                         {org.name.charAt(0)}
                       </div>
                       <div>
                         <div className="font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{org.name}</div>
-                        <div className="text-xs text-slate-500">Since {new Date(org.created_at).toLocaleDateString()}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">Since {new Date(org.created_at).toLocaleDateString()}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <Badge variant="outline" className={`
-                      ${org.plan.toLowerCase() === 'enterprise' ? 'border-purple-200 text-purple-700 bg-purple-50 dark:border-purple-900 dark:text-purple-400 dark:bg-purple-900/20' : ''}
+                      ${org.plan.toLowerCase() === 'enterprise' ? 'border-purple-200 text-purple-700 bg-purple-50 dark:border-purple-500/20 dark:text-purple-400 dark:bg-purple-500/10' : ''}
+                      ${org.plan.toLowerCase() === 'professional' || org.plan.toLowerCase() === 'pro' ? 'border-blue-200 text-blue-700 bg-blue-50 dark:border-blue-500/20 dark:text-blue-400 dark:bg-blue-500/10' : ''}
+                      ${org.plan.toLowerCase() === 'starter' || org.plan.toLowerCase() === 'free' ? 'border-slate-200 text-slate-700 bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:bg-white/5' : ''}
                     `}>
                       {org.plan.toUpperCase()}
                     </Badge>

@@ -20,14 +20,14 @@ function KpiCard({ title, value, trend, trendUp, icon: Icon, delay }: KpiCardPro
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
+      className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
     >
       <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
         <Icon className="w-16 h-16 text-emerald-500" />
       </div>
       
       <div className="flex items-start justify-between mb-4 relative z-10">
-        <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400">
+        <div className="p-2.5 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl text-slate-500 dark:text-slate-400">
           <Icon className="w-5 h-5" />
         </div>
         <span className={cn(

@@ -83,8 +83,8 @@ export function StorageBucketManagement({ buckets = [] }: StorageBucketManagemen
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px]">
-      <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+    <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px]">
+      <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
         <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
           <Database className="h-5 w-5 text-emerald-500" />
           Buckets
@@ -100,7 +100,7 @@ export function StorageBucketManagement({ buckets = [] }: StorageBucketManagemen
 
       <div className="overflow-y-auto p-4 flex-1 space-y-3 custom-scrollbar">
         {buckets.map(bucket => (
-          <div key={bucket.id} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 group hover:border-emerald-500/30 transition-colors">
+          <div key={bucket.id} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-emerald-500/30 transition-colors">
             <div className="flex justify-between items-start">
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
@@ -112,7 +112,7 @@ export function StorageBucketManagement({ buckets = [] }: StorageBucketManagemen
                   </h4>
                   <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
                     <span className="capitalize">{bucket.type.replace('_', ' ')}</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/30"></span>
                     <span>{bucket.region}</span>
                   </div>
                 </div>
@@ -157,7 +157,7 @@ export function StorageBucketManagement({ buckets = [] }: StorageBucketManagemen
               initial={{ opacity: 0, scale: 0.95, y: 10 }} 
               animate={{ opacity: 1, scale: 1, y: 0 }} 
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10"
+              className="relative bg-white dark:bg-[#0B0F17]/95 border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">

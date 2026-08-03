@@ -133,13 +133,13 @@ export function UsersDataGrid() {
   const getRoleBadge = (role: string) => {
     switch (role?.toLowerCase()) {
       case 'owner':
-        return <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold uppercase tracking-wider">Owner</span>
+        return <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 text-xs font-semibold uppercase tracking-wider">Owner</span>
       case 'org_admin':
-        return <span className="px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200 text-xs font-semibold uppercase tracking-wider">Org Admin</span>
+        return <span className="px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 text-xs font-semibold uppercase tracking-wider">Org Admin</span>
       case 'manager':
-        return <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold uppercase tracking-wider">Manager</span>
+        return <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 text-xs font-semibold uppercase tracking-wider">Manager</span>
       case 'analyst':
-        return <span className="px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold uppercase tracking-wider">Analyst</span>
+        return <span className="px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 text-xs font-semibold uppercase tracking-wider">Analyst</span>
       case 'viewer':
       default:
         return <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 text-xs font-semibold uppercase tracking-wider">Viewer</span>
@@ -148,24 +148,24 @@ export function UsersDataGrid() {
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden flex flex-col">
         {/* Toolbar */}
-        <div className="p-4 md:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="p-4 md:p-5 border-b border-slate-100 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-white/[0.02]">
           <div className="relative w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search users, emails, or orgs..." 
-              className="pl-9 h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md focus-visible:ring-blue-500 shadow-sm"
+              className="pl-9 h-10 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 dark:text-white dark:placeholder:text-slate-500 rounded-md focus-visible:ring-blue-500 shadow-sm"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 bg-white dark:bg-slate-900 shadow-sm rounded-md">
+            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 bg-white dark:bg-white/5 dark:border-white/10 shadow-sm rounded-md">
               <Filter className="h-4 w-4 mr-2" />
               Filters
             </Button>
-            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm rounded-md hidden md:flex">
+            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 shadow-sm rounded-md hidden md:flex">
               <Settings2 className="h-4 w-4 mr-2" />
               Columns
             </Button>
@@ -173,9 +173,9 @@ export function UsersDataGrid() {
         </div>
 
         {/* Data Table */}
-        <div className="overflow-x-auto min-h-[400px]">
+        <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200/60 dark:border-white/10 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">User</th>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Organization</th>
@@ -185,7 +185,7 @@ export function UsersDataGrid() {
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
               {loading ? (
                 // Loading Skeleton Rows
                 Array.from({ length: 5 }).map((_, i) => (
@@ -213,12 +213,12 @@ export function UsersDataGrid() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
                     key={user.id} 
-                    className="hover:bg-slate-50/80 transition-colors group"
+                    className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors group"
                   >
                     {/* User Info */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm">
+                        <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center border border-blue-100 dark:border-blue-500/20 shadow-sm">
                           {user.full_name ? user.full_name.charAt(0).toUpperCase() : <User className="h-5 w-5" />}
                         </div>
                         <div>
@@ -321,12 +321,12 @@ export function UsersDataGrid() {
 
       {/* User Details Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:max-w-md border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+        <SheetContent side="right" className="w-[400px] sm:max-w-md border-l border-slate-200/60 dark:border-white/10 bg-white dark:bg-[#0B0F17]">
           {selectedUser && (
             <div className="flex flex-col h-full">
               <SheetHeader className="mb-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="h-12 w-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm">
+                  <div className="h-12 w-12 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center border border-blue-100 dark:border-blue-500/20 shadow-sm">
                     {selectedUser.full_name ? selectedUser.full_name.charAt(0).toUpperCase() : <User className="h-6 w-6" />}
                   </div>
                   <div>
@@ -340,15 +340,15 @@ export function UsersDataGrid() {
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider">Overview</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10">
                       <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Status</div>
                       <div className="font-semibold text-slate-900 dark:text-white">{selectedUser.is_active ? "Active" : "Suspended"}</div>
                     </div>
-                    <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10">
                       <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Role</div>
                       <div className="font-semibold text-slate-900 dark:text-white capitalize">{selectedUser.role.replace('_', ' ')}</div>
                     </div>
-                    <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 col-span-2 flex items-center gap-3">
+                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10 col-span-2 flex items-center gap-3">
                       <Building2 className="h-5 w-5 text-slate-400" />
                       <div>
                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Organization</div>
@@ -365,10 +365,10 @@ export function UsersDataGrid() {
                     Impersonate Session
                   </Button>
                   <Button variant="outline" onClick={() => handleResetPassword(selectedUser)} className="w-full justify-start h-10 mb-2">
-                    <Key className="h-4 w-4 mr-2 text-blue-600" />
+                    <Key className="h-4 w-4 mr-2 text-emerald-600 dark:text-emerald-400" />
                     Send Password Reset
                   </Button>
-                  <Button variant="outline" onClick={() => handleToggleStatus(selectedUser.id, selectedUser.is_active)} className={`w-full justify-start h-10 ${selectedUser.is_active ? "text-rose-600 hover:text-rose-700 hover:bg-rose-50" : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"}`}>
+                  <Button variant="outline" onClick={() => handleToggleStatus(selectedUser.id, selectedUser.is_active)} className={`w-full justify-start h-10 ${selectedUser.is_active ? "text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10" : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10"}`}>
                     <Power className={`h-4 w-4 mr-2`} />
                     {selectedUser.is_active ? "Suspend User Account" : "Activate User Account"}
                   </Button>

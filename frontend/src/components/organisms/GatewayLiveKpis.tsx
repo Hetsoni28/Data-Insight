@@ -88,7 +88,7 @@ export function GatewayLiveKpis({ overview }: GatewayLiveKpisProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 + (idx * 0.05) }}
-          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-5 hover:border-emerald-500/30 transition-colors group relative overflow-hidden"
+          className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl p-5 hover:border-emerald-500/30 transition-colors group relative overflow-hidden"
         >
           {/* subtle background glow on hover */}
           <div className={`absolute -inset-1 bg-gradient-to-r from-${kpi.color}-500/0 to-${kpi.color}-500/0 group-hover:from-${kpi.color}-500/5 group-hover:to-transparent blur-xl transition-all duration-500`} />

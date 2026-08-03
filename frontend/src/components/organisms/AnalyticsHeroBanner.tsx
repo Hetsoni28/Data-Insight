@@ -71,7 +71,7 @@ export function AnalyticsHeroBanner({ onRefresh, onFilterChange }: AnalyticsHero
   const orgLabel  = ORG_OPTIONS.find((o) => o.value === orgFilter)?.label  ?? "All Orgs";
 
   return (
-    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pb-8 border-b border-slate-200 dark:border-slate-800 mb-8">
+    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pb-8 border-b border-slate-200 dark:border-white/10 mb-8">
       {/* Title */}
       <div>
         <div className="flex items-center gap-3 mb-2">
@@ -93,7 +93,7 @@ export function AnalyticsHeroBanner({ onRefresh, onFilterChange }: AnalyticsHero
         {/* Date Range Picker */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <button className="flex items-center gap-2 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-white/10 transition-colors">
               <Calendar className="h-4 w-4 text-slate-400" />
               {dateLabel}
               <ChevronDown className="h-3.5 w-3.5 text-slate-400 ml-1" />
@@ -114,7 +114,7 @@ export function AnalyticsHeroBanner({ onRefresh, onFilterChange }: AnalyticsHero
         {/* Org Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <button className="flex items-center gap-2 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-white/10 transition-colors">
               <Building2 className="h-4 w-4 text-slate-400" />
               {orgLabel}
               <ChevronDown className="h-3.5 w-3.5 text-slate-400 ml-1" />
@@ -135,7 +135,7 @@ export function AnalyticsHeroBanner({ onRefresh, onFilterChange }: AnalyticsHero
         {/* Export */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="h-[42px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm rounded-xl px-4">
+            <Button variant="outline" className="h-[42px] bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-white/10 rounded-xl px-4">
               <Download className="h-4 w-4 mr-2" />
               Export
               <ChevronDown className="h-3.5 w-3.5 ml-2 text-slate-400" />

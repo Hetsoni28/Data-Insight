@@ -80,6 +80,18 @@ export async function fetchMe(): Promise<User> {
   return data
 }
 
+/** POST /auth/forgot-password → sends reset OTP */
+export async function requestPasswordReset(payload: { email: string }): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>("/auth/forgot-password", payload)
+  return data
+}
+
+/** POST /auth/reset-password → resets password with OTP */
+export async function resetPassword(payload: { email: string; otp: string; new_password: string }): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>("/auth/reset-password", payload)
+  return data
+}
+
 /** POST /auth/logout */
 export async function logoutUser(): Promise<void> {
   await api.post("/auth/logout")

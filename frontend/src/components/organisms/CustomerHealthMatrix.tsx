@@ -43,11 +43,11 @@ function OrgActionMenu({ org }: { org: OrgHealth }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+        <button className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
           <MoreHorizontal className="h-4 w-4" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
         <DropdownMenuHeader title={org.org_name} subtitle={`${org.plan} · ${org.status}`} />
         <DropdownMenuItem onClick={() => handleAction("Email Admins", "success")}>
           <Mail className="h-4 w-4 mr-2.5 text-blue-500" />
@@ -57,7 +57,7 @@ function OrgActionMenu({ org }: { org: OrgHealth }) {
           <ExternalLink className="h-4 w-4 mr-2.5 text-slate-500" />
           View Organization
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="dark:bg-white/10" />
         <DropdownMenuItem onClick={() => handleAction("Flag At Risk", "warning")}>
           <ShieldAlert className="h-4 w-4 mr-2.5 text-amber-500" />
           Flag as At Risk
@@ -89,7 +89,7 @@ export function CustomerHealthMatrix() {
     return (
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800/50 rounded-xl animate-pulse" />
+          <div key={i} className="h-16 bg-slate-100 dark:bg-white/5 rounded-xl animate-pulse" />
         ))}
       </div>
     );
@@ -113,7 +113,7 @@ export function CustomerHealthMatrix() {
     const base = "inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold";
     if (plan.toLowerCase() === "enterprise")    return <span className={`${base} bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400`}>{plan}</span>;
     if (plan.toLowerCase() === "professional")  return <span className={`${base} bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400`}>{plan}</span>;
-    return <span className={`${base} bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400`}>{plan}</span>;
+    return <span className={`${base} bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300`}>{plan}</span>;
   };
 
   const getTrend = (trend: string) => {
@@ -149,10 +149,10 @@ export function CustomerHealthMatrix() {
           <p className="text-sm mt-1">Organizations will appear here once they sign up.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+        <div className="overflow-x-auto rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5">
           <table className="w-full text-sm text-left">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
+              <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10">
                 <th className="px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Organization</th>
                 <th className="px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Plan</th>
                 <th className="px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Health Score</th>
@@ -169,7 +169,7 @@ export function CustomerHealthMatrix() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04 }}
-                  className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50/70 dark:hover:bg-slate-800/20 transition-colors"
+                  className="border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50/70 dark:hover:bg-white/5 transition-colors"
                 >
                   <td className="px-4 py-3.5">
                     <div className="flex flex-col gap-1">

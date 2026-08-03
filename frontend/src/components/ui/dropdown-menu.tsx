@@ -233,7 +233,7 @@ export function DropdownMenuItem({
 // Separator
 // ---------------------------------------------------------------------------
 export function DropdownMenuSeparator({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("-mx-1 my-1 h-px bg-slate-200 dark:bg-slate-800", className)} {...props} />
+  return <div className={cn("-mx-1 my-1 h-px bg-slate-200 dark:bg-white/10", className)} {...props} />
 }
 
 // ---------------------------------------------------------------------------

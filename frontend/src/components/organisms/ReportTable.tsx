@@ -95,7 +95,7 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+      <div className="rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5">
         <LoadingPulse messages={["Fetching reports...", "Analyzing insights...", "Generating executive summaries..."]} />
       </div>
     );
@@ -103,7 +103,7 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
 
   if (reports.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+      <div className="rounded-xl border border-dashed border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5">
         <StateLayout
           illustration={<NoReportsIllustration />}
           headline="No Reports Yet"
@@ -125,9 +125,9 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
   }
 
   return (
-    <div className="rounded-xl border overflow-hidden">
+    <div className="rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden">
       <Table>
-        <TableHeader className="bg-muted/50">
+        <TableHeader className="bg-slate-50 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10">
           <TableRow>
             <TableHead>Report Title</TableHead>
             <TableHead>Type</TableHead>
@@ -161,7 +161,7 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-slate-500 dark:text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                    className="h-8 w-8 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
                     disabled={!report.output_url || report.status.toUpperCase() !== "READY" && report.status.toUpperCase() !== "COMPLETED"}
                     onClick={() => handleDownload(report.output_url)}
                     title="Download Report"

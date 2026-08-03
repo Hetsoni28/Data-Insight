@@ -62,5 +62,12 @@ export const storageService = {
     });
     return response.data;
   },
+
+  downloadFile: async (fileId: string) => {
+    const response = await api.get(`/owner/storage/files/${fileId}/download`, {
+      responseType: 'blob',
+    });
+    return response;
+  },
 };
 

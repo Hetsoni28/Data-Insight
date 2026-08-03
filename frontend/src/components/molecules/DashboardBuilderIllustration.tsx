@@ -14,20 +14,20 @@ export const DashboardBuilderIllustration: React.FC = () => {
       />
 
       {/* Main Canvas */}
-      <div className="relative z-10 w-40 h-32 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-2 grid grid-cols-3 grid-rows-3 gap-1 overflow-hidden">
+      <div className="relative z-10 w-40 h-32 bg-white dark:bg-white/10 rounded-xl shadow-xl border border-slate-200/60 dark:border-white/10 p-2 grid grid-cols-3 grid-rows-3 gap-1 overflow-hidden">
         {/* Static blocks */}
         <div className="bg-indigo-100 dark:bg-indigo-900/30 rounded col-span-2 row-span-1" />
-        <div className="bg-slate-100 dark:bg-slate-800 rounded col-span-1 row-span-2" />
-        <div className="bg-slate-100 dark:bg-slate-800 rounded col-span-1 row-span-1" />
+        <div className="bg-slate-100 dark:bg-white/5 rounded col-span-1 row-span-2" />
+        <div className="bg-slate-100 dark:bg-white/5 rounded col-span-1 row-span-1" />
         <div className="bg-emerald-100 dark:bg-emerald-900/30 rounded col-span-1 row-span-1" />
         
         {/* The empty slot where a block will snap into */}
-        <div className="col-span-2 row-span-1 bg-slate-50 dark:bg-slate-950 border-2 border-dashed border-indigo-200 dark:border-indigo-800/50 rounded flex items-center justify-center relative">
-          <div className="w-4 h-4 text-indigo-300 dark:text-indigo-700/50 flex items-center justify-center">+</div>
+        <div className="col-span-2 row-span-1 bg-slate-50 dark:bg-white/5 border-2 border-dashed border-emerald-200 dark:border-emerald-500/30 rounded flex items-center justify-center relative">
+          <div className="w-4 h-4 text-emerald-400 dark:text-emerald-400/60 flex items-center justify-center">+</div>
           
           {/* Snap outline effect */}
           <motion.div
-            className="absolute inset-0 border-2 border-indigo-500 rounded"
+            className="absolute inset-0 border-2 border-emerald-500 rounded"
             animate={{ opacity: [0, 0, 1, 0] }}
             transition={{ duration: 4, repeat: Infinity, times: [0, 0.45, 0.5, 0.7] }}
           />
@@ -36,7 +36,7 @@ export const DashboardBuilderIllustration: React.FC = () => {
 
       {/* Floating Block to snap */}
       <motion.div
-        className="absolute z-20 w-[6.5rem] h-9 bg-white dark:bg-slate-800 rounded shadow-lg border border-indigo-400 dark:border-indigo-600 flex items-center justify-center cursor-move"
+        className="absolute z-20 w-[6.5rem] h-9 bg-white dark:bg-white/15 rounded shadow-lg border border-emerald-400 dark:border-emerald-500 flex items-center justify-center cursor-move"
         initial={{ x: 60, y: 40, rotate: 10, scale: 1.1 }}
         animate={{ 
           x: [60, -18, -18, 60], 

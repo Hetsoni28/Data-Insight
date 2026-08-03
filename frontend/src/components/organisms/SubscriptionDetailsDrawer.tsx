@@ -39,24 +39,24 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-xl p-0 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col bg-white dark:bg-slate-900 gap-0">
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0 border-l border-slate-200/60 dark:border-white/10 shadow-2xl flex flex-col bg-white dark:bg-[#0B0F17] gap-0">
         
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+            <div className="w-16 h-16 rounded-xl bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
               <span className="text-2xl font-bold">{tenant?.name?.charAt(0)}</span>
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 {tenant?.name}
                 {tenant?.status === 'Active' ? (
-                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Active</Badge>
+                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">Active</Badge>
                 ) : (
-                  <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200">Suspended</Badge>
+                  <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">Suspended</Badge>
                 )}
               </h2>
-              <div className="flex items-center text-sm text-slate-500 mt-1 gap-4">
+              <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-1 gap-4">
                 <span className="flex items-center gap-1"><Building2 className="w-3 h-3" /> Tech / SaaS</span>
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Since {new Date(tenant?.created_at).toLocaleDateString()}</span>
               </div>
@@ -72,7 +72,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-slate-400" /> Subscription & Billing
             </h3>
-            <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="p-5 rounded-xl border border-slate-200/60 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xl font-bold text-slate-900 dark:text-white">{tenant?.plan?.toUpperCase() ?? "FREE"} Plan</span>
@@ -80,7 +80,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   ${tenant?.mrr?.toLocaleString(undefined, {minimumFractionDigits: 2}) ?? "0.00"} / {tenant?.billing_cycle ?? "monthly"}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">Next invoice processing on {renewalDate.toLocaleDateString()}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Next invoice processing on {renewalDate.toLocaleDateString()}</p>
               </div>
               <div className="flex flex-col gap-2">
                 <Button size="sm" className="bg-[#0A3A2A] hover:bg-[#06261c] text-white" onClick={() => window.open("https://dashboard.stripe.com/test/customers", "_blank")}>Manage Subscription</Button>
@@ -96,29 +96,29 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             </h3>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950">
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
                 <Users className="w-5 h-5 text-indigo-500 mb-2" />
                 <div className="text-2xl font-bold text-slate-900 dark:text-white">12<span className="text-sm font-normal text-slate-500"> / 50</span></div>
                 <div className="text-xs text-slate-500 font-medium mt-1">Seats Used</div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3">
+                <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-1.5 mt-3">
                   <div className="bg-indigo-500 h-1.5 rounded-full w-1/4" />
                 </div>
               </div>
               
-              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950">
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
                 <HardDrive className="w-5 h-5 text-sky-500 mb-2" />
                 <div className="text-2xl font-bold text-slate-900 dark:text-white">4.2<span className="text-sm font-normal text-slate-500"> / 10 GB</span></div>
                 <div className="text-xs text-slate-500 font-medium mt-1">Storage Used</div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3">
+                <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-1.5 mt-3">
                   <div className="bg-sky-500 h-1.5 rounded-full w-[42%]" />
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 col-span-2">
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5 col-span-2">
                 <Zap className="w-5 h-5 text-amber-500 mb-2" />
                 <div className="text-2xl font-bold text-slate-900 dark:text-white">45.2k<span className="text-sm font-normal text-slate-500"> / 100k</span></div>
                 <div className="text-xs text-slate-500 font-medium mt-1">AI Tokens (Current Billing Cycle)</div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3">
+                <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-1.5 mt-3">
                   <div className="bg-amber-500 h-1.5 rounded-full w-[45%]" />
                 </div>
               </div>
@@ -130,21 +130,21 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-slate-400" /> Recent Invoices
             </h3>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 divide-y divide-slate-100 dark:divide-white/10">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                <div key={i} className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded bg-slate-100 dark:bg-white/10 flex items-center justify-center">
                       <CreditCard className="w-5 h-5 text-slate-500" />
                     </div>
                     <div>
                       <div className="text-sm font-bold text-slate-900 dark:text-white">INV-{1000 + i * 237}</div>
-                      <div className="text-xs text-slate-500">{invoiceDates[i-1].toLocaleDateString()}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">{invoiceDates[i-1].toLocaleDateString()}</div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-slate-900 dark:text-white">${tenant?.mrr?.toLocaleString(undefined, {minimumFractionDigits: 2}) ?? "0.00"}</div>
-                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 mt-1">Paid</Badge>
+                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 mt-1">Paid</Badge>
                   </div>
                 </div>
               ))}
@@ -154,10 +154,10 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
         </div>
         
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 flex justify-between gap-3 mt-auto">
+        <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-[#0B0F17] flex justify-between gap-3 mt-auto">
           <Button 
             variant="outline" 
-            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+            className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 border-rose-200 dark:border-rose-500/20"
             onClick={() => {
               if (confirm("Are you sure you want to cancel this subscription? This will set MRR to $0 and suspend the account instantly.")) {
                 cancelSubscriptionMutation.mutate(tenant.id)

@@ -23,7 +23,7 @@ export function GatewayUsageCharts({ trends, errors }: GatewayUsageChartsProps) 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 lg:col-span-2 shadow-sm relative overflow-hidden"
+        className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 lg:col-span-2 shadow-sm relative overflow-hidden"
       >
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
@@ -44,13 +44,13 @@ export function GatewayUsageCharts({ trends, errors }: GatewayUsageChartsProps) 
                     <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
                 <XAxis 
                   dataKey="date" 
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fontSize: 12 }} 
-                  className="text-slate-500" 
+                  className="text-slate-500 dark:text-slate-400" 
                   dy={10} 
                   tickFormatter={(val) => {
                     const d = new Date(val);
@@ -61,15 +61,16 @@ export function GatewayUsageCharts({ trends, errors }: GatewayUsageChartsProps) 
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fontSize: 12 }} 
-                  className="text-slate-500" 
+                  className="text-slate-500 dark:text-slate-400" 
                   tickFormatter={(val) => val > 1000 ? `${(val/1000).toFixed(1)}k` : val}
                 />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'var(--tw-prose-body)', // Inherits from theme in a hacky way, but let's hardcode for safety
+                    backgroundColor: '#0B0F17',
                     borderRadius: '12px', 
                     border: '1px solid rgba(255,255,255,0.1)',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)'
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                    color: '#ffffff'
                   }}
                   itemStyle={{ color: '#10B981' }}
                 />
@@ -93,7 +94,7 @@ export function GatewayUsageCharts({ trends, errors }: GatewayUsageChartsProps) 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-sm"
+        className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 shadow-sm"
       >
         <div className="flex items-center gap-2 mb-6">
           <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-500/10 flex items-center justify-center">
@@ -106,10 +107,10 @@ export function GatewayUsageCharts({ trends, errors }: GatewayUsageChartsProps) 
           {errorData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={errorData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
                 <XAxis type="number" hide />
-                <YAxis dataKey="code" type="category" axisLine={false} tickLine={false} className="text-slate-500 font-medium text-xs" width={60} />
-                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: '#1E293B', color: '#fff' }} />
+                <YAxis dataKey="code" type="category" axisLine={false} tickLine={false} className="text-slate-500 dark:text-slate-400 font-medium text-xs" width={60} />
+                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#0B0F17', color: '#fff' }} />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>

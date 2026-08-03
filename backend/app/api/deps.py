@@ -2,7 +2,7 @@
 
 from typing import AsyncGenerator
 from contextlib import asynccontextmanager
-from fastapi import Depends, Header
+from fastapi import Depends, Header, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 from jose import jwt, JWTError
@@ -52,6 +52,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 # ─── Current User ─────────────────────────────────────────────────────────────
 async def get_current_user(
+    request: Request,
     authorization: str | None = Header(default=None),
     db: AsyncSession = Depends(get_db),
 ) -> User:
@@ -79,17 +80,83 @@ async def get_current_user(
     if not user.is_active:
         raise UnauthorizedException("Your account has been deactivated.")
 
+    # Record or touch real active user session
+    try:
+        import hashlib
+        from datetime import datetime, timezone, timedelta
+        from sqlalchemy import select
+        from app.models.user_session import UserSession
+
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        session_stmt = select(UserSession).where(UserSession.token_hash == token_hash)
+        existing_session = (await db.execute(session_stmt)).scalar_one_or_none()
+        now = datetime.now(timezone.utc)
+
+        if existing_session:
+            existing_session.last_active_at = now
+            existing_session.is_active = True
+        else:
+            user_agent = request.headers.get("user-agent", "")
+            client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
+            if "," in client_ip:
+                client_ip = client_ip.split(",")[0].strip()
+
+            device = "Desktop"
+            os_name = "Windows"
+            browser_name = "Chrome"
+            if user_agent:
+                ua = user_agent.lower()
+                if "mac" in ua:
+                    os_name = "macOS"
+                    device = "MacBook"
+                elif "android" in ua:
+                    os_name = "Android"
+                    device = "Android Device"
+                elif "iphone" in ua or "ios" in ua:
+                    os_name = "iOS"
+                    device = "iPhone"
+                elif "linux" in ua:
+                    os_name = "Linux"
+                    device = "Linux PC"
+
+                if "edg" in ua:
+                    browser_name = "Edge"
+                elif "firefox" in ua:
+                    browser_name = "Firefox"
+                elif "safari" in ua and "chrome" not in ua:
+                    browser_name = "Safari"
+                elif "chrome" in ua:
+                    browser_name = "Chrome"
+
+            new_session = UserSession(
+                user_id=user.id,
+                token_hash=token_hash,
+                device_name=device,
+                os=os_name,
+                browser=browser_name,
+                location="Localhost" if client_ip in ["127.0.0.1", "::1"] else "Remote",
+                ip_address=client_ip or "127.0.0.1",
+                user_agent=user_agent,
+                is_active=True,
+                expires_at=now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+                last_active_at=now,
+            )
+            db.add(new_session)
+        await db.commit()
+    except Exception:
+        pass
+
     return user
 
 
 async def get_current_superuser(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    """Requires the user to be a platform super-admin."""
-    if not current_user.is_superuser:
+    """Requires the user to be a platform super-admin or owner."""
+    if not (current_user.is_superuser or current_user.is_owner or current_user.role == "owner"):
         from app.core.exceptions import ForbiddenException
 
-        raise ForbiddenException("Super-admin access required.")
+        raise ForbiddenException("Super-admin or Owner access required.")
     return current_user
 
 

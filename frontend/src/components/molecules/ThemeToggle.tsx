@@ -18,12 +18,12 @@ export function ThemeToggle() {
   React.useEffect(() => setMounted(true), [])
   if (!mounted) {
     return (
-      <div className="flex p-1 bg-slate-100/50 dark:bg-[#082f22]/50 border border-slate-200/60 dark:border-emerald-900/30 rounded-xl animate-pulse h-[34px] w-[210px]" />
+      <div className="flex p-1 bg-slate-100/50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl animate-pulse h-[34px] w-[210px]" />
     )
   }
 
   return (
-    <div className="flex items-center p-1 bg-slate-100/50 dark:bg-[#082f22]/50 border border-slate-200/60 dark:border-emerald-900/30 rounded-xl shadow-inner relative">
+    <div className="flex items-center p-1 bg-slate-100/50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl shadow-inner relative">
       {options.map((option) => {
         const isActive = theme === option.value
         const Icon = option.icon
@@ -34,15 +34,15 @@ export function ThemeToggle() {
             onClick={() => setTheme(option.value)}
             className={`relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg z-10 transition-colors duration-300 ${
               isActive 
-                ? "text-emerald-900 dark:text-emerald-100" 
-                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-emerald-500/60 dark:hover:text-emerald-300"
+                ? "text-emerald-900 dark:text-emerald-300 font-semibold" 
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
             }`}
             aria-label={option.label}
           >
             {isActive && (
               <motion.div
                 layoutId="theme-toggle-active"
-                className="absolute inset-0 bg-white dark:bg-emerald-800/40 rounded-lg shadow-sm border border-slate-200/50 dark:border-emerald-700/50"
+                className="absolute inset-0 bg-white dark:bg-emerald-500/20 rounded-lg shadow-sm border border-slate-200/50 dark:border-emerald-500/30"
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             )}

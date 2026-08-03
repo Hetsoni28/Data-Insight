@@ -28,10 +28,10 @@ export function ForecastingChart() {
     fetchData();
   }, []);
 
-  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-white/10 animate-pulse" />
 
   if (loading) {
-    return <div className="h-full w-full bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />;
+    return <div className="h-full w-full bg-slate-100 dark:bg-white/10 rounded-2xl animate-pulse" />;
   }
 
   return (
@@ -49,9 +49,9 @@ export function ForecastingChart() {
         </div>
       </div>
       
-      <div className="flex-1 min-h-[300px]">
+      <div className="h-[380px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <ComposedChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
             <defs>
               <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
@@ -70,8 +70,12 @@ export function ForecastingChart() {
               axisLine={false} 
               tickLine={false} 
               tick={{ fill: 'currentColor', fontSize: 12, opacity: 0.5 }} 
-              tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-              dx={-10}
+              tickFormatter={(value) => {
+                if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
+                return `$${value}`;
+              }}
+              dx={-5}
             />
             <Tooltip
               contentStyle={{

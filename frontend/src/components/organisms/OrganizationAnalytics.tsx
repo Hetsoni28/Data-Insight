@@ -21,7 +21,7 @@ export function OrganizationAnalytics() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
-  if (!mounted) return <div className="w-full h-[320px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+  if (!mounted) return <div className="w-full h-[320px] rounded-xl bg-slate-100 dark:bg-white/10 animate-pulse" />
 
   if (isLoading) {
     return (
@@ -32,7 +32,7 @@ export function OrganizationAnalytics() {
     )
   }
 
-  const COLORS = ['#0f766e', '#0ea5e9', '#64748b'] // Emerald/Teal, Sky, Slate
+  const COLORS = ['#10b981', '#0ea5e9', '#64748b'] // Emerald, Sky, Slate
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -42,11 +42,11 @@ export function OrganizationAnalytics() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm lg:col-span-2"
+        className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/10 p-6 shadow-sm lg:col-span-2"
       >
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Organization Growth</h2>
-          <p className="text-sm text-slate-500">Total active organizations on the platform over time.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Total active organizations on the platform over time.</p>
         </div>
         
         <div className="h-[280px] w-full">
@@ -58,12 +58,12 @@ export function OrganizationAnalytics() {
                   <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
               <Tooltip 
-                contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                itemStyle={{ color: '#0f172a', fontWeight: 500 }}
+                contentStyle={{ backgroundColor: '#0B0F17', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                itemStyle={{ color: '#f8fafc', fontWeight: 500 }}
               />
               <Area 
                 type="monotone" 
@@ -85,11 +85,11 @@ export function OrganizationAnalytics() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm"
+        className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/10 p-6 shadow-sm"
       >
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Plan Distribution</h2>
-          <p className="text-sm text-slate-500">Organizations by active subscription plan.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Organizations by active subscription plan.</p>
         </div>
         
         <div className="h-[280px] w-full flex flex-col justify-center">
@@ -110,8 +110,8 @@ export function OrganizationAnalytics() {
                 ))}
               </Pie>
               <Tooltip 
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                itemStyle={{ color: '#0f172a', fontWeight: 500 }}
+                contentStyle={{ backgroundColor: '#0B0F17', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                itemStyle={{ color: '#f8fafc', fontWeight: 500 }}
               />
             </PieChart>
           </ResponsiveContainer>

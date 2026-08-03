@@ -15,7 +15,7 @@ export const AccessRestrictedIllustration: React.FC = () => {
 
       {/* Vault Core */}
       <motion.div
-        className="relative z-10 w-28 h-32 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center overflow-hidden"
+        className="relative z-10 w-28 h-32 bg-white dark:bg-white/10 rounded-2xl shadow-2xl border border-slate-200/60 dark:border-white/10 flex flex-col items-center justify-center overflow-hidden"
         initial={{ y: 0 }}
         animate={{ y: [-2, 2, -2] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -23,11 +23,11 @@ export const AccessRestrictedIllustration: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/5 to-transparent opacity-50" />
         
         {/* Vault Door Detail */}
-        <div className="absolute inset-2 border-2 border-slate-100 dark:border-slate-800 rounded-xl pointer-events-none" />
+        <div className="absolute inset-2 border-2 border-slate-100 dark:border-white/10 rounded-xl pointer-events-none" />
         
         {/* Scanner Ring */}
-        <div className="relative w-12 h-12 rounded-full border-4 border-slate-100 dark:border-slate-800 flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 bg-slate-50 dark:bg-slate-950" />
+        <div className="relative w-12 h-12 rounded-full border-4 border-slate-100 dark:border-white/10 flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-slate-50 dark:bg-white/5" />
           
           {/* Biometric Scan Line */}
           <motion.div
@@ -37,7 +37,7 @@ export const AccessRestrictedIllustration: React.FC = () => {
           />
           
           {/* Fingerprint / Lock icon outline */}
-          <svg className="w-5 h-5 text-slate-300 dark:text-slate-700 dark:text-slate-300 relative z-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-slate-300 dark:text-slate-500 relative z-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
@@ -45,7 +45,7 @@ export const AccessRestrictedIllustration: React.FC = () => {
 
       {/* Security Nodes */}
       <motion.div
-        className="absolute z-20 -right-2 top-10 w-10 h-10 bg-white dark:bg-slate-800 rounded-lg shadow-md border border-slate-200 dark:border-slate-700 p-2 flex items-center justify-center"
+        className="absolute z-20 -right-2 top-10 w-10 h-10 bg-white dark:bg-white/10 rounded-lg shadow-md border border-slate-200/60 dark:border-white/10 p-2 flex items-center justify-center"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0, y: [-2, 2, -2] }}
         transition={{ opacity: { duration: 0.5 }, x: { duration: 0.5 }, y: { duration: 3, repeat: Infinity, delay: 0.5 } }}
@@ -54,7 +54,7 @@ export const AccessRestrictedIllustration: React.FC = () => {
       </motion.div>
       
       <motion.div
-        className="absolute z-0 bottom-8 -left-4 w-12 h-10 bg-white dark:bg-slate-800 rounded-lg shadow-md border border-slate-200 dark:border-slate-700 p-2 flex items-center justify-center gap-1"
+        className="absolute z-0 bottom-8 -left-4 w-12 h-10 bg-white dark:bg-white/10 rounded-lg shadow-md border border-slate-200/60 dark:border-white/10 p-2 flex items-center justify-center gap-1"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0, y: [2, -2, 2] }}
         transition={{ opacity: { duration: 0.5 }, x: { duration: 0.5 }, y: { duration: 3.5, repeat: Infinity, delay: 0.2 } }}

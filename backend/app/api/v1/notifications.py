@@ -41,15 +41,35 @@ async def list_notifications(
     current_user: User = Depends(get_current_user)
 ):
     """List notifications for the current user and their tenant."""
-    # Build query
+    # Build query — owner/superuser sees everything platform-wide
     conditions = []
-    
-    # User can see their own notifications or tenant-wide ones if they belong to a tenant
-    if current_user.tenant_id:
-        conditions.append(or_(Notification.user_id == current_user.id, Notification.tenant_id == current_user.tenant_id))
+
+    is_owner = (
+        getattr(current_user, "is_owner", False)
+        or getattr(current_user, "is_superuser", False)
+        or getattr(current_user, "role", "") == "owner"
+    )
+
+    if is_owner:
+        # Owner sees: their own, any tenant's, AND platform-wide (tenant_id=None, user_id=None)
+        conditions.append(
+            or_(
+                Notification.user_id == current_user.id,
+                Notification.tenant_id != None,  # noqa: E711
+                Notification.tenant_id == None,  # noqa: E711 — platform-wide
+            )
+        )
+    elif current_user.tenant_id:
+        # Org users see their own + their tenant-wide notifications
+        conditions.append(
+            or_(
+                Notification.user_id == current_user.id,
+                Notification.tenant_id == current_user.tenant_id,
+            )
+        )
     else:
         conditions.append(Notification.user_id == current_user.id)
-        
+
     stmt = select(Notification).where(*conditions)
 
     if category:
@@ -80,8 +100,28 @@ async def get_notification_stats(
 ):
     """Get aggregated statistics for notifications."""
     conditions = []
-    if current_user.tenant_id:
-        conditions.append(or_(Notification.user_id == current_user.id, Notification.tenant_id == current_user.tenant_id))
+
+    is_owner = (
+        getattr(current_user, "is_owner", False)
+        or getattr(current_user, "is_superuser", False)
+        or getattr(current_user, "role", "") == "owner"
+    )
+
+    if is_owner:
+        conditions.append(
+            or_(
+                Notification.user_id == current_user.id,
+                Notification.tenant_id != None,  # noqa: E711
+                Notification.tenant_id == None,  # noqa: E711 — platform-wide
+            )
+        )
+    elif current_user.tenant_id:
+        conditions.append(
+            or_(
+                Notification.user_id == current_user.id,
+                Notification.tenant_id == current_user.tenant_id,
+            )
+        )
     else:
         conditions.append(Notification.user_id == current_user.id)
         

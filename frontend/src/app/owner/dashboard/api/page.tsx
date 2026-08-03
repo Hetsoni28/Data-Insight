@@ -117,7 +117,7 @@ export default function ApiGatewayPage() {
           <GatewaySecurityCenter security={security} />
 
           {/* Platform Health Widget */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-3xl p-6 shadow-sm">
             <h3 className="font-semibold text-slate-800 dark:text-white mb-4">Platform Health</h3>
             <div className="space-y-3">
               {[

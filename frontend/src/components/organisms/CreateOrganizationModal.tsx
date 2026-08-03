@@ -35,16 +35,16 @@ export function CreateOrganizationModal({ isOpen, onClose, onSuccess }: { isOpen
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-        <div className="p-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
+        <div className="p-6 pb-4 border-b border-slate-100 dark:border-white/10">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+              <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/20">
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
                 <DialogTitle className="text-xl">Create Organization</DialogTitle>
-                <DialogDescription className="text-slate-500">Add a new enterprise customer.</DialogDescription>
+                <DialogDescription className="text-slate-500 dark:text-slate-400">Add a new enterprise customer.</DialogDescription>
               </div>
             </div>
           </DialogHeader>
@@ -58,7 +58,7 @@ export function CreateOrganizationModal({ isOpen, onClose, onSuccess }: { isOpen
               placeholder="e.g. Acme Corp" 
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"
+              className="bg-slate-50 dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white"
             />
           </div>
           
@@ -69,7 +69,7 @@ export function CreateOrganizationModal({ isOpen, onClose, onSuccess }: { isOpen
                 <div 
                   key={plan}
                   onClick={() => setFormData({...formData, plan})}
-                  className={`border rounded-md p-2 text-center cursor-pointer transition-all text-xs font-medium uppercase tracking-wider ${formData.plan === plan ? 'border-[#0A3A2A] bg-emerald-50 text-[#0A3A2A] dark:bg-emerald-950 dark:border-emerald-500 dark:text-emerald-400' : 'border-slate-200 text-slate-500 hover:border-slate-300 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-600'}`}
+                  className={`border rounded-md p-2 text-center cursor-pointer transition-all text-xs font-medium uppercase tracking-wider ${formData.plan === plan ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:border-emerald-400 dark:text-emerald-300' : 'border-slate-200 text-slate-500 hover:border-slate-300 dark:border-white/10 dark:text-slate-400 dark:hover:border-white/20 dark:bg-white/5'}`}
                 >
                   {plan}
                 </div>
@@ -78,8 +78,8 @@ export function CreateOrganizationModal({ isOpen, onClose, onSuccess }: { isOpen
           </div>
 
           <div className="pt-4 flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>Cancel</Button>
-            <Button type="submit" disabled={loading} className="bg-[#0A3A2A] hover:bg-[#06261c] text-white">
+            <Button type="button" variant="ghost" onClick={onClose} disabled={loading} className="dark:text-slate-300 dark:hover:bg-white/10">Cancel</Button>
+            <Button type="submit" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md">
               {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
               Create Organization
             </Button>

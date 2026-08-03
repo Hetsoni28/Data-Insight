@@ -37,10 +37,10 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       whileHover={{ y: -2, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)" }}
-      className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 rounded-2xl transition-all duration-300 relative overflow-hidden"
+      className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 rounded-2xl transition-all duration-300 relative overflow-hidden"
     >
       {/* Subtle background glow effect on hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-50/50 dark:from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
       <div className="flex items-start gap-4 z-10 w-full sm:w-auto">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white shadow-sm shadow-black/5 ${gradientClass}`}>
@@ -58,12 +58,12 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
               {user.email}
             </span>
             
-            <span className="hidden sm:inline w-1 h-1 bg-slate-300 rounded-full" />
+            <span className="hidden sm:inline w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full" />
             
             <span className={`flex items-center gap-1 capitalize px-2 py-0.5 rounded-md text-xs font-medium border
-              ${user.role === 'manager' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 
-                user.role === 'org_admin' ? 'bg-orange-50 text-orange-700 border-orange-100' : 
-                'bg-emerald-50 text-emerald-700 border-emerald-100'}`}
+              ${user.role === 'manager' ? 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20' : 
+                user.role === 'org_admin' ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20' : 
+                'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'}`}
             >
               {user.role === 'manager' && <ShieldCheck className="h-3 w-3" />}
               {user.role}
@@ -84,7 +84,7 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
               variant="outline"
               size="sm"
               disabled={isProcessing}
-              className="text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 w-full sm:w-auto"
+              className="text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-300 w-full sm:w-auto"
               onClick={() => onReject?.(user.id)}
             >
               <X className="h-4 w-4 mr-1" /> Reject
@@ -103,7 +103,7 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
             variant="outline"
             size="sm"
             disabled={isProcessing}
-            className="text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors w-full sm:w-auto"
+            className="text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-400 hover:border-rose-200 dark:hover:border-rose-500/30 transition-colors w-full sm:w-auto"
             onClick={() => onRevoke?.(user.id)}
           >
             <AlertTriangle className="h-4 w-4 mr-1 opacity-70 group-hover:opacity-100" /> Revoke Access

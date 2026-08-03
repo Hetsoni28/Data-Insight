@@ -57,24 +57,24 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-xl p-0 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col bg-white dark:bg-slate-900 gap-0">
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0 border-l border-slate-200/60 dark:border-white/10 shadow-2xl flex flex-col bg-white dark:bg-[#0B0F17]/95 backdrop-blur-2xl gap-0">
         
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/5">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+            <div className="w-16 h-16 rounded-xl bg-white dark:bg-white/10 border border-slate-200/60 dark:border-white/10 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
               <span className="text-2xl font-bold text-slate-400">{tenant?.name?.charAt(0)}</span>
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 {tenant?.name}
                 {tenant?.is_active ? (
-                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Active</Badge>
+                  <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20">Active</Badge>
                 ) : (
-                  <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200">Suspended</Badge>
+                  <Badge variant="outline" className="bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20">Suspended</Badge>
                 )}
               </h2>
-              <div className="flex items-center text-sm text-slate-500 mt-1 gap-4">
+              <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-1 gap-4">
                 <span className="flex items-center gap-1"><Building2 className="w-3 h-3" /> {tenant?.industry || "Technology"}</span>
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(tenant?.created_at || 0).toLocaleDateString()}</span>
               </div>
@@ -87,25 +87,25 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
           
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+            <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
               <Users className="w-5 h-5 text-indigo-500 mb-2" />
               <div className="text-2xl font-bold text-slate-900 dark:text-white">{tenant?.active_users}/{tenant?.users_count}</div>
-              <div className="text-xs text-slate-500 font-medium">Active Users</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Users</div>
             </div>
-            <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+            <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
               <HardDrive className="w-5 h-5 text-sky-500 mb-2" />
-              <div className="text-2xl font-bold text-slate-900 dark:text-white">{tenant?.storage_used}<span className="text-sm font-normal text-slate-500">GB</span></div>
-              <div className="text-xs text-slate-500 font-medium">Storage Used</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">{tenant?.storage_used}<span className="text-sm font-normal text-slate-500 dark:text-slate-400">GB</span></div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Storage Used</div>
             </div>
-            <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+            <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
               <Zap className="w-5 h-5 text-amber-500 mb-2" />
               <div className="text-2xl font-bold text-slate-900 dark:text-white">{(tenant?.ai_requests/1000).toFixed(1)}k</div>
-              <div className="text-xs text-slate-500 font-medium">AI Requests</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">AI Requests</div>
             </div>
-            <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+            <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
               <Shield className="w-5 h-5 text-emerald-500 mb-2" />
               <div className="text-2xl font-bold text-slate-900 dark:text-white">{tenant?.security_score}</div>
-              <div className="text-xs text-slate-500 font-medium">Security Score</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Security Score</div>
             </div>
           </div>
 
@@ -114,16 +114,16 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-slate-400" /> Subscription & Billing
             </h3>
-            <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="p-5 rounded-xl border border-slate-200/60 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg font-bold text-slate-900 dark:text-white">{tenant?.plan} Plan</span>
                   <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Current</Badge>
                 </div>
-                <p className="text-sm text-slate-500">${tenant?.mrr}/month • Renews {renewalDate.toLocaleDateString()}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">${tenant?.mrr}/month • Renews {renewalDate.toLocaleDateString()}</p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleViewInvoices}>View Invoices</Button>
+                <Button variant="outline" size="sm" onClick={handleViewInvoices} className="bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300">View Invoices</Button>
                 <Button size="sm" onClick={handleManagePlan}>Manage Plan</Button>
               </div>
             </div>
@@ -134,23 +134,23 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4 text-slate-400" /> Organization Health
             </h3>
-            <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+            <div className="p-5 rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Overall Health Score</span>
                 <span className={`text-sm font-bold ${
-                  tenant?.health_score === 'Excellent' ? 'text-emerald-600' :
-                  tenant?.health_score === 'Good' ? 'text-blue-600' :
-                  tenant?.health_score === 'Needs Attention' ? 'text-amber-600' : 'text-rose-600'
+                  tenant?.health_score === 'Excellent' ? 'text-emerald-600 dark:text-emerald-400' :
+                  tenant?.health_score === 'Good' ? 'text-blue-600 dark:text-blue-400' :
+                  tenant?.health_score === 'Needs Attention' ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'
                 }`}>{tenant?.health_score}</span>
               </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
+              <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2">
                 <div className={`h-2 rounded-full ${
                   tenant?.health_score === 'Excellent' ? 'bg-emerald-500 w-full' :
                   tenant?.health_score === 'Good' ? 'bg-blue-500 w-3/4' :
                   tenant?.health_score === 'Needs Attention' ? 'bg-amber-500 w-1/2' : 'bg-rose-500 w-1/4'
                 }`} />
               </div>
-              <p className="text-xs text-slate-500 mt-3">Calculated based on active users, data volume, and AI adoption.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">Calculated based on active users, data volume, and AI adoption.</p>
             </div>
           </div>
 
@@ -163,18 +163,18 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
               {isLoading ? (
                 Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
               ) : activity?.length ? (
-                <div className="relative border-l-2 border-slate-100 dark:border-slate-800 ml-3 space-y-6">
+                <div className="relative border-l-2 border-slate-100 dark:border-white/10 ml-3 space-y-6">
                   {activity.map((item: any, i: number) => (
                     <div key={item.id} className="relative pl-6">
-                      <div className="absolute w-3 h-3 bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-full -left-[7.5px] top-1.5" />
+                      <div className="absolute w-3 h-3 bg-white dark:bg-[#0B0F17] border-2 border-emerald-500 rounded-full -left-[7.5px] top-1.5" />
                       <div className="text-sm font-medium text-slate-900 dark:text-white">{item.type}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">{item.description} by <span className="font-medium text-slate-700 dark:text-slate-300">{item.actor}</span></div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.description} by <span className="font-medium text-slate-700 dark:text-slate-300">{item.actor}</span></div>
                       <div className="text-xs text-slate-400 mt-1">{new Date(item.created_at).toLocaleString()}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-slate-500 text-center py-4">No recent activity found.</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No recent activity found.</div>
               )}
             </div>
           </div>
@@ -182,11 +182,11 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
         </div>
         
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 flex justify-between gap-3 mt-auto">
+        <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-[#0B0F17]/95 flex justify-between gap-3 mt-auto">
           {tenant?.is_active ? (
             <Button 
               variant="outline" 
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+              className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 border-rose-200 dark:border-rose-500/20"
               onClick={() => toggleStatusMutation.mutate(tenant.id)}
             >
               Suspend
@@ -194,7 +194,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
           ) : (
             <Button 
               variant="outline" 
-              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"
               onClick={() => toggleStatusMutation.mutate(tenant.id)}
             >
               Reactivate

@@ -32,7 +32,7 @@ export function NotificationDrawer({ selectedNotification, onClose, onArchive, o
         key="notification-panel"
         initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white dark:bg-white/5 shadow-2xl z-50 border-l border-slate-200 dark:border-white/10 overflow-y-auto"
+        className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white dark:bg-card shadow-2xl z-50 border-l border-slate-200/60 dark:border-white/10 overflow-y-auto"
       >
         <div className="p-6">
           <button onClick={onClose} className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors">
@@ -78,7 +78,7 @@ export function NotificationDrawer({ selectedNotification, onClose, onArchive, o
             </div>
 
             {selectedNotification.metadata_json && (
-              <div className="bg-slate-900 rounded-xl p-4 overflow-hidden">
+              <div className="bg-slate-950/80 rounded-xl p-4 overflow-hidden border border-white/10">
                 <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider flex items-center gap-2">
                   <CodeIcon className="w-4 h-4"/> Raw Payload
                 </h4>
@@ -90,11 +90,11 @@ export function NotificationDrawer({ selectedNotification, onClose, onArchive, o
 
             <div className="flex flex-col gap-3 pt-6 border-t border-slate-100 dark:border-white/5">
               {!selectedNotification.is_read && (
-                <button onClick={() => { onMarkRead(selectedNotification.id, false); onClose(); }} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors text-sm shadow-sm">
+                <button onClick={() => { onMarkRead(selectedNotification.id, false); onClose(); }} className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors text-sm shadow-sm">
                   Mark as Resolved
                 </button>
               )}
-              <button onClick={() => onArchive(selectedNotification.id)} className="w-full py-2.5 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 font-medium rounded-lg transition-colors text-sm border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-center gap-2">
+              <button onClick={() => onArchive(selectedNotification.id)} className="w-full py-2.5 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-medium rounded-lg transition-colors text-sm border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-center gap-2">
                 <Archive className="w-4 h-4"/> Archive Event
               </button>
             </div>

@@ -61,18 +61,18 @@ export function DashboardMockup() {
   }
 
   return (
-    <div className="w-full rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden bg-slate-50 dark:bg-slate-900/50 relative z-10">
+    <div className="w-full rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-2xl overflow-hidden bg-slate-50 dark:bg-white/5 relative z-10">
       {/* Browser Bar */}
-      <div className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 dark:bg-white/10 border-b">
+      <div className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 dark:bg-white/10 border-b border-slate-200/60 dark:border-white/10">
         <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
         <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
         <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
-        <div className="ml-3 flex-1 bg-white dark:bg-transparent rounded border text-[10px] text-slate-400 px-3 py-0.5 max-w-[180px] shadow-sm">app.datainsight.ai</div>
+        <div className="ml-3 flex-1 bg-white dark:bg-white/5 rounded border border-slate-200/60 dark:border-white/10 text-[10px] text-slate-400 px-3 py-0.5 max-w-[180px] shadow-sm">app.datainsight.ai</div>
       </div>
 
       <div className="flex h-[360px] sm:h-[400px] flex-col sm:flex-row">
         {/* Mobile tab bar — only visible on small screens */}
-        <div className="flex sm:hidden overflow-x-auto border-b bg-white dark:bg-transparent px-1 shrink-0">
+        <div className="flex sm:hidden overflow-x-auto border-b border-slate-200/60 dark:border-white/10 bg-white dark:bg-transparent px-1 shrink-0">
           {TABS.map(({ icon: Icon, label, id }) => {
             const active = activeTab === id
             return (
@@ -89,14 +89,14 @@ export function DashboardMockup() {
         </div>
 
         {/* Desktop Sidebar */}
-        <div className="hidden sm:flex w-36 border-r bg-white dark:bg-transparent flex-col gap-1 p-3 shrink-0">
+        <div className="hidden sm:flex w-36 border-r border-slate-200/60 dark:border-white/10 bg-white dark:bg-transparent flex-col gap-1 p-3 shrink-0">
           {TABS.map(({ icon: Icon, label, id }) => {
             const active = activeTab === id
             return (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
-                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left ${active ? "bg-[#10B981] text-white shadow-md scale-[1.02]" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50"}`}
+                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left ${active ? "bg-[#10B981] text-white shadow-md scale-[1.02]" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"}`}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
                 {label}
@@ -106,7 +106,7 @@ export function DashboardMockup() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 p-3 sm:p-4 overflow-hidden relative bg-slate-50/50 min-w-0">
+        <div className="flex-1 p-3 sm:p-4 overflow-hidden relative bg-slate-50/50 dark:bg-transparent min-w-0">
           <AnimatePresence mode="wait">
             {activeTab === "overview" && (
               <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4 h-full flex flex-col">
@@ -259,7 +259,7 @@ export function DashboardMockup() {
                       </motion.div>
                     ))}
                   </div>
-                  <form onSubmit={handleSendChat} className="p-2 border-t bg-slate-50 dark:bg-slate-900/50 flex items-center gap-2">
+                  <form onSubmit={handleSendChat} className="p-2 border-t border-slate-200/60 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex items-center gap-2">
                     <Input 
                       value={chatInput} onChange={e => setChatInput(e.target.value)}
                       placeholder="Ask any data question..." 

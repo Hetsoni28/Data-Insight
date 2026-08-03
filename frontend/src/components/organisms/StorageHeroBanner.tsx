@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { HardDrive, Search, RefreshCw, HardDriveUpload } from "lucide-react";
+import { HardDrive, Search, RefreshCw, HardDriveUpload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { storageService } from "@/lib/storageService";
@@ -13,12 +13,14 @@ type Filter = (typeof FILTERS)[number];
 interface StorageHeroBannerProps {
   onSearch: (q: string) => void;
   onRefresh: () => void;
+  isRefreshing?: boolean;
   onFilterChange?: (filter: Filter) => void;
 }
 
 export function StorageHeroBanner({
   onSearch,
   onRefresh,
+  isRefreshing = false,
   onFilterChange,
 }: StorageHeroBannerProps) {
   const queryClient = useQueryClient();
@@ -42,8 +44,19 @@ export function StorageHeroBanner({
   });
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    onSearch(e.target.value);
+    const val = e.target.value;
+    setSearch(val);
+    onSearch(val);
+  };
+
+  const handleClearSearch = () => {
+    setSearch("");
+    onSearch("");
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(search);
   };
 
   const handleFilterClick = (f: Filter) => {
@@ -104,25 +117,37 @@ export function StorageHeroBanner({
             transition={{ delay: 0.2 }}
             className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0"
           >
-            {/* Search */}
-            <div className="relative w-full sm:w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
+            {/* Search Form */}
+            <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search files, buckets…"
                 value={search}
                 onChange={handleSearch}
-                className="w-full pl-9 pr-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all backdrop-blur-md"
+                className="w-full pl-9 pr-8 py-2.5 bg-black/25 border border-white/15 hover:border-white/30 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all backdrop-blur-md"
               />
-            </div>
+              {search && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-white/50 hover:text-white rounded-full transition-colors"
+                  title="Clear search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </form>
 
             {/* Refresh */}
             <button
               onClick={onRefresh}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white rounded-xl text-sm font-medium transition-all active:scale-95"
+              disabled={isRefreshing}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/15 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed border border-white/15 text-white rounded-xl text-sm font-medium transition-all shadow-sm cursor-pointer"
+              title="Refresh all storage data"
             >
-              <RefreshCw className="h-4 w-4" />
-              <span>Refresh</span>
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin text-emerald-300" : "text-emerald-400"}`} />
+              <span>{isRefreshing ? "Refreshing…" : "Refresh"}</span>
             </button>
 
             {/* Upload */}
@@ -136,7 +161,7 @@ export function StorageHeroBanner({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadMutation.isPending}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-700 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold shadow-lg shadow-black/30 transition-all active:scale-95"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-700 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold shadow-lg shadow-black/30 transition-all active:scale-95 cursor-pointer"
             >
               {uploadMutation.isPending ? (
                 <span className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />

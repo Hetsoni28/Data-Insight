@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.10"],
   async rewrites() {
     return [
+      { source: "/api/v1/:path*", destination: "http://localhost:8000/api/v1/:path*" },
       { source: "/datasets", destination: "/owner/dashboard/datasets" },
       { source: "/reports", destination: "/owner/dashboard/reports" },
       { source: "/monitoring", destination: "/owner/dashboard/monitoring" },

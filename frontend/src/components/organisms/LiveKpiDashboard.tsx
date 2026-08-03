@@ -41,14 +41,14 @@ const KpiCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
-      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group cursor-pointer"
+      className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/10 p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group cursor-pointer"
     >
       <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
         <Icon className="w-24 h-24" />
       </div>
       
       <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 dark:bg-white/10 border border-slate-100 dark:border-white/10">
           <Icon className={`w-5 h-5 ${colorClass}`} />
         </div>
         <div className={`flex items-center text-xs font-medium px-2 py-1 rounded-full ${isPositive ? 'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10' : 'text-rose-700 bg-rose-50 dark:text-rose-400 dark:bg-rose-500/10'}`}>

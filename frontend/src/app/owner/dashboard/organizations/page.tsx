@@ -67,7 +67,7 @@ export default function OrganizationsPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button onClick={handleExportCSV} variant="outline" className="h-10 px-4 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800">
+          <Button onClick={handleExportCSV} variant="outline" className="h-10 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/10">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>

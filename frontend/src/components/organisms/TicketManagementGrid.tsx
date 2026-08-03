@@ -91,9 +91,9 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
+    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden mb-8">
       {/* Toolbar */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+      <div className="p-4 border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.03]">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mr-4">Support Queue</h2>
           <div className="relative">
@@ -103,7 +103,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
               placeholder="Search tickets, customers, or issues..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-1.5 text-sm w-64 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className="pl-9 pr-4 py-1.5 text-sm w-64 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-slate-900 dark:text-white placeholder:text-slate-400"
             />
           </div>
         </div>
@@ -111,7 +111,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
           <Button 
             variant="outline" 
             size="sm" 
-            className="h-8 text-xs border-slate-200 dark:border-slate-700"
+            className="h-8 text-xs border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10"
             onClick={() => toast.info("Filter modal will open here")}
           >
             <Filter className="w-3.5 h-3.5 mr-2" />
@@ -121,7 +121,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
       </div>
 
       {/* Grid Header */}
-      <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
         <div className="col-span-4">Subject & Requester</div>
         <div className="col-span-2">Status</div>
         <div className="col-span-2">Priority</div>
@@ -130,14 +130,14 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
       </div>
 
       {/* Grid Rows */}
-      <div className="divide-y divide-slate-100 dark:divide-slate-800">
+      <div className="divide-y divide-slate-100 dark:divide-white/5">
         {paginatedTickets?.map((ticket, i) => (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 * i }}
             key={ticket.id}
-            className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+            className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group"
             onClick={() => toast.info(`Viewing details for ticket: ${ticket.id}`)}
           >
             <div className="col-span-4 pr-4">
@@ -162,7 +162,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
 
             <div className="col-span-2">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-[10px] font-bold text-indigo-700 dark:text-indigo-400 ring-2 ring-white dark:ring-slate-900 flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-[10px] font-bold text-emerald-700 dark:text-emerald-400 ring-2 ring-white dark:ring-background flex-shrink-0">
                   {ticket.assignedTo?.charAt(0) || '?'}
                 </div>
                 <span className="text-sm text-slate-600 dark:text-slate-300 truncate">{ticket.assignedTo || 'Unassigned'}</span>

@@ -38,7 +38,7 @@ export function AiProviderAnalytics() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       {/* Provider Cost Distribution */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">Provider Intelligence</h3>
         </div>
@@ -51,24 +51,44 @@ export function AiProviderAnalytics() {
           
           <TabsContent value="cost" className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={providerData.data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                <XAxis type="number" tickFormatter={(val) => `$${val}`} />
-                <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, "Cost"]} />
-                <Bar dataKey="cost" fill="#0A3A2A" radius={[0, 4, 4, 0]} />
+              <BarChart data={providerData.data} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
+                <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} tickFormatter={(val) => `$${val}`} />
+                <YAxis dataKey="name" type="category" width={130} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)', radius: 4 }}
+                  contentStyle={{
+                    backgroundColor: '#0B0F17',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
+                  }}
+                  formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, "Cost"]} 
+                />
+                <Bar dataKey="cost" fill="#10b981" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </TabsContent>
           
           <TabsContent value="tokens" className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={providerData.data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip formatter={(value: any) => [new Intl.NumberFormat().format(Number(value || 0)), "Tokens"]} />
-                <Bar dataKey="tokens" fill="#10b981" radius={[0, 4, 4, 0]} />
+              <BarChart data={providerData.data} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
+                <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
+                <YAxis dataKey="name" type="category" width={130} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)', radius: 4 }}
+                  contentStyle={{
+                    backgroundColor: '#0B0F17',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
+                  }}
+                  formatter={(value: any) => [new Intl.NumberFormat().format(Number(value || 0)), "Tokens"]} 
+                />
+                <Bar dataKey="tokens" fill="#3b82f6" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </TabsContent>
@@ -76,7 +96,7 @@ export function AiProviderAnalytics() {
       </div>
 
       {/* Burn Rate Timeline */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-6 shadow-sm">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">30-Day Platform Burn Rate</h3>
         
         <Tabs value={burnTab} onValueChange={setBurnTab} className="w-full">
@@ -94,11 +114,19 @@ export function AiProviderAnalytics() {
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={10} minTickGap={30} />
-                <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <Tooltip />
-                <Area type="monotone" dataKey="requests" stroke="#10b981" fillOpacity={1} fill="url(#colorRequests)" />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={10} minTickGap={30} tick={{ fill: '#94a3b8' }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#94a3b8' }} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: '#0B0F17',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
+                  }}
+                />
+                <Area type="monotone" dataKey="requests" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorRequests)" />
               </AreaChart>
             </ResponsiveContainer>
           </TabsContent>
@@ -108,15 +136,24 @@ export function AiProviderAnalytics() {
               <AreaChart data={trendData.data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0A3A2A" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#0A3A2A" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={10} minTickGap={30} />
-                <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `$${v.toFixed(0)}`} />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <Tooltip formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, "Cost"]} />
-                <Area type="monotone" dataKey="cost" stroke="#0A3A2A" fillOpacity={1} fill="url(#colorCost)" />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={10} minTickGap={30} tick={{ fill: '#94a3b8' }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#94a3b8' }} tickFormatter={(v) => `$${v.toFixed(0)}`} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: '#0B0F17',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
+                  }}
+                  formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, "Cost"]} 
+                />
+                <Area type="monotone" dataKey="cost" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorCost)" />
               </AreaChart>
             </ResponsiveContainer>
           </TabsContent>

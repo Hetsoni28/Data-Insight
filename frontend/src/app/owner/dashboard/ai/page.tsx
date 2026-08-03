@@ -37,10 +37,10 @@ export default function AICopilotPage() {
   }, [activeWs?.id]);
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6 h-[calc(100vh-theme(spacing.16))] flex flex-col">
-      <div className="flex items-center justify-between shrink-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-2xl border dark:border-slate-800 shadow-sm">
+      <div className="flex items-center justify-between shrink-0 bg-white/70 dark:bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-violet-100 rounded-xl">
-            <Brain className="h-6 w-6 text-violet-600" />
+          <div className="p-3 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-xl border border-emerald-500/20">
+            <Brain className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -52,7 +52,7 @@ export default function AICopilotPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-2 rounded-xl border dark:border-slate-800 shadow-sm">
+        <div className="flex items-center gap-3 bg-white dark:bg-white/5 p-2 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm">
           <Database className="h-4 w-4 text-slate-400 ml-2" />
           {isLoading ? (
             <div className="h-9 w-48 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse"></div>
@@ -60,7 +60,7 @@ export default function AICopilotPage() {
             <select
               value={selectedDatasetId || ""}
               onChange={(e) => setSelectedDatasetId(e.target.value)}
-              className="flex h-9 w-[250px] items-center justify-between rounded-md border-0 bg-transparent px-3 py-2 text-sm font-medium focus:outline-none focus:ring-0 cursor-pointer"
+              className="flex h-9 w-[250px] items-center justify-between rounded-md border-0 bg-transparent px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-0 cursor-pointer"
               disabled={datasets.length === 0}
             >
               {datasets.length === 0 ? (

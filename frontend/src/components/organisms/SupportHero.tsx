@@ -118,7 +118,7 @@ export function SupportHero() {
                 Report Incident
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <DialogContent className="sm:max-w-md border-slate-200/60 dark:border-white/10 bg-white dark:bg-card">
               <DialogHeader>
                 <DialogTitle>Report Platform Incident</DialogTitle>
               </DialogHeader>
@@ -136,7 +136,7 @@ export function SupportHero() {
                   <textarea 
                     value={incidentData.description} 
                     onChange={e => setIncidentData({...incidentData, description: e.target.value})}
-                    className="w-full flex min-h-[80px] rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" 
+                    className="w-full flex min-h-[80px] rounded-md border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-slate-900 dark:text-white" 
                     placeholder="Provide details about the issue..."
                   />
                 </div>
@@ -145,7 +145,7 @@ export function SupportHero() {
                   <select 
                     value={incidentData.severity}
                     onChange={e => setIncidentData({...incidentData, severity: e.target.value})}
-                    className="w-full flex h-10 items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                    className="w-full flex h-10 items-center justify-between rounded-md border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white"
                   >
                     <option value="minor">Minor</option>
                     <option value="major">Major</option>
@@ -175,7 +175,7 @@ export function SupportHero() {
                 Broadcast
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <DialogContent className="sm:max-w-md border-slate-200/60 dark:border-white/10 bg-white dark:bg-card">
               <DialogHeader>
                 <DialogTitle>Send Platform Broadcast</DialogTitle>
               </DialogHeader>
@@ -185,7 +185,7 @@ export function SupportHero() {
                   <textarea 
                     value={broadcastData.message} 
                     onChange={e => setBroadcastData({...broadcastData, message: e.target.value})}
-                    className="w-full flex min-h-[100px] rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" 
+                    className="w-full flex min-h-[100px] rounded-md border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-slate-900 dark:text-white" 
                     placeholder="This message will appear for all active organizations..."
                   />
                 </div>
@@ -212,7 +212,7 @@ export function SupportHero() {
                 Create Ticket
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <DialogContent className="sm:max-w-md border-slate-200/60 dark:border-white/10 bg-white dark:bg-card">
               <DialogHeader>
                 <DialogTitle>Create Support Ticket</DialogTitle>
               </DialogHeader>
@@ -230,7 +230,7 @@ export function SupportHero() {
                   <select 
                     value={ticketData.category}
                     onChange={e => setTicketData({...ticketData, category: e.target.value})}
-                    className="w-full flex h-10 items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                    className="w-full flex h-10 items-center justify-between rounded-md border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white"
                   >
                     <option value="General">General Question</option>
                     <option value="Billing">Billing & Subscription</option>
@@ -244,7 +244,7 @@ export function SupportHero() {
                   <select 
                     value={ticketData.priority}
                     onChange={e => setTicketData({...ticketData, priority: e.target.value})}
-                    className="w-full flex h-10 items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                    className="w-full flex h-10 items-center justify-between rounded-md border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -257,7 +257,7 @@ export function SupportHero() {
                   <textarea 
                     value={ticketData.description} 
                     onChange={e => setTicketData({...ticketData, description: e.target.value})}
-                    className="w-full flex min-h-[100px] rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" 
+                    className="w-full flex min-h-[100px] rounded-md border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-slate-900 dark:text-white" 
                     placeholder="Provide as much detail as possible..."
                   />
                 </div>

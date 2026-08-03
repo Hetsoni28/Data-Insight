@@ -76,16 +76,16 @@ export function MetricCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay, ease: "easeOut" }}
-      className="group relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:shadow-lg transition-all duration-300"
+      className="group relative overflow-hidden bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300"
     >
       <div className="relative z-10 flex flex-col h-full justify-between">
         <div className="flex items-start justify-between mb-4">
           <div className={cn("p-2.5 rounded-xl", theme.bg, theme.text)}>
             {icon}
           </div>
-          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-100 dark:border-slate-700">
+          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded-md border border-slate-100 dark:border-white/10">
             <TrendIcon className={cn("h-3.5 w-3.5", isNeutral ? "text-slate-400" : isPositive ? "text-emerald-500" : "text-rose-500")} />
-            <span className={cn("text-xs font-semibold", isNeutral ? "text-slate-500" : isPositive ? "text-emerald-600" : "text-rose-600")}>
+            <span className={cn("text-xs font-semibold", isNeutral ? "text-slate-500 dark:text-slate-400" : isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
               {Math.abs(trend)}%
             </span>
           </div>
@@ -105,7 +105,7 @@ export function MetricCard({
       {sparklineData.length > 0 && (
         <div className="absolute bottom-0 left-0 right-0 h-16 opacity-20 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none">
           {!mounted ? (
-            <div className="w-full h-[64px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <div className="w-full h-[64px] rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparklineData}>

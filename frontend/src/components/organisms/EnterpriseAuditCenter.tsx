@@ -28,20 +28,20 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
     return (
         <div className="mt-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-full max-w-sm">
+                <div className="flex space-x-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl w-full max-w-sm border border-transparent dark:border-white/10">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`
                                 relative flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium rounded-lg transition-all duration-200
-                                ${activeTab === tab.id ? 'text-indigo-700 dark:text-cyan-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800'}
+                                ${activeTab === tab.id ? 'text-indigo-700 dark:text-cyan-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10'}
                             `}
                         >
                             {activeTab === tab.id && (
                                 <motion.div
                                     layoutId="auditTab"
-                                    className="absolute inset-0 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 rounded-lg"
+                                    className="absolute inset-0 bg-white dark:bg-white/10 shadow-sm border border-slate-200/60 dark:border-white/10 rounded-lg"
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
@@ -61,12 +61,12 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
                                 type="text" 
                                 placeholder="Search action, IP, ID..." 
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500" 
+                                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-900 dark:text-white placeholder:text-slate-400" 
                             />
                         </div>
                         <select 
                             onChange={(e) => setFilterModule(e.target.value)}
-                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-700 dark:text-slate-300"
+                            className="bg-white dark:bg-[#0B0F17] border border-slate-200/60 dark:border-white/10 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-700 dark:text-slate-300"
                         >
                             <option value="all">All Modules</option>
                             <option value="authentication">Authentication</option>
@@ -78,7 +78,7 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
                         </select>
                         <select 
                             onChange={(e) => setFilterSeverity(e.target.value)}
-                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-700 dark:text-slate-300"
+                            className="bg-white dark:bg-[#0B0F17] border border-slate-200/60 dark:border-white/10 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-700 dark:text-slate-300"
                         >
                             <option value="all">All Severities</option>
                             <option value="info">Info</option>
@@ -105,14 +105,14 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
                             a.download = `audit_log_export_${format(new Date(), 'yyyy-MM-dd')}.csv`;
                             a.click();
                             URL.revokeObjectURL(url);
-                        }} className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-200">
+                        }} className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-white/10 border border-slate-200/60 dark:border-white/10 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-white/20 transition-colors text-slate-700 dark:text-slate-200">
                             <Download className="w-4 h-4" /> Export
                         </button>
                     </div>
                 )}
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden min-h-[600px]">
+            <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
                 <AnimatePresence mode="wait">
                     {activeTab === 'log' && (
                         <motion.div key="log" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
@@ -161,7 +161,7 @@ function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between">
             <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10">
                     <tr>
                         <th className="p-4 font-medium text-slate-500 dark:text-slate-400">Timestamp</th>
                         <th className="p-4 font-medium text-slate-500 dark:text-slate-400">Action</th>
@@ -172,10 +172,10 @@ function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading
                         <th className="p-4 font-medium text-slate-500 dark:text-slate-400 text-right">Details</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-200/60 dark:divide-white/5">
                     {paginatedEvents.map((e) => (
                         <React.Fragment key={e.id}>
-                        <tr onClick={() => setSelectedEvent(selectedEvent === e.id ? null : e.id)} className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group ${selectedEvent === e.id ? 'bg-slate-50 dark:bg-slate-800/50' : ''}`}>
+                        <tr onClick={() => setSelectedEvent(selectedEvent === e.id ? null : e.id)} className={`hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group ${selectedEvent === e.id ? 'bg-slate-50 dark:bg-white/5' : ''}`}>
                             <td className="p-4 text-slate-600 dark:text-slate-400 font-mono text-xs">
                                 {format(new Date(e.created_at), 'yyyy-MM-dd HH:mm:ss')}
                             </td>
@@ -186,7 +186,7 @@ function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading
                                 </div>
                             </td>
                             <td className="p-4">
-                                <span className="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md text-xs font-medium border border-slate-200 dark:border-slate-700 uppercase">
+                                <span className="px-2.5 py-0.5 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-md text-xs font-medium border border-slate-200/60 dark:border-white/10 uppercase">
                                     {e.module}
                                 </span>
                             </td>
@@ -213,10 +213,10 @@ function AuditDataGrid({ events, isLoading }: { events?: AuditEvent[], isLoading
                         </tr>
                         {selectedEvent === e.id && (
                             <tr>
-                                <td colSpan={7} className="p-4 bg-slate-50 dark:bg-slate-800/20 border-b border-slate-100 dark:border-slate-800">
+                                <td colSpan={7} className="p-4 bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
                                     <div className="text-sm text-slate-600 dark:text-slate-300">
                                         <strong>Expanded Details:</strong>
-                                        <pre className="mt-2 p-2 bg-slate-100 dark:bg-slate-900 rounded overflow-auto text-xs">{JSON.stringify(e, null, 2)}</pre>
+                                        <pre className="mt-2 p-2 bg-slate-100 dark:bg-black/40 rounded overflow-auto text-xs border border-slate-200/60 dark:border-white/10">{JSON.stringify(e, null, 2)}</pre>
                                     </div>
                                 </td>
                             </tr>
@@ -253,15 +253,15 @@ function AuditTimelineView({ timeline, isLoading }: { timeline?: AuditTimelineEv
 
     return (
         <div className="flex flex-col h-full justify-between p-8">
-            <div className="max-w-3xl mx-auto border-l-2 border-slate-200 dark:border-slate-700 ml-4 md:ml-auto mb-6 w-full">
+            <div className="max-w-3xl mx-auto border-l-2 border-slate-200/60 dark:border-white/10 ml-4 md:ml-auto mb-6 w-full">
                 {paginatedTimeline.map((t, idx) => (
                     <div key={t.id} className="relative pl-8 pb-8">
                         {/* Timeline Node */}
-                        <div className={`absolute -left-[11px] top-1 h-5 w-5 rounded-full border-4 border-white dark:border-slate-900 
+                        <div className={`absolute -left-[11px] top-1 h-5 w-5 rounded-full border-4 border-white dark:border-[#0B0F17] 
                             ${t.severity === 'critical' ? 'bg-red-500' : t.severity === 'warning' ? 'bg-orange-500' : 'bg-cyan-500'}
                         `} />
                         
-                        <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-2">
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border
@@ -303,7 +303,7 @@ function LoadingState() {
     return (
         <div className="p-6 space-y-4">
             {[...Array(8)].map((_, i) => (
-                <div key={i} className="h-12 bg-slate-100 dark:bg-slate-800/50 rounded-lg animate-pulse" />
+                <div key={i} className="h-12 bg-slate-100 dark:bg-white/5 rounded-lg animate-pulse" />
             ))}
         </div>
     );

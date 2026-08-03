@@ -74,8 +74,8 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
 
   if (isLoading) {
     return (
-      <div className="mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+      <div className="mt-6 rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden">
+        <div className="p-4 border-b border-slate-200/60 dark:border-white/10">
           <Skeleton className="h-10 w-64" />
         </div>
         <div className="p-4 space-y-4">
@@ -86,14 +86,14 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
   }
 
   return (
-    <div className="mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden shadow-sm flex flex-col">
+    <div className="mt-6 rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden shadow-sm flex flex-col">
       {/* Toolbar */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+      <div className="p-4 border-b border-slate-200/60 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-white/[0.02]">
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input 
             placeholder="Search organizations or plans..." 
-            className="pl-9 h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800"
+            className="pl-9 h-10 bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 dark:text-white dark:placeholder:text-slate-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -101,13 +101,13 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
         <div className="flex items-center gap-2">
           <Button 
             variant={isFilterOpen ? "default" : "outline"}
-            className={`h-10 border-slate-200 dark:border-slate-800 ${isFilterOpen ? '' : 'text-slate-600 dark:text-slate-400'} hidden sm:flex`}
+            className={`h-10 border-slate-200/60 dark:border-white/10 ${isFilterOpen ? '' : 'text-slate-600 dark:text-slate-400'} hidden sm:flex`}
             onClick={() => setIsFilterOpen(!isFilterOpen)}
           >
             <Filter className="h-4 w-4 mr-2" />
             Advanced Filters
           </Button>
-          <Button variant="outline" className="h-10 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hidden sm:flex" onClick={() => toast.success("Exporting visible rows...")}>
+          <Button variant="outline" className="h-10 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 hidden sm:flex" onClick={() => toast.success("Exporting visible rows...")}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -116,13 +116,13 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
       
       {/* Advanced Filters Panel */}
       {isFilterOpen && (
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 flex gap-4 text-sm">
+        <div className="p-4 border-b border-slate-200/60 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex gap-4 text-sm">
             <div className="flex flex-col gap-1">
                 <label className="text-xs text-slate-500 font-medium">Plan</label>
                 <select 
                     value={planFilter}
                     onChange={(e) => setPlanFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                     <option value="All">All Plans</option>
                     <option value="Starter">Starter</option>
@@ -135,7 +135,7 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
                 <select 
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                     <option value="All">All Statuses</option>
                     <option value="Active">Active</option>
@@ -149,7 +149,7 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+          <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200/60 dark:border-white/10">
             <tr>
               <th className="px-6 py-4 font-medium"><div className="flex items-center cursor-pointer hover:text-slate-900 dark:hover:text-slate-300">Organization <ArrowUpDown className="ml-1 w-3 h-3" /></div></th>
               <th className="px-6 py-4 font-medium">Plan</th>
@@ -170,12 +170,12 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
             ) : paginatedData.map((tenant: any) => (
               <tr 
                 key={tenant.id} 
-                className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer group"
+                className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group"
                 onClick={() => setSelectedTenant(tenant)}
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
                       {tenant.name.charAt(0)}
                     </div>
                     <div>
@@ -186,8 +186,9 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
                 </td>
                 <td className="px-6 py-4">
                   <Badge variant="outline" className={`
-                    ${tenant.plan.toLowerCase() === 'enterprise' ? 'border-purple-200 text-purple-700 bg-purple-50 dark:border-purple-900 dark:text-purple-400 dark:bg-purple-900/20' : ''}
-                    ${tenant.plan.toLowerCase() === 'professional' ? 'border-blue-200 text-blue-700 bg-blue-50 dark:border-blue-900 dark:text-blue-400 dark:bg-blue-900/20' : ''}
+                    ${tenant.plan.toLowerCase() === 'enterprise' ? 'border-purple-200 text-purple-700 bg-purple-50 dark:border-purple-500/20 dark:text-purple-400 dark:bg-purple-500/10' : ''}
+                    ${tenant.plan.toLowerCase() === 'professional' || tenant.plan.toLowerCase() === 'pro' ? 'border-blue-200 text-blue-700 bg-blue-50 dark:border-blue-500/20 dark:text-blue-400 dark:bg-blue-500/10' : ''}
+                    ${tenant.plan.toLowerCase() === 'starter' || tenant.plan.toLowerCase() === 'free' ? 'border-slate-200 text-slate-700 bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:bg-white/5' : ''}
                   `}>
                     {tenant.plan.toUpperCase()}
                   </Badge>
