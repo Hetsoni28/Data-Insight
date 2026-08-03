@@ -25,6 +25,7 @@ from app.models.security import SecurityEvent, ThreatIntelligence, ComplianceRep
 from app.models.feature_flag import FeatureFlag, FeatureRollout, FeatureExperiment
 from app.models.operating_expense import OperatingExpense
 from app.models.webhook_delivery import WebhookDeliveryLog
+from app.models.chat import ChatSession, ChatMessage
 
 __all__ = [
     "User",
@@ -78,5 +79,7 @@ __all__ = [
     "FeatureRollout",
     "FeatureExperiment",
     "OperatingExpense",
-    "WebhookDeliveryLog"
+    "WebhookDeliveryLog",
+    "ChatSession",
+    "ChatMessage"
 ]

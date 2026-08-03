@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class NotificationPreferences(BaseModel):
     email_notifications: Optional[bool] = None
     push_notifications: Optional[bool] = None
+    slack_notifications: Optional[bool] = None
     security_alerts: Optional[bool] = None
     billing_alerts: Optional[bool] = None
     ai_alerts: Optional[bool] = None

@@ -1,7 +1,10 @@
 from typing import Any, List, Dict
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Form, File, UploadFile
+import json
+from typing import Optional
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, desc, asc, case
 
@@ -15,6 +18,8 @@ from app.models.ai_ops import (
     AIUsageLog,
     ProviderStatus,
 )
+from app.models.chat import ChatSession, ChatMessage
+from app.services.gemini_service import gemini_service
 
 router = APIRouter()
 
@@ -439,100 +444,144 @@ async def get_analytics_charts(
         "latencyData": latency_data
     }
 
+class ChatMessageSchema(BaseModel):
+    role: str
+    content: str
 
-# ─── OWNER AI COMMAND CENTER ENDPOINTS (GEMINI POWERED) ─────────────────────
+class Artifact(BaseModel):
+    type: str
+    title: str
+    content: str
 
-from fastapi.responses import StreamingResponse
-from fastapi import UploadFile, File, Form
-from pydantic import BaseModel
-from app.services.gemini_service import GeminiService
+class ChatResponse(BaseModel):
+    response: str
+    session_id: str
+    artifact: Optional[Artifact] = None
 
-class OwnerChatRequest(BaseModel):
-    question: str
-    history: List[Dict[str, str]]
-    model: str = "gemini-2.5-flash"
+from fastapi import Request
 
-@router.post("/chat")
-async def owner_copilot_chat(
-    body: OwnerChatRequest,
+@router.post("/chat", response_model=ChatResponse)
+async def chat_with_command_center(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ):
-    """Streams Gemini response with live PostgreSQL platform context injected."""
-    gemini_svc = GeminiService()
-    context = await gemini_svc.get_platform_context(db)
+    form = await request.form()
+    workspace_id = form.get("workspace_id")
+    message = form.get("message")
+    history = form.get("history", "[]")
+    session_id = form.get("session_id")
+    files = form.getlist("files")
     
-    async def stream_generator():
-        import json
-        async for chunk in gemini_svc.generate_chat_stream(
-            question=body.question,
-            history=body.history,
-            platform_context=context,
-            model=body.model
-        ):
-            yield f"data: {json.dumps({'chunk': chunk})}\n\n"
-            
-    return StreamingResponse(stream_generator(), media_type="text/event-stream")
+    if not workspace_id or not message:
+        raise HTTPException(status_code=422, detail="workspace_id and message are required")
 
-
-@router.post("/analyze")
-async def owner_copilot_analyze(
-    file: UploadFile = File(...),
-    question: str = Form(...),
-    model: str = Form("gemini-2.5-flash"),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_owner)
-):
-    """Multi-modal analysis for files/images combining platform stats."""
-    gemini_svc = GeminiService()
-    context = await gemini_svc.get_platform_context(db)
-    
-    file_bytes = await file.read()
-    mime_type = file.content_type
-    file_name = file.filename
-    
-    response = await gemini_svc.analyze_file(
-        file_bytes=file_bytes,
-        file_name=file_name,
-        mime_type=mime_type,
-        question=question,
-        platform_context=context,
-        model=model
-    )
-    return {"answer": response}
-
-
-HISTORY_FILE = "scratch/owner_ai_history.json"
-
-@router.get("/history")
-async def get_owner_chat_history(
-    current_user: User = Depends(require_owner)
-):
-    """Get previous chat history for the platform owner."""
-    import os
-    import json
-    if not os.path.exists(HISTORY_FILE):
-        return {"sessions": []}
     try:
-        with open(HISTORY_FILE, "r") as f:
-            return json.load(f)
+        parsed_history = json.loads(history)
     except Exception:
-        return {"sessions": []}
+        parsed_history = []
+        
+    history_dicts = [{"role": msg.get("role", "user"), "content": msg.get("content", "")} for msg in parsed_history]
+    
+    file_list = files if files is not None else []
+    
+    response_text = await gemini_service.generate_chat_response(
+        db=db,
+        tenant_id=current_user.tenant_id,
+        message=message,
+        history=history_dicts,
+        files=file_list
+    )
 
+    import uuid
+    # Handle DB Session
+    if not session_id or session_id == "undefined":
+        chat_session = ChatSession(
+            tenant_id=current_user.tenant_id,
+            user_id=current_user.id,
+            title=message[:40] + "..." if len(message) > 40 else message
+        )
+        db.add(chat_session)
+        await db.commit()
+        await db.refresh(chat_session)
+        session_uuid = chat_session.id
+        session_id_str = str(chat_session.id)
+    else:
+        session_uuid = uuid.UUID(session_id)
+        session_id_str = session_id
+        
+    # Save User Message
+    user_msg = ChatMessage(
+        session_id=session_uuid,
+        role="user",
+        content=message
+    )
+    db.add(user_msg)
+    await db.commit()
 
-@router.post("/history")
-async def save_owner_chat_history(
-    history_data: Dict[str, Any],
+    artifact = None
+    if "```json" in response_text and "artifact_type" in response_text:
+        # simple extraction
+        pass
+
+    # Save Assistant Message
+    assistant_msg = ChatMessage(
+        session_id=session_uuid,
+        role="assistant",
+        content=response_text
+    )
+    db.add(assistant_msg)
+    await db.commit()
+
+    return ChatResponse(response=response_text, session_id=session_id_str, artifact=artifact)
+
+@router.get("/chat/sessions")
+async def get_chat_sessions(
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ):
-    """Save owner chat conversations for persistence across dashboard visits."""
-    import os
-    import json
-    os.makedirs(os.path.dirname(HISTORY_FILE) or ".", exist_ok=True)
-    try:
-        with open(HISTORY_FILE, "w") as f:
-            json.dump(history_data, f, indent=2)
-        return {"status": "success"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save history: {str(e)}")
+    stmt = select(ChatSession).where(
+        ChatSession.tenant_id == current_user.tenant_id,
+        ChatSession.user_id == current_user.id
+    ).order_by(desc(ChatSession.updated_at)).limit(20)
+    result = await db.execute(stmt)
+    sessions = result.scalars().all()
+    
+    return [
+        {
+            "id": str(s.id),
+            "title": s.title,
+            "created_at": s.created_at,
+            "updated_at": s.updated_at
+        } for s in sessions
+    ]
 
+@router.get("/chat/sessions/{session_id}")
+async def get_chat_session_messages(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+):
+    # Verify ownership
+    session_stmt = select(ChatSession).where(
+        ChatSession.id == session_id,
+        ChatSession.tenant_id == current_user.tenant_id
+    )
+    result = await db.execute(session_stmt)
+    chat_session = result.scalars().first()
+    
+    if not chat_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    msg_stmt = select(ChatMessage).where(ChatMessage.session_id == session_id).order_by(asc(ChatMessage.created_at))
+    msg_result = await db.execute(msg_stmt)
+    messages = msg_result.scalars().all()
+    
+    return [
+        {
+            "id": str(m.id),
+            "role": m.role,
+            "content": m.content,
+            "created_at": m.created_at
+        } for m in messages
+    ]
