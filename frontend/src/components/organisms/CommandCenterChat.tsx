@@ -21,19 +21,19 @@ interface CommandCenterChatProps {
 }
 
 const TypingIndicator = () => (
-  <div className="flex items-center space-x-1.5 p-2 px-4 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-sm rounded-2xl rounded-tl-sm h-10 w-fit">
+  <div className="flex items-center space-x-1.5 p-2 px-4 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-sm rounded-none h-10 w-fit">
     <motion.div
-      className="w-1.5 h-1.5 bg-slate-400 rounded-full"
+      className="w-1.5 h-1.5 bg-slate-400 rounded-none"
       animate={{ y: [0, -4, 0] }}
       transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
     />
     <motion.div
-      className="w-1.5 h-1.5 bg-slate-400 rounded-full"
+      className="w-1.5 h-1.5 bg-slate-400 rounded-none"
       animate={{ y: [0, -4, 0] }}
       transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
     />
     <motion.div
-      className="w-1.5 h-1.5 bg-slate-400 rounded-full"
+      className="w-1.5 h-1.5 bg-slate-400 rounded-none"
       animate={{ y: [0, -4, 0] }}
       transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
     />
@@ -139,7 +139,7 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
       <input {...getInputProps()} />
       {isDragActive && (
         <div className="absolute inset-0 z-50 bg-emerald-500/10 backdrop-blur-sm border-2 border-emerald-500 border-dashed flex items-center justify-center">
-          <div className="bg-white dark:bg-slate-800 px-6 py-4 rounded-xl shadow-xl flex items-center gap-3">
+          <div className="bg-white dark:bg-slate-800 px-6 py-4 rounded-none shadow-xl flex items-center gap-3">
             <Paperclip className="w-6 h-6 text-emerald-500" />
             <span className="font-semibold text-emerald-600 dark:text-emerald-400">Drop files to upload</span>
           </div>
@@ -180,7 +180,7 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
                     exit={{ opacity: 0, scale: 0.9 }}
                     className="flex justify-start items-end gap-3 mt-4"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 mb-1 shadow-sm ring-1 ring-emerald-500/20 mt-1">
+                    <div className="w-8 h-8 rounded-none bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 mb-1 shadow-sm ring-1 ring-emerald-500/20 mt-1">
                       <Brain className="w-4 h-4 text-white" />
                     </div>
                     <TypingIndicator />
@@ -206,11 +206,11 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
       </AnimatePresence>
 
       <div className="w-full shrink-0 bg-gradient-to-t from-white via-white to-transparent dark:from-slate-900 dark:via-slate-900 dark:to-transparent pt-6 pb-6 px-4">
-        <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-3">
+        <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none shadow-sm p-3">
           {files.length > 0 && (
             <div className="flex gap-2 flex-wrap mb-3 px-2">
               {files.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div key={i} className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-none border border-slate-200 dark:border-slate-700 shadow-sm">
                   <FileType className="w-3 h-3 text-emerald-500" />
                   <span className="truncate max-w-[120px]">{f.name}</span>
                   <button 
@@ -218,7 +218,7 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
                       e.stopPropagation()
                       setFiles(prev => prev.filter((_, idx) => idx !== i))
                     }} 
-                    className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors ml-1"
+                    className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-none transition-colors ml-1"
                   >
                     <X className="w-3 h-3 text-slate-500" />
                   </button>
@@ -232,7 +232,7 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
                 const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
                 if (fileInput) fileInput.click()
               }}
-              className="p-3 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-colors shrink-0"
+              className="p-3 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-none transition-colors shrink-0"
               title="Attach files"
             >
               <Paperclip className="w-5 h-5" />
@@ -256,7 +256,7 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
                 handleSend()
               }}
               disabled={isTyping || (!input.trim() && files.length === 0)}
-              className="p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 shadow-sm hover:shadow-md hover:-translate-y-0.5"
+              className="p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 shadow-sm hover:shadow-md hover:-translate-y-0.5"
             >
               {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-0.5" />}
             </button>

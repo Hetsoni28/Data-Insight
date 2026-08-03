@@ -49,7 +49,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     const d = new Date(tenant.created_at)
     d.setDate(d.getDate() + 30)
     return d
-  }, [tenant?.created_at])
+  }, [tenant])
 
   if (!isOpen || !tenant) return null
 
