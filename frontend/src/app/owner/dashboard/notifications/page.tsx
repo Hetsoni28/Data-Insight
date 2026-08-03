@@ -46,12 +46,12 @@ export default function NotificationsPage() {
     });
   };
 
-  const handleTogglePref = (pref: string) => async (newState: boolean) => {
+  const handleTogglePref = (prefKey: string, label: string) => async (newState: boolean) => {
     try {
-      await NotificationService.updatePreferences({ [pref.toLowerCase()]: newState })
-      toast.success(`${pref} alerts ${newState ? "enabled" : "disabled"}.`)
+      await NotificationService.updatePreferences({ [prefKey]: newState })
+      toast.success(`${label} alerts ${newState ? "enabled" : "disabled"}.`)
     } catch {
-      toast.error(`Failed to update ${pref} preference.`)
+      toast.error(`Failed to update ${label} preference.`)
       throw new Error("API failed") // Re-throw so ActionToggle can revert
     }
   }
@@ -75,9 +75,9 @@ export default function NotificationsPage() {
 
       {activeTab === 'preferences' ? (
         <div className="grid md:grid-cols-3 gap-6">
-          <SettingCard title="Email Alerts" delay={0.1} icon={Mail} className="h-full"><ActionToggle initialState={true} onToggle={handleTogglePref('Email')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
-          <SettingCard title="Slack Notifications" delay={0.2} icon={MessageSquare} className="h-full"><ActionToggle initialState={false} onToggle={handleTogglePref('Slack')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
-          <SettingCard title="Push Notifications" delay={0.3} icon={Smartphone} className="h-full"><ActionToggle initialState={true} onToggle={handleTogglePref('Push')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
+          <SettingCard title="Email Alerts" delay={0.1} icon={Mail} className="h-full"><ActionToggle initialState={true} onToggle={handleTogglePref('email_notifications', 'Email')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
+          <SettingCard title="Slack Notifications" delay={0.2} icon={MessageSquare} className="h-full"><ActionToggle initialState={false} onToggle={handleTogglePref('slack_notifications', 'Slack')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
+          <SettingCard title="Push Notifications" delay={0.3} icon={Smartphone} className="h-full"><ActionToggle initialState={true} onToggle={handleTogglePref('push_notifications', 'Push')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
         </div>
       ) : (
         <div className="space-y-8">

@@ -1,7 +1,10 @@
 from typing import Any, List, Dict
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Form, File, UploadFile
+import json
+from typing import Optional
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, desc, asc, case
 
@@ -15,6 +18,8 @@ from app.models.ai_ops import (
     AIUsageLog,
     ProviderStatus,
 )
+from app.models.chat import ChatSession, ChatMessage
+from app.services.gemini_service import gemini_service
 
 router = APIRouter()
 
@@ -410,3 +415,145 @@ async def get_analytics_charts(
         "modelDistributionData": model_distribution_data,
         "latencyData": latency_data
     }
+
+class ChatMessageSchema(BaseModel):
+    role: str
+    content: str
+
+class Artifact(BaseModel):
+    type: str
+    title: str
+    content: str
+
+class ChatResponse(BaseModel):
+    response: str
+    session_id: str
+    artifact: Optional[Artifact] = None
+
+from fastapi import Request
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat_with_command_center(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+):
+    form = await request.form()
+    workspace_id = form.get("workspace_id")
+    message = form.get("message")
+    history = form.get("history", "[]")
+    session_id = form.get("session_id")
+    files = form.getlist("files")
+    
+    if not workspace_id or not message:
+        raise HTTPException(status_code=422, detail="workspace_id and message are required")
+
+    try:
+        parsed_history = json.loads(history)
+    except Exception:
+        parsed_history = []
+        
+    history_dicts = [{"role": msg.get("role", "user"), "content": msg.get("content", "")} for msg in parsed_history]
+    
+    file_list = files if files is not None else []
+    
+    response_text = await gemini_service.generate_chat_response(
+        db=db,
+        tenant_id=current_user.tenant_id,
+        message=message,
+        history=history_dicts,
+        files=file_list
+    )
+
+    import uuid
+    # Handle DB Session
+    if not session_id or session_id == "undefined":
+        chat_session = ChatSession(
+            tenant_id=current_user.tenant_id,
+            user_id=current_user.id,
+            title=message[:40] + "..." if len(message) > 40 else message
+        )
+        db.add(chat_session)
+        await db.commit()
+        await db.refresh(chat_session)
+        session_uuid = chat_session.id
+        session_id_str = str(chat_session.id)
+    else:
+        session_uuid = uuid.UUID(session_id)
+        session_id_str = session_id
+        
+    # Save User Message
+    user_msg = ChatMessage(
+        session_id=session_uuid,
+        role="user",
+        content=message
+    )
+    db.add(user_msg)
+    await db.commit()
+
+    artifact = None
+    if "```json" in response_text and "artifact_type" in response_text:
+        # simple extraction
+        pass
+
+    # Save Assistant Message
+    assistant_msg = ChatMessage(
+        session_id=session_uuid,
+        role="assistant",
+        content=response_text
+    )
+    db.add(assistant_msg)
+    await db.commit()
+
+    return ChatResponse(response=response_text, session_id=session_id_str, artifact=artifact)
+
+@router.get("/chat/sessions")
+async def get_chat_sessions(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+):
+    stmt = select(ChatSession).where(
+        ChatSession.tenant_id == current_user.tenant_id,
+        ChatSession.user_id == current_user.id
+    ).order_by(desc(ChatSession.updated_at)).limit(20)
+    result = await db.execute(stmt)
+    sessions = result.scalars().all()
+    
+    return [
+        {
+            "id": str(s.id),
+            "title": s.title,
+            "created_at": s.created_at,
+            "updated_at": s.updated_at
+        } for s in sessions
+    ]
+
+@router.get("/chat/sessions/{session_id}")
+async def get_chat_session_messages(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner)
+):
+    # Verify ownership
+    session_stmt = select(ChatSession).where(
+        ChatSession.id == session_id,
+        ChatSession.tenant_id == current_user.tenant_id
+    )
+    result = await db.execute(session_stmt)
+    chat_session = result.scalars().first()
+    
+    if not chat_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    msg_stmt = select(ChatMessage).where(ChatMessage.session_id == session_id).order_by(asc(ChatMessage.created_at))
+    msg_result = await db.execute(msg_stmt)
+    messages = msg_result.scalars().all()
+    
+    return [
+        {
+            "id": str(m.id),
+            "role": m.role,
+            "content": m.content,
+            "created_at": m.created_at
+        } for m in messages
+    ]

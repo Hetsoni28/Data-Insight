@@ -1,90 +1,130 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Brain, Database, Loader2 } from "lucide-react";
-import { useWorkspaceStore } from "@/store/workspaceStore";
-import { Dataset, DatasetService } from "@/lib/dataset.service";
-import { CopilotChat } from "@/components/organisms/CopilotChat";
+import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Brain, Sparkles, Plus, Settings, MessageSquare } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
+import api from "@/lib/api"
+import { CommandCenterQuickActions } from "@/components/organisms/CommandCenterQuickActions"
+import { CommandCenterChat } from "@/components/organisms/CommandCenterChat"
 
-export default function AICopilotPage() {
-  const { activeWs } = useWorkspaceStore();
-  const [datasets, setDatasets] = useState<Dataset[]>([]);
-  const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export default function AICommandCenterPage() {
+  const { data: user } = useAuth()
+  const [chatStarted, setChatStarted] = useState(false)
+  const [selectedActionTitle, setSelectedActionTitle] = useState<string | undefined>()
+  const [selectedSessionId, setSelectedSessionId] = useState<string | undefined>()
+  const [sessions, setSessions] = useState<any[]>([])
 
+  // Fetch sessions when returning to landing page
   useEffect(() => {
-    const fetchDatasets = async () => {
-      if (!activeWs?.id) {
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const data = await DatasetService.list(activeWs.id);
-        setDatasets(data);
-        if (data.length > 0) {
-          setSelectedDatasetId(data[0].id);
-        }
-      } catch (error) {
-        console.error("Failed to fetch datasets", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (!chatStarted) {
+      api.get("/owner/ai/chat/sessions").then(res => setSessions(res.data)).catch(console.error)
+    }
+  }, [chatStarted])
 
-    fetchDatasets();
-  }, [activeWs?.id]);
+  const handleStartAction = (actionId: string, title: string) => {
+    setSelectedActionTitle(title)
+    setChatStarted(true)
+  }
+
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6 h-[calc(100vh-theme(spacing.16))] flex flex-col">
-      <div className="flex items-center justify-between shrink-0 bg-white/70 dark:bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-xl border border-emerald-500/20">
-            <Brain className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] relative bg-slate-50/50 dark:bg-[#020617]">
+      
+      {/* Top Navigation Bar */}
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+            <Brain className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              AI Copilot
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Chat directly with your datasets. Fast, secure, and intelligent.
-            </p>
+            <h1 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Data Insight AI</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Powered by Google Gemini</p>
           </div>
         </div>
-
-        <div className="flex items-center gap-3 bg-white dark:bg-white/5 p-2 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm">
-          <Database className="h-4 w-4 text-slate-400 ml-2" />
-          {isLoading ? (
-            <div className="h-9 w-48 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse"></div>
-          ) : (
-            <select
-              value={selectedDatasetId || ""}
-              onChange={(e) => setSelectedDatasetId(e.target.value)}
-              className="flex h-9 w-[250px] items-center justify-between rounded-md border-0 bg-transparent px-3 py-2 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-0 cursor-pointer"
-              disabled={datasets.length === 0}
-            >
-              {datasets.length === 0 ? (
-                <option value="">No datasets available</option>
-              ) : (
-                datasets.map((ds) => (
-                  <option key={ds.id} value={ds.id}>
-                    {ds.name}
-                  </option>
-                ))
-              )}
-            </select>
-          )}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => {
+              setChatStarted(false)
+              setSelectedSessionId(undefined)
+              setSelectedActionTitle(undefined)
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            <Plus className="w-3 h-3" /> New Chat
+          </button>
+          <button className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.4, ease: "easeOut" }}
-        className="flex-1 min-h-0 relative"
-      >
-        <CopilotChat datasetId={selectedDatasetId} />
-      </motion.div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col relative overflow-y-auto overflow-x-hidden scroll-smooth">
+        <AnimatePresence mode="wait">
+          {!chatStarted ? (
+            <motion.div 
+              key="empty-state"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-4xl mt-12 mx-auto flex flex-col items-center px-4 pb-24"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-8">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-3">
+                Welcome back, {user?.full_name?.split(" ")[0] || "Owner"}
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 mb-8 text-center max-w-md">
+                What would you like Data Insight AI to help you with today? Manage your SaaS, analyze data, or generate reports.
+              </p>
+
+              <CommandCenterQuickActions onSelectAction={handleStartAction} />
+
+              {sessions.length > 0 && (
+                <motion.div 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+                  className="w-full max-w-3xl mt-12 flex flex-col items-start"
+                >
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Recent Chats</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                    {sessions.map(session => (
+                      <button 
+                        key={session.id}
+                        onClick={() => {
+                          setSelectedActionTitle(undefined)
+                          setSelectedSessionId(session.id)
+                          setChatStarted(true)
+                        }}
+                        className="flex items-center gap-3 p-3 text-left bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:border-emerald-500/50 hover:shadow-sm transition-all w-full"
+                      >
+                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-black/20 text-slate-500 shrink-0">
+                          <MessageSquare className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{session.title}</h4>
+                          <p className="text-xs text-slate-500">{new Date(session.updated_at).toLocaleDateString()}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="chat-state"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full h-full flex flex-col"
+            >
+              <CommandCenterChat initialActionTitle={selectedActionTitle} initialSessionId={selectedSessionId} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
     </div>
-  );
+  )
 }
