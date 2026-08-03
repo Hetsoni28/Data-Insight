@@ -21,11 +21,11 @@ export const ServerErrorIllustration: React.FC = () => {
       {/* Server Stack */}
       <div className="relative z-10 flex flex-col gap-2">
         {/* Server 1 (Online) */}
-        <div className="w-32 h-8 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 flex items-center px-3 gap-2">
+        <div className="w-32 h-8 bg-white dark:bg-white/10 rounded-lg shadow-lg border border-slate-200/60 dark:border-white/10 flex items-center px-3 gap-2">
           <div className="w-2 h-2 bg-emerald-500 rounded-full" />
           <div className="flex-1 flex gap-1">
-            <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full" />
-            <div className="w-1/2 h-1 bg-slate-100 dark:bg-slate-800 rounded-full" />
+            <div className="w-full h-1 bg-slate-100 dark:bg-white/10 rounded-full" />
+            <div className="w-1/2 h-1 bg-slate-100 dark:bg-white/10 rounded-full" />
           </div>
         </div>
 
@@ -47,18 +47,18 @@ export const ServerErrorIllustration: React.FC = () => {
         </motion.div>
 
         {/* Server 3 (Online) */}
-        <div className="w-32 h-8 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 flex items-center px-3 gap-2">
+        <div className="w-32 h-8 bg-white dark:bg-white/10 rounded-lg shadow-lg border border-slate-200/60 dark:border-white/10 flex items-center px-3 gap-2">
           <div className="w-2 h-2 bg-emerald-500 rounded-full" />
           <div className="flex-1 flex gap-1">
-            <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full" />
-            <div className="w-1/2 h-1 bg-slate-100 dark:bg-slate-800 rounded-full" />
+            <div className="w-full h-1 bg-slate-100 dark:bg-white/10 rounded-full" />
+            <div className="w-1/2 h-1 bg-slate-100 dark:bg-white/10 rounded-full" />
           </div>
         </div>
       </div>
 
       {/* Tiny Robot 1 */}
       <motion.div
-        className="absolute z-20 w-6 h-6 bg-slate-800 dark:bg-slate-700 rounded-md flex items-center justify-center border-2 border-slate-900"
+        className="absolute z-20 w-6 h-6 bg-slate-800 dark:bg-white/20 rounded-md flex items-center justify-center border-2 border-slate-900 dark:border-white/10"
         initial={{ x: -40, y: 10 }}
         animate={{ 
           x: [-40, -20, -20, -40],

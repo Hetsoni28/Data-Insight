@@ -11,12 +11,14 @@ All auth flows:
 """
 
 import uuid
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 from loguru import logger
 
 from app.schemas.user import UserCreate
 from app.models.user import User
+from app.models.notification import Notification
 from app.repositories.user import UserRepository
 from app.core.config import settings
 from app.core.exceptions import (
@@ -29,6 +31,36 @@ from app.core.exceptions import (
 from app.core.security import verify_password, get_password_hash, create_access_token
 from app.core import otp as otp_service
 from app.services import email as email_service
+
+
+async def _notify_owner_new_user(
+    session: AsyncSession,
+    title: str,
+    message: str,
+    category: str = "Organization",
+    priority: str = "Medium",
+    notif_type: str = "org.user_joined",
+) -> None:
+    """Create a platform-wide notification visible to the owner."""
+    try:
+        notif = Notification(
+            title=title,
+            message=message,
+            category=category,
+            priority=priority,
+            icon="users",
+            type=notif_type,
+            tenant_id=None,   # None = platform-wide, visible to owner
+            user_id=None,
+            is_read=False,
+            status="Unread",
+            is_pinned=False,
+            created_at=datetime.now(timezone.utc),
+        )
+        session.add(notif)
+        await session.flush()  # Don't commit — let the caller's transaction handle it
+    except Exception as exc:
+        logger.warning(f"[Auth] Failed to create owner notification: {exc}")
 
 
 class AuthService:
@@ -71,6 +103,17 @@ class AuthService:
         user.role = requested_role
 
         self.session.add(user)
+
+        # Notify the owner: new access request pending approval
+        await _notify_owner_new_user(
+            session=self.session,
+            title="New Access Request",
+            message=f"{full_name} ({email}) has requested platform access as {requested_role}. Pending your approval.",
+            category="Organization",
+            priority="High",
+            notif_type="org.access_request",
+        )
+
         await self.session.commit()
         await self.session.refresh(user)
 
@@ -155,6 +198,18 @@ class AuthService:
 
         # Mark verified
         user.is_email_verified = True
+
+        # Notify the owner: a new user has fully registered and verified their email
+        display_name = user.full_name or email
+        await _notify_owner_new_user(
+            session=self.session,
+            title="New User Registered",
+            message=f"{display_name} ({email}) has verified their email and joined the platform as {user.role}.",
+            category="Organization",
+            priority="Medium",
+            notif_type="org.user_joined",
+        )
+
         await self.session.commit()
         await self.session.refresh(user)
 
@@ -249,13 +304,27 @@ class AuthService:
 
     # ── Verify Login ─────────────────────────────────────────────────────────
 
-    async def verify_login(self, email: str, password: str, otp: str) -> str:
+    async def verify_login(
+        self,
+        email: str,
+        otp: str,
+        password: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> str:
         """
-        Verify the 2FA OTP to complete login.
+        Verify the 2FA OTP to complete login and record genuine user session.
         """
+        import hashlib
+        from datetime import timedelta
+        from app.models.user_session import UserSession
+
         user = await self.user_repo.get_by_email(email)
 
-        if not user or not verify_password(password, user.hashed_password):
+        if not user:
+            raise UnauthorizedException("Incorrect email or password.")
+
+        if password and not verify_password(password, user.hashed_password):
             raise UnauthorizedException("Incorrect email or password.")
 
         if not user.is_active:
@@ -268,11 +337,61 @@ class AuthService:
             raise ValidationException("Invalid or expired 2FA code.")
 
         logger.info(f"[Auth] 2FA Login completed: {email}")
-        return create_access_token(
+        token = create_access_token(
             subject=str(user.id),
             role=user.role,
             tenant_id=str(user.tenant_id) if user.tenant_id else None,
         )
+
+        # Record genuine UserSession
+        try:
+            device = "Desktop"
+            os_name = "Windows"
+            browser_name = "Chrome"
+            if user_agent:
+                ua = user_agent.lower()
+                if "mac" in ua:
+                    os_name = "macOS"
+                    device = "MacBook"
+                elif "android" in ua:
+                    os_name = "Android"
+                    device = "Android Device"
+                elif "iphone" in ua or "ios" in ua:
+                    os_name = "iOS"
+                    device = "iPhone"
+                elif "linux" in ua:
+                    os_name = "Linux"
+                    device = "Linux PC"
+
+                if "edg" in ua:
+                    browser_name = "Edge"
+                elif "firefox" in ua:
+                    browser_name = "Firefox"
+                elif "safari" in ua and "chrome" not in ua:
+                    browser_name = "Safari"
+                elif "chrome" in ua:
+                    browser_name = "Chrome"
+
+            token_hash = hashlib.sha256(token.encode()).hexdigest()
+            session = UserSession(
+                user_id=user.id,
+                token_hash=token_hash,
+                device_name=device,
+                os=os_name,
+                browser=browser_name,
+                location="Localhost" if ip_address in ["127.0.0.1", "::1"] else "Remote",
+                ip_address=ip_address or "127.0.0.1",
+                user_agent=user_agent,
+                is_active=True,
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+                last_active_at=datetime.now(timezone.utc),
+            )
+            self.session.add(session)
+            await self.session.commit()
+        except Exception as e:
+            logger.warning(f"[Auth] Failed to create user session record: {e}")
+
+        return token
 
     # ── Forgot Password ──────────────────────────────────────────────────────
 

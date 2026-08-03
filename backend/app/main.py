@@ -162,16 +162,14 @@ def create_app() -> FastAPI:
     # ─── Local Storage Fallback Mount ─────────────────────────────────────
     import os
     from fastapi.staticfiles import StaticFiles
-    from app.core.storage import LOCAL_UPLOADS_DIR, is_local_storage
-
-    if is_local_storage():
-        os.makedirs(LOCAL_UPLOADS_DIR, exist_ok=True)
-        # We mount it under /api/v1/storage so frontend proxy catches it
-        app.mount(
-            "/api/v1/storage",
-            StaticFiles(directory=LOCAL_UPLOADS_DIR),
-            name="local_storage",
-        )
+    # ─── Static Assets Mount ──────────────────────────────────────────────
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    os.makedirs(static_dir, exist_ok=True)
+    app.mount(
+        "/static",
+        StaticFiles(directory=static_dir),
+        name="static",
+    )
 
     # ─── Prometheus Metrics ───────────────────────────────────────────────
     Instrumentator(

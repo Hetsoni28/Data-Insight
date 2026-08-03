@@ -30,8 +30,8 @@ export function StorageSecurityCenter({ security }: StorageSecurityCenterProps) 
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px]">
-      <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+    <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px]">
+      <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
         <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
           {data.health_score >= 90 ? (
             <ShieldCheck className="h-5 w-5 text-emerald-500" />
@@ -50,14 +50,14 @@ export function StorageSecurityCenter({ security }: StorageSecurityCenterProps) 
         <div>
           <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Access Overview</h4>
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
               <div className="flex items-center gap-2 mb-2">
                 <Unlock className="h-4 w-4 text-amber-500" />
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Public Files</span>
               </div>
               <p className="text-2xl font-bold text-slate-800 dark:text-white">{data.public_files.toLocaleString()}</p>
             </div>
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
               <div className="flex items-center gap-2 mb-2">
                 <Lock className="h-4 w-4 text-emerald-500" />
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Private Files</span>
@@ -71,7 +71,7 @@ export function StorageSecurityCenter({ security }: StorageSecurityCenterProps) 
         <div>
           <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Protection & Scanning</h4>
           <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                   <Lock className="h-4 w-4" />
@@ -88,7 +88,7 @@ export function StorageSecurityCenter({ security }: StorageSecurityCenterProps) 
               )}
             </div>
 
-            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
                   <Search className="h-4 w-4" />

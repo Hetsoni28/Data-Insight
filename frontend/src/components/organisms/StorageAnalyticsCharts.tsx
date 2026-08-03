@@ -51,12 +51,12 @@ export function StorageAnalyticsCharts({ trends = [], overview }: StorageAnalyti
     return (bytes / (1024**3)).toFixed(1) + 'GB'
   }
 
-  if (!mounted) return <div className="w-full h-[280px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+  if (!mounted) return <div className="w-full h-[280px] rounded-xl bg-slate-100 dark:bg-white/10 animate-pulse" />
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Growth Chart */}
-      <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm">
+      <div className="lg:col-span-2 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 shadow-sm">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-semibold text-slate-800 dark:text-white">Storage Growth (30 Days)</h3>
         </div>
@@ -91,7 +91,7 @@ export function StorageAnalyticsCharts({ trends = [], overview }: StorageAnalyti
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-slate-900 text-white p-3 rounded-lg shadow-xl border border-slate-700">
+                      <div className="bg-[#0B0F17] text-white p-3 rounded-xl shadow-xl border border-white/10">
                         <p className="text-slate-300 text-xs mb-1">{payload[0].payload.date}</p>
                         <p className="font-semibold text-emerald-400">Total: {formatBytes(payload[0].value as number)}</p>
                         <p className="text-xs text-slate-400 mt-1">Uploaded: {formatBytes(payload[0].payload.daily_bytes)}</p>
@@ -105,7 +105,7 @@ export function StorageAnalyticsCharts({ trends = [], overview }: StorageAnalyti
                 type="monotone" 
                 dataKey="cumulative_bytes" 
                 stroke="#10b981" 
-                strokeWidth={3}
+                strokeWidth={3} 
                 fillOpacity={1} 
                 fill="url(#colorGrowth)" 
               />
@@ -115,7 +115,7 @@ export function StorageAnalyticsCharts({ trends = [], overview }: StorageAnalyti
       </div>
 
       {/* Distribution Chart */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 shadow-sm">
         <h3 className="font-semibold text-slate-800 dark:text-white mb-6">Storage Distribution</h3>
         <div className="h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -138,7 +138,7 @@ export function StorageAnalyticsCharts({ trends = [], overview }: StorageAnalyti
                  content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-slate-900 text-white px-3 py-2 rounded-lg shadow-xl border border-slate-700">
+                      <div className="bg-[#0B0F17] text-white px-3 py-2 rounded-xl shadow-xl border border-white/10">
                         <p className="text-sm font-medium">{payload[0].name}: {payload[0].value}</p>
                       </div>
                     )

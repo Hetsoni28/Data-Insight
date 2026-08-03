@@ -26,7 +26,7 @@ export function AnomalyDetectionFeed() {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
+          <div key={i} className="h-24 bg-slate-100 dark:bg-white/5 rounded-2xl animate-pulse" />
         ))}
       </div>
     );
@@ -41,7 +41,7 @@ export function AnomalyDetectionFeed() {
   };
 
   const getColor = (severity: string, resolved: boolean) => {
-    if (resolved) return "text-slate-400 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700";
+    if (resolved) return "text-slate-400 bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10";
     switch (severity) {
       case "high": return "text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-500/10 dark:border-rose-500/20";
       case "medium": return "text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20";
@@ -61,7 +61,7 @@ export function AnomalyDetectionFeed() {
         </div>
       </div>
       
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-4 max-h-[380px] overflow-y-auto pr-1">
         {anomalies.map((anomaly) => {
           const theme = getColor(anomaly.severity, anomaly.resolved);
           
@@ -70,8 +70,8 @@ export function AnomalyDetectionFeed() {
               key={anomaly.id} 
               className={`p-4 rounded-2xl border transition-all ${
                 anomaly.resolved 
-                  ? "bg-slate-50/50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 opacity-60" 
-                  : "bg-white dark:bg-slate-900 shadow-sm border-slate-200 dark:border-slate-700 hover:shadow-md"
+                  ? "bg-slate-50/50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5 opacity-60" 
+                  : "bg-white dark:bg-white/5 shadow-sm border-slate-200/60 dark:border-white/10 hover:shadow-md"
               }`}
             >
               <div className="flex gap-4">

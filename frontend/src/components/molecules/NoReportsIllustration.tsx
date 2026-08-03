@@ -35,7 +35,7 @@ export const NoReportsIllustration: React.FC = () => {
 
       {/* Center AI Core */}
       <motion.div
-        className="relative z-10 w-24 h-24 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 flex items-center justify-center overflow-hidden"
+        className="relative z-10 w-24 h-24 bg-white dark:bg-white/10 rounded-3xl shadow-xl border border-slate-200/60 dark:border-white/10 flex items-center justify-center overflow-hidden"
         initial={{ y: 0 }}
         animate={{ y: [-5, 5, -5] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -55,7 +55,7 @@ export const NoReportsIllustration: React.FC = () => {
 
       {/* Floating Chart Widget */}
       <motion.div
-        className="absolute z-20 -right-4 top-8 w-20 h-24 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-2 flex items-end justify-between gap-1 overflow-hidden"
+        className="absolute z-20 -right-4 top-8 w-20 h-24 bg-white dark:bg-white/10 rounded-xl shadow-lg border border-slate-200/60 dark:border-white/10 p-2 flex items-end justify-between gap-1 overflow-hidden"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0, y: [-2, 2, -2] }}
         transition={{ 
@@ -71,7 +71,7 @@ export const NoReportsIllustration: React.FC = () => {
 
       {/* Floating PDF Widget */}
       <motion.div
-        className="absolute z-0 -left-6 bottom-10 w-16 h-20 bg-white dark:bg-slate-800 rounded-lg shadow-md border border-slate-200 dark:border-slate-700 p-3 flex flex-col gap-2"
+        className="absolute z-0 -left-6 bottom-10 w-16 h-20 bg-white dark:bg-white/10 rounded-lg shadow-md border border-slate-200/60 dark:border-white/10 p-3 flex flex-col gap-2"
         initial={{ opacity: 0, x: -20, rotate: -10 }}
         animate={{ opacity: 1, x: 0, y: [2, -2, 2], rotate: [-10, -5, -10] }}
         transition={{ 
@@ -81,9 +81,9 @@ export const NoReportsIllustration: React.FC = () => {
           rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" }
         }}
       >
-        <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full" />
-        <div className="w-3/4 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full" />
-        <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full" />
+        <div className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full" />
+        <div className="w-3/4 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full" />
+        <div className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full" />
       </motion.div>
       
       {/* Particles */}

@@ -144,10 +144,10 @@ export default function SubscriptionsPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button onClick={handleRefresh} variant="outline" size="icon" className="h-10 w-10 shrink-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+          <Button onClick={handleRefresh} variant="outline" size="icon" className="h-10 w-10 shrink-0 bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/10">
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button onClick={handleExportCSV} variant="outline" className="h-10 px-4 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800">
+          <Button onClick={handleExportCSV} variant="outline" className="h-10 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/10">
             <Download className="h-4 w-4 mr-2" />
             Export Revenue
           </Button>
@@ -209,7 +209,7 @@ export default function SubscriptionsPage() {
               value={newPlan}
               onChange={(e) => setNewPlan(e.target.value)}
               disabled={isCreating}
-              className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
+              className="w-full h-10 rounded-md border border-slate-200/60 dark:border-white/10 bg-white dark:bg-card px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
             >
               <option value="starter">Starter</option>
               <option value="pro">Pro</option>

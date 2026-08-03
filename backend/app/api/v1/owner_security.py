@@ -99,23 +99,33 @@ async def get_sessions(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ) -> Any:
-    result = await db.execute(select(UserSession).where(UserSession.is_active == True).order_by(desc(UserSession.last_active_at)).limit(limit))
-    sessions = result.scalars().all()
+    stmt = (
+        select(UserSession, User)
+        .join(User, UserSession.user_id == User.id)
+        .where(UserSession.is_active == True)
+        .order_by(desc(UserSession.last_active_at))
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    rows = result.all()
     
     return {
         "sessions": [
             {
                 "id": str(s.id),
                 "user_id": str(s.user_id),
-                "device_name": s.device_name,
-                "os": s.os,
-                "browser": s.browser,
-                "ip_address": s.ip_address,
-                "location": s.location,
+                "user_email": u.email,
+                "user_name": u.full_name,
+                "user_role": u.role,
+                "device_name": s.device_name or "Desktop",
+                "os": s.os or "Windows",
+                "browser": s.browser or "Browser",
+                "ip_address": s.ip_address or "127.0.0.1",
+                "location": s.location or "Localhost",
                 "last_active_at": s.last_active_at.isoformat(),
                 "created_at": s.created_at.isoformat()
             }
-            for s in sessions
+            for s, u in rows
         ]
     }
 

@@ -47,7 +47,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-7 shadow-sm"
+      className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl p-7 shadow-sm"
     >
       <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-5">{title}</h2>
       {children}
@@ -61,7 +61,7 @@ function HexBadge({ hex }: { hex: string }) {
   return (
     <button
       onClick={() => { navigator.clipboard.writeText(hex); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
     >
       {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
       {hex}

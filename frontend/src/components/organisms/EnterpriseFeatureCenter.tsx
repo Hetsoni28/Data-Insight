@@ -66,20 +66,20 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
     return (
         <div className="mt-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-full max-w-lg">
+                <div className="flex space-x-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl w-full max-w-lg border border-transparent dark:border-white/10">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`
                                 relative flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium rounded-lg transition-all duration-200
-                                ${activeTab === tab.id ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800'}
+                                ${activeTab === tab.id ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10'}
                             `}
                         >
                             {activeTab === tab.id && (
                                 <motion.div
                                     layoutId="featureTab"
-                                    className="absolute inset-0 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 rounded-lg"
+                                    className="absolute inset-0 bg-white dark:bg-white/10 shadow-sm border border-slate-200/60 dark:border-white/10 rounded-lg"
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
@@ -100,7 +100,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                                 placeholder="Search features..." 
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white placeholder:text-slate-400" 
                             />
                         </div>
                         <button 
@@ -113,7 +113,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                 )}
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm min-h-[500px]">
+            <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-sm transition-all duration-300">
                 <AnimatePresence mode="wait">
                     {activeTab === 'flags' && (
                         <motion.div key="flags" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -152,13 +152,13 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800"
+                            className="relative w-full max-w-md bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200/60 dark:border-white/10"
                         >
-                            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/10">
                                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Create Feature Flag</h3>
                                 <button
                                     onClick={() => setIsCreateOpen(false)}
-                                    className="p-2 text-slate-400 hover:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                    className="p-2 text-slate-400 hover:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -172,7 +172,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                                         placeholder="e.g. new_dashboard_ui"
                                         value={newFlagData.key}
                                         onChange={(e) => setNewFlagData({...newFlagData, key: e.target.value})}
-                                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full px-4 py-2 bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
                                         required
                                     />
                                 </div>
@@ -183,7 +183,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                                         placeholder="New Dashboard UI"
                                         value={newFlagData.name}
                                         onChange={(e) => setNewFlagData({...newFlagData, name: e.target.value})}
-                                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full px-4 py-2 bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
                                         required
                                     />
                                 </div>
@@ -193,7 +193,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                                         placeholder="Brief description of the feature..."
                                         value={newFlagData.description}
                                         onChange={(e) => setNewFlagData({...newFlagData, description: e.target.value})}
-                                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none h-24"
+                                        className="w-full px-4 py-2 bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none h-24 text-slate-900 dark:text-white"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -201,7 +201,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                                     <select
                                         value={newFlagData.environment}
                                         onChange={(e) => setNewFlagData({...newFlagData, environment: e.target.value})}
-                                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full px-4 py-2 bg-white dark:bg-[#0B0F17] border border-slate-300 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
                                     >
                                         <option value="production">Production</option>
                                         <option value="staging">Staging</option>
@@ -213,7 +213,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                                     <button
                                         type="button"
                                         onClick={() => setIsCreateOpen(false)}
-                                        className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                        className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                                     >
                                         Cancel
                                     </button>
@@ -256,7 +256,7 @@ function FlagsGrid({ features, isLoading, onToggle }: { features?: FeatureFlag[]
     return (
         <div className="overflow-x-auto flex flex-col h-full justify-between rounded-2xl">
             <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10">
                     <tr>
                         <th className="p-4 font-medium text-slate-500 dark:text-slate-400">Feature</th>
                         <th className="p-4 font-medium text-slate-500 dark:text-slate-400">Environment</th>
@@ -265,9 +265,9 @@ function FlagsGrid({ features, isLoading, onToggle }: { features?: FeatureFlag[]
                         <th className="p-4 font-medium text-slate-500 dark:text-slate-400 text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-200/60 dark:divide-white/5">
                     {paginatedFeatures.map((f) => (
-                        <tr key={f.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                        <tr key={f.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                             <td className="p-4">
                                 <div className="flex flex-col">
                                     <span className="font-semibold text-slate-900 dark:text-slate-100">{f.name}</span>
@@ -293,7 +293,7 @@ function FlagsGrid({ features, isLoading, onToggle }: { features?: FeatureFlag[]
                             <td className="p-4 text-right">
                                 <button 
                                     onClick={() => onToggle(f.key, f.is_enabled)}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${f.is_enabled ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'}`}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${f.is_enabled ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-white/10'}`}
                                 >
                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${f.is_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
@@ -337,7 +337,7 @@ function RolloutsGrid({ rollouts, isLoading }: { rollouts?: FeatureRollout[], is
         <div className="flex flex-col h-full justify-between">
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {paginatedRollouts.map(r => (
-                <div key={r.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-slate-50 dark:bg-slate-800/20 hover:border-indigo-500/50 transition-colors">
+                <div key={r.id} className="border border-slate-200/60 dark:border-white/10 rounded-xl p-5 bg-slate-50 dark:bg-white/5 hover:border-indigo-500/50 transition-colors">
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <h3 className="font-semibold text-slate-900 dark:text-white">{r.flag_name}</h3>
@@ -351,12 +351,12 @@ function RolloutsGrid({ rollouts, isLoading }: { rollouts?: FeatureRollout[], is
                             <span className="text-slate-600 dark:text-slate-400">Rollout Progress</span>
                             <span className="font-bold text-slate-900 dark:text-white">{r.percentage}%</span>
                         </div>
-                        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                        <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-2">
                             <div className="bg-cyan-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${r.percentage}%` }}></div>
                         </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800 pt-3">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200/60 dark:border-white/10 pt-3">
                         <Users className="w-3.5 h-3.5" />
                         Targeting: {r.target_roles ? 'Specific Roles' : (r.target_organizations ? 'Specific Orgs' : 'Global Audience')}
                     </div>
@@ -400,7 +400,7 @@ function ExperimentsGrid({ experiments, isLoading }: { experiments?: FeatureExpe
         <div className="flex flex-col h-full justify-between">
             <div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {paginatedExperiments.map(exp => (
-                <div key={exp.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-slate-50 dark:bg-slate-800/20 relative overflow-hidden">
+                <div key={exp.id} className="border border-slate-200/60 dark:border-white/10 rounded-xl p-5 bg-slate-50 dark:bg-white/5 relative overflow-hidden">
                     {exp.status === 'running' && (
                         <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
                             Running
@@ -425,14 +425,14 @@ function ExperimentsGrid({ experiments, isLoading }: { experiments?: FeatureExpe
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className={`p-4 rounded-lg border ${exp.winner === 'variation_a' ? 'border-green-500 bg-green-50 dark:bg-green-500/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}`}>
+                        <div className={`p-4 rounded-lg border ${exp.winner === 'variation_a' ? 'border-green-500 bg-green-50 dark:bg-green-500/10' : 'border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5'}`}>
                             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">VARIATION A (Control)</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">
                                 {exp.traffic_allocation}% Traffic
                             </p>
                             {exp.winner === 'variation_a' && <span className="text-xs font-bold text-green-600 mt-2 block flex items-center gap-1"><Zap className="w-3 h-3"/> WINNER</span>}
                         </div>
-                        <div className={`p-4 rounded-lg border ${exp.winner === 'variation_b' ? 'border-green-500 bg-green-50 dark:bg-green-500/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}`}>
+                        <div className={`p-4 rounded-lg border ${exp.winner === 'variation_b' ? 'border-green-500 bg-green-50 dark:bg-green-500/10' : 'border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5'}`}>
                             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">VARIATION B (Treatment)</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">
                                 {100 - exp.traffic_allocation}% Traffic
@@ -441,7 +441,7 @@ function ExperimentsGrid({ experiments, isLoading }: { experiments?: FeatureExpe
                         </div>
                     </div>
                     
-                    <div className="flex justify-between items-center text-sm border-t border-slate-200 dark:border-slate-800 pt-3">
+                    <div className="flex justify-between items-center text-sm border-t border-slate-200/60 dark:border-white/10 pt-3">
                         <span className="text-slate-600 dark:text-slate-400">Statistical Confidence</span>
                         <span className={`font-bold ${exp.confidence_score >= 95 ? 'text-green-600 dark:text-green-400' : 'text-orange-500'}`}>
                             {exp.confidence_score}%
@@ -472,7 +472,7 @@ function LoadingState() {
     return (
         <div className="p-6 space-y-4">
             {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800/50 rounded-lg animate-pulse" />
+                <div key={i} className="h-16 bg-slate-100 dark:bg-white/5 rounded-lg animate-pulse" />
             ))}
         </div>
     );

@@ -35,7 +35,7 @@ export const NoDatasetsIllustration: React.FC = () => {
 
       {/* Cloud Core */}
       <motion.div
-        className="relative z-10 w-28 h-20 bg-white dark:bg-slate-800 rounded-3xl shadow-[0_10px_40px_-10px_rgba(59,130,246,0.3)] border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden"
+        className="relative z-10 w-28 h-20 bg-white dark:bg-white/10 rounded-3xl shadow-[0_10px_40px_-10px_rgba(59,130,246,0.3)] border border-slate-200/60 dark:border-white/10 flex items-center justify-center overflow-hidden"
         initial={{ y: 0 }}
         animate={{ y: [-4, 4, -4] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -69,7 +69,7 @@ export const NoDatasetsIllustration: React.FC = () => {
 
       {/* Orbiting CSV File */}
       <motion.div
-        className="absolute w-12 h-14 bg-white dark:bg-slate-900 rounded-lg shadow-md border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center p-1"
+        className="absolute w-12 h-14 bg-white dark:bg-white/10 rounded-lg shadow-md border border-slate-200/60 dark:border-white/10 flex flex-col items-center justify-center p-1"
         style={{ originX: 4, originY: 2 }} // orbit radius
         animate={{ rotate: 360 }}
         transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
@@ -85,7 +85,7 @@ export const NoDatasetsIllustration: React.FC = () => {
 
       {/* Orbiting JSON File */}
       <motion.div
-        className="absolute w-12 h-14 bg-white dark:bg-slate-900 rounded-lg shadow-md border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center p-1"
+        className="absolute w-12 h-14 bg-white dark:bg-white/10 rounded-lg shadow-md border border-slate-200/60 dark:border-white/10 flex flex-col items-center justify-center p-1"
         style={{ originX: -3, originY: 3 }} // orbit radius
         initial={{ rotate: 120 }}
         animate={{ rotate: 480 }}
@@ -103,7 +103,7 @@ export const NoDatasetsIllustration: React.FC = () => {
 
       {/* Orbiting Excel File */}
       <motion.div
-        className="absolute w-12 h-14 bg-white dark:bg-slate-900 rounded-lg shadow-md border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center p-1"
+        className="absolute w-12 h-14 bg-white dark:bg-white/10 rounded-lg shadow-md border border-slate-200/60 dark:border-white/10 flex flex-col items-center justify-center p-1"
         style={{ originX: 0, originY: -4 }} // orbit radius
         initial={{ rotate: 240 }}
         animate={{ rotate: 600 }}

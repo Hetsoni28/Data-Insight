@@ -18,21 +18,21 @@ export function AiModelLeaderboard() {
 
   if (!data?.data || data.data.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm mb-8 flex items-center justify-center h-48 text-slate-500">
+      <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-6 shadow-sm mb-8 flex items-center justify-center h-48 text-slate-500">
         No model analytics available yet.
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm mb-8 overflow-hidden">
-      <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+    <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl shadow-sm mb-8 overflow-hidden">
+      <div className="p-6 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Model Leaderboard & Quality</h3>
       </div>
       
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
+          <thead className="text-xs text-slate-500 uppercase bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/10">
             <tr>
               <th className="px-6 py-4 font-semibold">Model Name</th>
               <th className="px-6 py-4 font-semibold text-right">Requests</th>
@@ -42,22 +42,22 @@ export function AiModelLeaderboard() {
               <th className="px-6 py-4 font-semibold text-right">Cost Efficiency</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
             {data.data.map((model: any, idx: number) => {
               // Simple heuristic for efficiency tag
               let efficiency = "Optimal";
-              let badgeColor = "bg-emerald-100 text-emerald-700";
+              let badgeColor = "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400";
               
               if (model.cost / (model.requests || 1) > 0.1) {
                 efficiency = "Expensive";
-                badgeColor = "bg-rose-100 text-rose-700";
+                badgeColor = "bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400";
               } else if (model.latency > 5000) {
                 efficiency = "Slow";
-                badgeColor = "bg-amber-100 text-amber-700";
+                badgeColor = "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400";
               }
 
               return (
-                <tr key={model.name} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                <tr key={model.name} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.03] transition-colors">
                   <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-200 flex items-center gap-3">
                     <span className="text-slate-400 font-mono text-xs w-4">{idx + 1}.</span>
                     {model.name}

@@ -23,14 +23,14 @@ export const AiCopilotIllustration: React.FC = () => {
 
       {/* AI Robot Core */}
       <motion.div
-        className="relative z-10 w-24 h-24 bg-white dark:bg-slate-800 rounded-[2rem] shadow-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center overflow-hidden"
+        className="relative z-10 w-24 h-24 bg-white dark:bg-white/10 rounded-[2rem] shadow-xl border border-slate-200/60 dark:border-white/10 flex flex-col items-center justify-center overflow-hidden"
         initial={{ y: 0 }}
         animate={{ y: [-5, 5, -5] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       >
         <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 to-transparent opacity-50" />
         {/* Eyes / Visor */}
-        <div className="w-16 h-8 bg-slate-900 rounded-full flex items-center justify-center gap-2 px-3 overflow-hidden border border-slate-700">
+        <div className="w-16 h-8 bg-slate-900 dark:bg-black/60 rounded-full flex items-center justify-center gap-2 px-3 overflow-hidden border border-slate-700 dark:border-white/10">
           <motion.div
             className="w-3 h-3 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.8)]"
             animate={{ scaleY: [1, 0.1, 1, 1, 1, 1], x: [0, 2, -2, 0, 0, 0] }}
@@ -46,7 +46,7 @@ export const AiCopilotIllustration: React.FC = () => {
 
       {/* Typing Bubble */}
       <motion.div
-        className="absolute z-20 top-6 -right-6 bg-white dark:bg-slate-800 rounded-2xl rounded-bl-none shadow-lg border border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-1.5"
+        className="absolute z-20 top-6 -right-6 bg-white dark:bg-white/10 rounded-2xl rounded-bl-none shadow-lg border border-slate-200/60 dark:border-white/10 px-4 py-3 flex items-center gap-1.5"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.5 }}

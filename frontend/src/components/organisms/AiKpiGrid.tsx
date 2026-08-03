@@ -30,7 +30,7 @@ export function AiKpiGrid() {
 
   if (isError || !data) {
     return (
-      <div className="bg-rose-50 border border-rose-200 text-rose-600 p-4 rounded-xl mb-8 flex items-center">
+      <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 p-4 rounded-xl mb-8 flex items-center">
         <AlertCircle className="w-5 h-5 mr-2" />
         Failed to load AI operations data. Please check connection.
       </div>
@@ -90,18 +90,18 @@ export function AiKpiGrid() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: idx * 0.05 }}
-          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden"
+          className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden"
         >
           {/* Subtle background glow effect on hover */}
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-2xl" />
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-2xl" />
           
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{kpi.title}</span>
               <div className={`p-1.5 rounded-md ${
-                kpi.trend === 'up' && kpi.title !== 'Avg Latency' ? 'bg-emerald-50 text-emerald-600' : 
-                kpi.title === 'Avg Latency' ? 'bg-indigo-50 text-indigo-600' :
-                'bg-rose-50 text-rose-600'
+                kpi.trend === 'up' && kpi.title !== 'Avg Latency' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 
+                kpi.title === 'Avg Latency' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400'
               }`}>
                 {kpi.icon}
               </div>

@@ -44,9 +44,9 @@ export function GatewayLiveStream({ requests, refetch, isRefetching }: GatewayLi
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.7 }}
-      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm mt-6 mb-12"
+      className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm mt-6 mb-12"
     >
-      <div className="p-6 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02]">
+      <div className="p-6 border-b border-slate-200/60 dark:border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02]">
         <div className="flex items-center gap-2">
           <div className="relative flex h-8 w-8 items-center justify-center">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-lg bg-emerald-400 opacity-20"></span>
@@ -63,7 +63,7 @@ export function GatewayLiveStream({ requests, refetch, isRefetching }: GatewayLi
             <input 
               type="text" 
               placeholder="Filter endpoint, IP..." 
-              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="w-full bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
           <Button 
@@ -71,7 +71,7 @@ export function GatewayLiveStream({ requests, refetch, isRefetching }: GatewayLi
             size="icon" 
             onClick={refetch}
             disabled={isRefetching}
-            className="h-8 w-8 shrink-0 bg-white dark:bg-slate-950 border-slate-200 dark:border-white/10"
+            className="h-8 w-8 shrink-0 bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefetching ? 'animate-spin text-emerald-500' : 'text-slate-500 dark:text-slate-400'}`} />
           </Button>
@@ -80,7 +80,7 @@ export function GatewayLiveStream({ requests, refetch, isRefetching }: GatewayLi
 
       <div className="overflow-x-auto max-h-[500px] custom-scrollbar">
         <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
-          <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold sticky top-0 z-10 border-b border-slate-200 dark:border-white/10 shadow-sm">
+          <thead className="bg-slate-50/80 dark:bg-white/5 text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold sticky top-0 z-10 border-b border-slate-200/60 dark:border-white/10 shadow-sm backdrop-blur-md">
             <tr>
               <th className="px-6 py-3 font-medium tracking-wider">Time</th>
               <th className="px-6 py-3 font-medium tracking-wider">Method</th>
@@ -137,7 +137,7 @@ export function GatewayLiveStream({ requests, refetch, isRefetching }: GatewayLi
           </tbody>
         </table>
       </div>
-      <div className="p-3 border-t border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-center">
+      <div className="p-3 border-t border-slate-200/60 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-center">
         <Button variant="link" className="text-emerald-600 hover:text-emerald-700 text-sm h-auto py-1">
           View all logs <ArrowRight className="w-3 h-3 ml-1" />
         </Button>

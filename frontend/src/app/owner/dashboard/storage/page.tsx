@@ -1,7 +1,8 @@
 "use client"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { motion } from "framer-motion"
+import { toast } from "sonner"
 
 import { storageService } from "@/lib/storageService"
 import { StorageHeroBanner } from "@/components/organisms/StorageHeroBanner"
@@ -19,6 +20,7 @@ export default function StorageCommandCenterPage() {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilter, setActiveFilter] = useState("All Files")
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Fetch Overview (KPIs)
   const { data: overview, isLoading: loadingOverview } = useQuery({
@@ -45,7 +47,7 @@ export default function StorageCommandCenterPage() {
     queryFn: storageService.getBuckets
   })
 
-  // Fetch Files
+  // Fetch Files with active search query
   const { data: filesData } = useQuery({
     queryKey: ['owner-storage', 'files', searchQuery],
     queryFn: () => storageService.getFiles({ q: searchQuery, limit: 100 })
@@ -69,11 +71,32 @@ export default function StorageCommandCenterPage() {
     queryFn: storageService.getActivity
   })
 
-  // Global refresh
-  const handleRefresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['owner-storage'] })
-  }, [queryClient])
+  // Filter buckets based on search query if applicable
+  const filteredBuckets = useMemo(() => {
+    if (!buckets?.buckets) return []
+    if (!searchQuery.trim()) return buckets.buckets
+    const q = searchQuery.toLowerCase()
+    return buckets.buckets.filter((b: any) => 
+      b.name?.toLowerCase().includes(q) || 
+      b.type?.toLowerCase().includes(q) ||
+      b.region?.toLowerCase().includes(q)
+    )
+  }, [buckets?.buckets, searchQuery])
 
+  // Global refresh with active indicator and feedback toast
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      await queryClient.refetchQueries({ queryKey: ['owner-storage'] })
+      toast.success("Storage metrics & file lists refreshed")
+    } catch {
+      toast.error("Failed to refresh storage data")
+    } finally {
+      setTimeout(() => {
+        setIsRefreshing(false)
+      }, 400)
+    }
+  }, [queryClient])
 
   // Loading State
   if (loadingOverview || loadingAnalytics) {
@@ -98,7 +121,12 @@ export default function StorageCommandCenterPage() {
       className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 min-h-screen pb-24 bg-slate-50 dark:bg-transparent"
     >
       {/* 1. Hero Banner */}
-      <StorageHeroBanner onSearch={setSearchQuery} onRefresh={handleRefresh} onFilterChange={setActiveFilter} />
+      <StorageHeroBanner 
+        onSearch={setSearchQuery} 
+        onRefresh={handleRefresh} 
+        isRefreshing={isRefreshing}
+        onFilterChange={setActiveFilter} 
+      />
 
       {/* 2. KPI Dashboard */}
       <StorageLiveKpis overview={overview} />
@@ -112,7 +140,12 @@ export default function StorageCommandCenterPage() {
       {/* 5. Main Content Grids */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
-          <StorageFileExplorer files={filesData?.files} activeFilter={activeFilter} />
+          <StorageFileExplorer 
+            files={filesData?.files} 
+            activeFilter={activeFilter} 
+            searchQuery={searchQuery}
+            onClearSearch={() => setSearchQuery("")}
+          />
         </div>
         <div className="space-y-6">
           <StorageOrganizationUsage organizations={organizations?.organizations} />
@@ -121,7 +154,7 @@ export default function StorageCommandCenterPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-1">
-          <StorageBucketManagement buckets={buckets?.buckets} />
+          <StorageBucketManagement buckets={filteredBuckets} />
         </div>
         <div className="xl:col-span-1">
           <StorageBackupCenter backups={backups?.backups} />

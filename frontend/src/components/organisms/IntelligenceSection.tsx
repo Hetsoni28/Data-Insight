@@ -118,7 +118,7 @@ export function IntelligenceSection() {
                 const Icon = item.icon
                 return (
                   <motion.div key={item.id} variants={fadeUp}>
-                    <AccordionItem value={item.id} className="rounded-2xl border px-5 bg-white dark:bg-transparent data-[state=open]:shadow-md data-[state=open]:border-[#10B981]/30 transition-all">
+                    <AccordionItem value={item.id} className="rounded-2xl border border-slate-200/60 dark:border-white/10 px-5 bg-white dark:bg-white/5 data-[state=open]:shadow-md data-[state=open]:border-[#10B981]/30 transition-all">
                       <AccordionTrigger className="hover:no-underline py-4 gap-3">
                         <div className="flex items-center gap-3 text-left">
                           <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${activeFeature === item.id ? 'bg-[#10B981] text-white shadow-md' : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'}`}>
@@ -160,7 +160,7 @@ export function IntelligenceSection() {
               
               {/* 1. Integration Mock */}
               {activeFeature === "integration" && (
-                <motion.div key="integration" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-transparent p-6 shadow-xl border border-slate-200 dark:border-white/10 flex flex-col">
+                <motion.div key="integration" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-white/5 backdrop-blur-xl p-6 shadow-xl border border-slate-200/60 dark:border-white/10 flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-xl bg-[#10B981]/10 flex items-center justify-center shadow-sm border border-[#10B981]/20">
@@ -171,16 +171,16 @@ export function IntelligenceSection() {
                         <div className="text-slate-500 dark:text-slate-400 text-[10px]">Secure Data Tunnels</div>
                       </div>
                     </div>
-                    <Badge className="bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center gap-1.5 shadow-sm">
+                    <Badge className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1.5 shadow-sm">
                       <span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>
                       Active Sync
                     </Badge>
                   </div>
                   <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                     {DB_CONNECTORS.map((db, i) => (
-                      <div key={db.name} className={`flex items-center justify-between p-3 rounded-xl border ${db.active ? 'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-white/10 shadow-sm' : 'bg-white dark:bg-transparent border-slate-100 dark:border-white/5'} transition-colors hover:border-[#10B981]/30 cursor-pointer`}>
+                      <div key={db.name} className={`flex items-center justify-between p-3 rounded-xl border ${db.active ? 'bg-slate-50 dark:bg-white/5 border-slate-200/60 dark:border-white/10 shadow-sm' : 'bg-white dark:bg-transparent border-slate-100 dark:border-white/5'} transition-colors hover:border-[#10B981]/30 cursor-pointer`}>
                         <div className="flex items-center gap-3">
-                          <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${db.active ? 'bg-white dark:bg-transparent shadow-sm border' : 'bg-slate-50 dark:bg-slate-900/50'}`}>
+                          <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${db.active ? 'bg-white dark:bg-white/10 shadow-sm border border-slate-200/60 dark:border-white/10' : 'bg-slate-50 dark:bg-white/5'}`}>
                             <Database className={`h-4 w-4 ${db.active ? 'text-[#10B981]' : 'text-slate-400'}`} />
                           </div>
                           <div>
@@ -190,7 +190,7 @@ export function IntelligenceSection() {
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-[10px] font-mono text-slate-400">{db.ping}</span>
-                          <Button size="sm" variant={db.active ? "outline" : "ghost"} className={`h-7 px-3 text-[10px] ${db.active ? 'bg-white dark:bg-transparent text-slate-700 dark:text-slate-300 hover:text-[#10B981] hover:bg-emerald-50' : 'text-slate-400'}`}>
+                          <Button size="sm" variant={db.active ? "outline" : "ghost"} className={`h-7 px-3 text-[10px] ${db.active ? 'bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-[#10B981] hover:bg-emerald-50 dark:hover:bg-white/10' : 'text-slate-400'}`}>
                             {db.active ? 'Manage' : 'Connect'}
                           </Button>
                         </div>
@@ -202,21 +202,21 @@ export function IntelligenceSection() {
 
               {/* 2. Copilot Mock */}
               {activeFeature === "copilot" && (
-                <motion.div key="copilot" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-transparent shadow-xl border border-slate-200 dark:border-white/10 flex flex-col overflow-hidden">
-                  <div className="bg-white dark:bg-transparent border-b px-4 py-3 flex items-center gap-2 shadow-sm relative z-10">
+                <motion.div key="copilot" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-white/5 backdrop-blur-xl shadow-xl border border-slate-200/60 dark:border-white/10 flex flex-col overflow-hidden">
+                  <div className="bg-white dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10 px-4 py-3 flex items-center gap-2 shadow-sm relative z-10">
                     <TerminalSquare className="h-5 w-5 text-[#10B981]" />
                     <span className="font-bold text-sm text-slate-800 dark:text-slate-200">Natural Language to SQL</span>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 dark:bg-black/20">
                     {messages.map((msg, i) => (
                       <motion.div key={i} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-3 max-w-[90%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
-                        <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${msg.role === 'user' ? 'bg-[#10B981] border-[#059669]' : 'bg-white dark:bg-transparent border-slate-200 dark:border-white/10'}`}>
+                        <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${msg.role === 'user' ? 'bg-[#10B981] border-[#059669]' : 'bg-white dark:bg-white/10 border-slate-200/60 dark:border-white/10'}`}>
                           {msg.role === 'user' ? <span className="text-[10px] font-bold text-white">YOU</span> : <Sparkles className="h-4 w-4 text-[#10B981]" />}
                         </div>
-                        <div className={`rounded-2xl p-3 text-xs leading-relaxed shadow-sm border ${msg.role === 'user' ? 'bg-[#10B981] text-white rounded-tr-none border-[#059669]' : 'bg-white dark:bg-transparent text-slate-800 dark:text-slate-200 rounded-tl-none border-slate-200 dark:border-white/10'}`}>
+                        <div className={`rounded-2xl p-3 text-xs leading-relaxed shadow-sm border ${msg.role === 'user' ? 'bg-[#10B981] text-white rounded-tr-none border-[#059669]' : 'bg-white dark:bg-white/10 text-slate-800 dark:text-slate-200 rounded-tl-none border-slate-200/60 dark:border-white/10'}`}>
                           {msg.text && <p className={msg.role === 'user' ? 'font-medium' : ''}>{msg.text}</p>}
                           {msg.sql && (
-                            <div className="mt-1.5 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-white/5 font-mono p-3 rounded-lg text-[10px] overflow-x-auto whitespace-pre">
+                            <div className="mt-1.5 bg-slate-50 dark:bg-black/30 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-white/5 font-mono p-3 rounded-lg text-[10px] overflow-x-auto whitespace-pre">
                               <span className="text-pink-600 font-semibold">SELECT</span> region, <span className="text-indigo-600 font-semibold">SUM</span>(revenue)<br/>
                               <span className="text-pink-600 font-semibold">FROM</span> sales<br/>
                               <span className="text-pink-600 font-semibold">WHERE</span> quarter = <span className="text-emerald-600">&apos;Q3&apos;</span><br/>
@@ -227,8 +227,8 @@ export function IntelligenceSection() {
                       </motion.div>
                     ))}
                   </div>
-                  <form onSubmit={handleChat} className="p-3 bg-white dark:bg-transparent border-t flex gap-2">
-                    <Input value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Type a query (e.g. show revenue by region)..." className="text-xs bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-white/10 focus-visible:ring-[#10B981]" />
+                  <form onSubmit={handleChat} className="p-3 bg-white dark:bg-white/5 border-t border-slate-200/60 dark:border-white/10 flex gap-2">
+                    <Input value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Type a query (e.g. show revenue by region)..." className="text-xs bg-slate-50 dark:bg-white/5 border-slate-200/60 dark:border-white/10 focus-visible:ring-[#10B981]" />
                     <Button type="submit" className="bg-[#10B981] hover:bg-[#059669] shrink-0 text-white px-3 shadow-sm">
                       <Send className="h-4 w-4" />
                     </Button>
@@ -238,7 +238,7 @@ export function IntelligenceSection() {
 
               {/* 3. AutoML Mock */}
               {activeFeature === "automl" && (
-                <motion.div key="automl" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-transparent p-6 shadow-xl border border-slate-200 dark:border-white/10 flex flex-col">
+                <motion.div key="automl" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-white/5 backdrop-blur-xl p-6 shadow-xl border border-slate-200/60 dark:border-white/10 flex flex-col">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
@@ -249,7 +249,7 @@ export function IntelligenceSection() {
                         <div className="text-slate-400 text-[10px]">Churn Prediction v2.1</div>
                       </div>
                     </div>
-                    <Badge className="bg-indigo-50 text-indigo-600 border-indigo-200">Accuracy: 94.2%</Badge>
+                    <Badge className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/20">Accuracy: 94.2%</Badge>
                   </div>
                   <div className="flex-1 -mx-4">
                     <ReactECharts 
@@ -287,7 +287,7 @@ export function IntelligenceSection() {
                       style={{ height: '100%', minHeight: 200, minWidth: 200, width: '100%' }}
                     />
                   </div>
-                  <div className="mt-4 flex gap-4 text-[10px] text-slate-500 dark:text-slate-400 justify-center bg-slate-50 dark:bg-slate-900/50 py-2 rounded-lg border">
+                  <div className="mt-4 flex gap-4 text-[10px] text-slate-500 dark:text-slate-400 justify-center bg-slate-50 dark:bg-white/5 py-2 rounded-lg border border-slate-200/60 dark:border-white/10">
                     <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-indigo-500"></span> Training</div>
                     <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#10B981]"></span> Validation</div>
                   </div>
@@ -296,7 +296,7 @@ export function IntelligenceSection() {
 
               {/* 4. Alerts Mock */}
               {activeFeature === "alerts" && (
-                <motion.div key="alerts" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-slate-50 dark:bg-slate-900/50 p-6 shadow-xl border border-slate-200 dark:border-white/10 flex flex-col">
+                <motion.div key="alerts" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-white/5 backdrop-blur-xl p-6 shadow-xl border border-slate-200/60 dark:border-white/10 flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
@@ -307,13 +307,13 @@ export function IntelligenceSection() {
                         <div className="text-slate-400 text-[10px]">Real-time KPI Monitoring</div>
                       </div>
                     </div>
-                    <Button size="sm" variant="outline" className="h-7 text-[10px] bg-white dark:bg-transparent">Configure Rules</Button>
+                    <Button size="sm" variant="outline" className="h-7 text-[10px] bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300">Configure Rules</Button>
                   </div>
                   <div className="space-y-3 flex-1 overflow-y-auto pr-1">
                     <AnimatePresence>
                       {alerts.map((alert, i) => (
-                        <motion.div key={alert.title} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="bg-white dark:bg-transparent rounded-xl border border-slate-200 dark:border-white/10 p-4 shadow-sm flex items-start gap-4 cursor-pointer hover:border-slate-300 transition-colors">
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${alert.status === 'critical' ? 'bg-red-100 text-red-500' : alert.status === 'success' ? 'bg-emerald-100 text-emerald-500' : 'bg-amber-100 text-amber-500'}`}>
+                        <motion.div key={alert.title} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="bg-white dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/10 p-4 shadow-sm flex items-start gap-4 cursor-pointer hover:border-slate-300 dark:hover:border-white/20 transition-colors">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${alert.status === 'critical' ? 'bg-red-100 dark:bg-red-500/20 text-red-500 dark:text-red-400' : alert.status === 'success' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-500 dark:text-amber-400'}`}>
                             {alert.status === 'critical' ? <TrendingUp className="h-4 w-4" /> : alert.status === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <Activity className="h-4 w-4" />}
                           </div>
                           <div className="flex-1">
@@ -323,7 +323,7 @@ export function IntelligenceSection() {
                             </div>
                             <div className="flex items-center gap-2 mt-1.5">
                               <Badge variant="secondary" className="text-[9px] font-normal px-1.5 py-0 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400">{alert.metric}</Badge>
-                              <span className={`text-[10px] font-bold ${alert.status === 'critical' ? 'text-red-500' : alert.status === 'success' ? 'text-emerald-500' : 'text-amber-500'}`}>{alert.value}</span>
+                              <span className={`text-[10px] font-bold ${alert.status === 'critical' ? 'text-red-500 dark:text-red-400' : alert.status === 'success' ? 'text-emerald-500 dark:text-emerald-400' : 'text-amber-500 dark:text-amber-400'}`}>{alert.value}</span>
                             </div>
                           </div>
                         </motion.div>

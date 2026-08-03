@@ -97,24 +97,24 @@ export function OrganizationDataGrid() {
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden flex flex-col">
         {/* Toolbar */}
-        <div className="p-4 md:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="p-4 md:p-5 border-b border-slate-200/60 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-white/5">
           <div className="relative w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search organizations..." 
-              className="pl-9 h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 rounded-md focus-visible:ring-emerald-500 shadow-sm"
+              className="pl-9 h-10 bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-md focus-visible:ring-emerald-500 shadow-sm"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 shadow-sm rounded-md">
+            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 shadow-sm rounded-md bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300">
               <Filter className="h-4 w-4 mr-2" />
               Advanced Filters
             </Button>
-            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 shadow-sm rounded-md hidden md:flex">
+            <Button onClick={() => toast.info("Column configuration opening...")} variant="outline" className="h-10 shadow-sm rounded-md hidden md:flex bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300">
               <Settings2 className="h-4 w-4 mr-2" />
               Columns
             </Button>
@@ -122,9 +122,9 @@ export function OrganizationDataGrid() {
         </div>
 
         {/* Data Table */}
-        <div className="overflow-x-auto min-h-[400px]">
+        <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Organization</th>
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider">Plan & MRR</th>
@@ -134,22 +134,22 @@ export function OrganizationDataGrid() {
                 <th className="px-6 py-4 font-semibold text-[13px] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-48" /></td>
-                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-24" /></td>
-                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-24" /></td>
-                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-32" /></td>
-                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-16" /></td>
-                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-slate-800 rounded-md animate-pulse w-8 ml-auto" /></td>
+                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-48" /></td>
+                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-24" /></td>
+                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-24" /></td>
+                    <td className="px-6 py-4"><div className="h-10 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-32" /></td>
+                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-16" /></td>
+                    <td className="px-6 py-4"><div className="h-8 bg-slate-100 dark:bg-white/10 rounded-md animate-pulse w-8 ml-auto" /></td>
                   </tr>
                 ))
               ) : filteredTenants.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-                    <Building2 className="h-10 w-10 mx-auto text-slate-300 mb-3" />
+                    <Building2 className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
                     <p className="text-base font-medium text-slate-900 dark:text-white">No organizations found</p>
                     <p className="text-sm">Try adjusting your search filters.</p>
                   </td>
@@ -162,12 +162,12 @@ export function OrganizationDataGrid() {
                     transition={{ delay: idx * 0.03 }}
                     key={tenant.id} 
                     onClick={() => handleViewDetails(tenant)}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer"
+                    className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group cursor-pointer"
                   >
                     {/* Organization Info */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-md bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="h-10 w-10 rounded-md bg-white dark:bg-white/10 text-slate-600 dark:text-slate-300 flex items-center justify-center border border-slate-200/60 dark:border-white/10 shadow-sm">
                           <span className="font-bold text-lg">{tenant.name.charAt(0)}</span>
                         </div>
                         <div>
@@ -225,7 +225,7 @@ export function OrganizationDataGrid() {
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={(e) => handleImpersonate(tenant, e)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-blue-600 rounded-md" title="Impersonate User">
+                        <Button onClick={(e) => handleImpersonate(tenant, e)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-md" title="Impersonate User">
                           <Shield className="h-4 w-4" />
                         </Button>
                         <Button onClick={(e) => handleToggleStatus(tenant.id, tenant.is_active, e)} variant="ghost" size="icon" className={`h-8 w-8 text-slate-400 rounded-md ${tenant.is_active ? "hover:text-rose-600" : "hover:text-emerald-600"}`} title={tenant.is_active ? "Suspend Organization" : "Activate Organization"}>

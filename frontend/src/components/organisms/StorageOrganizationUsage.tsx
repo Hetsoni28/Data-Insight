@@ -23,8 +23,8 @@ export function StorageOrganizationUsage({ organizations = [] }: StorageOrganiza
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px]">
-      <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+    <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px]">
+      <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
         <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
           <Building className="h-5 w-5 text-emerald-500" />
           Organization Storage Usage
@@ -40,7 +40,7 @@ export function StorageOrganizationUsage({ organizations = [] }: StorageOrganiza
           const isCritical = org.percent_used > 95
           
           return (
-            <div key={org.id} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-emerald-500/30 transition-colors">
+            <div key={org.id} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:border-emerald-500/30 transition-colors">
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h4 className="font-medium text-slate-800 dark:text-white flex items-center gap-2">
@@ -59,7 +59,7 @@ export function StorageOrganizationUsage({ organizations = [] }: StorageOrganiza
                 </div>
               </div>
 
-              <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                 <div 
                   className={`h-full rounded-full transition-all duration-1000 ${isCritical ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'}`}
                   style={{ width: `${org.percent_used}%` }}

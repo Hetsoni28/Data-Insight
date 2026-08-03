@@ -29,7 +29,7 @@ export const LoadingPulse: React.FC<LoadingPulseProps> = ({
       <div className="relative w-32 h-32 flex items-center justify-center mb-6">
         {/* Outer Orbit */}
         <motion.div
-          className="absolute inset-0 border-2 border-slate-200 dark:border-slate-800 rounded-full"
+          className="absolute inset-0 border-2 border-slate-200 dark:border-white/10 rounded-full"
           animate={{ rotate: 360 }}
           transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
         >
@@ -38,7 +38,7 @@ export const LoadingPulse: React.FC<LoadingPulseProps> = ({
 
         {/* Inner Orbit */}
         <motion.div
-          className="absolute inset-4 border border-slate-200 dark:border-slate-800 rounded-full"
+          className="absolute inset-4 border border-slate-200 dark:border-white/10 rounded-full"
           animate={{ rotate: -360 }}
           transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
         >
@@ -47,7 +47,7 @@ export const LoadingPulse: React.FC<LoadingPulseProps> = ({
 
         {/* Center Pulse Core */}
         <motion.div
-          className="w-12 h-12 bg-slate-100 dark:bg-slate-900 rounded-2xl shadow-inner border border-slate-200 dark:border-slate-700 flex items-center justify-center"
+          className="w-12 h-12 bg-slate-100 dark:bg-white/10 rounded-2xl shadow-inner border border-slate-200/60 dark:border-white/10 flex items-center justify-center"
           animate={{
             scale: [1, 1.1, 1],
             rotate: [0, 90, 180, 270, 360],

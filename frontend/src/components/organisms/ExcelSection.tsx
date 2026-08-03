@@ -105,7 +105,7 @@ export function ExcelSection() {
             </div>
 
             {/* Tabs */}
-            <div className="bg-slate-50 dark:bg-slate-900/50 border-b px-1 sm:px-2 flex gap-0 sm:gap-1 overflow-x-auto shrink-0 custom-scrollbar">
+            <div className="bg-slate-50 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10 px-1 sm:px-2 flex gap-0 sm:gap-1 overflow-x-auto shrink-0 custom-scrollbar">
               {TABS.map((tab) => (
                 <button
                   key={tab}
@@ -128,9 +128,9 @@ export function ExcelSection() {
                     {/* Horizontally scrollable on mobile so the 5-col table never squishes */}
                     <div className="overflow-x-auto -mx-1">
                       <div className="min-w-[320px] px-1">
-                        <div className="grid grid-cols-5 gap-px bg-slate-100 dark:bg-white/10 text-[9px] font-semibold text-slate-500 dark:text-slate-400 rounded-t-sm overflow-hidden border">
+                        <div className="grid grid-cols-5 gap-px bg-slate-100 dark:bg-white/10 text-[9px] font-semibold text-slate-500 dark:text-slate-400 rounded-t-sm overflow-hidden border border-slate-200/60 dark:border-white/10">
                           {["METRIC", "JAN", "FEB", "MAR", "TREND"].map(h => (
-                            <div key={h} className="bg-slate-50 dark:bg-slate-900/50 px-2 py-1.5 whitespace-nowrap">{h}</div>
+                            <div key={h} className="bg-slate-50 dark:bg-white/5 px-2 py-1.5 whitespace-nowrap">{h}</div>
                           ))}
                         </div>
                         <div className="border rounded-b-sm overflow-hidden">

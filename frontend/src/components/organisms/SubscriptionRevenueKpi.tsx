@@ -97,7 +97,7 @@ export function SubscriptionRevenueKpi({ data, isLoading }: KpiProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {kpis.map((kpi, i) => (
-        <Card key={i} className="p-6 overflow-hidden relative group hover:shadow-md transition-all duration-300 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+        <Card key={i} className="p-6 overflow-hidden relative group hover:shadow-md transition-all duration-300 border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5">
           <div className="flex justify-between items-start mb-4">
             <div>
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{kpi.title}</p>

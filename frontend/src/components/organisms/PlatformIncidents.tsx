@@ -28,13 +28,13 @@ export function PlatformIncidents({ incidents }: PlatformIncidentsProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
-      <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden mb-8">
+      <div className="p-5 border-b border-slate-200/60 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-white/[0.02]">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Platform Incidents</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Active outages and service degradation.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Active outages and service degradation.</p>
         </div>
-        <Button variant="outline" size="sm" className="h-8 w-fit shrink-0">View Status Page</Button>
+        <Button variant="outline" size="sm" className="h-8 w-fit shrink-0 border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10">View Status Page</Button>
       </div>
 
       <div className="p-6">
@@ -42,7 +42,7 @@ export function PlatformIncidents({ incidents }: PlatformIncidentsProps) {
           <div className="text-center py-8">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
             <p className="text-slate-900 dark:text-white font-medium">All Systems Operational</p>
-            <p className="text-slate-500 text-sm mt-1">No active incidents reported in the last 24 hours.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">No active incidents reported in the last 24 hours.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -52,14 +52,14 @@ export function PlatformIncidents({ incidents }: PlatformIncidentsProps) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 * i }}
                 key={incident.id}
-                className={`border-l-4 rounded-r-xl p-5 border-y border-r border-slate-100 dark:border-slate-800 ${getSeverityStyles(incident.severity)}`}
+                className={`border-l-4 rounded-r-xl p-5 border-y border-r border-slate-100 dark:border-white/10 ${getSeverityStyles(incident.severity)}`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     {getStatusIcon(incident.status)}
                     <h3 className="font-semibold text-slate-900 dark:text-white">{incident.title}</h3>
                   </div>
-                  <Badge variant="outline" className="bg-white dark:bg-slate-900">
+                  <Badge variant="outline" className="bg-white dark:bg-white/10 border-slate-200 dark:border-white/20">
                     {incident.status.toUpperCase()}
                   </Badge>
                 </div>

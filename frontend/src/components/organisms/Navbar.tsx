@@ -21,7 +21,7 @@ export function Navbar() {
   }, [])
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 dark:bg-slate-950/95 backdrop-blur shadow-sm border-b dark:border-white/10" : "bg-white/80 dark:bg-slate-950/80 backdrop-blur"}`}>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-xl shadow-sm border-b border-slate-200/60 dark:border-white/10" : "bg-white/80 dark:bg-[#0B0F17]/80 backdrop-blur-xl border-b border-transparent"}`}>
       <div className="max-w-7xl mx-auto px-5 sm:px-8 flex h-14 items-center gap-8">
         <Logo size={24} textClassName="text-sm" />
 
@@ -48,7 +48,7 @@ export function Navbar() {
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72 p-0">
+          <SheetContent side="right" className="w-72 p-0 bg-white dark:bg-[#0B0F17]/95 backdrop-blur-2xl border-l border-slate-200/60 dark:border-white/10">
             <SheetHeader className="px-5 py-4 border-b">
               <SheetTitle className="flex items-center gap-2 text-left">
                 <Logo size={20} href={null} />

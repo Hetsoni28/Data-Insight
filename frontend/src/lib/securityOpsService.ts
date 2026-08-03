@@ -34,6 +34,9 @@ export interface ThreatIntelligence {
 export interface UserSession {
     id: string;
     user_id: string;
+    user_email?: string;
+    user_name?: string;
+    user_role?: string;
     device_name: string;
     os: string;
     browser: string;

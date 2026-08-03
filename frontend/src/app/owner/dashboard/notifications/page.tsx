@@ -61,12 +61,12 @@ export default function NotificationsPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
         <PageHeader title="Platform Operations Center" description="Real-time monitoring and intelligence hub." icon={Bell} />
         <div className="flex items-center gap-2">
-          <div className="bg-slate-100 dark:bg-white/10 p-1 rounded-lg flex border border-slate-200 dark:border-white/10">
-            <button onClick={() => setActiveTab("feed")} className={`px-4 py-1.5 text-sm font-medium rounded-md ${activeTab === 'feed' ? 'bg-white dark:bg-white/5 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Operations Feed</button>
-            <button onClick={() => setActiveTab("preferences")} className={`px-4 py-1.5 text-sm font-medium rounded-md ${activeTab === 'preferences' ? 'bg-white dark:bg-white/5 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Preferences</button>
+          <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-xl flex border border-slate-200/60 dark:border-white/10">
+            <button onClick={() => setActiveTab("feed")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'feed' ? 'bg-white dark:bg-white/10 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>Operations Feed</button>
+            <button onClick={() => setActiveTab("preferences")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'preferences' ? 'bg-white dark:bg-white/10 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>Preferences</button>
           </div>
           {activeTab === 'feed' && (
-            <button onClick={() => handleAction(NotificationService.seedDemoData(), 'Events simulated!')} className="ml-2 px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-sm font-medium transition-colors border border-indigo-200/50 flex items-center gap-2">
+            <button onClick={() => handleAction(NotificationService.seedDemoData(), 'Events simulated!')} className="ml-2 px-3 py-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 rounded-lg text-sm font-medium transition-colors border border-emerald-200/50 dark:border-emerald-500/20 flex items-center gap-2">
               <RefreshCw className="w-4 h-4" /> Simulate Events
             </button>
           )}

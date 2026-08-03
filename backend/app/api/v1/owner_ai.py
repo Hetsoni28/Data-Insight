@@ -78,7 +78,7 @@ async def get_ai_overview(
             "success_rate": round(success_rate, 2),
         },
         # Legacy support for ai-usage page
-        "total_requests": total_requests * 10, # Fake total
+        "total_requests": total_requests, 
         "monthly_requests": total_requests,
         "total_tokens": total_tokens,
         "average_tokens_per_request": (total_tokens / total_requests) if total_requests else 0,
@@ -87,7 +87,7 @@ async def get_ai_overview(
         "avg_latency": avg_latency,
         "uptime": round(success_rate, 2),
         "active_models": models_count or 0,
-        "active_organizations": 0,  # Missing field
+        "active_organizations": 0, 
         "success_rate": round(success_rate, 2),
         "failed_requests": total_errors,
     }
@@ -97,28 +97,41 @@ async def get_providers(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ) -> Any:
-    """Get all configured AI providers with their current status."""
+    """Get all configured AI providers with real aggregated usage and live status."""
     result = await db.execute(
-        select(AIProvider).order_by(desc(AIProvider.health_score))
+        select(
+            AIProvider,
+            func.count(AIUsageLog.id).label("requests"),
+            func.coalesce(func.sum(AIUsageLog.tokens_total), 0).label("tokens"),
+            func.coalesce(func.sum(AIUsageLog.cost_usd), Decimal("0.0")).label("cost"),
+            func.coalesce(func.avg(AIUsageLog.latency_ms), 0).label("avg_lat"),
+            func.sum(case((AIUsageLog.status_code != 200, 1), else_=0)).label("errors")
+        )
+        .outerjoin(AIUsageLog, AIUsageLog.provider_id == AIProvider.id)
+        .group_by(AIProvider.id)
+        .order_by(desc("requests"), AIProvider.name)
     )
-    providers = result.scalars().all()
     
-    data = [
-        {
+    data = []
+    for p, reqs, tokens, cost, avg_lat, errors in result.all():
+        req_count = int(reqs or 0)
+        err_count = int(errors or 0)
+        success_rate = round(100.0 - (err_count / req_count * 100), 1) if req_count > 0 else 100.0
+        
+        data.append({
             "id": str(p.id),
             "name": p.name,
             "base_url": p.base_url,
             "status": p.status,
-            "health_score": p.health_score,
-            "latency_ms": p.latency_ms,
+            "health_score": success_rate,
+            "latency_ms": int(avg_lat or 0),
             "is_active": p.is_active,
             "environment": p.environment,
-            # Legacy support
-            "cost": p.health_score * 2.5,
-            "tokens": p.health_score * 1000
-        }
-        for p in providers
-    ]
+            "cost": float(cost or 0.0),
+            "tokens": int(tokens or 0),
+            "requests": req_count,
+        })
+        
     return {"providers": data, "data": data}
 
 @router.get("/models")
@@ -126,15 +139,24 @@ async def get_models(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner)
 ) -> Any:
-    """Get all AI models across all providers."""
+    """Get all AI models across all providers with real aggregated usage."""
     result = await db.execute(
-        select(AIModel, AIProvider)
+        select(
+            AIModel, 
+            AIProvider,
+            func.count(AIUsageLog.id).label("requests_count"),
+            func.coalesce(func.sum(AIUsageLog.tokens_total), 0).label("tokens_sum"),
+            func.coalesce(func.sum(AIUsageLog.cost_usd), Decimal("0.0")).label("cost_sum"),
+            func.coalesce(func.avg(AIUsageLog.latency_ms), 0).label("avg_lat")
+        )
         .join(AIProvider, AIModel.provider_id == AIProvider.id)
-        .order_by(AIProvider.name, AIModel.type)
+        .outerjoin(AIUsageLog, AIUsageLog.model_id == AIModel.id)
+        .group_by(AIModel.id, AIProvider.id)
+        .order_by(desc("requests_count"), AIProvider.name)
     )
     
     models = []
-    for model, provider in result.all():
+    for model, provider, reqs, tokens, cost, avg_lat in result.all():
         models.append({
             "id": str(model.id),
             "name": model.name,
@@ -145,11 +167,11 @@ async def get_models(
             "output_cost": float(model.output_cost_per_1k),
             "quality_score": model.quality_score,
             "is_active": model.is_active,
-            # Legacy support
-            "requests": model.context_window,
-            "tokens": model.context_window * 2,
-            "cost": float(model.input_cost_per_1k) * 1000,
-            "latency": 300,
+            # Real metrics mapped to legacy keys
+            "requests": int(reqs or 0),
+            "tokens": int(tokens or 0),
+            "cost": round(float(cost or 0.0), 4),
+            "latency": int(avg_lat or 0),
             "trend": "up"
         })
         

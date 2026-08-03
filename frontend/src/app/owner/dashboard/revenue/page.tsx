@@ -131,7 +131,7 @@ export default function OwnerRevenueDashboardPage() {
             onClick={handleRefresh}
             variant="outline"
             size="icon"
-            className="h-10 w-10 shrink-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
+            className="h-10 w-10 shrink-0 bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/10"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -141,7 +141,7 @@ export default function OwnerRevenueDashboardPage() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-10 px-4 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 shadow-sm"
+                className="h-10 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:bg-slate-50 dark:hover:bg-white/10"
               >
                 <CalendarIcon className="h-4 w-4 mr-2" />
                 {selectedRange.label}
@@ -168,7 +168,7 @@ export default function OwnerRevenueDashboardPage() {
             onClick={handleExportCSV}
             disabled={isExporting}
             variant="outline"
-            className="h-10 px-4 rounded-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="h-10 px-4 rounded-md bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 shadow-sm hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/10"
           >
             <Download className="h-4 w-4 mr-2" />
             {isExporting ? "Exporting..." : "Export CSV"}

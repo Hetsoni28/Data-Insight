@@ -15,7 +15,7 @@ interface ChartsProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-lg shadow-lg">
+      <div className="bg-[#0B0F17] border border-white/10 p-3 rounded-xl shadow-xl">
         <p className="font-medium text-slate-900 dark:text-white mb-1">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export function SubscriptionAnalyticsCharts({ data, isLoading }: ChartsProps) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
       
       {/* Revenue Trend Chart */}
-      <Card className="p-6 lg:col-span-2 border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-950">
+      <Card className="p-6 lg:col-span-2 border-slate-200/60 dark:border-white/10 shadow-sm bg-white dark:bg-white/5">
         <div className="mb-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">Revenue Trend</h3>
           <p className="text-sm text-slate-500">Historical monthly revenue collected</p>
@@ -103,7 +103,7 @@ export function SubscriptionAnalyticsCharts({ data, isLoading }: ChartsProps) {
       </Card>
 
       {/* Plan Distribution Chart */}
-      <Card className="p-6 border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-950 flex flex-col">
+      <Card className="p-6 border-slate-200/60 dark:border-white/10 shadow-sm bg-white dark:bg-white/5 flex flex-col">
         <div className="mb-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">Plan Distribution</h3>
           <p className="text-sm text-slate-500">MRR contribution by tier</p>
@@ -130,7 +130,7 @@ export function SubscriptionAnalyticsCharts({ data, isLoading }: ChartsProps) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between text-sm">
+        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/10 flex justify-between text-sm">
           <span className="text-slate-500">Total Plans</span>
           <span className="font-bold text-slate-900 dark:text-white">
             {planDistribution.reduce((acc: number, curr: any) => acc + curr.count, 0)}

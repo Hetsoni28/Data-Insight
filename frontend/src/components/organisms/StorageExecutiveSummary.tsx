@@ -22,7 +22,7 @@ export function StorageExecutiveSummary({ overview }: StorageExecutiveSummaryPro
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 relative z-10">
         
         {/* Insight 1 */}
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-4 rounded-2xl border border-slate-200/50 dark:border-white/5 hover:border-emerald-500/30 transition-colors">
+        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/10 hover:border-emerald-500/30 transition-colors">
           <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-400 font-medium text-sm">
             <TrendingUp className="h-4 w-4" />
             Growth Optimized
@@ -33,7 +33,7 @@ export function StorageExecutiveSummary({ overview }: StorageExecutiveSummaryPro
         </div>
 
         {/* Insight 2 */}
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-4 rounded-2xl border border-slate-200/50 dark:border-white/5 hover:border-amber-500/30 transition-colors">
+        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/10 hover:border-amber-500/30 transition-colors">
           <div className="flex items-center gap-2 mb-2 text-amber-600 dark:text-amber-500 font-medium text-sm">
             <AlertTriangle className="h-4 w-4" />
             Quota Alert
@@ -44,7 +44,7 @@ export function StorageExecutiveSummary({ overview }: StorageExecutiveSummaryPro
         </div>
 
         {/* Insight 3 */}
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-4 rounded-2xl border border-slate-200/50 dark:border-white/5 hover:border-emerald-500/30 transition-colors">
+        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/10 hover:border-emerald-500/30 transition-colors">
           <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-400 font-medium text-sm">
             <Sparkles className="h-4 w-4" />
             Cost Savings
@@ -58,7 +58,7 @@ export function StorageExecutiveSummary({ overview }: StorageExecutiveSummaryPro
         </div>
 
         {/* Insight 4 */}
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-4 rounded-2xl border border-slate-200/50 dark:border-white/5 hover:border-blue-500/30 transition-colors">
+        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/10 hover:border-blue-500/30 transition-colors">
           <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 font-medium text-sm">
             <ShieldCheck className="h-4 w-4" />
             Backup Health

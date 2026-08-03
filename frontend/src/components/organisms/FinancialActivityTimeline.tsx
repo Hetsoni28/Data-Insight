@@ -25,8 +25,8 @@ export function FinancialActivityTimeline() {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm flex flex-col h-[500px]">
-      <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 shrink-0">
+    <div className="rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm flex flex-col h-[500px]">
+      <div className="p-5 border-b border-slate-100 dark:border-white/10 flex items-center gap-2 shrink-0">
         <History className="w-5 h-5 text-slate-400" />
         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Activity</h3>
       </div>
@@ -47,10 +47,10 @@ export function FinancialActivityTimeline() {
         ) : data?.data?.length === 0 ? (
           <div className="text-center text-slate-500 py-10">No recent financial activity.</div>
         ) : (
-          <div className="relative border-l-2 border-slate-100 dark:border-slate-800 ml-4 space-y-8">
+          <div className="relative border-l-2 border-slate-100 dark:border-white/10 ml-4 space-y-8">
             {data?.data?.map((act: any) => (
               <div key={act.id} className="relative pl-6">
-                <div className="absolute w-8 h-8 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-full flex items-center justify-center -left-[17px] -top-1">
+                <div className="absolute w-8 h-8 bg-white dark:bg-[#0B0F17] border border-slate-200/60 dark:border-white/10 rounded-full flex items-center justify-center -left-[17px] -top-1">
                   {getIconForType(act.type)}
                 </div>
                 <div>

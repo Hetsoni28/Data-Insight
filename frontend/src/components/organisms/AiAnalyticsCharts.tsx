@@ -50,7 +50,7 @@ export function AiAnalyticsCharts() {
   const latencyData = chartsData?.latencyData || [];
 
   if (isLoading) {
-    return <div className="w-full h-[500px] bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
+    return <div className="w-full h-[500px] bg-slate-100 dark:bg-white/5 rounded-lg animate-pulse" />
   }
 
   const kpis = overview?.kpis;
@@ -76,10 +76,10 @@ export function AiAnalyticsCharts() {
       {/* Top Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { title: "Total Monthly Requests", value: (kpis?.monthly_requests || 0).toLocaleString(), change: requestsTrend, icon: Zap, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { title: "Active AI Models", value: (kpis?.available_models || 0).toString(), change: modelsTrend, icon: Bot, color: "text-blue-600", bg: "bg-blue-50" },
-          { title: "Avg. Latency", value: `${kpis?.avg_latency_ms || 0}ms`, change: latencyTrend, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-          { title: "Monthly AI Cost", value: `$${(kpis?.monthly_cost_usd || 0).toLocaleString()}`, change: costTrend, icon: Coins, color: "text-purple-600", bg: "bg-purple-50" },
+          { title: "Total Monthly Requests", value: (kpis?.monthly_requests || 0).toLocaleString(), change: requestsTrend, icon: Zap, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
+          { title: "Active AI Models", value: (kpis?.available_models || 0).toString(), change: modelsTrend, icon: Bot, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-500/10" },
+          { title: "Avg. Latency", value: `${kpis?.avg_latency_ms || 0}ms`, change: latencyTrend, icon: Clock, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/10", inverse: true },
+          { title: "Monthly AI Cost", value: `$${(kpis?.monthly_cost_usd || 0).toLocaleString()}`, change: costTrend, icon: Coins, color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-500/10", inverse: true },
         ].map((metric, idx) => (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -93,9 +93,11 @@ export function AiAnalyticsCharts() {
                 <metric.icon className={`h-5 w-5 ${metric.color}`} />
               </div>
               <span className={`text-xs font-semibold px-2 py-1 rounded-md ${
-                metric.change.startsWith('+') ? 'bg-emerald-50 text-emerald-600' :
-                metric.change.startsWith('-') ? 'bg-rose-50 text-rose-600' :
-                'bg-slate-100 text-slate-500'
+                metric.change === "Stable" || metric.change === "Live"
+                  ? 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'
+                  : (metric.change.startsWith('+') ? !metric.inverse : metric.inverse)
+                  ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400'
               }`}>
                 {metric.change}
               </span>
@@ -175,7 +177,7 @@ export function AiAnalyticsCharts() {
                     dataKey="value"
                     stroke="none"
                   >
-                    {modelDistributionData.map((entry, index) => (
+                    {modelDistributionData.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -191,7 +193,7 @@ export function AiAnalyticsCharts() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-4">
-              {modelDistributionData.map((model, idx) => (
+              {modelDistributionData.map((model: any, idx: number) => (
                 <div key={idx} className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: model.color }} />
                   <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{model.name}</span>

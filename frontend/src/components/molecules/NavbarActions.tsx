@@ -38,8 +38,8 @@ export function NavbarActions({ onSearchClick, onUploadClick }: NavbarActionsPro
         <Search className="h-4 w-4 text-slate-400 group-hover:text-slate-500 dark:group-hover:text-slate-300 transition-colors mr-2" />
         <span className="text-[13px] text-slate-400 group-hover:text-slate-500 dark:group-hover:text-slate-300 font-medium">Search...</span>
         <div className="ml-auto flex items-center gap-1">
-          <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#082f22] border border-slate-200 dark:border-white/20 rounded text-[10px] font-mono text-slate-500 dark:text-slate-400 shadow-sm">⌘</kbd>
-          <kbd className="px-1.5 py-0.5 bg-white dark:bg-[#082f22] border border-slate-200 dark:border-white/20 rounded text-[10px] font-mono text-slate-500 dark:text-slate-400 shadow-sm">K</kbd>
+          <kbd className="px-1.5 py-0.5 bg-white dark:bg-white/10 border border-slate-200 dark:border-white/20 rounded text-[10px] font-mono text-slate-500 dark:text-slate-400 shadow-sm">⌘</kbd>
+          <kbd className="px-1.5 py-0.5 bg-white dark:bg-white/10 border border-slate-200 dark:border-white/20 rounded text-[10px] font-mono text-slate-500 dark:text-slate-400 shadow-sm">K</kbd>
         </div>
       </button>
 
@@ -49,7 +49,7 @@ export function NavbarActions({ onSearchClick, onUploadClick }: NavbarActionsPro
       {/* Notifications */}
       <button suppressHydrationWarning onClick={() => router.push('/owner/dashboard/notifications')} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 border border-transparent hover:border-slate-200 dark:hover:border-white/20 text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white transition-all relative group">
         <Bell className="h-4 w-4 group-hover:animate-pulse" />
-        <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-[#082f22]" />
+        <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-background" />
       </button>
 
       {/* Quick Create / Upload */}

@@ -40,8 +40,8 @@ export function NotificationCard({ notification, isSelected, onToggleRead, onTog
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       className={`group relative flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer
-        ${isUnread ? 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 shadow-sm' : 'bg-slate-50/50 border-slate-100 dark:border-white/5'}
-        ${isSelected ? 'ring-2 ring-indigo-500 border-transparent' : 'hover:border-indigo-200'}
+        ${isUnread ? 'bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 shadow-sm' : 'bg-slate-50/50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5'}
+        ${isSelected ? 'ring-2 ring-emerald-500 border-transparent' : 'hover:border-emerald-500/30'}
       `}
     >
       {/* Priority Border indicator */}
@@ -50,7 +50,7 @@ export function NotificationCard({ notification, isSelected, onToggleRead, onTog
       {/* Checkbox / Read Toggle */}
       <div className="pt-1 flex-shrink-0 z-10" onClick={(e) => { e.stopPropagation(); onToggleRead(); }}>
         <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer
-          ${isUnread ? 'border-slate-300 hover:border-indigo-400 bg-white dark:bg-white/5' : 'border-indigo-500 bg-indigo-500 text-white'}
+          ${isUnread ? 'border-slate-300 dark:border-white/20 hover:border-emerald-400 bg-white dark:bg-white/5' : 'border-emerald-500 bg-emerald-500 text-white'}
         `}>
           {!isUnread && <CheckCircle2 className="w-3.5 h-3.5" />}
         </div>
@@ -74,10 +74,10 @@ export function NotificationCard({ notification, isSelected, onToggleRead, onTog
       </div>
 
       {/* Hover Actions */}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-sm p-1.5 rounded-lg border border-slate-100 dark:border-white/5 shadow-sm z-10">
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 dark:bg-black/80 backdrop-blur-md p-1.5 rounded-lg border border-slate-100 dark:border-white/10 shadow-sm z-10">
         <button 
           onClick={(e) => { e.stopPropagation(); onTogglePin(); }}
-          className={`p-1.5 rounded-md transition-colors ${notification.is_pinned ? 'text-orange-500 bg-orange-50' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'}`}
+          className={`p-1.5 rounded-md transition-colors ${notification.is_pinned ? 'text-orange-500 bg-orange-50 dark:bg-orange-500/10' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'}`}
           title="Pin"
         >
           <Pin className="w-4 h-4" />

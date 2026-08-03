@@ -18,7 +18,7 @@ export const SearchIllustration: React.FC = () => {
         {[...Array(3)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute inset-0 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-3"
+            className="absolute inset-0 bg-white dark:bg-white/10 rounded-xl shadow-md border border-slate-200/60 dark:border-white/10 p-3"
             initial={{ rotate: (i - 1) * 10, y: i * 5, opacity: 1 - i * 0.2 }}
             animate={{ 
               rotate: [(i - 1) * 10, (i - 1) * 15, (i - 1) * 10], 
@@ -28,10 +28,10 @@ export const SearchIllustration: React.FC = () => {
             style={{ zIndex: 3 - i }}
           >
             {/* Document lines */}
-            <div className="w-1/2 h-2 bg-slate-200 dark:bg-slate-700 rounded-full mb-2" />
-            <div className="w-3/4 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mb-1" />
-            <div className="w-2/3 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mb-1" />
-            <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full" />
+            <div className="w-1/2 h-2 bg-slate-200 dark:bg-white/20 rounded-full mb-2" />
+            <div className="w-3/4 h-1.5 bg-slate-100 dark:bg-white/10 rounded-full mb-1" />
+            <div className="w-2/3 h-1.5 bg-slate-100 dark:bg-white/10 rounded-full mb-1" />
+            <div className="w-full h-1.5 bg-slate-100 dark:bg-white/10 rounded-full" />
           </motion.div>
         ))}
 

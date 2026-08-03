@@ -30,10 +30,10 @@ export default function AnalyticsPage() {
         
         {/* Row 1: Historical Data */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div className="bg-white dark:bg-white/5 rounded-3xl border border-slate-200/60 dark:border-white/10 p-6 shadow-sm">
             <RevenueTrendChart key={`revenue-${refreshKey}`} />
           </div>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div className="bg-white dark:bg-white/5 rounded-3xl border border-slate-200/60 dark:border-white/10 p-6 shadow-sm">
             <PlatformGrowthChart key={`growth-${refreshKey}`} />
           </div>
         </div>
@@ -41,11 +41,11 @@ export default function AnalyticsPage() {
         {/* Row 2: Predictive & Risk */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div className="lg:col-span-2 bg-white dark:bg-white/5 rounded-3xl border border-slate-200/60 dark:border-white/10 p-6 shadow-sm">
             <ForecastingChart key={`forecast-${refreshKey}`} />
           </div>
           
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div className="bg-white dark:bg-white/5 rounded-3xl border border-slate-200/60 dark:border-white/10 p-6 shadow-sm">
             <AnomalyDetectionFeed key={`anomaly-${refreshKey}`} />
           </div>
           
@@ -53,7 +53,7 @@ export default function AnalyticsPage() {
 
         {/* Row 3: Customer Health */}
         <div className="grid grid-cols-1 gap-6">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div className="bg-white dark:bg-white/5 rounded-3xl border border-slate-200/60 dark:border-white/10 p-6 shadow-sm">
             <CustomerHealthMatrix key={`health-${refreshKey}`} />
           </div>
         </div>

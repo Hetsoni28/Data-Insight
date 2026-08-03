@@ -28,14 +28,14 @@ export const PageLostIllustration: React.FC = () => {
 
       {/* Floating 404 Sign / Map */}
       <motion.div
-        className="relative z-10 w-24 h-24 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center overflow-hidden"
+        className="relative z-10 w-24 h-24 bg-white dark:bg-white/10 rounded-xl shadow-lg border border-slate-200/60 dark:border-white/10 flex flex-col items-center justify-center overflow-hidden"
         initial={{ y: 0, rotate: -5 }}
         animate={{ y: [-5, 5, -5], rotate: [-5, 5, -5] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
-        <span className="text-4xl font-black text-slate-200 dark:text-slate-700 dark:text-slate-300 select-none">404</span>
+        <span className="text-4xl font-black text-slate-200 dark:text-white/20 select-none">404</span>
         {/* Tear Line */}
-        <div className="absolute top-1/2 left-0 right-0 border-t-2 border-dashed border-slate-300 dark:border-slate-600 rotate-12" />
+        <div className="absolute top-1/2 left-0 right-0 border-t-2 border-dashed border-slate-300 dark:border-white/10 rotate-12" />
       </motion.div>
 
       {/* Floating Magnifying Glass */}

@@ -41,8 +41,8 @@ class RequestAccessPayload(BaseModel):
 
 class VerifyLoginPayload(BaseModel):
     email: EmailStr
-    password: str
     otp: str
+    password: str | None = None
 
     @field_validator("otp")
     @classmethod
@@ -181,15 +181,20 @@ async def login(
     summary="Login step 2: Verify 2FA OTP and issue token",
 )
 async def verify_login(
+    request: Request,
     payload: VerifyLoginPayload,
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
 ):
     auth_service = AuthService(db, redis)
+    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
+    user_agent = request.headers.get("user-agent", "")
     access_token = await auth_service.verify_login(
         email=payload.email,
-        password=payload.password,
         otp=payload.otp,
+        password=payload.password,
+        ip_address=client_ip,
+        user_agent=user_agent,
     )
     return Token(access_token=access_token, token_type="bearer")
 
@@ -329,6 +334,26 @@ async def accept_invite(
     # Mark invitation as accepted
     invitation.status = InvitationStatus.ACCEPTED
 
+    # Notify the owner: invited user has accepted and activated their account
+    from datetime import datetime, timezone
+    from app.models.notification import Notification as NotifModel
+    display_name = payload.full_name or invitation.email
+    invite_notif = NotifModel(
+        title="New User Joined via Invitation",
+        message=f"{display_name} ({invitation.email}) has accepted their invitation and activated their account as {invitation.role}.",
+        category="Organization",
+        priority="Medium",
+        icon="users",
+        type="org.invite_accepted",
+        tenant_id=invitation.tenant_id,  # Visible to the inviting org's admin
+        user_id=None,
+        is_read=False,
+        status="Unread",
+        is_pinned=False,
+        created_at=datetime.now(timezone.utc),
+    )
+    db.add(invite_notif)
+
     await db.commit()
     await db.refresh(new_user)
 
@@ -339,3 +364,4 @@ async def accept_invite(
         tenant_id=str(new_user.tenant_id) if new_user.tenant_id else None,
     )
     return Token(access_token=access_token, token_type="bearer")
+

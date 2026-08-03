@@ -67,9 +67,9 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
   const getStatusBadge = (status: string) => {
     switch (status.toUpperCase()) {
       case "PROFILING":
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">Profiling <Loader2 className="ml-1 h-3 w-3 animate-spin inline-block" /></Badge>;
+        return <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/20">Profiling <Loader2 className="ml-1 h-3 w-3 animate-spin inline-block" /></Badge>;
       case "READY":
-        return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200">Ready</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-500/20 hover:bg-emerald-500/20">Ready</Badge>;
       case "FAILED":
         return <Badge variant="destructive">Failed</Badge>;
       default:
@@ -87,7 +87,7 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+      <div className="rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5">
         <LoadingPulse messages={["Fetching datasets...", "Connecting to secure vault...", "Preparing workspace..."]} />
       </div>
     );
@@ -95,7 +95,7 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
 
   if (datasets.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50">
+      <div className="rounded-xl border border-dashed border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5">
         <StateLayout
           illustration={<NoDatasetsIllustration />}
           headline="Your Workspace is Ready"
@@ -112,10 +112,10 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
   }
 
   return (
-    <div className="rounded-xl border overflow-hidden">
+    <div className="rounded-xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden">
       <Table>
-        <TableHeader className="bg-muted/50">
-          <TableRow>
+        <TableHeader className="bg-slate-50/50 dark:bg-white/5">
+          <TableRow className="border-b border-slate-200/60 dark:border-white/10">
             <TableHead>Dataset Name</TableHead>
             <TableHead>Format</TableHead>
             <TableHead>Size</TableHead>
@@ -127,15 +127,15 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
         </TableHeader>
         <TableBody>
           {paginatedDatasets.map((dataset) => (
-            <TableRow key={dataset.id}>
+            <TableRow key={dataset.id} className="border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50/70 dark:hover:bg-white/5">
               <TableCell className="font-medium">
                 <div className="flex items-center space-x-2">
                   <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span>{dataset.name}</span>
+                  <span className="text-slate-900 dark:text-white">{dataset.name}</span>
                 </div>
               </TableCell>
               <TableCell>
-                <Badge variant="outline" className="uppercase text-xs">{dataset.file_type}</Badge>
+                <Badge variant="outline" className="uppercase text-xs dark:border-white/10">{dataset.file_type}</Badge>
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {formatBytes(dataset.file_size_bytes)}
@@ -150,18 +150,18 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
                     <DropdownMenuItem onClick={() => handleDownload(dataset.id)}>
                       <Download className="mr-2 h-4 w-4" /> Download Raw File
                     </DropdownMenuItem>
                     <DropdownMenuItem disabled>
                       <AlertCircle className="mr-2 h-4 w-4" /> View AI Profile (Soon)
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="dark:bg-white/10" />
                     <DropdownMenuItem 
                       className="text-destructive focus:text-destructive"
                       onClick={() => handleDelete(dataset.id)}

@@ -60,7 +60,7 @@ export const StateLayout: React.FC<StateLayoutProps> = ({
                 size="default"
                 onClick={secondaryAction.onClick}
                 disabled={secondaryAction.disabled}
-                className="w-full sm:w-auto h-10 px-5 bg-transparent border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 rounded-xl transition-all shadow-sm"
+                className="w-full sm:w-auto h-10 px-5 bg-transparent border-slate-200/60 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 rounded-xl transition-all shadow-sm"
               >
                 {secondaryAction.icon && <span className="mr-2">{secondaryAction.icon}</span>}
                 {secondaryAction.label}
@@ -90,14 +90,14 @@ export const StateLayout: React.FC<StateLayoutProps> = ({
             className="pt-6 flex flex-col items-center gap-2"
           >
             {aiSuggestion && (
-              <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full font-medium">
+              <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full font-medium">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 AI Suggestion: {aiSuggestion}
               </div>
             )}
             {keyboardShortcut && (
               <div className="text-xs text-slate-400 flex items-center gap-1">
-                Press <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-[10px] font-mono text-slate-500 dark:text-slate-400">{keyboardShortcut}</kbd> to focus
+                Press <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 border border-slate-200/60 dark:border-white/10 rounded-md text-[10px] font-mono text-slate-500 dark:text-slate-400">{keyboardShortcut}</kbd> to focus
               </div>
             )}
           </motion.div>

@@ -50,16 +50,16 @@ export function RevenueAnalytics() {
     }
   }
 
-  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+  if (!mounted) return <div className="w-full h-[300px] rounded-xl bg-slate-100 dark:bg-white/10 animate-pulse" />
 
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 h-32 animate-pulse" />
+          <div key={i} className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 h-32 animate-pulse" />
         ))}
-        <div className="lg:col-span-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 h-[400px] animate-pulse" />
-        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 h-[400px] animate-pulse" />
+        <div className="lg:col-span-3 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-6 h-[400px] animate-pulse" />
+        <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-6 h-[400px] animate-pulse" />
       </div>
     )
   }
@@ -77,45 +77,45 @@ export function RevenueAnalytics() {
       
       {/* Top Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-2.5 rounded-md bg-emerald-50">
-              <DollarSign className="h-5 w-5 text-emerald-600" />
+            <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <DollarSign className="h-5 w-5" />
             </div>
-            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-emerald-50 text-emerald-600">+12%</span>
+            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">+12%</span>
           </div>
           <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Monthly Recurring Revenue</h3>
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">${data.mrr.toLocaleString()}</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-2.5 rounded-md bg-blue-50">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
+            <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <TrendingUp className="h-5 w-5" />
             </div>
-            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-50 text-blue-600">+15%</span>
+            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">+15%</span>
           </div>
           <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Annual Run Rate (ARR)</h3>
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">${data.arr.toLocaleString()}</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-2.5 rounded-md bg-purple-50">
-              <Users className="h-5 w-5 text-purple-600" />
+            <div className="p-2.5 rounded-lg bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
+              <Users className="h-5 w-5" />
             </div>
-            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-emerald-50 text-emerald-600">+8</span>
+            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">+8</span>
           </div>
           <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Active Subscriptions</h3>
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{data.active_subscriptions}</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-5 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-2.5 rounded-md bg-rose-50">
-              <Activity className="h-5 w-5 text-rose-600" />
+            <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400">
+              <Activity className="h-5 w-5" />
             </div>
-            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-rose-50 text-rose-600">+0.2%</span>
+            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20">+0.2%</span>
           </div>
           <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Revenue Churn Rate</h3>
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{data.churn_rate}%</p>
@@ -130,7 +130,7 @@ export function RevenueAnalytics() {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.5 }}
-          className="lg:col-span-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm"
+          className="lg:col-span-2 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -147,9 +147,9 @@ export function RevenueAnalytics() {
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `$${val / 1000}k`} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'currentColor' }} className="text-slate-500 dark:text-slate-400" dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'currentColor' }} className="text-slate-500 dark:text-slate-400" tickFormatter={(val) => `$${val / 1000}k`} />
                 <Tooltip content={<CustomTooltip prefix="$" />} />
                 <Area type="monotone" dataKey="mrr" name="MRR" stroke="#10b981" strokeWidth={3} fill="url(#colorMrr)" />
               </AreaChart>
@@ -162,7 +162,7 @@ export function RevenueAnalytics() {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
-          className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-6 shadow-sm"
+          className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-6 shadow-sm"
         >
           <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Plan Distribution</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Active subscriptions by tier.</p>
@@ -185,8 +185,14 @@ export function RevenueAnalytics() {
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  itemStyle={{ color: '#0f172a', fontWeight: 500 }}
+                  contentStyle={{ 
+                    backgroundColor: '#0B0F17', 
+                    borderColor: 'rgba(255, 255, 255, 0.1)', 
+                    borderRadius: '10px', 
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                    color: '#fff'
+                  }}
+                  itemStyle={{ color: '#fff', fontWeight: 500 }}
                 />
               </PieChart>
             </ResponsiveContainer>

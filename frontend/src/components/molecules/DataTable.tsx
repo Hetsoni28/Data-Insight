@@ -49,7 +49,7 @@ export function DataTable<T extends { id: string | number }>({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: rowIndex * 0.05 }}
                   key={row.id} 
-                  className="hover:bg-slate-50/80 transition-colors group"
+                  className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors group"
                 >
                   {columns.map((col, colIndex) => (
                     <td key={colIndex} className={cn("px-6 py-4", col.className)}>

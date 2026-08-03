@@ -36,7 +36,7 @@ export function ExecutiveKpiGrid() {
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-36 bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
+            <div key={i} className="h-36 bg-slate-100 dark:bg-white/10 rounded-2xl animate-pulse" />
           ))}
         </div>
         <ExecutiveInsightCard briefing={null} loading={true} />
