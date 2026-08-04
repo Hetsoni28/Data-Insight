@@ -68,9 +68,7 @@ export function UploadDatasetModal({ isOpen, onClose, workspaceId, onSuccess }: 
       if (name) formData.append("name", name)
       if (description) formData.append("description", description)
 
-      await api.post("/datasets/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      })
+      await api.post("/datasets/upload", formData)
       
       toast.success("Dataset uploaded successfully!")
       setFile(null)
@@ -80,7 +78,11 @@ export function UploadDatasetModal({ isOpen, onClose, workspaceId, onSuccess }: 
       onClose()
     } catch (error: any) {
       console.error(error)
-      toast.error(error.response?.data?.message || "Failed to upload dataset.")
+      if (error.response?.data?.errors) {
+        toast.error(JSON.stringify(error.response.data.errors))
+      } else {
+        toast.error(error.response?.data?.message || "Failed to upload dataset.")
+      }
     } finally {
       setIsUploading(false)
     }

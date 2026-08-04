@@ -190,12 +190,12 @@ export function OrganizationDataGrid() {
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${
                           tenant.health_score === 'Excellent' ? 'bg-emerald-500' :
-                          tenant.health_score === 'Good' ? 'bg-blue-500' :
+                          tenant.health_score === 'Good' ? 'bg-emerald-500' :
                           tenant.health_score === 'Needs Attention' ? 'bg-amber-500' : 'bg-rose-500'
                         }`} />
                         <span className={`text-sm font-medium ${
                           tenant.health_score === 'Excellent' ? 'text-emerald-700 dark:text-emerald-400' :
-                          tenant.health_score === 'Good' ? 'text-blue-700 dark:text-blue-400' :
+                          tenant.health_score === 'Good' ? 'text-emerald-700 dark:text-emerald-400' :
                           tenant.health_score === 'Needs Attention' ? 'text-amber-700 dark:text-amber-400' : 'text-rose-700 dark:text-rose-400'
                         }`}>{tenant.health_score}</span>
                       </div>

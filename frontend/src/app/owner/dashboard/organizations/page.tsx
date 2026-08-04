@@ -8,12 +8,23 @@ import { CreateOrganizationModal } from "@/components/organisms/CreateOrganizati
 import { motion } from "framer-motion"
 import { toast } from "sonner"
 import api from "@/lib/api"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQueryClient } from "@tanstack/react-query"
+import { useSearchParams, useRouter } from "next/navigation"
 
 export default function OrganizationsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const queryClient = useQueryClient()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'new') {
+      setIsCreateModalOpen(true)
+      // Clean up the URL so it doesn't reopen on refresh
+      router.replace('/owner/dashboard/organizations', { scroll: false })
+    }
+  }, [searchParams, router])
   
   const handleExportCSV = async () => {
     toast.info("Generating CSV...")
@@ -82,7 +93,7 @@ export default function OrganizationsPage() {
       <LiveKpiDashboard />
 
       {/* Analytics Charts */}
-      <OrganizationAnalytics />
+      <OrganizationAnalytics chartData={[]} />
 
       {/* Main Grid */}
       <motion.div

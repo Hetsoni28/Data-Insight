@@ -76,12 +76,6 @@ export const NotificationService = {
   async deleteNotification(id: string): Promise<void> {
     await api.delete(`/notifications/${id}`);
   },
-
-  async seedDemoData(): Promise<any> {
-    const response = await api.post('/notifications/seed');
-    return response.data;
-  },
-
   async updatePreferences(prefs: Record<string, boolean>): Promise<void> {
     await api.patch('/notifications/preferences', prefs);
   }

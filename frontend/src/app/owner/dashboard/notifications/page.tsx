@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, Mail, MessageSquare, Smartphone, RefreshCw } from "lucide-react";
+import { Bell, Mail, MessageSquare, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { SettingCard } from "@/components/molecules/SettingCard";
@@ -12,6 +12,7 @@ import { NotificationStatsRow } from "@/components/molecules/NotificationStatsRo
 import { NotificationSidebar } from "@/components/molecules/NotificationSidebar";
 import { NotificationFeed } from "@/components/organisms/NotificationFeed";
 import { NotificationDrawer } from "@/components/organisms/NotificationDrawer";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<"feed" | "preferences">("feed");
@@ -22,6 +23,8 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [stats, setStats] = useState<NotificationStats | null>(null);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
+
+  const { data: user, refetch: refetchUser } = useAuth();
 
   const fetchFeed = async () => {
     setIsLoadingFeed(true);
@@ -50,11 +53,14 @@ export default function NotificationsPage() {
     try {
       await NotificationService.updatePreferences({ [prefKey]: newState })
       toast.success(`${label} alerts ${newState ? "enabled" : "disabled"}.`)
+      await refetchUser() // Refresh user data to get updated preferences
     } catch {
       toast.error(`Failed to update ${label} preference.`)
       throw new Error("API failed") // Re-throw so ActionToggle can revert
     }
   }
+
+  const prefs = (user as any)?.notification_preferences || { email_notifications: true, slack_notifications: false, push_notifications: true };
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto min-h-screen pb-24">
@@ -65,19 +71,14 @@ export default function NotificationsPage() {
             <button onClick={() => setActiveTab("feed")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'feed' ? 'bg-white dark:bg-white/10 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>Operations Feed</button>
             <button onClick={() => setActiveTab("preferences")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'preferences' ? 'bg-white dark:bg-white/10 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>Preferences</button>
           </div>
-          {activeTab === 'feed' && (
-            <button onClick={() => handleAction(NotificationService.seedDemoData(), 'Events simulated!')} className="ml-2 px-3 py-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 rounded-lg text-sm font-medium transition-colors border border-emerald-200/50 dark:border-emerald-500/20 flex items-center gap-2">
-              <RefreshCw className="w-4 h-4" /> Simulate Events
-            </button>
-          )}
         </div>
       </div>
 
       {activeTab === 'preferences' ? (
         <div className="grid md:grid-cols-3 gap-6">
-          <SettingCard title="Email Alerts" delay={0.1} icon={Mail} className="h-full"><ActionToggle initialState={true} onToggle={handleTogglePref('email_notifications', 'Email')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
-          <SettingCard title="Slack Notifications" delay={0.2} icon={MessageSquare} className="h-full"><ActionToggle initialState={false} onToggle={handleTogglePref('slack_notifications', 'Slack')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
-          <SettingCard title="Push Notifications" delay={0.3} icon={Smartphone} className="h-full"><ActionToggle initialState={true} onToggle={handleTogglePref('push_notifications', 'Push')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
+          <SettingCard title="Email Alerts" delay={0.1} icon={Mail} className="h-full"><ActionToggle initialState={prefs.email_notifications} onToggle={handleTogglePref('email_notifications', 'Email')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
+          <SettingCard title="Slack Notifications" delay={0.2} icon={MessageSquare} className="h-full"><ActionToggle initialState={prefs.slack_notifications} onToggle={handleTogglePref('slack_notifications', 'Slack')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
+          <SettingCard title="Push Notifications" delay={0.3} icon={Smartphone} className="h-full"><ActionToggle initialState={prefs.push_notifications} onToggle={handleTogglePref('push_notifications', 'Push')} activeLabel="Enabled" inactiveLabel="Disabled" /></SettingCard>
         </div>
       ) : (
         <div className="space-y-8">

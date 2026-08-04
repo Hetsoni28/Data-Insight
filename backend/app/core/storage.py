@@ -59,6 +59,19 @@ def upload_file(
     return destination_path
 
 
+def download_file_bytes(bucket: str, path: str) -> bytes:
+    """Download a file's bytes from Supabase Storage (or local disk fallback)."""
+    if is_local_storage():
+        local_path = LOCAL_UPLOADS_DIR / bucket / path
+        if not local_path.exists():
+            raise FileNotFoundError(f"File not found: {local_path}")
+        return local_path.read_bytes()
+
+    client = _client()
+    response = client.storage.from_(bucket).download(path)
+    return response
+
+
 def get_signed_url(bucket: str, path: str, expires_in: int = 3600) -> str:
     """Generate a signed download URL valid for `expires_in` seconds (or local URL fallback)."""
     if is_local_storage():

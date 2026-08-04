@@ -88,7 +88,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
-              <Users className="w-5 h-5 text-indigo-500 mb-2" />
+              <Users className="w-5 h-5 text-emerald-500 mb-2" />
               <div className="text-2xl font-bold text-slate-900 dark:text-white">{tenant?.active_users}/{tenant?.users_count}</div>
               <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Users</div>
             </div>
@@ -118,7 +118,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg font-bold text-slate-900 dark:text-white">{tenant?.plan} Plan</span>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Current</Badge>
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Current</Badge>
                 </div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">${tenant?.mrr}/month • Renews {renewalDate.toLocaleDateString()}</p>
               </div>
@@ -139,14 +139,14 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Overall Health Score</span>
                 <span className={`text-sm font-bold ${
                   tenant?.health_score === 'Excellent' ? 'text-emerald-600 dark:text-emerald-400' :
-                  tenant?.health_score === 'Good' ? 'text-blue-600 dark:text-blue-400' :
+                  tenant?.health_score === 'Good' ? 'text-emerald-600 dark:text-emerald-400' :
                   tenant?.health_score === 'Needs Attention' ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'
                 }`}>{tenant?.health_score}</span>
               </div>
               <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2">
                 <div className={`h-2 rounded-full ${
                   tenant?.health_score === 'Excellent' ? 'bg-emerald-500 w-full' :
-                  tenant?.health_score === 'Good' ? 'bg-blue-500 w-3/4' :
+                  tenant?.health_score === 'Good' ? 'bg-emerald-500 w-3/4' :
                   tenant?.health_score === 'Needs Attention' ? 'bg-amber-500 w-1/2' : 'bg-rose-500 w-1/4'
                 }`} />
               </div>

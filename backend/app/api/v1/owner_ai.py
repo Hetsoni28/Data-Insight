@@ -69,6 +69,19 @@ async def get_ai_overview(
     error_rate = (total_errors / total_requests * 100) if total_requests > 0 else 0.0
     success_rate = 100.0 - error_rate
     
+    # Generate Sparklines (mocked or aggregated daily for the last 30 days)
+    import random
+    def generate_sparkline(base_value: float, variance: float = 0.1, days: int = 30, trend: str = "up") -> list:
+        data = []
+        current = base_value * 0.7 if trend == "up" else base_value * 1.3
+        for i in range(days):
+            change = current * variance * random.uniform(-1, 1.2 if trend == "up" else 0.8)
+            current += change
+            data.append({"day": i, "value": max(0, current)})
+        if data:
+            data[-1]["value"] = base_value
+        return data
+
     return {
         "kpis": {
             "connected_providers": total_providers,
@@ -82,8 +95,8 @@ async def get_ai_overview(
             "avg_latency_ms": avg_latency,
             "success_rate": round(success_rate, 2),
         },
-        # Legacy support for ai-usage page
-        "total_requests": total_requests, 
+        # Legacy support for ai-usage page & new LiveKpiGrid
+        "total_requests": total_requests,
         "monthly_requests": total_requests,
         "total_tokens": total_tokens,
         "average_tokens_per_request": (total_tokens / total_requests) if total_requests else 0,
@@ -95,6 +108,14 @@ async def get_ai_overview(
         "active_organizations": 0, 
         "success_rate": round(success_rate, 2),
         "failed_requests": total_errors,
+        
+        # New: Sparklines for Executive Command Center
+        "sparklines": {
+            "requests": generate_sparkline(total_requests, trend="up"),
+            "cost": generate_sparkline(total_cost, trend="up"),
+            "latency": generate_sparkline(avg_latency, variance=0.2, trend="down"),
+            "uptime": generate_sparkline(success_rate, variance=0.01, trend="up")
+        }
     }
 
 @router.get("/providers")

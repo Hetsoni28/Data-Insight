@@ -1,0 +1,151 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import api from "@/lib/api"
+import { toast } from "sonner"
+
+import { ReportExecutiveKPIs } from "@/components/organisms/ReportExecutiveKPIs"
+import { ReportQuickActions } from "@/components/organisms/ReportQuickActions"
+import { ReportExplorerTable, Report } from "@/components/organisms/ReportExplorerTable"
+import { ReportAuditTimeline } from "@/components/organisms/ReportAuditTimeline"
+import { ReportActionModal } from "@/components/organisms/ReportActionModal"
+
+export default function ReportsCenterPage() {
+  const [stats, setStats] = useState(null)
+  const [reports, setReports] = useState<Report[]>([])
+  const [activities, setActivities] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  
+  const [searchQuery, setSearchQuery] = useState("")
+  
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [currentAction, setCurrentAction] = useState("")
+
+  const fetchData = async () => {
+    try {
+      const [statsRes, reportsRes, actRes] = await Promise.all([
+        api.get('/tenant-reports/stats'),
+        api.get(`/tenant-reports?search=${searchQuery}`),
+        api.get('/tenant-reports/activities')
+      ])
+      
+      setStats(statsRes.data.data)
+      setReports(reportsRes.data.data)
+      setActivities(actRes.data.data.audit_logs)
+    } catch (e) {
+      console.error("Failed to fetch reports center data", e)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [searchQuery])
+
+  useEffect(() => {
+    // Auto-polling if any report is in "generating" or "queued" status
+    const isProcessing = reports.some(r => ['generating', 'queued'].includes(r.status))
+    let interval: NodeJS.Timeout
+    if (isProcessing) {
+      interval = setInterval(() => {
+        fetchData()
+      }, 3000)
+    }
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [reports, searchQuery])
+
+  const handleQuickAction = (action: string) => {
+    setCurrentAction(action)
+    setIsModalOpen(true)
+  }
+
+  const handleRowAction = async (action: string, id: string) => {
+    if (action === 'delete' || action === 'archive') {
+      if (!confirm(`Are you sure you want to ${action} this report?`)) return
+      try {
+        await api.post(`/tenant-reports/${id}/action/delete`)
+        toast.success(`Report ${action}d successfully`)
+        fetchData()
+      } catch (e) {
+        toast.error(`Failed to ${action} report`)
+      }
+    } else if (action === 'preview') {
+      toast.info(`Opening preview for report ${id}`)
+    } else if (action === 'download') {
+      toast.loading("Preparing download...", { id: `dl-${id}` })
+      try {
+        const res = await api.get(`/tenant-reports/${id}/download`, { responseType: 'blob' })
+        const url = window.URL.createObjectURL(new Blob([res.data]))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', `Report_${id.substring(0,8)}.xlsx`)
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        toast.success("Download complete!", { id: `dl-${id}` })
+        fetchData()
+      } catch(e) {
+        toast.error("Failed to download report", { id: `dl-${id}` })
+      }
+    } else {
+      toast.info(`Action ${action} is mocked for this iteration.`)
+      // Mocked endpoint execution just to log the audit trail
+      try {
+        await api.post(`/tenant-reports/${id}/action/${action}`)
+        fetchData()
+      } catch(e) {}
+    }
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col p-8 bg-slate-50 dark:bg-slate-950 overflow-y-auto custom-scrollbar">
+      
+      <div className="flex justify-between items-start mb-8 shrink-0">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Reports Center</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-2xl text-base">
+            Enterprise Business Intelligence reporting hub. Generate, schedule, and analyze AI-powered business reports.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        
+        {/* Top Section: KPIs & Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <ReportExecutiveKPIs stats={stats} />
+            <ReportQuickActions onAction={handleQuickAction} />
+          </div>
+          
+          {/* Timeline in a smaller side panel at the top */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            <ReportAuditTimeline logs={activities} isLoading={isLoading} />
+          </div>
+        </div>
+
+        {/* Full Width Table Area */}
+        <div className="w-full">
+          <ReportExplorerTable 
+            reports={reports}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onAction={handleRowAction}
+          />
+        </div>
+        
+      </div>
+
+      <ReportActionModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        actionType={currentAction}
+        onSuccess={fetchData}
+      />
+    </div>
+  )
+}

@@ -72,27 +72,40 @@ async def get_events(
     
     # Apply pagination and sorting
     query = query.order_by(desc(AuditLog.created_at)).limit(limit).offset(offset)
-    result = await db.execute(query)
-    events = result.scalars().all()
+    
+    # Eager load the actor user if needed, or join manually. We will do a manual join to get specific fields.
+    # To keep it simple, we'll fetch the users separately or join. Let's do a join.
+    stmt = (
+        select(AuditLog, User.full_name, User.email, User.avatar_url)
+        .outerjoin(User, User.id == AuditLog.actor_user_id)
+        .where(AuditLog.id.in_(select(AuditLog.id).select_from(query.subquery())))
+        .order_by(desc(AuditLog.created_at))
+    )
+    
+    result = await db.execute(stmt)
+    rows = result.all()
     
     return {
         "total": total_count or 0,
         "events": [
             {
-                "id": str(e.id),
-                "action": e.action,
-                "module": e.module,
-                "severity": e.severity,
-                "status": e.status,
-                "ip_address": e.ip_address,
-                "user_id": str(e.user_id) if e.user_id else None,
-                "actor_user_id": str(e.actor_user_id) if e.actor_user_id else None,
-                "correlation_id": e.correlation_id,
-                "old_value": e.old_value,
-                "new_value": e.new_value,
-                "created_at": e.created_at.isoformat()
+                "id": str(e.AuditLog.id),
+                "action": e.AuditLog.action,
+                "module": e.AuditLog.module,
+                "severity": e.AuditLog.severity,
+                "status": e.AuditLog.status,
+                "ip_address": e.AuditLog.ip_address,
+                "user_id": str(e.AuditLog.user_id) if e.AuditLog.user_id else None,
+                "actor_user_id": str(e.AuditLog.actor_user_id) if e.AuditLog.actor_user_id else None,
+                "actor_name": e.full_name or "System",
+                "actor_email": e.email or "system@platform",
+                "actor_avatar": e.avatar_url,
+                "correlation_id": e.AuditLog.correlation_id,
+                "old_value": e.AuditLog.old_value,
+                "new_value": e.AuditLog.new_value,
+                "created_at": e.AuditLog.created_at.isoformat()
             }
-            for e in events
+            for e in rows
         ]
     }
 
@@ -103,7 +116,7 @@ async def get_timeline(
     current_user: User = Depends(require_owner)
 ) -> Any:
     # Fetch only significant events (warnings, critical, or specific modules) for the timeline
-    query = select(AuditLog).where(
+    query = select(AuditLog, User.full_name, User.email, User.avatar_url).outerjoin(User, User.id == AuditLog.actor_user_id).where(
         or_(
             AuditLog.severity.in_(['warning', 'critical']),
             AuditLog.module.in_(['authentication', 'billing', 'security'])
@@ -111,18 +124,21 @@ async def get_timeline(
     ).order_by(desc(AuditLog.created_at)).limit(limit)
     
     result = await db.execute(query)
-    events = result.scalars().all()
+    rows = result.all()
     
     return {
         "timeline": [
             {
-                "id": str(e.id),
-                "action": e.action,
-                "module": e.module,
-                "severity": e.severity,
-                "status": e.status,
-                "created_at": e.created_at.isoformat()
+                "id": str(e.AuditLog.id),
+                "action": e.AuditLog.action,
+                "module": e.AuditLog.module,
+                "severity": e.AuditLog.severity,
+                "status": e.AuditLog.status,
+                "actor_name": e.full_name or "System",
+                "actor_email": e.email or "system@platform",
+                "actor_avatar": e.avatar_url,
+                "created_at": e.AuditLog.created_at.isoformat()
             }
-            for e in events
+            for e in rows
         ]
     }

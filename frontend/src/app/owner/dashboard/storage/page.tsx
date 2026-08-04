@@ -81,7 +81,7 @@ export default function StorageCommandCenterPage() {
       b.type?.toLowerCase().includes(q) ||
       b.region?.toLowerCase().includes(q)
     )
-  }, [buckets?.buckets, searchQuery])
+  }, [buckets, searchQuery])
 
   // Global refresh with active indicator and feedback toast
   const handleRefresh = useCallback(async () => {
