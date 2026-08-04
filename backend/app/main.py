@@ -126,8 +126,12 @@ def create_app() -> FastAPI:
     ):
         errors = []
         for error in exc.errors():
-            field = " → ".join(str(loc) for loc in error["loc"])
+            field = " -> ".join(str(loc) for loc in error["loc"])
             errors.append({"field": field, "message": error["msg"]})
+            
+        with open("422_debug.log", "w") as f:
+            f.write(str(errors))
+
         return JSONResponse(
             status_code=422,
             content={

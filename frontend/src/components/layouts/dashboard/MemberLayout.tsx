@@ -76,9 +76,18 @@ export function MemberLayout({ children, user, handleLogout }: MemberLayoutProps
   }
 
   // Filter nav items based on the user's specific role (org_admin, manager, etc.)
+  const getBasePath = (role: string) => {
+    if (role === "org_admin" || role === "organization-admin") return "/organization-admin"
+    return `/${role}`
+  }
+
   const navItems: NavItem[] = MEMBER_NAV.filter(item => 
     item.allowedRoles.includes(user?.role)
-  ).map(({ icon, label, href }) => ({ icon, label, href }))
+  ).map(({ icon, label, href }) => ({ 
+    icon, 
+    label, 
+    href: href.replace("/dashboard", `${getBasePath(user?.role)}/dashboard`) 
+  }))
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-white/5 overflow-hidden">

@@ -8,6 +8,7 @@ from app.models.user import User
 from app.repositories.dataset import DatasetRepository
 from app.repositories.workspace import WorkspaceRepository
 from app.repositories.audit_log import AuditLogRepository
+from app.services.notification_service import NotificationService
 from app.core.storage import (
     upload_file,
     dataset_storage_path,
@@ -102,9 +103,25 @@ class DatasetService:
         # Trigger Celery profiling task
         from app.worker.tasks.dataset_tasks import profile_dataset_task
 
-        task = profile_dataset_task.delay(str(dataset.id))
-        dataset.celery_task_id = task.id
-        await self.dataset_repo.save(dataset)
+        try:
+            task = profile_dataset_task.delay(str(dataset.id))
+            dataset.celery_task_id = task.id
+            await self.dataset_repo.save(dataset)
+        except Exception as e:
+            print(f"Warning: Could not queue celery task. Is Redis running? Error: {e}")
+            dataset.status = DatasetStatus.ready
+            await self.dataset_repo.save(dataset)
+        # Notify
+        await NotificationService.create_notification(
+            session=self.session,
+            title="New Dataset Uploaded",
+            message=f"{actor.full_name or actor.email} uploaded '{dataset.original_filename}'.",
+            category="System",
+            priority="Low",
+            notif_type="system.dataset_upload",
+            icon="database",
+            tenant_id=actor.tenant_id
+        )
 
         await self.audit_repo.log(
             "dataset.upload",

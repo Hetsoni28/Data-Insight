@@ -65,6 +65,22 @@ async def upload_file(
     return await asyncio.to_thread(_sync)
 
 
+async def download_file_bytes(bucket: str, path: str) -> bytes:
+    """Download a file's bytes from Supabase Storage (or local disk fallback)."""
+    def _sync():
+        if is_local_storage():
+            local_path = LOCAL_UPLOADS_DIR / bucket / path
+            if not local_path.exists():
+                raise FileNotFoundError(f"File not found: {local_path}")
+            return local_path.read_bytes()
+
+        client = _client()
+        response = client.storage.from_(bucket).download(path)
+        return response
+    
+    return await asyncio.to_thread(_sync)
+
+
 async def get_signed_url(bucket: str, path: str, expires_in: int = 3600) -> str:
     """Generate a signed download URL valid for `expires_in` seconds (or local URL fallback)."""
     def _sync():

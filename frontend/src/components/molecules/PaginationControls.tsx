@@ -57,26 +57,28 @@ export function PaginationControls({
     };
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-6 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 rounded-b-lg">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                <div className="flex items-center gap-2">
-                    <span>Rows per page:</span>
-                    <select
-                        value={pageSize}
-                        onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                        className="h-8 w-16 rounded-md border border-slate-200 dark:border-white/10 bg-transparent px-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    >
-                        {pageSizeOptions.map(size => (
-                            <option key={size} value={size}>{size}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    Showing <span className="font-medium text-slate-900 dark:text-slate-100">{totalItems === 0 ? 0 : startItem}</span> to <span className="font-medium text-slate-900 dark:text-slate-100">{endItem}</span> of <span className="font-medium text-slate-900 dark:text-slate-100">{totalItems}</span> items
+        <div className="flex flex-wrap items-center justify-between gap-y-4 gap-x-6 py-4 px-4 sm:px-6 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 rounded-b-lg w-full">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                {pageSizeOptions.length > 1 && (
+                    <div className="flex items-center gap-2">
+                        <span className="whitespace-nowrap">Rows per page:</span>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                            className="h-8 w-16 rounded-md border border-slate-200 dark:border-white/10 bg-transparent px-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        >
+                            {pageSizeOptions.map(size => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+                <div className="whitespace-nowrap text-xs sm:text-sm">
+                    Showing <span className="font-medium text-slate-900 dark:text-slate-100">{totalItems === 0 ? 0 : startItem}</span> to <span className="font-medium text-slate-900 dark:text-slate-100">{endItem}</span> of <span className="font-medium text-slate-900 dark:text-slate-100">{totalItems}</span>
                 </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                 <Button
                     variant="outline"
                     size="icon"

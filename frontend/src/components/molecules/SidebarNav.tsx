@@ -10,6 +10,17 @@ export function SidebarNav({ navGroups, isCollapsed = false }: SidebarNavProps) 
   const router = useRouter()
   const pathname = usePathname()
 
+  // Find the best match (longest href that the pathname starts with)
+  const allItems = navGroups.flatMap(g => g.items)
+  let bestMatch = ""
+  for (const item of allItems) {
+    if (pathname === item.href || pathname.startsWith(item.href + "/")) {
+      if (item.href.length > bestMatch.length) {
+        bestMatch = item.href
+      }
+    }
+  }
+
   return (
     <nav className={`flex-1 space-y-6 overflow-y-auto custom-scrollbar relative z-10 pb-6 transition-all duration-300 ${isCollapsed ? "px-2" : "px-3"}`}>
       {navGroups.map((group) => (
@@ -21,7 +32,7 @@ export function SidebarNav({ navGroups, isCollapsed = false }: SidebarNavProps) 
           )}
           <div className="space-y-1">
             {group.items.map(({ icon: Icon, label, href }) => {
-              const isActive = pathname === href || (pathname.startsWith(href + "/") && href !== "/owner/dashboard")
+              const isActive = href === bestMatch
               return (
                 <button
                   key={label}

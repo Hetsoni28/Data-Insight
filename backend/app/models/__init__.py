@@ -26,6 +26,8 @@ from app.models.feature_flag import FeatureFlag, FeatureRollout, FeatureExperime
 from app.models.operating_expense import OperatingExpense
 from app.models.webhook_delivery import WebhookDeliveryLog
 from app.models.chat import ChatSession, ChatMessage
+from app.models.tenant_role import TenantRole
+from app.models.tenant_department import TenantDepartment
 
 __all__ = [
     "User",
@@ -69,6 +71,7 @@ __all__ = [
     "AIRoutingRule",
     "AIPromptTemplate",
     "AIUsageLog",
+    "AIOps",
     "IntegrationConnection",
     "IntegrationLog",
     "AutomationWorkflow",

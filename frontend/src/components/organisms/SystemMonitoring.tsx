@@ -11,7 +11,7 @@ import { toast } from "sonner"
 const CustomTooltip = ({ active, payload, label, suffix = "" }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#0B0F17] border border-white/10 shadow-xl rounded-xl p-3 text-sm">
+      <div className="bg-white dark:bg-[#0B0F17] border border-slate-200 dark:border-white/10 shadow-xl rounded-xl p-3 text-sm">
         <p className="font-semibold text-slate-900 dark:text-white mb-2">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 mb-1">

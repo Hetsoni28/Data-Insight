@@ -24,6 +24,11 @@ from app.api.v1.owner_integrations import router as owner_integrations_router
 from app.api.v1.owner_security import router as owner_security_router
 from app.api.v1.owner_audit import router as owner_audit_router
 from app.api.v1.owner_features import router as owner_features_router
+from app.api.v1.owner_health import router as owner_health_router
+from app.api.v1.tenant_dashboard import router as tenant_dashboard_router
+from app.api.v1.tenant_team import router as tenant_team_router
+from app.api.v1.tenant_datasets import router as tenant_datasets_router
+from app.api.v1.tenant_reports import router as tenant_reports_router
 
 api_router = APIRouter()
 
@@ -51,3 +56,8 @@ api_router.include_router(owner_integrations_router, prefix="/owner/integrations
 api_router.include_router(owner_security_router, prefix="/owner/security", tags=["Owner Security"])
 api_router.include_router(owner_audit_router, prefix="/owner/audit", tags=["Owner Audit"])
 api_router.include_router(owner_features_router, prefix="/owner/features", tags=["Owner Features"])
+api_router.include_router(owner_health_router, prefix="/owner/health", tags=["Owner Health"])
+api_router.include_router(tenant_dashboard_router, prefix="/tenant-dashboard", tags=["Tenant Dashboard"])
+api_router.include_router(tenant_team_router, prefix="/tenant-team", tags=["Tenant Team"])
+api_router.include_router(tenant_datasets_router, prefix="/tenant-datasets", tags=["Tenant Datasets"])
+api_router.include_router(tenant_reports_router, prefix="/tenant-reports", tags=["Tenant Reports"])

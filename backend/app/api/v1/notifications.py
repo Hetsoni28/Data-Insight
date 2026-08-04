@@ -209,57 +209,7 @@ async def bulk_action_notifications(
     return {"status": "success", "updated_count": result.rowcount}
 
 
-@router.post("/seed", response_model=dict)
-async def seed_notifications(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Development endpoint to seed fake notifications for UI demonstration."""
-    
-    templates = [
-        {"title": "High AI Token Usage Detected", "msg": "Your tenant has consumed 85% of its monthly AI token allocation.", "cat": "AI", "pri": "High", "icon": "brain", "type": "ai.limit_warning"},
-        {"title": "Suspicious Login Attempt", "msg": "Failed login attempt detected from IP 192.168.1.55 in Russia.", "cat": "Security", "pri": "Critical", "icon": "shield-alert", "type": "security.login_failed"},
-        {"title": "Database Backup Completed", "msg": "Automated snapshot DB-20260731 successfully created.", "cat": "System", "pri": "Low", "icon": "database", "type": "system.backup"},
-        {"title": "New User Joined", "msg": "Sarah Jenkins has joined your organization as an Analyst.", "cat": "Organization", "pri": "Medium", "icon": "users", "type": "org.user_joined"},
-        {"title": "Invoice Generated", "msg": "Invoice #INV-2026-004 for $499.00 is ready for payment.", "cat": "Billing", "pri": "Medium", "icon": "receipt", "type": "billing.invoice"},
-        {"title": "API Abuse Detected", "msg": "Rate limiting triggered for API Key 'Prod Service'.", "cat": "Security", "pri": "High", "icon": "alert-triangle", "type": "security.api_abuse"},
-        {"title": "Storage Warning", "msg": "Dataset storage is at 92% capacity (460GB / 500GB).", "cat": "System", "pri": "Warning", "icon": "hard-drive", "type": "system.storage"},
-        {"title": "AI Report Generation Failed", "msg": "The scheduled executive summary failed due to OpenAI timeout.", "cat": "AI", "pri": "High", "icon": "cpu", "type": "ai.error"},
-        {"title": "Subscription Upgraded", "msg": "Your plan has been successfully upgraded to Enterprise.", "cat": "Billing", "pri": "Low", "icon": "credit-card", "type": "billing.upgrade"},
-        {"title": "MFA Disabled", "msg": "Multi-factor authentication was disabled by administrator.", "cat": "Security", "pri": "Critical", "icon": "key", "type": "security.mfa_disabled"},
-    ]
-    
-    notifications_created = 0
-    now = datetime.now(timezone.utc)
-    
-    for _ in range(25):
-        template = random.choice(templates)
-        # Random time in the last 7 days
-        random_time = now - timedelta(hours=random.randint(0, 168), minutes=random.randint(0, 60))
-        
-        is_read = random.random() > 0.4
-        is_pinned = random.random() > 0.95
-        
-        notif = Notification(
-            title=template["title"],
-            message=template["msg"],
-            category=template["cat"],
-            priority=template["pri"],
-            icon=template["icon"],
-            type=template["type"],
-            tenant_id=current_user.tenant_id,
-            user_id=current_user.id if random.random() > 0.5 else None,
-            is_read=is_read,
-            status="Read" if is_read else "Unread",
-            is_pinned=is_pinned,
-            created_at=random_time
-        )
-        db.add(notif)
-        notifications_created += 1
-        
-    await db.commit()
-    
-    return {"status": "success", "message": f"Seeded {notifications_created} notifications"}
+
 
 @router.patch("/preferences", response_model=dict)
 async def update_notification_preferences(
@@ -275,10 +225,18 @@ async def update_notification_preferences(
     
     # Try to update if user model has notification_preferences field
     if hasattr(current_user, 'notification_preferences'):
-        existing = current_user.notification_preferences or {}
+        # SQLAlchemy needs a new dictionary reference to detect JSONB changes
+        existing = dict(current_user.notification_preferences or {})
         existing.update(pref_dict)
         current_user.notification_preferences = existing
+        
+        # Also explicitly flag it as modified just to be perfectly safe
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(current_user, 'notification_preferences')
+        
+        db.add(current_user)
         await db.commit()
+        await db.refresh(current_user)
     
     return {
         "status": "success",

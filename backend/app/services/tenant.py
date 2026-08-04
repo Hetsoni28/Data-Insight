@@ -9,6 +9,7 @@ from app.models.user import User, UserRole
 from app.repositories.tenant import TenantRepository
 from app.repositories.user import UserRepository
 from app.repositories.audit_log import AuditLogRepository
+from app.services.notification_service import NotificationService
 from app.core.exceptions import (
     ConflictException,
     ResourceNotFoundException,
@@ -60,10 +61,23 @@ class TenantService:
         await self.audit_repo.log(
             "tenant.create",
             tenant_id=tenant.id,
-            user_id=owner.id,
-            resource_type="tenant",
-            resource_id=str(tenant.id),
+            actor_id=owner.id,
+            metadata_json={"plan": plan},
         )
+
+        # Notify the platform owner
+        await NotificationService.create_notification(
+            session=self.session,
+            title="New Organization Created",
+            message=f"{owner.full_name or owner.email} created a new organization: '{tenant.name}'.",
+            category="Organization",
+            priority="Medium",
+            notif_type="org.created",
+            icon="building"
+        )
+
+        await self.session.commit()
+        await self.session.refresh(tenant)
         return tenant
 
     async def get_tenant(self, tenant_id: uuid.UUID) -> Tenant:

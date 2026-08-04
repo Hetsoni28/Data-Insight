@@ -31,36 +31,10 @@ from app.core.exceptions import (
 from app.core.security import verify_password, get_password_hash, create_access_token
 from app.core import otp as otp_service
 from app.services import email as email_service
+from app.services.notification_service import NotificationService
 
 
-async def _notify_owner_new_user(
-    session: AsyncSession,
-    title: str,
-    message: str,
-    category: str = "Organization",
-    priority: str = "Medium",
-    notif_type: str = "org.user_joined",
-) -> None:
-    """Create a platform-wide notification visible to the owner."""
-    try:
-        notif = Notification(
-            title=title,
-            message=message,
-            category=category,
-            priority=priority,
-            icon="users",
-            type=notif_type,
-            tenant_id=None,   # None = platform-wide, visible to owner
-            user_id=None,
-            is_read=False,
-            status="Unread",
-            is_pinned=False,
-            created_at=datetime.now(timezone.utc),
-        )
-        session.add(notif)
-        await session.flush()  # Don't commit — let the caller's transaction handle it
-    except Exception as exc:
-        logger.warning(f"[Auth] Failed to create owner notification: {exc}")
+
 
 
 class AuthService:
@@ -105,13 +79,14 @@ class AuthService:
         self.session.add(user)
 
         # Notify the owner: new access request pending approval
-        await _notify_owner_new_user(
+        await NotificationService.create_notification(
             session=self.session,
             title="New Access Request",
             message=f"{full_name} ({email}) has requested platform access as {requested_role}. Pending your approval.",
             category="Organization",
             priority="High",
             notif_type="org.access_request",
+            icon="users"
         )
 
         await self.session.commit()
@@ -199,15 +174,15 @@ class AuthService:
         # Mark verified
         user.is_email_verified = True
 
-        # Notify the owner: a new user has fully registered and verified their email
-        display_name = user.full_name or email
-        await _notify_owner_new_user(
+        # Notify the owner about this new verified user joining the platform
+        await NotificationService.create_notification(
             session=self.session,
-            title="New User Registered",
-            message=f"{display_name} ({email}) has verified their email and joined the platform as {user.role}.",
+            title="New User Verified",
+            message=f"{user.full_name} ({user.email}) has completed registration and verified their email.",
             category="Organization",
             priority="Medium",
             notif_type="org.user_joined",
+            icon="users"
         )
 
         await self.session.commit()

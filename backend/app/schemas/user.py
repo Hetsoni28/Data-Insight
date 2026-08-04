@@ -41,5 +41,6 @@ class UserResponse(UserBase):
     is_email_verified: bool
     created_at: datetime
     updated_at: datetime
+    notification_preferences: dict | None = None
 
     model_config = ConfigDict(from_attributes=True)
