@@ -1043,7 +1043,7 @@ def _build_workbook(
         ("Duplicate Rows Removed",  int(dup_total),            "warn" if dup_total > 0 else "good"),
         ("Missing Values Resolved", int(null_total),           "warn" if null_total > 0 else "good"),
         ("Data Quality Score",      f"{quality_score}/100",    "good" if quality_score >= 80 else "warn"),
-        ("AI Models Used",          "Gemini Flash / GPT-4o",   "info"),
+        ("AI Models Used",          "Gemini 3.5 Flash",   "info"),
         ("Generated On",            now_str,                   "info"),
         ("AI Generation ID",        gen_id,                    "info"),
     ]
@@ -1434,7 +1434,7 @@ def _build_workbook(
 
     meth_sections = [
         ("ANALYTICAL APPROACH", [
-            "• Blueprint Generation: Google Gemini Flash / OpenAI GPT-4o analyzed the dataset profile to determine domain, KPIs, charts, and sheet architecture.",
+            "• Blueprint Generation: Google Gemini 3.5 Flash analyzed the dataset profile to determine domain, KPIs, charts, and sheet architecture.",
             "• Executive Summary: AI wrote a 5-section CEO-level narrative based on computed data metrics.",
             "• AI Insights: 8 WHY-analysis observations with root cause and strategic implications.",
             "• Recommendations: 8 evidence-based strategic actions ranked by business impact.",

@@ -28,6 +28,7 @@ from app.models.webhook_delivery import WebhookDeliveryLog
 from app.models.chat import ChatSession, ChatMessage
 from app.models.tenant_role import TenantRole
 from app.models.tenant_department import TenantDepartment
+from app.models.report_schedule import ReportSchedule
 
 __all__ = [
     "User",
@@ -83,6 +84,6 @@ __all__ = [
     "FeatureExperiment",
     "OperatingExpense",
     "WebhookDeliveryLog",
-    "ChatSession",
-    "ChatMessage"
+    "ChatMessage",
+    "ReportSchedule"
 ]

@@ -34,6 +34,8 @@ services:
       - ./backend:/app
     env_file:
       - ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
@@ -50,6 +52,8 @@ services:
       - ./backend:/app
     env_file:
       - ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
@@ -58,7 +62,24 @@ services:
     command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=4 -Q celery,datasets,reports,emails,ai
     restart: unless-stopped
 
-  # ─── 4. Celery Flower (Job Monitor) ──────────────────────────────────────────
+  # ─── 4. Celery Beat (Scheduler) ──────────────────────────────────────────────
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A app.worker.celery_app beat --loglevel=info
+    restart: unless-stopped
+
+  # ─── 5. Celery Flower (Job Monitor) ──────────────────────────────────────────
   flower:
     build:
       context: ./backend
@@ -69,6 +90,8 @@ services:
       - ./backend:/app
     env_file:
       - ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - redis
       - worker

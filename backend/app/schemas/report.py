@@ -43,3 +43,25 @@ class ReportJobResponse(BaseModel):
     message: str = "Report generation has started. Poll /reports/{id} for status."
 
     model_config = {"from_attributes": True}
+
+
+class ReportScheduleCreate(BaseModel):
+    name: str
+    dataset_id: uuid.UUID
+    report_type: str = "ai_insight"
+    report_category: str = "executive"
+    cron_expression: str
+
+class ReportScheduleResponse(BaseModel):
+    id: uuid.UUID
+    name: str
+    dataset_id: uuid.UUID
+    report_type: str
+    report_category: str
+    cron_expression: str
+    is_active: bool
+    next_run_at: datetime
+    last_run_at: datetime | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

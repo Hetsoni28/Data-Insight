@@ -4,7 +4,7 @@ import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, get_current_active_tenant_user
+from app.api.deps import get_db, get_current_active_tenant_user, RequireRole
 from app.models.user import User
 from app.schemas.report import (
     ReportGenerateRequest,
@@ -80,7 +80,7 @@ async def approve_report(
     return await svc.approve_report(report_id, current_user, notes=body.notes)
 
 
-@router.delete("/{report_id}", status_code=204, summary="Delete report")
+@router.delete("/{report_id}", status_code=204, summary="Delete report", dependencies=[Depends(RequireRole(["org_admin"]))])
 async def delete_report(
     report_id: uuid.UUID,
     current_user: User = Depends(get_current_active_tenant_user),

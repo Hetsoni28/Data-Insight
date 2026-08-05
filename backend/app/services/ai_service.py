@@ -54,7 +54,7 @@ class AIService:
         if settings.OPENAI_API_KEY:
             self._openai = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
-        self._default_model = "gemini-3.5-flash" if self._gemini else "gpt-4o-mini"
+        self._default_model = "gemini-3.5-flash" if self._gemini else "gemini-3.5-flash"
 
     async def _check_and_track_tokens(
         self,
@@ -160,7 +160,7 @@ class AIService:
             messages.append({"role": "user", "content": clean_question})
             try:
                 response = await self._openai.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gemini-3.5-flash",
                     messages=messages,
                     max_tokens=1500,
                     temperature=0.3,
@@ -169,7 +169,7 @@ class AIService:
                     await self._check_and_track_tokens(
                         tenant_id=actor.tenant_id,
                         user_id=actor.id,
-                        model="gpt-4o-mini",
+                        model="gemini-3.5-flash",
                         prompt_tokens=response.usage.prompt_tokens,
                         completion_tokens=response.usage.completion_tokens,
                         feature="copilot_chat",
@@ -177,7 +177,7 @@ class AIService:
                     )
                 return {
                     "answer": response.choices[0].message.content,
-                    "model": "gpt-4o-mini",
+                    "model": "gemini-3.5-flash",
                 }
             except Exception as e:
                 logger.warning(f"OpenAI copilot chat error: {e}")
@@ -380,7 +380,7 @@ OUTPUT FORMAT (strict JSON — no markdown, no code blocks):
         if self._openai:
             try:
                 response = await self._openai.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gemini-3.5-flash",
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=4096,
                     temperature=0.2,
@@ -398,7 +398,7 @@ OUTPUT FORMAT (strict JSON — no markdown, no code blocks):
                     await self._check_and_track_tokens(
                         tenant_id=tenant_id,
                         user_id=user_id,
-                        model="gpt-4o-mini",
+                        model="gemini-3.5-flash",
                         prompt_tokens=response.usage.prompt_tokens,
                         completion_tokens=response.usage.completion_tokens,
                         feature="report_blueprint",
@@ -518,7 +518,7 @@ RULES:
         if self._openai:
             try:
                 response = await self._openai.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gemini-3.5-flash",
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=2500,
                     temperature=0.35,
@@ -527,7 +527,7 @@ RULES:
                     await self._check_and_track_tokens(
                         tenant_id=tenant_id,
                         user_id=user_id,
-                        model="gpt-4o-mini",
+                        model="gemini-3.5-flash",
                         prompt_tokens=response.usage.prompt_tokens,
                         completion_tokens=response.usage.completion_tokens,
                         feature="report_narrative",
@@ -620,7 +620,7 @@ Rules:
         if self._openai:
             try:
                 response = await self._openai.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gemini-3.5-flash",
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=2000,
                     temperature=0.3,
@@ -629,7 +629,7 @@ Rules:
                     await self._check_and_track_tokens(
                         tenant_id=tenant_id,
                         user_id=user_id,
-                        model="gpt-4o-mini",
+                        model="gemini-3.5-flash",
                         prompt_tokens=response.usage.prompt_tokens,
                         completion_tokens=response.usage.completion_tokens,
                         feature="report_insights",
@@ -709,7 +709,7 @@ Rules:
         if self._openai:
             try:
                 response = await self._openai.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gemini-3.5-flash",
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=2500,
                     temperature=0.3,
@@ -718,7 +718,7 @@ Rules:
                     await self._check_and_track_tokens(
                         tenant_id=tenant_id,
                         user_id=user_id,
-                        model="gpt-4o-mini",
+                        model="gemini-3.5-flash",
                         prompt_tokens=response.usage.prompt_tokens,
                         completion_tokens=response.usage.completion_tokens,
                         feature="report_recommendations",

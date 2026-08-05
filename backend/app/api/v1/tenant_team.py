@@ -314,7 +314,11 @@ async def get_team_audit_logs(
             }
         })
         
-    return {"status": "success", "data": logs}
+    count_stmt = select(func.count(AuditLog.id)).where(AuditLog.tenant_id == tenant_id)
+    total_res = await db.execute(count_stmt)
+    total = total_res.scalar() or 0
+    
+    return {"status": "success", "data": logs, "total": total}
 
 @router.get("/active-sessions", summary="Get Active Sessions", dependencies=[Depends(RequireRole(["org_admin"]))])
 async def get_team_active_sessions(
@@ -351,7 +355,15 @@ async def get_team_active_sessions(
                 "created_at": session.created_at
             })
         
-        return {"status": "success", "data": sessions}
+        count_stmt = select(func.count(UserSession.id)).join(User, UserSession.user_id == User.id).where(
+            User.tenant_id == tenant_id,
+            UserSession.is_active == True,
+            UserSession.last_active_at >= twenty_four_hours_ago
+        )
+        total_res = await db.execute(count_stmt)
+        total = total_res.scalar() or 0
+        
+        return {"status": "success", "data": sessions, "total": total}
 
     except HTTPException:
         raise

@@ -69,3 +69,44 @@ export class ReportService {
     await api.delete(`/reports/${reportId}`);
   }
 }
+
+export interface ReportSchedule {
+  id: string;
+  name: string;
+  dataset_id: string;
+  report_type: string;
+  report_category: string;
+  cron_expression: string;
+  is_active: boolean;
+  next_run_at: string;
+  last_run_at: string | null;
+  created_at: string;
+}
+
+export class ReportScheduleService {
+  static async list(): Promise<ReportSchedule[]> {
+    const response = await api.get("/tenant-reports/schedules");
+    return response.data;
+  }
+
+  static async create(data: {
+    name: string;
+    dataset_id: string;
+    report_type?: string;
+    report_category?: string;
+    cron_expression: string;
+  }): Promise<ReportSchedule> {
+    const response = await api.post("/tenant-reports/schedules", data);
+    return response.data;
+  }
+
+  static async toggle(scheduleId: string): Promise<ReportSchedule> {
+    const response = await api.patch(`/tenant-reports/schedules/${scheduleId}/toggle`);
+    return response.data;
+  }
+
+  static async delete(scheduleId: string): Promise<void> {
+    await api.delete(`/tenant-reports/schedules/${scheduleId}`);
+  }
+}
+

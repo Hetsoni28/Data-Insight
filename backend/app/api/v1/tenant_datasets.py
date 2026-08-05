@@ -72,18 +72,18 @@ async def get_dataset_stats(
         cols_res = await db.execute(cols_stmt)
         cols_analyzed = cols_res.scalar() or 0
     
-        # AI Tasks (Reports, Excel, Dashboards) - querying AIUsageLog
-        ai_tasks_stmt = select(AIUsageLog.task_type, func.count(AIUsageLog.id)).where(AIUsageLog.tenant_id == tenant_id).group_by(AIUsageLog.task_type)
+        # AI Tasks (Reports, Excel, Dashboards) - querying AITokenUsage
+        ai_tasks_stmt = select(AITokenUsage.feature, func.count(AITokenUsage.id)).where(AITokenUsage.tenant_id == tenant_id).group_by(AITokenUsage.feature)
         ai_tasks_res = await db.execute(ai_tasks_stmt)
     
         ai_reports = 0
         ai_excel = 0
         dashboards = 0
     
-        for task_type, count in ai_tasks_res:
-            if task_type == 'report_generation': ai_reports = count
-            elif task_type == 'excel_generation': ai_excel = count
-            elif task_type == 'dashboard_generation': dashboards = count
+        for feature, count in ai_tasks_res:
+            if feature == 'report_generation': ai_reports = count
+            elif feature == 'excel_generation': ai_excel = count
+            elif feature == 'dashboard_generation': dashboards = count
         
         # Avg Quality Score
         q_stmt = select(func.avg(Dataset.data_quality_score)).where(Dataset.tenant_id == tenant_id, Dataset.is_deleted == False, Dataset.data_quality_score != None)
@@ -179,19 +179,19 @@ async def get_dataset_activities(
                 "type": "audit"
             })
         
-        # Get recent AI tasks (from AIUsageLog)
-        ai_stmt = select(AIUsageLog).where(
-            AIUsageLog.tenant_id == tenant_id
-        ).order_by(desc(AIUsageLog.created_at)).offset(skip).limit(limit)
+        # Get recent AI tasks (from AITokenUsage)
+        ai_stmt = select(AITokenUsage).where(
+            AITokenUsage.tenant_id == tenant_id
+        ).order_by(desc(AITokenUsage.created_at)).offset(skip).limit(limit)
     
         ai_res = await db.execute(ai_stmt)
         ai_logs = []
         for log in ai_res.scalars().all():
             ai_logs.append({
                 "id": str(log.id),
-                "action": log.task_type or "ai_task",
+                "action": log.feature or "ai_task",
                 "cost_usd": float(log.cost_usd),
-                "tokens": log.tokens_total,
+                "tokens": log.total_tokens,
                 "created_at": log.created_at,
                 "type": "ai_activity"
             })
@@ -207,7 +207,8 @@ async def get_dataset_activities(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+        import traceback; traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{dataset_id}", summary="Get Dataset Details")
 async def get_dataset_details(
@@ -399,9 +400,9 @@ async def analyze_dataset(
         # Mock AI usage log for cost tracking
         tokens = random.randint(500, 2000)
         ai_log = AITokenUsage(
-            tenant_id=tenant_id, feature="data_profiling", model="gpt-4o",
-            tokens_prompt=tokens, tokens_completion=50,
-            tokens_total=tokens+50, cost_usd=float(tokens+50)*0.00001
+            tenant_id=tenant_id, feature="data_profiling", model="gemini-3.5-flash",
+            prompt_tokens=tokens, completion_tokens=50,
+            total_tokens=tokens+50, cost_usd=float(tokens+50)*0.00001
         )
         db.add(ai_log)
     
@@ -439,9 +440,9 @@ async def generate_ai_excel(
     
     tokens = random.randint(3000, 8000)
     ai_log = AITokenUsage(
-        tenant_id=tenant_id, feature="excel_generation", model="gpt-4o",
-        tokens_prompt=tokens, tokens_completion=1500,
-        tokens_total=tokens+1500, cost_usd=float(tokens+1500)*0.000015
+        tenant_id=tenant_id, feature="excel_generation", model="gemini-3.5-flash",
+        prompt_tokens=tokens, completion_tokens=1500,
+        total_tokens=tokens+1500, cost_usd=float(tokens+1500)*0.000015
     )
     db.add(ai_log)
     
@@ -475,9 +476,9 @@ async def create_dashboard(
     
         tokens = random.randint(1500, 5000)
         ai_log = AITokenUsage(
-            tenant_id=tenant_id, feature="dashboard_generation", model="gpt-4o",
-            tokens_prompt=tokens, tokens_completion=800,
-            tokens_total=tokens+800, cost_usd=float(tokens+800)*0.000015
+            tenant_id=tenant_id, feature="dashboard_generation", model="gemini-3.5-flash",
+            prompt_tokens=tokens, completion_tokens=800,
+            total_tokens=tokens+800, cost_usd=float(tokens+800)*0.000015
         )
         db.add(ai_log)
     

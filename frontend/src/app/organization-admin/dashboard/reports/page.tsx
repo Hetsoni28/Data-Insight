@@ -9,6 +9,11 @@ import { ReportQuickActions } from "@/components/organisms/ReportQuickActions"
 import { ReportExplorerTable, Report } from "@/components/organisms/ReportExplorerTable"
 import { ReportAuditTimeline } from "@/components/organisms/ReportAuditTimeline"
 import { ReportActionModal } from "@/components/organisms/ReportActionModal"
+import { ReportViewerModal } from "@/components/organisms/ReportViewerModal"
+import { ReportSchedulesTable } from "@/components/organisms/ReportSchedulesTable"
+import { ReportSchedulerModal } from "@/components/organisms/ReportSchedulerModal"
+import { ReportScheduleService, ReportSchedule } from "@/lib/report.service"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 export default function ReportsCenterPage() {
   const [stats, setStats] = useState(null)
@@ -21,17 +26,25 @@ export default function ReportsCenterPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentAction, setCurrentAction] = useState("")
 
+  const [isViewerOpen, setIsViewerOpen] = useState(false)
+  const [viewingReportId, setViewingReportId] = useState<string | null>(null)
+  
+  const [schedules, setSchedules] = useState<ReportSchedule[]>([])
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+
   const fetchData = async () => {
     try {
-      const [statsRes, reportsRes, actRes] = await Promise.all([
+      const [statsRes, reportsRes, actRes, schedRes] = await Promise.all([
         api.get('/tenant-reports/stats'),
         api.get(`/tenant-reports?search=${searchQuery}`),
-        api.get('/tenant-reports/activities')
+        api.get('/tenant-reports/activities'),
+        ReportScheduleService.list()
       ])
       
       setStats(statsRes.data.data)
       setReports(reportsRes.data.data)
       setActivities(actRes.data.data.audit_logs)
+      setSchedules(schedRes)
     } catch (e) {
       console.error("Failed to fetch reports center data", e)
     } finally {
@@ -58,8 +71,12 @@ export default function ReportsCenterPage() {
   }, [reports, searchQuery])
 
   const handleQuickAction = (action: string) => {
-    setCurrentAction(action)
-    setIsModalOpen(true)
+    if (action === 'schedule') {
+      setIsScheduleModalOpen(true)
+    } else {
+      setCurrentAction(action)
+      setIsModalOpen(true)
+    }
   }
 
   const handleRowAction = async (action: string, id: string) => {
@@ -73,7 +90,8 @@ export default function ReportsCenterPage() {
         toast.error(`Failed to ${action} report`)
       }
     } else if (action === 'preview') {
-      toast.info(`Opening preview for report ${id}`)
+      setViewingReportId(id)
+      setIsViewerOpen(true)
     } else if (action === 'download') {
       toast.loading("Preparing download...", { id: `dl-${id}` })
       try {
@@ -129,13 +147,32 @@ export default function ReportsCenterPage() {
 
         {/* Full Width Table Area */}
         <div className="w-full">
-          <ReportExplorerTable 
-            reports={reports}
-            isLoading={isLoading}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            onAction={handleRowAction}
-          />
+          <Tabs defaultValue="reports" className="w-full">
+            <div className="flex items-center justify-between mb-4">
+              <TabsList>
+                <TabsTrigger value="reports">Generated Reports</TabsTrigger>
+                <TabsTrigger value="schedules">Schedules & Templates</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="reports">
+              <ReportExplorerTable 
+                reports={reports}
+                isLoading={isLoading}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                onAction={handleRowAction}
+              />
+            </TabsContent>
+            
+            <TabsContent value="schedules">
+              <ReportSchedulesTable 
+                schedules={schedules}
+                isLoading={isLoading}
+                onRefresh={fetchData}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
         
       </div>
@@ -145,6 +182,18 @@ export default function ReportsCenterPage() {
         onClose={() => setIsModalOpen(false)}
         actionType={currentAction}
         onSuccess={fetchData}
+      />
+      
+      <ReportViewerModal
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        reportId={viewingReportId}
+      />
+      
+      <ReportSchedulerModal 
+        open={isScheduleModalOpen}
+        onOpenChange={setIsScheduleModalOpen}
+        onScheduleCreated={fetchData}
       />
     </div>
   )

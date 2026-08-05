@@ -196,3 +196,6 @@ class RequireRole:
                 "You do not have permission to perform this action."
             )
         return current_user
+
+get_current_org_admin = RequireRole(["org_admin"])
+get_current_editor = RequireRole(["org_admin", "editor"])

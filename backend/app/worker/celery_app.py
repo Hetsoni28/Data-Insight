@@ -10,7 +10,9 @@ celery_app = Celery(
     include=[
         "app.worker.tasks.dataset_tasks",
         "app.worker.tasks.report_tasks",
+        "app.worker.tasks.ai_report_tasks",
         "app.worker.tasks.email_tasks",
+        "app.worker.tasks.schedule_tasks",
     ],
 )
 
@@ -43,7 +45,15 @@ celery_app.conf.update(
         "app.worker.tasks.dataset_tasks.*": {"queue": "datasets"},
         "app.worker.tasks.report_tasks.*": {"queue": "reports"},
         "app.worker.tasks.email_tasks.*": {"queue": "emails"},
+        "app.worker.tasks.schedule_tasks.*": {"queue": "reports"},
     },
+    # Periodic Tasks (Beat)
+    beat_schedule={
+        "process-scheduled-reports-every-minute": {
+            "task": "app.worker.tasks.schedule_tasks.process_scheduled_reports",
+            "schedule": 60.0, # Every 60 seconds
+        },
+    }
 )
 
 from celery.signals import task_prerun, task_postrun

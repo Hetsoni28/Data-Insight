@@ -75,7 +75,7 @@ export function ReportActionModal({ isOpen, onClose, actionType, onSuccess }: Re
         
         <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-indigo-600">
+            <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg text-emerald-600">
               <FileText className="w-5 h-5" />
             </div>
             <div>
@@ -95,7 +95,7 @@ export function ReportActionModal({ isOpen, onClose, actionType, onSuccess }: Re
               type="text"
               value={reportTitle}
               onChange={(e) => setReportTitle(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
@@ -107,7 +107,7 @@ export function ReportActionModal({ isOpen, onClose, actionType, onSuccess }: Re
               placeholder="Search ready datasets..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
@@ -118,12 +118,12 @@ export function ReportActionModal({ isOpen, onClose, actionType, onSuccess }: Re
                 onClick={() => setSelectedDataset(d.id)}
                 className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
                   selectedDataset === d.id 
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' 
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' 
                     : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
-                <Database className={`w-5 h-5 ${selectedDataset === d.id ? 'text-blue-600' : 'text-slate-400'}`} />
-                <span className={`text-sm font-medium ${selectedDataset === d.id ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                <Database className={`w-5 h-5 ${selectedDataset === d.id ? 'text-emerald-600' : 'text-slate-400'}`} />
+                <span className={`text-sm font-medium ${selectedDataset === d.id ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>
                   {d.name}
                 </span>
               </button>
@@ -146,7 +146,7 @@ export function ReportActionModal({ isOpen, onClose, actionType, onSuccess }: Re
           <button
             onClick={handleSubmit}
             disabled={!selectedDataset || isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg transition-colors flex items-center"
+            className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-lg transition-colors flex items-center"
           >
             {isSubmitting ? "Generating..." : "Generate Report"}
           </button>

@@ -4,7 +4,7 @@ import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, get_current_active_tenant_user
+from app.api.deps import get_db, get_current_user, get_current_active_tenant_user
 from app.models.user import User
 from app.schemas.workspace import WorkspaceCreate, WorkspaceUpdate, WorkspaceResponse
 from app.services.workspace import WorkspaceService
@@ -32,7 +32,7 @@ async def create_workspace(
 
 @router.get("", response_model=list[WorkspaceResponse], summary="List workspaces")
 async def list_workspaces(
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     svc = WorkspaceService(db)

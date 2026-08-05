@@ -1,26 +1,49 @@
 import { useState, useEffect } from "react"
 import { ShieldAlert, Key, Smartphone, Laptop, Globe, Monitor, Activity, ShieldCheck, AlertTriangle } from "lucide-react"
 import api from "@/lib/api"
-
+import { PaginationControls } from "@/components/molecules/PaginationControls"
 export function TeamSecurityAudit() {
   const [activeTab, setActiveTab] = useState("audit")
   const [auditLogs, setAuditLogs] = useState<any[]>([])
   const [activeSessions, setActiveSessions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Pagination States
+  const [auditPage, setAuditPage] = useState(1)
+  const [auditPageSize, setAuditPageSize] = useState(10)
+  const [auditTotal, setAuditTotal] = useState(0)
+
+  const [sessionPage, setSessionPage] = useState(1)
+  const [sessionPageSize, setSessionPageSize] = useState(10)
+  const [sessionTotal, setSessionTotal] = useState(0)
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (activeTab === "audit") {
+      fetchAuditLogs()
+    } else {
+      fetchSessions()
+    }
+  }, [activeTab, auditPage, sessionPage, auditPageSize, sessionPageSize])
 
-  const fetchData = async () => {
+  const fetchAuditLogs = async () => {
     try {
       setLoading(true)
-      const [auditRes, sessionRes] = await Promise.all([
-        api.get("/tenant-team/audit-logs"),
-        api.get("/tenant-team/active-sessions")
-      ])
-      setAuditLogs(auditRes.data.data)
-      setActiveSessions(sessionRes.data.data)
+      const res = await api.get(`/tenant-team/audit-logs?skip=${(auditPage - 1) * auditPageSize}&limit=${auditPageSize}`)
+      setAuditLogs(res.data.data)
+      setAuditTotal(res.data.total || 0)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchSessions = async () => {
+    try {
+      setLoading(true)
+      const res = await api.get(`/tenant-team/active-sessions?skip=${(sessionPage - 1) * sessionPageSize}&limit=${sessionPageSize}`)
+      setActiveSessions(res.data.data)
+      setSessionTotal(res.data.total || 0)
     } catch (e) {
       console.error(e)
     } finally {
@@ -164,6 +187,27 @@ export function TeamSecurityAudit() {
               )}
             </tbody>
           </table>
+        )}
+
+        {/* Pagination Controls */}
+        {activeTab === "audit" ? (
+          <PaginationControls 
+            currentPage={auditPage}
+            totalPages={Math.ceil(auditTotal / auditPageSize)}
+            totalItems={auditTotal}
+            pageSize={auditPageSize}
+            onPageChange={setAuditPage}
+            onPageSizeChange={(size) => { setAuditPageSize(size); setAuditPage(1); }}
+          />
+        ) : (
+          <PaginationControls 
+            currentPage={sessionPage}
+            totalPages={Math.ceil(sessionTotal / sessionPageSize)}
+            totalItems={sessionTotal}
+            pageSize={sessionPageSize}
+            onPageChange={setSessionPage}
+            onPageSizeChange={(size) => { setSessionPageSize(size); setSessionPage(1); }}
+          />
         )}
       </div>
     </div>

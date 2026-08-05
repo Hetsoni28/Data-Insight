@@ -61,8 +61,8 @@ async def setup_real_ai_registry():
             # OpenAI Models
             AIModel(
                 provider_id=provider_map["OpenAI"].id,
-                name="GPT-4o",
-                model_id_string="gpt-4o",
+                name="Gemini 3.5 Flash",
+                model_id_string="gemini-3.5-flash",
                 type=ModelType.CHAT,
                 context_window=128000,
                 input_cost_per_1k=Decimal("0.005000"),
@@ -72,8 +72,8 @@ async def setup_real_ai_registry():
             ),
             AIModel(
                 provider_id=provider_map["OpenAI"].id,
-                name="GPT-4o Mini",
-                model_id_string="gpt-4o-mini",
+                name="Gemini 3.5 Flash",
+                model_id_string="gemini-3.5-flash",
                 type=ModelType.CHAT,
                 context_window=128000,
                 input_cost_per_1k=Decimal("0.000150"),
@@ -106,8 +106,8 @@ async def setup_real_ai_registry():
             ),
             AIModel(
                 provider_id=provider_map["Google Gemini"].id,
-                name="Gemini 1.5 Flash",
-                model_id_string="gemini-1.5-flash",
+                name="Gemini 3.5 Flash",
+                model_id_string="gemini-3.5-flash",
                 type=ModelType.CHAT,
                 context_window=1000000,
                 input_cost_per_1k=Decimal("0.000075"),
@@ -127,15 +127,15 @@ async def setup_real_ai_registry():
         rules = [
             AIRoutingRule(
                 task_type="default_chat",
-                primary_model_id=model_map["GPT-4o Mini"].id,
-                fallback_model_id=model_map["Gemini 1.5 Flash"].id,
+                primary_model_id=model_map["Gemini 3.5 Flash"].id,
+                fallback_model_id=model_map["Gemini 3.5 Flash"].id,
                 timeout_ms=30000,
                 retry_count=3,
                 is_active=True
             ),
             AIRoutingRule(
                 task_type="excel_generation",
-                primary_model_id=model_map["GPT-4o"].id,
+                primary_model_id=model_map["Gemini 3.5 Flash"].id,
                 fallback_model_id=model_map["Gemini 1.5 Pro"].id,
                 timeout_ms=30000,
                 retry_count=3,
@@ -143,7 +143,7 @@ async def setup_real_ai_registry():
             ),
             AIRoutingRule(
                 task_type="complex_reasoning",
-                primary_model_id=model_map["GPT-4o"].id,
+                primary_model_id=model_map["Gemini 3.5 Flash"].id,
                 fallback_model_id=model_map["Gemini 1.5 Pro"].id,
                 timeout_ms=30000,
                 retry_count=3,

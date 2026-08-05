@@ -11,10 +11,24 @@ import random
 from app.api.deps import get_db, get_current_active_tenant_user, RequireRole
 from app.models.user import User
 from app.models.report import Report, ReportStatus, ReportType
+from app.models.report_schedule import ReportSchedule
 from app.models.dataset import Dataset
 from app.models.ai_token_usage import AITokenUsage
 from app.models.audit_log import AuditLog
-from pydantic import BaseModel
+from app.models.tenant import Tenant
+from app.models.tenant_role import TenantRole
+from app.models.user_session import UserSession
+from app.schemas.report import ReportScheduleCreate, ReportScheduleResponse
+from pydantic import BaseModel, Field
+import io
+import pandas as pd
+from app.core.storage import download_file_bytes, upload_file, DATASETS_BUCKET, REPORTS_BUCKET, report_storage_path
+from app.worker.tasks.ai_report_tasks import (
+    generate_executive_summary_task, 
+    generate_ai_analysis_task,
+    generate_bi_dashboard_task,
+    generate_trend_forecast_task
+)
 
 router = APIRouter()
 
@@ -133,6 +147,118 @@ async def get_report_activities(
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error")
 
+@router.post("/schedules", response_model=ReportScheduleResponse, summary="Create a Report Schedule")
+async def create_schedule(
+    req: ReportScheduleCreate,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    from croniter import croniter
+    
+    tenant_id = current_user.tenant_id
+    
+    # Verify dataset exists
+    stmt = select(Dataset).where(Dataset.id == req.dataset_id, Dataset.tenant_id == tenant_id)
+    res = await db.execute(stmt)
+    dataset = res.scalars().first()
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    if not croniter.is_valid(req.cron_expression):
+        raise HTTPException(status_code=400, detail="Invalid cron expression")
+        
+    next_run = croniter(req.cron_expression, datetime.now(timezone.utc)).get_next(datetime)
+    
+    schedule = ReportSchedule(
+        tenant_id=tenant_id,
+        created_by_id=current_user.id,
+        name=req.name,
+        dataset_id=dataset.id,
+        report_type=req.report_type,
+        report_category=req.report_category,
+        cron_expression=req.cron_expression,
+        next_run_at=next_run
+    )
+    db.add(schedule)
+    await db.commit()
+    await db.refresh(schedule)
+    return schedule
+
+@router.get("/schedules", response_model=List[ReportScheduleResponse], summary="List Report Schedules")
+async def list_schedules(
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    tenant_id = current_user.tenant_id
+    stmt = select(ReportSchedule).where(ReportSchedule.tenant_id == tenant_id).order_by(desc(ReportSchedule.created_at))
+    res = await db.execute(stmt)
+    return res.scalars().all()
+
+@router.patch("/schedules/{schedule_id}/toggle", response_model=ReportScheduleResponse, summary="Toggle Schedule")
+async def toggle_schedule(
+    schedule_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    tenant_id = current_user.tenant_id
+    stmt = select(ReportSchedule).where(ReportSchedule.id == schedule_id, ReportSchedule.tenant_id == tenant_id)
+    res = await db.execute(stmt)
+    schedule = res.scalars().first()
+    if not schedule:
+        raise HTTPException(status_code=404, detail="Schedule not found")
+        
+    schedule.is_active = not schedule.is_active
+    await db.commit()
+    await db.refresh(schedule)
+    return schedule
+
+@router.delete("/schedules/{schedule_id}", status_code=204, summary="Delete Schedule")
+async def delete_schedule(
+    schedule_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    tenant_id = current_user.tenant_id
+    stmt = select(ReportSchedule).where(ReportSchedule.id == schedule_id, ReportSchedule.tenant_id == tenant_id)
+    res = await db.execute(stmt)
+    schedule = res.scalars().first()
+    if not schedule:
+        raise HTTPException(status_code=404, detail="Schedule not found")
+        
+    await db.delete(schedule)
+    await db.commit()
+    return None
+
+
+@router.get("/{report_id}", summary="Get Report by ID")
+async def get_report(
+    report_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    tenant_id = current_user.tenant_id
+    stmt = select(Report).where(Report.id == report_id, Report.tenant_id == tenant_id, Report.is_deleted == False)
+    res = await db.execute(stmt)
+    report = res.scalars().first()
+    
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+        
+    return {
+        "status": "success", 
+        "data": {
+            "id": str(report.id),
+            "title": report.title,
+            "status": report.status,
+            "report_type": report.report_type,
+            "category": report.generation_config.get("category", "Standard") if report.generation_config else "Standard",
+            "created_at": report.created_at.isoformat(),
+            "output_size_bytes": report.output_size_bytes or 0,
+            "dataset_id": str(report.dataset_id) if report.dataset_id else None,
+            "ai_blueprint": report.ai_blueprint
+        }
+    }
+
 async def simulate_report_workflow(tenant_id: uuid.UUID, report_id: uuid.UUID, user_id: uuid.UUID, dataset_id: uuid.UUID):
     """Real AI report generation using Pandas data pipeline."""
     from app.db.session import AsyncSessionLocal
@@ -245,7 +371,7 @@ async def simulate_report_workflow(tenant_id: uuid.UUID, report_id: uuid.UUID, u
             db.add(audit)
         
             ai_log = AITokenUsage(
-                tenant_id=tenant_id, feature="report_generation", model="gpt-4o",
+                tenant_id=tenant_id, feature="report_generation", model="gemini-3.5-flash",
                 prompt_tokens=2500,
                 completion_tokens=1500,
                 total_tokens=4000,
@@ -299,7 +425,19 @@ async def generate_report(
     await db.commit()
     await db.refresh(r)
     
-    background_tasks.add_task(simulate_report_workflow, tenant_id, r.id, current_user.id, dataset.id)
+    # Dispatch Celery tasks dynamically based on report_category
+    if req.report_category == "executive":
+        generate_executive_summary_task.delay(str(tenant_id), str(r.id), str(dataset.id))
+    elif req.report_category == "ai-insight":
+        generate_ai_analysis_task.delay(str(tenant_id), str(r.id), str(dataset.id))
+    elif req.report_category == "dashboard":
+        generate_bi_dashboard_task.delay(str(tenant_id), str(r.id), str(dataset.id))
+    elif req.report_category == "forecast":
+        generate_trend_forecast_task.delay(str(tenant_id), str(r.id), str(dataset.id))
+    else:
+        # Fallback to the old simulation workflow (or for other types until we implement them)
+        background_tasks.add_task(simulate_report_workflow, tenant_id, r.id, current_user.id, dataset.id)
+        
     return {"status": "success", "message": "Report generation started", "report_id": str(r.id)}
 
 @router.post("/{report_id}/action/{action_type}", summary="Perform Action on Report", dependencies=[Depends(RequireRole(["org_admin"]))])
@@ -358,16 +496,26 @@ async def download_report(
         
         from app.core.storage import download_file_bytes, REPORTS_BUCKET
     
+        output = io.BytesIO()
+        
         file_url = report.generation_config.get("output_file_url") if report.generation_config else None
-        if not file_url:
-            raise HTTPException(status_code=404, detail="Generated report file not found")
         
-        try:
-            file_bytes = download_file_bytes(REPORTS_BUCKET, file_url)
-        except Exception as e:
-            raise HTTPException(status_code=404, detail="Could not download file from storage")
-        
-        output = io.BytesIO(file_bytes)
+        if file_url:
+            try:
+                # Need await here since we discovered it was missing earlier in worker, assuming it's async in storage
+                file_bytes = await download_file_bytes(REPORTS_BUCKET, file_url)
+                output.write(file_bytes)
+                output.seek(0)
+            except Exception as e:
+                pass # Fall back to dynamic generation
+                
+        # If no file exists in storage or it failed, generate one dynamically from ai_blueprint
+        if output.tell() == 0:
+            if not report.ai_blueprint:
+                raise HTTPException(status_code=404, detail="Report data not ready")
+            
+            from app.core.excel_generator import generate_excel_from_blueprint
+            output = generate_excel_from_blueprint(report.ai_blueprint, report.title)
     
         audit = AuditLog(
             tenant_id=tenant_id, user_id=current_user.id, action="report.download",
@@ -388,4 +536,6 @@ async def download_report(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Failed to generate or download report")

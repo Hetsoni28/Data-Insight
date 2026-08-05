@@ -40,8 +40,17 @@ class WorkspaceService:
             raise ForbiddenException(
                 "You must belong to an organization to create a workspace."
             )
-        if actor.role not in (UserRole.owner, UserRole.org_admin):
-            raise ForbiddenException("Only Owners and Admins can create workspaces.")
+        # All non-viewer org members can create workspaces during onboarding.
+        # viewers (read-only accounts) cannot create workspaces.
+        if actor.role not in (
+            UserRole.owner,
+            UserRole.org_admin,
+            UserRole.manager,
+            UserRole.analyst,
+        ):
+            raise ForbiddenException(
+                "Your role does not have permission to create workspaces."
+            )
 
         base_slug = _slugify(name)
         slug = base_slug

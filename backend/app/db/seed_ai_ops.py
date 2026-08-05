@@ -43,13 +43,13 @@ async def seed_ai_ops():
         print("Seeding AI Models...")
         models = [
             # OpenAI
-            AIModel(provider_id=provider_map["OpenAI"].id, name="GPT-4o", model_id_string="gpt-4o", type=ModelType.CHAT, context_window=128000, input_cost_per_1k=0.005, output_cost_per_1k=0.015, quality_score=95.5),
-            AIModel(provider_id=provider_map["OpenAI"].id, name="GPT-4o Mini", model_id_string="gpt-4o-mini", type=ModelType.CHAT, context_window=128000, input_cost_per_1k=0.00015, output_cost_per_1k=0.0006, quality_score=85.0),
+            AIModel(provider_id=provider_map["OpenAI"].id, name="Gemini 3.5 Flash", model_id_string="gemini-3.5-flash", type=ModelType.CHAT, context_window=128000, input_cost_per_1k=0.005, output_cost_per_1k=0.015, quality_score=95.5),
+            AIModel(provider_id=provider_map["OpenAI"].id, name="Gemini 3.5 Flash", model_id_string="gemini-3.5-flash", type=ModelType.CHAT, context_window=128000, input_cost_per_1k=0.00015, output_cost_per_1k=0.0006, quality_score=85.0),
             AIModel(provider_id=provider_map["OpenAI"].id, name="text-embedding-3-large", model_id_string="text-embedding-3-large", type=ModelType.EMBEDDING, context_window=8191, input_cost_per_1k=0.00013, output_cost_per_1k=0, quality_score=90.0),
             
             # Anthropic
-            AIModel(provider_id=provider_map["Anthropic"].id, name="Claude 3.5 Sonnet", model_id_string="claude-3-5-sonnet-20240620", type=ModelType.CHAT, context_window=200000, input_cost_per_1k=0.003, output_cost_per_1k=0.015, quality_score=96.0),
-            AIModel(provider_id=provider_map["Anthropic"].id, name="Claude 3 Opus", model_id_string="claude-3-opus-20240229", type=ModelType.REASONING, context_window=200000, input_cost_per_1k=0.015, output_cost_per_1k=0.075, quality_score=97.5),
+            AIModel(provider_id=provider_map["Anthropic"].id, name="Gemini 3.5 Flash", model_id_string="claude-3-5-sonnet-20240620", type=ModelType.CHAT, context_window=200000, input_cost_per_1k=0.003, output_cost_per_1k=0.015, quality_score=96.0),
+            AIModel(provider_id=provider_map["Anthropic"].id, name="Gemini 3.5 Flash", model_id_string="claude-3-opus-20240229", type=ModelType.REASONING, context_window=200000, input_cost_per_1k=0.015, output_cost_per_1k=0.075, quality_score=97.5),
             
             # Google
             AIModel(provider_id=provider_map["Google Vertex AI"].id, name="Gemini 1.5 Pro", model_id_string="gemini-1.5-pro", type=ModelType.CHAT, context_window=2000000, input_cost_per_1k=0.0035, output_cost_per_1k=0.0105, quality_score=94.0),
@@ -67,9 +67,9 @@ async def seed_ai_ops():
 
         print("Seeding Routing Rules...")
         rules = [
-            AIRoutingRule(task_type="default_chat", primary_model_id=model_map["GPT-4o Mini"].id, fallback_model_id=model_map["Claude 3.5 Sonnet"].id),
-            AIRoutingRule(task_type="excel_generation", primary_model_id=model_map["Claude 3.5 Sonnet"].id, fallback_model_id=model_map["GPT-4o"].id),
-            AIRoutingRule(task_type="complex_reasoning", primary_model_id=model_map["Claude 3 Opus"].id, fallback_model_id=model_map["GPT-4o"].id),
+            AIRoutingRule(task_type="default_chat", primary_model_id=model_map["Gemini 3.5 Flash"].id, fallback_model_id=model_map["Gemini 3.5 Flash"].id),
+            AIRoutingRule(task_type="excel_generation", primary_model_id=model_map["Gemini 3.5 Flash"].id, fallback_model_id=model_map["Gemini 3.5 Flash"].id),
+            AIRoutingRule(task_type="complex_reasoning", primary_model_id=model_map["Gemini 3.5 Flash"].id, fallback_model_id=model_map["Gemini 3.5 Flash"].id),
             AIRoutingRule(task_type="fast_embeddings", primary_model_id=model_map["text-embedding-3-large"].id, fallback_model_id=None),
         ]
         db.add_all(rules)
