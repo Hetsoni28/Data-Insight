@@ -12,7 +12,7 @@ from app.models.dataset import Dataset
 from app.models.report import Report
 from app.models.user_session import UserSession
 from app.models.audit_log import AuditLog
-from app.models.integration import Integration
+from app.models.integration import IntegrationConnection
 
 # Re-using dict return types to avoid breaking the frontend which expects {"status": "success", "data": ...}
 # but adding try/except and dynamic status logic.
@@ -32,7 +32,7 @@ async def get_dashboard_overview(
             raise HTTPException(status_code=404, detail="Organization not found")
         
         # Check if an OpenAI integration exists to determine AI status dynamically
-        ai_integration = await db.scalar(select(Integration).where(Integration.tenant_id == current_user.tenant_id, Integration.provider == "openai", Integration.is_active == True))
+        ai_integration = await db.scalar(select(IntegrationConnection).where(IntegrationConnection.provider == "openai", IntegrationConnection.is_active == True))
         current_ai = "OpenAI (Custom)" if ai_integration else "OpenAI (Platform Default)"
         
         return {
