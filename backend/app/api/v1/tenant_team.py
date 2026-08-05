@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc, or_
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any
 import uuid
 
-from app.api.deps import get_db, get_current_active_tenant_user
+from app.api.deps import get_db, get_current_active_tenant_user, RequireRole
 from app.models.user import User, UserRole
 from app.models.tenant import Tenant
 from app.models.tenant_role import TenantRole
@@ -20,43 +20,51 @@ router = APIRouter()
 
 @router.get("/", summary="Get Team Members")
 async def get_team_members(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    tenant_id = current_user.tenant_id
-    if not tenant_id:
-        raise HTTPException(status_code=403, detail="User does not belong to an organization")
+    try:
+        tenant_id = current_user.tenant_id
+        if not tenant_id:
+            raise HTTPException(status_code=403, detail="User does not belong to an organization")
 
-    # Fetch users with active session info
-    users_stmt = select(User).where(User.tenant_id == tenant_id, User.is_active == True)
-    result = await db.execute(users_stmt)
-    users = result.scalars().all()
+        # Fetch users with active session info
+        users_stmt = select(User).where(User.tenant_id == tenant_id, User.is_active == True).offset(skip).limit(limit)
+        result = await db.execute(users_stmt)
+        users = result.scalars().all()
     
-    # We will enrich this data with active sessions or last login
-    members = []
-    for u in users:
-        # Get active session count
-        session_stmt = select(func.count(UserSession.id)).where(UserSession.user_id == u.id, UserSession.is_active == True)
-        session_res = await db.execute(session_stmt)
-        active_sessions = session_res.scalar() or 0
+        # We will enrich this data with active sessions or last login
+        members = []
+        for u in users:
+            # Get active session count
+            session_stmt = select(func.count(UserSession.id)).where(UserSession.user_id == u.id, UserSession.is_active == True)
+            session_res = await db.execute(session_stmt)
+            active_sessions = session_res.scalar() or 0
         
-        members.append({
-            "id": str(u.id),
-            "full_name": u.full_name,
-            "email": u.email,
-            "avatar_url": u.avatar_url,
-            "employee_id": u.employee_id,
-            "department": u.department,
-            "role": u.role,
-            "status": "Active" if u.is_active else "Suspended",
-            "created_at": u.created_at,
-            "active_sessions": active_sessions
-        })
+            members.append({
+                "id": str(u.id),
+                "full_name": u.full_name,
+                "email": u.email,
+                "avatar_url": u.avatar_url,
+                "employee_id": u.employee_id,
+                "department": u.department,
+                "role": u.role,
+                "status": "Active" if u.is_active else "Suspended",
+                "created_at": u.created_at,
+                "active_sessions": active_sessions
+            })
         
-    return {
-        "status": "success",
-        "data": members
-    }
+        return {
+            "status": "success",
+            "data": members
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 @router.get("/stats", summary="Get Team Stats")
 async def get_team_stats(
@@ -103,36 +111,46 @@ async def get_team_stats(
 
 @router.get("/roles", summary="Get Organization Roles")
 async def get_team_roles(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    tenant_id = current_user.tenant_id
-    # Fetch custom roles
-    stmt = select(TenantRole).where(TenantRole.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    roles = result.scalars().all()
+    try:
+        tenant_id = current_user.tenant_id
+        # Fetch custom roles
+        stmt = select(TenantRole).where(TenantRole.tenant_id == tenant_id).offset(skip).limit(limit)
+        result = await db.execute(stmt)
+        roles = result.scalars().all()
     
-    return {
-        "status": "success",
-        "data": [
-            {
-                "id": str(r.id),
-                "name": r.name,
-                "description": r.description,
-                "permissions": r.permissions,
-                "is_system": r.is_system,
-                "created_at": r.created_at
-            } for r in roles
-        ]
-    }
+        return {
+            "status": "success",
+            "data": [
+                {
+                    "id": str(r.id),
+                    "name": r.name,
+                    "description": r.description,
+                    "permissions": r.permissions,
+                    "is_system": r.is_system,
+                    "created_at": r.created_at
+                } for r in roles
+            ]
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 @router.get("/departments", summary="Get Organization Departments")
 async def get_team_departments(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
-    stmt = select(TenantDepartment).where(TenantDepartment.tenant_id == tenant_id)
+    stmt = select(TenantDepartment).where(TenantDepartment.tenant_id == tenant_id).offset(skip).limit(limit)
     result = await db.execute(stmt)
     departments = result.scalars().all()
     
@@ -153,31 +171,40 @@ class InviteMemberRequest(BaseModel):
 
 @router.get("/invitations", summary="Get Organization Invitations")
 async def get_team_invitations(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    tenant_id = current_user.tenant_id
-    stmt = select(Invitation).where(Invitation.tenant_id == tenant_id).order_by(desc(Invitation.created_at))
-    result = await db.execute(stmt)
-    invitations = result.scalars().all()
+    try:
+        tenant_id = current_user.tenant_id
+        stmt = select(Invitation).where(Invitation.tenant_id == tenant_id).order_by(desc(Invitation.created_at)).offset(skip).limit(limit)
+        result = await db.execute(stmt)
+        invitations = result.scalars().all()
     
-    return {
-        "status": "success",
-        "data": [
-            {
-                "id": str(i.id),
-                "email": i.email,
-                "role": i.role,
-                "status": i.status.value,
-                "expires_at": i.expires_at,
-                "created_at": i.created_at
-            } for i in invitations
-        ]
-    }
+        return {
+            "status": "success",
+            "data": [
+                {
+                    "id": str(i.id),
+                    "email": i.email,
+                    "role": i.role,
+                    "status": i.status.value,
+                    "expires_at": i.expires_at,
+                    "created_at": i.created_at
+                } for i in invitations
+            ]
+        }
 
-@router.post("/invitations", summary="Invite a New Member")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+@router.post("/invitations", summary="Invite a New Member", dependencies=[Depends(RequireRole(["org_admin"]))])
 async def invite_team_member(
     req: InviteMemberRequest,
+    request: Request,
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -209,7 +236,7 @@ async def invite_team_member(
         user_id=current_user.id,
         action="team.invite",
         resource_type="invitation",
-        ip_address="127.0.0.1",
+        ip_address=request.client.host if request.client else "127.0.0.1",
         extra_metadata={"invited_email": req.email, "role": req.role}
     )
     db.add(audit)
@@ -218,45 +245,54 @@ async def invite_team_member(
     
     return {"status": "success", "message": "Invitation sent successfully"}
 
-@router.patch("/invitations/{invitation_id}/revoke", summary="Revoke an Invitation")
+@router.patch("/invitations/{invitation_id}/revoke", summary="Revoke an Invitation", dependencies=[Depends(RequireRole(["org_admin"]))])
 async def revoke_team_invitation(
     invitation_id: uuid.UUID,
+    request: Request,
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    tenant_id = current_user.tenant_id
-    stmt = select(Invitation).where(Invitation.id == invitation_id, Invitation.tenant_id == tenant_id)
-    res = await db.execute(stmt)
-    inv = res.scalars().first()
+    try:
+        tenant_id = current_user.tenant_id
+        stmt = select(Invitation).where(Invitation.id == invitation_id, Invitation.tenant_id == tenant_id)
+        res = await db.execute(stmt)
+        inv = res.scalars().first()
     
-    if not inv:
-        raise HTTPException(status_code=404, detail="Invitation not found")
+        if not inv:
+            raise HTTPException(status_code=404, detail="Invitation not found")
         
-    inv.status = InvitationStatus.REVOKED
-    inv.updated_at = datetime.now(timezone.utc)
+        inv.status = InvitationStatus.REVOKED
+        inv.updated_at = datetime.now(timezone.utc)
     
-    audit = AuditLog(
-        tenant_id=tenant_id,
-        user_id=current_user.id,
-        action="team.invite.revoke",
-        resource_type="invitation",
-        resource_id=str(inv.id),
-        ip_address="127.0.0.1"
-    )
-    db.add(audit)
+        audit = AuditLog(
+            tenant_id=tenant_id,
+            user_id=current_user.id,
+            action="team.invite.revoke",
+            resource_type="invitation",
+            resource_id=str(inv.id),
+            ip_address=request.client.host if request.client else "127.0.0.1"
+        )
+        db.add(audit)
     
-    await db.commit()
-    return {"status": "success", "message": "Invitation revoked"}
+        await db.commit()
+        return {"status": "success", "message": "Invitation revoked"}
 
-@router.get("/audit-logs", summary="Get Security & Audit Logs")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+@router.get("/audit-logs", summary="Get Security & Audit Logs", dependencies=[Depends(RequireRole(["org_admin"]))])
 async def get_team_audit_logs(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
     
     # Join with User to get the actor's email/name
-    stmt = select(AuditLog, User).outerjoin(User, AuditLog.user_id == User.id).where(AuditLog.tenant_id == tenant_id).order_by(desc(AuditLog.created_at)).limit(100)
+    stmt = select(AuditLog, User).outerjoin(User, AuditLog.user_id == User.id).where(AuditLog.tenant_id == tenant_id).order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)
     result = await db.execute(stmt)
     
     logs = []
@@ -280,36 +316,44 @@ async def get_team_audit_logs(
         
     return {"status": "success", "data": logs}
 
-@router.get("/active-sessions", summary="Get Active Sessions")
+@router.get("/active-sessions", summary="Get Active Sessions", dependencies=[Depends(RequireRole(["org_admin"]))])
 async def get_team_active_sessions(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    tenant_id = current_user.tenant_id
+    try:
+        tenant_id = current_user.tenant_id
     
-    # Active sessions in the last 24h
-    twenty_four_hours_ago = datetime.now(timezone.utc) - timedelta(hours=24)
-    stmt = select(UserSession, User).join(User, UserSession.user_id == User.id).where(
-        User.tenant_id == tenant_id,
-        UserSession.is_active == True,
-        UserSession.last_active_at >= twenty_four_hours_ago
-    ).order_by(desc(UserSession.last_active_at))
+        # Active sessions in the last 24h
+        twenty_four_hours_ago = datetime.now(timezone.utc) - timedelta(hours=24)
+        stmt = select(UserSession, User).join(User, UserSession.user_id == User.id).where(
+            User.tenant_id == tenant_id,
+            UserSession.is_active == True,
+            UserSession.last_active_at >= twenty_four_hours_ago
+        ).order_by(desc(UserSession.last_active_at)).offset(skip).limit(limit)
     
-    result = await db.execute(stmt)
+        result = await db.execute(stmt)
     
-    sessions = []
-    for session, user in result:
-        sessions.append({
-            "id": str(session.id),
-            "user_name": user.full_name,
-            "user_email": user.email,
-            "device_name": session.device_name,
-            "os": session.os,
-            "browser": session.browser,
-            "location": session.location,
-            "ip_address": session.ip_address,
-            "last_active_at": session.last_active_at,
-            "created_at": session.created_at
-        })
+        sessions = []
+        for session, user in result:
+            sessions.append({
+                "id": str(session.id),
+                "user_name": user.full_name,
+                "user_email": user.email,
+                "device_name": session.device_name,
+                "os": session.os,
+                "browser": session.browser,
+                "location": session.location,
+                "ip_address": session.ip_address,
+                "last_active_at": session.last_active_at,
+                "created_at": session.created_at
+            })
         
-    return {"status": "success", "data": sessions}
+        return {"status": "success", "data": sessions}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
