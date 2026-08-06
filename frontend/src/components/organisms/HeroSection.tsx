@@ -370,18 +370,37 @@ export function HeroSection() {
                             tickFormatter={(v) => `${currency}${(v / 1000).toFixed(0)}k`}
                           />
                           <Tooltip
-                            contentStyle={{
-                              backgroundColor: "#0F172A",
-                              color: "#FFF",
-                              borderRadius: "12px",
-                              border: "none",
-                              fontSize: "12px",
+                            content={({ active, payload, label }) => {
+                              if (active && payload && payload.length) {
+                                return (
+                                  <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-lg shadow-slate-900/10 space-y-1.5 min-w-[170px]">
+                                    <p className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1">{label}</p>
+                                    <div className="space-y-1 text-xs">
+                                      {payload.map((entry: any, index: number) => (
+                                        <div key={`tooltip-${index}`} className="flex items-center justify-between gap-3">
+                                          <span className="flex items-center gap-1.5 text-slate-600 font-medium text-[11px]">
+                                            <span
+                                              className="h-2 w-2 rounded-full shrink-0"
+                                              style={{ backgroundColor: entry.stroke || entry.color || "#10B981" }}
+                                            />
+                                            {entry.name || (entry.dataKey === "actual" ? "Actual Revenue" : "Predicted Trend")}:
+                                          </span>
+                                          <span className="font-bold text-slate-900 text-xs">
+                                            {currency}{Number(entry.value).toLocaleString()}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )
+                              }
+                              return null
                             }}
-                            formatter={(value: any) => [`${currency}${Number(value).toLocaleString()}`, "Amount"]}
                           />
                           <Area
                             type="monotone"
                             dataKey="actual"
+                            name="Actual Revenue"
                             stroke="#10B981"
                             strokeWidth={3}
                             fillOpacity={1}
@@ -390,6 +409,7 @@ export function HeroSection() {
                           <Area
                             type="monotone"
                             dataKey="predicted"
+                            name="Predicted Trend"
                             stroke="#2DD4BF"
                             strokeWidth={2}
                             strokeDasharray="4 4"
