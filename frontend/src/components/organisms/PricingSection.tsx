@@ -1,128 +1,198 @@
 "use client"
-import { motion, type Variants } from "framer-motion"
-import { CheckCircle2 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { buttonVariants } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
-
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 32 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.25, 0.1, 0.25, 1] } },
-}
-const stagger: Variants = { visible: { transition: { staggerChildren: 0.12 } } }
-
-const STARTER_FEATURES = [
-  { text: "Up to 10 team members", tip: "Add more seats anytime" },
-  { text: "Standard SQL Connectors", tip: "PostgreSQL, MySQL, SQLite" },
-  { text: "Value & Bar Charts", tip: "12 chart types included" },
-  { text: "50 AI Excel reports/month", tip: "Resets on the 1st of each month" },
-  { text: "Email & chat support", tip: "Response within 24 hours" },
-]
-const BUSINESS_FEATURES = [
-  { text: "Unlimited team members", tip: "Invite your whole org" },
-  { text: "Unlimited platform reports", tip: "No monthly caps" },
-  { text: "White-label PDF/Excel Reports", tip: "Use your own logo & colors" },
-  { text: "SSO & Enterprise Security", tip: "Okta, Auth0, SAML 2.0" },
-  { text: "Dedicated Insights Engineer", tip: "1-on-1 onboarding & support" },
-]
-
-function FeatureItem({ text, tip }: { text: string; tip: string }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger>
-        <div className="flex items-center gap-2.5 cursor-help">
-          <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" />
-          <span className="text-sm text-slate-600 dark:text-slate-400">{text}</span>
-        </div>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{tip}</p>
-      </TooltipContent>
-    </Tooltip>
-  )
-}
+import React, { useState } from "react"
+import Link from "next/link"
+import { motion } from "framer-motion"
+import {
+  Check,
+  ArrowRight,
+  ShieldCheck,
+  Building2,
+  Server,
+  Mail,
+  Lock,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export function PricingSection() {
+  const [annualBilling, setAnnualBilling] = useState<boolean>(true)
+
   return (
-    <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-8 bg-white dark:bg-transparent">
-      <div className="max-w-4xl mx-auto">
+    <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-white text-slate-900 border-t border-slate-200 overflow-hidden">
+      <div className="max-w-7xl mx-auto space-y-16">
+        
+        {/* ── SECTION HEADER WITH VIEWPORT ANIMATION ── */}
         <motion.div
-          initial="hidden" whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-12 space-y-3"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center max-w-3xl mx-auto space-y-4"
         >
-          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Enterprise-Ready Pricing
-          </motion.h2>
-          <motion.p variants={fadeUp} className="text-slate-500 dark:text-slate-400">
-            Scalable intelligence for organizations that demand growth.
-          </motion.p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+            Enterprise System Rental &amp;{" "}
+            <span className="text-emerald-600">Dedicated Platform Licensing.</span>
+          </h2>
+          <p className="text-base text-slate-600 leading-relaxed">
+            Rent Data Insight as a turn-key private AI Business Intelligence infrastructure for your company,
+            or white-label it for your enterprise clients and subsidiaries.
+          </p>
+
+          {/* Billing Switcher */}
+          <div className="pt-4 flex items-center justify-center gap-3 text-xs font-semibold">
+            <span className={!annualBilling ? "text-slate-950 font-bold" : "text-slate-500"}>Monthly Rental</span>
+            <button
+              onClick={() => setAnnualBilling(!annualBilling)}
+              className="relative w-12 h-6 rounded-full bg-slate-200 p-0.5 transition-colors focus:outline-none cursor-pointer"
+            >
+              <motion.div
+                layout
+                className={`w-5 h-5 rounded-full bg-[#10B981] shadow-xs ${
+                  annualBilling ? "translate-x-6" : "translate-x-0"
+                }`}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              />
+            </button>
+            <span className={annualBilling ? "text-slate-950 font-bold" : "text-slate-500"}>
+              Annual Commitment <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Save $30,000/yr</span>
+            </span>
+          </div>
         </motion.div>
 
-        <motion.div
-          initial="hidden" whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }} variants={stagger} className="grid sm:grid-cols-2 gap-5 sm:gap-6"
-        >
-          {/* Starter */}
-          <motion.div variants={fadeUp}>
-            <Card className="h-full border-slate-200 dark:border-white/10 hover:shadow-lg transition-shadow flex flex-col">
-              <CardHeader className="pb-4">
-                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">STARTER</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-slate-900 dark:text-white">$499</span>
-                  <span className="text-slate-400 text-sm">/month</span>
+        {/* ── 2 TIERS PRICING GRID WITH SMOOTH STAGGER & HOVER LIFT ── */}
+        <div className="grid lg:grid-cols-2 gap-8 items-stretch max-w-5xl mx-auto">
+          
+          {/* Tier 1: Dedicated Enterprise System Rental ($15,000) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -5, transition: { duration: 0.25 } }}
+            className="p-7 sm:p-9 rounded-2xl bg-white border-2 border-emerald-500 shadow-2xl shadow-emerald-500/10 flex flex-col justify-between space-y-8 relative hover:shadow-emerald-500/20 transition-all"
+          >
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-2xl font-bold text-slate-900">Dedicated System Rental</h4>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Complete turn-key AI Business Intelligence system rental hosted in a dedicated, isolated single-tenant VPC.
+                  </p>
                 </div>
-                <p className="text-xs text-slate-400 mt-1">Perfect for growing teams</p>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col space-y-3.5">
-                {STARTER_FEATURES.map(f => <FeatureItem key={f.text} {...f} />)}
-                <div className="mt-auto pt-4">
-                  <Separator className="mb-4" />
-                  <a href="/login" className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:border-[#10B981] hover:text-[#10B981] transition-colors")}>
-                    Sign in
-                  </a>
+                <div className="h-12 w-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
+                  <Server className="h-6 w-6" />
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Business */}
-          <motion.div variants={fadeUp}>
-            <Card className="h-full border-2 border-[#10B981] shadow-lg shadow-[#10B981]/10 relative overflow-visible flex flex-col">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <Badge className="bg-[#10B981] text-white px-4 shadow-sm text-[10px]">BEST FOR COMPANIES</Badge>
               </div>
-              <CardHeader className="pb-4">
-                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">BUSINESS</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-slate-900 dark:text-white">$999</span>
-                  <span className="text-slate-400 text-sm">/month</span>
-                </div>
-                <p className="text-xs text-slate-400 mt-1">For companies that move fast</p>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col space-y-3.5">
-                {BUSINESS_FEATURES.map(f => <FeatureItem key={f.text} {...f} />)}
-                <div className="mt-auto pt-4">
-                  <Separator className="mb-4" />
-                  <a href="/login" className={cn(buttonVariants(), "w-full justify-center bg-[#10B981] hover:bg-[#059669] text-white shadow-md shadow-[#10B981]/20")}>
-                    Sign in
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </motion.div>
 
-        {/* Enterprise note */}
-        <motion.p
-          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-          className="text-center text-xs text-slate-400 mt-8"
-        >
-          Need a custom plan?{" "}
-          <a href="mailto:sales@datainsight.ai" className="text-[#10B981] hover:underline font-medium">Talk to our sales team →</a>
-        </motion.p>
+              <div className="pt-2 border-t border-slate-100">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl sm:text-5xl font-extrabold text-slate-950 tracking-tight">
+                    {annualBilling ? "$12,500" : "$15,000"}
+                  </span>
+                  <span className="text-sm text-slate-500 font-medium">/ month</span>
+                </div>
+                <span className="text-xs text-emerald-700 font-medium block mt-1">
+                  {annualBilling ? "Billed annually ($150,000/yr) — Save $30,000" : "Billed monthly with flexible term"}
+                </span>
+              </div>
+
+              <ul className="space-y-3 pt-4 text-xs text-slate-700 border-t border-slate-100">
+                {[
+                  "Dedicated single-tenant cloud deployment (AWS / GCP / Azure)",
+                  "Unlimited internal users, analysts & executive accounts",
+                  "Full white-labeling with custom domain (bi.yourcompany.com)",
+                  "Living multi-tab Excel spreadsheet compiler engine",
+                  "Autonomous 6-stage AI intelligence & anomaly cleansing pipeline",
+                  "Unlimited CSV, Excel, PostgreSQL, Snowflake & BigQuery connectors",
+                  "Zero data training retention & SOC2 Type II enterprise compliance",
+                  "99.99% Uptime SLA with 24/7 dedicated engineering support",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2.5">
+                    <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span className="font-medium text-slate-800 leading-snug">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <Button
+              asChild
+              size="lg"
+              className="w-full bg-[#10B981] hover:bg-[#059669] text-white text-sm font-bold h-12 rounded-xl shadow-lg shadow-emerald-500/20 transition-transform active:scale-[0.98] cursor-pointer"
+            >
+              <Link href="/login" className="inline-flex items-center justify-center gap-2">
+                <span>Request System Access</span>
+                <ArrowRight className="h-4 w-4 shrink-0" />
+              </Link>
+            </Button>
+          </motion.div>
+
+          {/* Tier 2: Custom Enterprise & Global Whitelabel License */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -5, transition: { duration: 0.25 } }}
+            className="p-7 sm:p-9 rounded-2xl bg-white border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col justify-between space-y-8 hover:shadow-2xl hover:border-slate-300 transition-all"
+          >
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-2xl font-bold text-slate-900">Custom Global License</h4>
+                  <p className="text-xs text-slate-600 mt-1">
+                    For conglomerates, holding groups, and software providers wanting full platform whitelabel &amp; resale rights.
+                  </p>
+                </div>
+                <div className="h-12 w-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shrink-0">
+                  <Building2 className="h-6 w-6" />
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl sm:text-5xl font-extrabold text-slate-950 tracking-tight">
+                    Custom
+                  </span>
+                  <span className="text-sm text-slate-500 font-medium">/ annual contract</span>
+                </div>
+                <span className="text-xs text-slate-500 font-medium block mt-1">
+                  Tailored scope, on-premise air-gap, or multi-tenant resale licensing
+                </span>
+              </div>
+
+              <ul className="space-y-3 pt-4 text-xs text-slate-700 border-t border-slate-100">
+                {[
+                  "On-premise air-gapped VPC or multi-region deployment",
+                  "Multi-tenant client sub-organizations & isolated workspaces",
+                  "Custom fine-tuned localized LLM adapters & ERP connectors (SAP/Oracle)",
+                  "Complete whitelabeling (custom CSS, logos, domains, and emails)",
+                  "Full source code audit, escrow guarantee & dedicated Solutions Architect",
+                  "Custom enterprise SLAs with dedicated 1-on-1 executive onboarding",
+                  "Tailored data retention & bespoke security policy enforcement",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2.5">
+                    <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span className="font-medium text-slate-800 leading-snug">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="w-full border-slate-300 hover:bg-slate-50 text-slate-900 text-sm font-bold h-12 rounded-xl cursor-pointer"
+            >
+              <a href="mailto:licensing@datainsight.com" className="inline-flex items-center justify-center gap-2">
+                <Mail className="h-4 w-4 text-slate-600 shrink-0" />
+                <span>Contact Sales &amp; Licensing</span>
+              </a>
+            </Button>
+          </motion.div>
+
+        </div>
+
       </div>
     </section>
   )

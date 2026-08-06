@@ -50,11 +50,11 @@ export function TrendForecastViewer({ report }: TrendForecastViewerProps) {
               <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} width={45} />
               <RechartsTooltip 
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }}
-                formatter={(value: any, name: string) => {
+                formatter={(value: any, name?: any) => {
                   if (name === "confidenceBound" && Array.isArray(value)) {
                     return [`${value[0]} - ${value[1]}`, "Confidence Interval"]
                   }
-                  return [value, name]
+                  return [value, name || ""]
                 }}
               />
               <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: 11 }} />

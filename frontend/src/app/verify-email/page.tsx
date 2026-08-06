@@ -1,11 +1,10 @@
-﻿// Verify Email
-// Roles: All
+import { AuthLayout } from "@/components/templates/AuthLayout"
+import { VerifyEmailForm } from "@/components/organisms/VerifyEmailForm"
 
 export default function VerifyEmailPage() {
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-bold">Verify Email</h1>
-      <p className="text-muted-foreground mt-2">Verify Email page — Phase implementation pending.</p>
-    </main>
+    <AuthLayout variant="verify-email">
+      <VerifyEmailForm />
+    </AuthLayout>
   )
 }

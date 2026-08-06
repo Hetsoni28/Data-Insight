@@ -1,341 +1,296 @@
 "use client"
 import React, { useState } from "react"
-import { motion, AnimatePresence, type Variants } from "framer-motion"
-import { Bot, TrendingUp, CheckCircle2, ChevronRight, Database, BarChart3, Bell, TerminalSquare, Send, Activity, Sparkles, Server, ArrowRight } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { motion, AnimatePresence } from "framer-motion"
+import {
+  MessageSquare,
+  Sparkles,
+  Search,
+  Database,
+  ArrowRight,
+  CheckCircle2,
+  TrendingUp,
+  Cpu,
+  Bot,
+  Send,
+  Zap,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import dynamic from "next/dynamic"
-const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false })
 
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 32 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.25, 0.1, 0.25, 1] } },
-}
-const stagger: Variants = { visible: { transition: { staggerChildren: 0.1 } } }
-
-const FEATURES = [
+const SAMPLE_QUERIES = [
   {
-    id: "integration",
-    icon: Database,
-    title: "Direct Data Links",
-    desc: "Connect directly to your database. AI insights update the moment your data changes — no manual exports, no stale reports.",
-    bullets: ["PostgreSQL, Snowflake, BigQuery", "Real-time sync engine", "Bank-grade encryption"],
+    q: "Which cohort had the highest expansion velocity and gross margin in Q3?",
+    answer:
+      "Enterprise Tier accounts drove +38.4% ARR expansion in Q3 with an average gross margin of 84.2%, outperforming SMB cohorts by 1.8x.",
+    metric: "+38.4% ARR",
+    metricLabel: "Enterprise Expansion",
   },
   {
-    id: "copilot",
-    icon: Bot,
-    title: "AI Copilot (Voice & Chat)",
-    desc: "Query your data using natural language. 'Show me top 5 customers by revenue in Q3' — answered in seconds.",
-    bullets: ["Zero SQL required", "Context-aware memory", "Visual chart generation"],
+    q: "Are there any statistically significant revenue anomalies in the last 12 months?",
+    answer:
+      "Detected 1 outlier in Month 07 (Revenue $148,000, 1.7σ deviation from mean), primarily driven by early multi-year contract renewals.",
+    metric: "1.7σ Variance",
+    metricLabel: "Month 07 Outlier",
   },
   {
-    id: "automl",
-    icon: BarChart3,
-    title: "Low-Code AutoML",
-    desc: "Build predictive models without a data science team. Automatic feature selection and model evaluation.",
-    bullets: ["One-click deployments", "90%+ confidence intervals", "Explainable AI (XAI)"],
-  },
-  {
-    id: "alerts",
-    icon: Bell,
-    title: "Automated Insights",
-    desc: "Never miss a critical business event. Get real-time alerts when anomalies are detected in your KPIs.",
-    bullets: ["Anomaly detection algorithms", "Slack & Email integrations", "Custom trigger thresholds"],
+    q: "Forecast our Q4 revenue based on current linear momentum and churn trajectory.",
+    answer:
+      "Q4 run-rate is projected at $482,000 (95% CI: $464,000 - $501,000), assuming current retention baseline of 94.8% persists.",
+    metric: "$482,000",
+    metricLabel: "Projected Q4 Target",
   },
 ]
 
-const DB_CONNECTORS = [
-  { name: "PostgreSQL", status: "Connected", ping: "12ms", active: true },
-  { name: "BigQuery", status: "Connected", ping: "45ms", active: true },
-  { name: "Snowflake", status: "Disconnected", ping: "-", active: false },
-  { name: "Redshift", status: "Disconnected", ping: "-", active: false },
+const CONNECTORS = [
+  { name: "PostgreSQL", type: "Relational DB", latency: "< 24ms", active: true },
+  { name: "Snowflake", type: "Data Warehouse", latency: "< 80ms", active: true },
+  { name: "Google BigQuery", type: "Data Lake", latency: "< 65ms", active: true },
+  { name: "Microsoft Excel", type: "Spreadsheets", latency: "Instant", active: true },
+  { name: "Amazon Redshift", type: "Warehouse", latency: "< 90ms", active: true },
+  { name: "Stripe Billing", type: "API Webhook", latency: "< 15ms", active: true },
 ]
 
 export function IntelligenceSection() {
-  const [activeFeature, setActiveFeature] = useState("integration")
-  
-  // Copilot State
-  const [chatInput, setChatInput] = useState("")
-  const [messages, setMessages] = useState([
-    { role: "user", text: "Show me Q3 revenue by region" },
-    { role: "ai", sql: "SELECT region, SUM(revenue) FROM sales WHERE quarter = 'Q3' GROUP BY region;" }
-  ])
+  const [selectedIdx, setSelectedIdx] = useState<number>(0)
+  const [customInput, setCustomInput] = useState<string>("")
+  const [activeDisplay, setActiveDisplay] = useState(SAMPLE_QUERIES[0])
 
-  const handleChat = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!chatInput.trim()) return
-    setMessages(prev => [...prev, { role: "user", text: chatInput }])
-    setChatInput("")
-    setTimeout(() => {
-      setMessages(prev => [...prev, { role: "ai", sql: "SELECT * FROM analytics_events LIMIT 10;" }])
-    }, 800)
+  const handleAsk = (query: string, item?: typeof SAMPLE_QUERIES[0]) => {
+    if (item) {
+      setActiveDisplay(item)
+    } else {
+      setActiveDisplay({
+        q: query,
+        answer: `Analyzed query across multi-dimensional metrics. Total verified throughput matches live regression baseline with zero discrepancy.`,
+        metric: "100% Math Match",
+        metricLabel: "Verified Calculation",
+      })
+    }
   }
 
-  // Alerts State
-  const [alerts, setAlerts] = useState([
-    { title: "Unusual Churn Spike", metric: "Churn Rate", value: "1.4%", status: "critical", time: "2 mins ago" },
-    { title: "Revenue Milestone", metric: "MRR", value: "$1.2M", status: "success", time: "1 hr ago" },
-    { title: "API Latency Warning", metric: "Response Time", value: "850ms", status: "warning", time: "3 hrs ago" },
-  ])
-
   return (
-    <section id="solutions" className="py-16 sm:py-24 px-4 sm:px-8 bg-white dark:bg-transparent overflow-hidden">
-      <div className="max-w-7xl mx-auto">
+    <section id="copilot" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 border-t border-slate-200 overflow-hidden">
+      <div className="max-w-7xl mx-auto space-y-20">
+        
+        {/* ── SECTION HEADER WITH VIEWPORT REVEAL ── */}
         <motion.div
-          initial="hidden" whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }} variants={stagger} className="mb-10 sm:mb-16 text-center max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center max-w-3xl mx-auto space-y-4"
         >
-          <motion.div variants={fadeUp} className="mb-4">
-            <Badge className="bg-[#10B981]/10 text-[#10B981] border-0 text-xs">Intelligence Layer</Badge>
-          </motion.div>
-          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Powerful Intelligence Layer
-          </motion.h2>
-          <motion.p variants={fadeUp} className="text-slate-500 dark:text-slate-400 mt-4 text-base leading-relaxed">
-            Built for the complexity of modern enterprise data stacks.
-          </motion.p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+            Ask Any Question.{" "}
+            <span className="text-emerald-600">Get Verified Board-Ready Proof.</span>
+          </h2>
+          <p className="text-base text-slate-600 leading-relaxed">
+            Data Insight translates conversational executive questions into deterministic SQL &amp;
+            financial aggregations. Never guess what caused a dip or surge.
+          </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 xl:gap-16 items-start">
-          {/* Left — Accordion features */}
+        {/* ── INTERACTIVE COPILOT CHAT EXPERIENCE ── */}
+        <div className="grid lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Query Suggestion Pills */}
           <motion.div
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true, margin: "-60px" }} variants={stagger} className="space-y-4"
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-4 space-y-3"
           >
-            <Accordion 
-              type="single" 
-              value={[activeFeature]} 
-              onValueChange={(val: any) => {
-                if (Array.isArray(val) && val.length > 0) {
-                  setActiveFeature(val[0])
-                }
-              }} 
-              className="space-y-3"
-            >
-              {FEATURES.map((item) => {
-                const Icon = item.icon
-                return (
-                  <motion.div key={item.id} variants={fadeUp}>
-                    <AccordionItem value={item.id} className="rounded-2xl border border-slate-200/60 dark:border-white/10 px-5 bg-white dark:bg-white/5 data-[state=open]:shadow-md data-[state=open]:border-[#10B981]/30 transition-all">
-                      <AccordionTrigger className="hover:no-underline py-4 gap-3">
-                        <div className="flex items-center gap-3 text-left">
-                          <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${activeFeature === item.id ? 'bg-[#10B981] text-white shadow-md' : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'}`}>
-                            <Icon className="h-5 w-5" />
-                          </div>
-                          <span className={`font-bold text-sm transition-colors ${activeFeature === item.id ? 'text-[#10B981]' : 'text-slate-700 dark:text-slate-300'}`}>{item.title}</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-5 space-y-4">
-                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{item.desc}</p>
-                        <div className="grid sm:grid-cols-2 gap-2">
-                          {item.bullets.map(b => (
-                            <div key={b} className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400 font-medium">
-                              <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" />
-                              <span className="leading-tight pt-0.5">{b}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </motion.div>
-                )
-              })}
-            </Accordion>
-            <motion.div variants={fadeUp} className="pt-2">
-              <a href="/login" className="inline-flex items-center gap-1.5 text-sm font-bold text-[#10B981] hover:text-[#059669] transition-colors group">
-                Sign in to your workspace <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </a>
-            </motion.div>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">
+              Select or Click Sample Queries
+            </span>
+            {SAMPLE_QUERIES.map((sq, idx) => {
+              const isSelected = activeDisplay.q === sq.q
+              return (
+                <motion.button
+                  key={sq.q}
+                  onClick={() => {
+                    setSelectedIdx(idx)
+                    handleAsk(sq.q, sq)
+                  }}
+                  whileHover={{ y: -2, transition: { duration: 0.15 } }}
+                  whileTap={{ scale: 0.99 }}
+                  className={`w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3 cursor-pointer ${
+                    isSelected
+                      ? "bg-white border-emerald-500 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500"
+                      : "bg-white/70 border-slate-200 hover:bg-white hover:border-slate-300 shadow-xs"
+                  }`}
+                >
+                  <MessageSquare
+                    className={`h-4 w-4 shrink-0 mt-0.5 transition-colors ${
+                      isSelected ? "text-emerald-600" : "text-slate-400"
+                    }`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-medium leading-relaxed ${isSelected ? "text-slate-950 font-semibold" : "text-slate-700"}`}>
+                      "{sq.q}"
+                    </p>
+                    <span className="text-[10px] text-emerald-700 font-semibold mt-1 block">
+                      Target: {sq.metricLabel}
+                    </span>
+                  </div>
+                </motion.button>
+              )
+            })}
           </motion.div>
 
-          {/* Right — Interactive Mocks */}
+          {/* Interactive Copilot Console */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.55 }}
-            className="relative w-full h-[400px] sm:h-[450px] min-h-[380px]"
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-8 rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60 overflow-hidden flex flex-col justify-between"
           >
-            <AnimatePresence mode="wait">
+            
+            {/* Header */}
+            <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+                  <Bot className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-900 block">
+                    Data Insight AI Copilot
+                  </span>
+                  <span className="text-[10px] text-slate-500">
+                    Deterministic Math &amp; Executive Synthesis
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Chat Body with Silky AnimatePresence */}
+            <div className="p-6 space-y-6 min-h-[260px] bg-white">
               
-              {/* 1. Integration Mock */}
-              {activeFeature === "integration" && (
-                <motion.div key="integration" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-white/5 backdrop-blur-xl p-6 shadow-xl border border-slate-200/60 dark:border-white/10 flex flex-col">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-[#10B981]/10 flex items-center justify-center shadow-sm border border-[#10B981]/20">
-                        <Server className="h-5 w-5 text-[#10B981]" />
-                      </div>
-                      <div>
-                        <div className="text-slate-900 dark:text-white font-bold text-sm">Live Connections</div>
-                        <div className="text-slate-500 dark:text-slate-400 text-[10px]">Secure Data Tunnels</div>
-                      </div>
+              {/* User Question Bubble */}
+              <div className="flex items-start gap-3 max-w-xl">
+                <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
+                  You
+                </div>
+                <div className="p-3.5 rounded-2xl rounded-tl-none bg-slate-100 text-slate-800 text-xs sm:text-sm leading-relaxed shadow-xs">
+                  {activeDisplay.q}
+                </div>
+              </div>
+
+              {/* AI Copilot Answer Bubble */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeDisplay.q}
+                  initial={{ opacity: 0, y: 10, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.99 }}
+                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-start gap-3 max-w-2xl"
+                >
+                  <div className="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm shadow-emerald-500/20">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div className="space-y-3 flex-1">
+                    <div className="p-4 rounded-2xl rounded-tl-none bg-emerald-50/70 border border-emerald-200 text-slate-900 text-xs sm:text-sm leading-relaxed shadow-xs">
+                      {activeDisplay.answer}
                     </div>
-                    <Badge className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1.5 shadow-sm">
-                      <span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>
-                      Active Sync
-                    </Badge>
-                  </div>
-                  <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                    {DB_CONNECTORS.map((db, i) => (
-                      <div key={db.name} className={`flex items-center justify-between p-3 rounded-xl border ${db.active ? 'bg-slate-50 dark:bg-white/5 border-slate-200/60 dark:border-white/10 shadow-sm' : 'bg-white dark:bg-transparent border-slate-100 dark:border-white/5'} transition-colors hover:border-[#10B981]/30 cursor-pointer`}>
-                        <div className="flex items-center gap-3">
-                          <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${db.active ? 'bg-white dark:bg-white/10 shadow-sm border border-slate-200/60 dark:border-white/10' : 'bg-slate-50 dark:bg-white/5'}`}>
-                            <Database className={`h-4 w-4 ${db.active ? 'text-[#10B981]' : 'text-slate-400'}`} />
-                          </div>
-                          <div>
-                            <div className={`text-xs font-bold ${db.active ? 'text-slate-800 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400'}`}>{db.name}</div>
-                            <div className={`text-[10px] font-medium ${db.active ? 'text-[#10B981]' : 'text-slate-400'}`}>{db.status}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-mono text-slate-400">{db.ping}</span>
-                          <Button size="sm" variant={db.active ? "outline" : "ghost"} className={`h-7 px-3 text-[10px] ${db.active ? 'bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-[#10B981] hover:bg-emerald-50 dark:hover:bg-white/10' : 'text-slate-400'}`}>
-                            {db.active ? 'Manage' : 'Connect'}
-                          </Button>
+
+                    {/* Calculated Proof Card */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1, duration: 0.2 }}
+                      className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">{activeDisplay.metricLabel}</span>
+                          <span className="text-sm font-extrabold text-slate-950">{activeDisplay.metric}</span>
                         </div>
                       </div>
-                    ))}
+                      <span className="text-[10px] text-emerald-700 font-mono bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        100% Deterministic Fact
+                      </span>
+                    </motion.div>
                   </div>
                 </motion.div>
-              )}
+              </AnimatePresence>
 
-              {/* 2. Copilot Mock */}
-              {activeFeature === "copilot" && (
-                <motion.div key="copilot" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-white/5 backdrop-blur-xl shadow-xl border border-slate-200/60 dark:border-white/10 flex flex-col overflow-hidden">
-                  <div className="bg-white dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10 px-4 py-3 flex items-center gap-2 shadow-sm relative z-10">
-                    <TerminalSquare className="h-5 w-5 text-[#10B981]" />
-                    <span className="font-bold text-sm text-slate-800 dark:text-slate-200">Natural Language to SQL</span>
-                  </div>
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 dark:bg-black/20">
-                    {messages.map((msg, i) => (
-                      <motion.div key={i} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-3 max-w-[90%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
-                        <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${msg.role === 'user' ? 'bg-[#10B981] border-[#059669]' : 'bg-white dark:bg-white/10 border-slate-200/60 dark:border-white/10'}`}>
-                          {msg.role === 'user' ? <span className="text-[10px] font-bold text-white">YOU</span> : <Sparkles className="h-4 w-4 text-[#10B981]" />}
-                        </div>
-                        <div className={`rounded-2xl p-3 text-xs leading-relaxed shadow-sm border ${msg.role === 'user' ? 'bg-[#10B981] text-white rounded-tr-none border-[#059669]' : 'bg-white dark:bg-white/10 text-slate-800 dark:text-slate-200 rounded-tl-none border-slate-200/60 dark:border-white/10'}`}>
-                          {msg.text && <p className={msg.role === 'user' ? 'font-medium' : ''}>{msg.text}</p>}
-                          {msg.sql && (
-                            <div className="mt-1.5 bg-slate-50 dark:bg-black/30 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-white/5 font-mono p-3 rounded-lg text-[10px] overflow-x-auto whitespace-pre">
-                              <span className="text-pink-600 font-semibold">SELECT</span> region, <span className="text-indigo-600 font-semibold">SUM</span>(revenue)<br/>
-                              <span className="text-pink-600 font-semibold">FROM</span> sales<br/>
-                              <span className="text-pink-600 font-semibold">WHERE</span> quarter = <span className="text-emerald-600">&apos;Q3&apos;</span><br/>
-                              <span className="text-pink-600 font-semibold">GROUP BY</span> region;
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                  <form onSubmit={handleChat} className="p-3 bg-white dark:bg-white/5 border-t border-slate-200/60 dark:border-white/10 flex gap-2">
-                    <Input value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Type a query (e.g. show revenue by region)..." className="text-xs bg-slate-50 dark:bg-white/5 border-slate-200/60 dark:border-white/10 focus-visible:ring-[#10B981]" />
-                    <Button type="submit" className="bg-[#10B981] hover:bg-[#059669] shrink-0 text-white px-3 shadow-sm">
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </form>
-                </motion.div>
-              )}
+            </div>
 
-              {/* 3. AutoML Mock */}
-              {activeFeature === "automl" && (
-                <motion.div key="automl" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-white/5 backdrop-blur-xl p-6 shadow-xl border border-slate-200/60 dark:border-white/10 flex flex-col">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                        <Activity className="h-5 w-5 text-indigo-500" />
-                      </div>
-                      <div>
-                        <div className="text-slate-900 dark:text-white font-bold text-sm">Model Training History</div>
-                        <div className="text-slate-400 text-[10px]">Churn Prediction v2.1</div>
-                      </div>
-                    </div>
-                    <Badge className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/20">Accuracy: 94.2%</Badge>
-                  </div>
-                  <div className="flex-1 -mx-4">
-                    <ReactECharts 
-                      option={{
-                        grid: { top: 20, right: 20, bottom: 20, left: 40 },
-                        tooltip: { trigger: 'axis' },
-                        xAxis: { type: 'category', data: ['Ep 1', 'Ep 2', 'Ep 3', 'Ep 4', 'Ep 5', 'Ep 6', 'Ep 7', 'Ep 8'], boundaryGap: false, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { fontSize: 10, color: '#94a3b8' } },
-                        yAxis: { type: 'value', min: 70, max: 100, splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }, axisLabel: { fontSize: 10, color: '#94a3b8', formatter: '{value}%' } },
-                        series: [
-                          {
-                            name: 'Training Acc',
-                            data: [72, 78, 85, 88, 91, 92, 94, 94.2],
-                            type: 'line',
-                            smooth: true,
-                            symbol: 'circle',
-                            symbolSize: 8,
-                            itemStyle: { color: '#6366f1' },
-                            areaStyle: {
-                              color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(99,102,241,0.2)' }, { offset: 1, color: 'rgba(99,102,241,0)' }] }
-                            },
-                            lineStyle: { width: 3 }
-                          },
-                          {
-                            name: 'Validation Acc',
-                            data: [70, 75, 82, 84, 87, 89, 91, 91.5],
-                            type: 'line',
-                            smooth: true,
-                            symbol: 'circle',
-                            symbolSize: 8,
-                            itemStyle: { color: '#10B981' },
-                            lineStyle: { width: 3, type: 'dashed' }
-                          }
-                        ]
-                      }} 
-                      style={{ height: '100%', minHeight: 200, minWidth: 200, width: '100%' }}
-                    />
-                  </div>
-                  <div className="mt-4 flex gap-4 text-[10px] text-slate-500 dark:text-slate-400 justify-center bg-slate-50 dark:bg-white/5 py-2 rounded-lg border border-slate-200/60 dark:border-white/10">
-                    <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-indigo-500"></span> Training</div>
-                    <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#10B981]"></span> Validation</div>
-                  </div>
-                </motion.div>
-              )}
+            {/* Interactive Query Input */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (!customInput.trim()) return
+                  handleAsk(customInput)
+                  setCustomInput("")
+                }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  placeholder="Ask a question about your revenue, churn, margins, or forecasts..."
+                  value={customInput}
+                  onChange={(e) => setCustomInput(e.target.value)}
+                  className="flex-1 h-10 px-4 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="bg-[#10B981] hover:bg-[#059669] text-white h-10 px-4 rounded-xl text-xs font-semibold shadow-xs transition-transform active:scale-95 cursor-pointer"
+                >
+                  <Send className="h-3.5 w-3.5 mr-1" />
+                  <span>Execute</span>
+                </Button>
+              </form>
+            </div>
 
-              {/* 4. Alerts Mock */}
-              {activeFeature === "alerts" && (
-                <motion.div key="alerts" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="absolute inset-0 rounded-2xl bg-white dark:bg-white/5 backdrop-blur-xl p-6 shadow-xl border border-slate-200/60 dark:border-white/10 flex flex-col">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                        <Bell className="h-5 w-5 text-amber-500" />
-                      </div>
-                      <div>
-                        <div className="text-slate-900 dark:text-white font-bold text-sm">Automated Alerts</div>
-                        <div className="text-slate-400 text-[10px]">Real-time KPI Monitoring</div>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="outline" className="h-7 text-[10px] bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300">Configure Rules</Button>
-                  </div>
-                  <div className="space-y-3 flex-1 overflow-y-auto pr-1">
-                    <AnimatePresence>
-                      {alerts.map((alert, i) => (
-                        <motion.div key={alert.title} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="bg-white dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/10 p-4 shadow-sm flex items-start gap-4 cursor-pointer hover:border-slate-300 dark:hover:border-white/20 transition-colors">
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${alert.status === 'critical' ? 'bg-red-100 dark:bg-red-500/20 text-red-500 dark:text-red-400' : alert.status === 'success' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-500 dark:text-amber-400'}`}>
-                            {alert.status === 'critical' ? <TrendingUp className="h-4 w-4" /> : alert.status === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <Activity className="h-4 w-4" />}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">{alert.title}</h4>
-                              <span className="text-[9px] text-slate-400">{alert.time}</span>
-                            </div>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <Badge variant="secondary" className="text-[9px] font-normal px-1.5 py-0 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400">{alert.metric}</Badge>
-                              <span className={`text-[10px] font-bold ${alert.status === 'critical' ? 'text-red-500 dark:text-red-400' : alert.status === 'success' ? 'text-emerald-500 dark:text-emerald-400' : 'text-amber-500 dark:text-amber-400'}`}>{alert.value}</span>
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              )}
-
-            </AnimatePresence>
           </motion.div>
+
         </div>
+
+        {/* ── LIVE DATA CONNECTORS WITH VIEWPORT REVEAL & HOVER LIFT ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="space-y-6 pt-4"
+        >
+          <div className="text-center space-y-1">
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900">
+              Native Relational, Warehouse &amp; API Connectors
+            </h3>
+            <p className="text-xs text-slate-500">
+              Ingest from your production data stack with sub-second query latency and zero-config ETL.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {CONNECTORS.map((c, idx) => (
+              <motion.div
+                key={c.name}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05, duration: 0.4 }}
+                whileHover={{ y: -3, transition: { duration: 0.15 } }}
+                className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all text-center space-y-1"
+              >
+                <div className="flex items-center justify-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-bold text-slate-900">{c.name}</span>
+                </div>
+                <span className="text-[10px] text-slate-500 block">{c.type}</span>
+                <span className="text-[10px] text-emerald-700 font-mono font-medium block">{c.latency}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
       </div>
     </section>
   )

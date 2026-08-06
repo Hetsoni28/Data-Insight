@@ -1,74 +1,133 @@
 "use client"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { Search, Menu } from "lucide-react"
+import { Menu, ArrowRight } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/atoms/Logo"
 
-const NAV = ["Platform", "Solutions", "Enterprise", "Pricing"]
+const NAV_LINKS = [
+  { name: "How It Works", href: "#how-it-works" },
+  { name: "VPC Architecture", href: "#architecture" },
+  { name: "Excel Studio", href: "#excel-studio" },
+  { name: "AI Copilot", href: "#copilot" },
+  { name: "Whitelabel", href: "#whitelabel" },
+  { name: "Security", href: "#security" },
+  { name: "Pricing", href: "#pricing" },
+  { name: "FAQ", href: "#faq" },
+]
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
-  const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 16)
-    window.addEventListener("scroll", fn)
-    return () => window.removeEventListener("scroll", fn)
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-xl shadow-sm border-b border-slate-200/60 dark:border-white/10" : "bg-white/80 dark:bg-[#0B0F17]/80 backdrop-blur-xl border-b border-transparent"}`}>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 flex h-14 items-center gap-8">
-        <Logo size={24} textClassName="text-sm" />
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-sm shadow-slate-900/5"
+          : "bg-white/70 backdrop-blur-md border-b border-slate-200/50"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between gap-6">
+        
+        {/* Brand Logo */}
+        <div className="flex items-center gap-4">
+          <Logo size={26} textClassName="text-base font-semibold tracking-tight text-slate-900" />
+        </div>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1 flex-1">
-          {NAV.map(n => (
-            <a key={n} href={`#${n.toLowerCase()}`}
-              className="px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-md hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-              {n}
+        {/* Desktop Navigation Links */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-950 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              {link.name}
             </a>
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3 ml-auto">
-          <Button asChild size="sm" className="bg-[#10B981] hover:bg-[#059669] text-white shadow-sm px-4 text-xs">
-            <Link href="/login">Sign In</Link>
+        {/* Desktop Action Buttons */}
+        <div className="hidden md:flex items-center gap-3">
+          <Link
+            href="/login"
+            className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100"
+          >
+            Tenant Login
+          </Link>
+          <Button
+            asChild
+            size="sm"
+            className="bg-[#10B981] hover:bg-[#059669] text-white shadow-sm shadow-emerald-500/20 px-4 h-9 text-xs font-semibold rounded-lg transition-transform active:scale-[0.98] whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <Link href="/login" className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+              <span className="whitespace-nowrap">Request Access</span>
+              <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+            </Link>
           </Button>
         </div>
 
-        {/* Mobile — Sheet drawer */}
+        {/* Mobile Navigation Drawer */}
         <Sheet>
           <SheetTrigger asChild>
-            <button className="ml-auto md:hidden text-slate-500 dark:text-slate-400 p-2" aria-label="Open menu">
+            <button
+              className="lg:hidden text-slate-700 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+              aria-label="Open navigation menu"
+            >
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72 p-0 bg-white dark:bg-[#0B0F17]/95 backdrop-blur-2xl border-l border-slate-200/60 dark:border-white/10">
-            <SheetHeader className="px-5 py-4 border-b">
+          <SheetContent
+            side="right"
+            className="w-80 p-0 bg-white border-l border-slate-200"
+          >
+            <SheetHeader className="px-6 py-5 border-b border-slate-100">
               <SheetTitle className="flex items-center gap-2 text-left">
-                <Logo size={20} href={null} />
+                <Logo size={22} href={null} textClassName="text-slate-900" />
               </SheetTitle>
             </SheetHeader>
-            <div className="px-4 py-4 space-y-1">
-              {NAV.map(n => (
-                <SheetClose asChild key={n}>
-                  <a href={`#${n.toLowerCase()}`}
-                    className="flex items-center px-3 py-2.5 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors">
-                    {n}
+            <div className="px-5 py-6 space-y-2">
+              {NAV_LINKS.map((link) => (
+                <SheetClose asChild key={link.name}>
+                  <a
+                    href={link.href}
+                    className="flex items-center px-3.5 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors font-medium"
+                  >
+                    {link.name}
                   </a>
                 </SheetClose>
               ))}
-              <Separator className="my-3" />
-              <SheetClose asChild>
-                <a href="/login" className={cn(buttonVariants(), "w-full justify-center rounded-lg bg-[#10B981] hover:bg-[#059669] text-white")}>
-                  Sign In
-                </a>
-              </SheetClose>
+              <Separator className="my-4 bg-slate-200" />
+              <div className="space-y-2 pt-2">
+                <SheetClose asChild>
+                  <Link
+                    href="/login"
+                    className="w-full flex items-center justify-center py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                  >
+                    Tenant Login
+                  </Link>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Link
+                    href="/login"
+                    className={cn(
+                      buttonVariants(),
+                      "w-full justify-center rounded-lg bg-[#10B981] hover:bg-[#059669] text-white shadow-md shadow-emerald-500/20"
+                    )}
+                  >
+                    Request System Access
+                  </Link>
+                </SheetClose>
+              </div>
             </div>
           </SheetContent>
         </Sheet>

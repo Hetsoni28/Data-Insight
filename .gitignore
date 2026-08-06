@@ -65,6 +65,12 @@ uploads/
 generated/
 temp/
 
+# ─── Celery & Runtime ─────────────────────────────────────────
+celerybeat-schedule*
+backend/celerybeat-schedule*
+.refact/
+
 # ─── Alembic ─────────────────────────────────────────────────
 # Keep migrations but ignore generated caches
 backend/app/db/migrations/__pycache__/
+

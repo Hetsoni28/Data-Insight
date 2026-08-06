@@ -1,38 +1,54 @@
 "use client"
+
+import React from "react"
+import Link from "next/link"
 import { motion } from "framer-motion"
-import { ChevronRight } from "lucide-react"
-import { buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { ArrowRight, Mail } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export function CtaSection() {
   return (
-    <section className="bg-[#064e3b] py-14 sm:py-20 px-4 sm:px-8">
+    <section className="py-20 sm:py-24 px-4 sm:px-8 lg:px-16 bg-[#047857] text-white overflow-hidden border-t border-[#065F46]">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.55 }}
-        className="max-w-3xl mx-auto text-center space-y-6"
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-4xl mx-auto text-center space-y-6"
       >
-        <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-          Ready to automate your intelligence?
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          Deploy a Dedicated Enterprise AI Platform{" "}
+          <span className="text-emerald-200">For Your Organization.</span>
         </h2>
-        <p className="text-white/70 text-base leading-relaxed">
-          Join 500+ forward-thinking organizations using Data Insight to eliminate manual reporting every week.
+
+        <p className="text-base sm:text-lg text-emerald-100/90 max-w-2xl mx-auto leading-relaxed">
+          Provision your private single-tenant instance with custom domain white-labeling,
+          living Excel formula compilation, autonomous executive briefings, and 24/7 dedicated engineering support.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
-          <a href="/login" className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "h-11 px-8 text-sm border-white/30 text-white hover:bg-white/10 bg-transparent justify-center"
-          )}>
-            Sign In
-          </a>
-          <a href="mailto:sales@datainsight.ai" className={cn(
-            buttonVariants({ size: "lg" }),
-            "h-11 px-8 text-sm bg-white dark:bg-transparent text-[#10B981] hover:bg-slate-50 dark:hover:bg-slate-900/50 font-semibold shadow-lg gap-1.5 justify-center"
-          )}>
-            Talk to Sales <ChevronRight className="h-4 w-4" />
-          </a>
+
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button
+            asChild
+            size="lg"
+            className="bg-white hover:bg-emerald-50 text-[#047857] font-extrabold h-12 px-8 text-sm rounded-xl shadow-md w-full sm:w-auto transition-transform active:scale-[0.98] whitespace-nowrap cursor-pointer"
+          >
+            <Link href="/login" className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+              <span>Request System Access</span>
+              <ArrowRight className="h-4 w-4 shrink-0" />
+            </Link>
+          </Button>
+
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="border-2 border-white/60 bg-white/10 text-white hover:bg-white/20 text-sm font-bold h-12 px-7 rounded-xl w-full sm:w-auto whitespace-nowrap cursor-pointer"
+          >
+            <a href="mailto:licensing@datainsight.com" className="inline-flex items-center gap-2 text-white">
+              <Mail className="h-4 w-4 text-white shrink-0" />
+              <span className="text-white font-bold">Contact Licensing Team</span>
+            </a>
+          </Button>
         </div>
       </motion.div>
     </section>

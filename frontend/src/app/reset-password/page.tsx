@@ -1,11 +1,10 @@
-﻿// Reset Password
-// Roles: All
+import { AuthLayout } from "@/components/templates/AuthLayout"
+import { ResetPasswordForm } from "@/components/organisms/ResetPasswordForm"
 
 export default function ResetPasswordPage() {
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-bold">Reset Password</h1>
-      <p className="text-muted-foreground mt-2">Reset Password page — Phase implementation pending.</p>
-    </main>
+    <AuthLayout variant="reset-password">
+      <ResetPasswordForm />
+    </AuthLayout>
   )
 }

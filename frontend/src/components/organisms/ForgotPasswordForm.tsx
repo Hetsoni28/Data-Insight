@@ -1,9 +1,9 @@
 "use client"
+
 import Link from "next/link"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowLeft, Loader2, Mail, CheckCircle2 } from "lucide-react"
-import { Logo } from "@/components/atoms/Logo"
+import { ArrowLeft, Loader2, Mail, CheckCircle2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,100 +35,109 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <motion.div initial="hidden" animate="visible" variants={{
-      hidden: { opacity: 0 },
-      visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
-    }} className="w-full max-w-sm space-y-8">
-      {/* Logo */}
-      <motion.div variants={{ hidden: { opacity: 0, y: -10 }, visible: { opacity: 1, y: 0 } }}>
-        <Logo size={28} />
-      </motion.div>
-
+    <div className="w-full max-w-md mx-auto">
       <AnimatePresence mode="wait">
         {step === "email" ? (
-          <motion.div key="email-step"
-            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
-            className="space-y-6"
+          <motion.div
+            key="email-step"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6 bg-white p-7 rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50"
           >
-            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }} className="space-y-1">
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Forgot your password?</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                No worries — enter your email and we&apos;ll send a reset link right away.
+            <div>
+              <h3 className="text-xl font-extrabold text-slate-950 tracking-tight">
+                Reset Password
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Enter your organization work email to receive a password reset link.
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1 } }} className="w-14 h-14 rounded-2xl bg-[#10B981]/10 flex items-center justify-center">
-              <Mail className="h-7 w-7 text-[#10B981]" />
-            </motion.div>
+            {error && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }} className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">Email address</Label>
-                <Input id="email" type="email" placeholder="you@company.com" required autoFocus
-                  value={email} onChange={e => setEmail(e.target.value)}
-                  className="h-10 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-[#10B981]" />
-              </motion.div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Organization Work Email</Label>
+                <div className="relative">
+                  <Mail className="h-4 w-4 text-slate-400 absolute left-3 top-3" />
+                  <Input
+                    type="email"
+                    placeholder="alex@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-9 h-10 text-xs border-slate-200 bg-slate-50 text-slate-900 focus:ring-emerald-500"
+                    required
+                  />
+                </div>
+              </div>
 
-              {error && (
-                <motion.p initial={{ opacity: 0, y: -4, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-                  className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  {error}
-                </motion.p>
-              )}
-
-                <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
-                  <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-                    <Button type="submit" disabled={isLoading}
-                      className="w-full h-10 bg-[#10B981] hover:bg-[#059669] text-white rounded-lg font-medium gap-2 shadow-sm shadow-[#10B981]/20">
-                      {isLoading ? <><Loader2 className="h-4 w-4 animate-spin" />Sending...</> : "Send reset link"}
-                    </Button>
-                  </motion.div>
-                </motion.div>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-11 bg-[#10B981] hover:bg-[#059669] text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 cursor-pointer flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Send Reset Link"
+                )}
+              </Button>
             </form>
 
-            <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-              <Link href="/login" className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors w-fit">
-                <ArrowLeft className="h-4 w-4" /> Back to sign in
+            <div className="pt-3 border-t border-slate-100 text-center">
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-950 transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Back to Tenant Sign In</span>
               </Link>
-            </motion.div>
+            </div>
           </motion.div>
         ) : (
-          <motion.div key="sent-step"
-            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
-            className="space-y-6"
+          <motion.div
+            key="sent-step"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6 bg-white p-7 rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 text-center"
           >
-            <div className="w-14 h-14 rounded-2xl bg-[#10B981]/10 flex items-center justify-center">
-              <CheckCircle2 className="h-7 w-7 text-[#10B981]" />
+            <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="h-6 w-6" />
             </div>
 
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Check your inbox</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                We&apos;ve sent a password reset link to{" "}
-                <span className="font-medium text-slate-700 dark:text-slate-300">{email}</span>.
-                The link expires in 30 minutes.
+              <h3 className="text-xl font-extrabold text-slate-950">Check Your Inbox</h3>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
+                We&apos;ve sent a password reset link to <strong>{email}</strong>. The link expires in 30 minutes.
               </p>
             </div>
 
-            <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-800 leading-relaxed">
-              Didn&apos;t receive the email? Check your spam folder, or{" "}
-              <button onClick={() => setStep("email")} className="font-medium underline hover:no-underline">
-                try a different address
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 text-left">
+              Didn&apos;t receive the email? Check your spam folder or{" "}
+              <button onClick={() => setStep("email")} className="font-semibold underline hover:no-underline">
+                try again
               </button>.
             </div>
 
-            <Button variant="outline" className="w-full h-10 border-slate-200 dark:border-white/10" onClick={() => setStep("email")}>
-              <ArrowLeft className="h-4 w-4 mr-2" /> Back to reset
-            </Button>
-
-            <Link href="/login" className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors w-fit mx-auto">
-              Return to sign in →
+            <Link
+              href="/login"
+              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Return to Sign In</span>
             </Link>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   )
 }
