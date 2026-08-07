@@ -69,7 +69,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
               <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 {tenant?.name}
                 {tenant?.is_active ? (
-                  <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20">Active</Badge>
+                  <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20">Active</Badge>
                 ) : (
                   <Badge variant="outline" className="bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20">Suspended</Badge>
                 )}
@@ -118,7 +118,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg font-bold text-slate-900 dark:text-white">{tenant?.plan} Plan</span>
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Current</Badge>
+                  <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Current</Badge>
                 </div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">${tenant?.mrr}/month • Renews {renewalDate.toLocaleDateString()}</p>
               </div>
@@ -138,8 +138,8 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Overall Health Score</span>
                 <span className={`text-sm font-bold ${
-                  tenant?.health_score === 'Excellent' ? 'text-emerald-600 dark:text-emerald-400' :
-                  tenant?.health_score === 'Good' ? 'text-emerald-600 dark:text-emerald-400' :
+                  tenant?.health_score === 'Excellent' ? 'text-emerald-500 dark:text-emerald-400' :
+                  tenant?.health_score === 'Good' ? 'text-emerald-500 dark:text-emerald-400' :
                   tenant?.health_score === 'Needs Attention' ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'
                 }`}>{tenant?.health_score}</span>
               </div>
@@ -194,7 +194,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
           ) : (
             <Button 
               variant="outline" 
-              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"
+              className="text-emerald-500 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20"
               onClick={() => toggleStatusMutation.mutate(tenant.id)}
             >
               Reactivate

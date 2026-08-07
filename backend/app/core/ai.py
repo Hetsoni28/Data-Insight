@@ -35,12 +35,28 @@ def generate_structured_report(prompt: str, schema: dict, model_name: str = "gem
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=schema,
-            temperature=0.2, # Low temperature for more analytical/factual responses
+            temperature=0.2,
+            max_output_tokens=8192,
         ),
     )
     
+    text = response.text.strip()
+    
+    # Robustly extract the JSON object
+    start_idx = text.find('{')
+    end_idx = text.rfind('}')
+    if start_idx != -1 and end_idx != -1:
+        text = text[start_idx:end_idx+1]
+        
     try:
-        return json.loads(response.text)
+        return json.loads(text)
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse JSON response from Gemini: {response.text}")
-        raise e
+        # Try a more forgiving approach if it's truncated at the end
+        try:
+            # Very basic attempt to close unclosed JSON object (often happens with truncation)
+            if not text.endswith("}"):
+                text = text + '"}]}' # Try to close typical report structure
+            return json.loads(text)
+        except:
+            raise e

@@ -5,7 +5,7 @@ import { AIDashboardViewer } from "./AIDashboardViewer"
 import { BIDashboardViewer } from "./BIDashboardViewer"
 import { TrendForecastViewer } from "./TrendForecastViewer"
 import api from "@/lib/api"
-import { Loader2 } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 import { toast } from "sonner"
 
 interface ReportViewerModalProps {
@@ -49,7 +49,21 @@ export function ReportViewerModal({ isOpen, onClose, reportId }: ReportViewerMod
           </div>
         ) : report ? (
           <div className="w-full">
-            {report.category === 'executive' ? (
+            {report.status === 'generating' || report.status === 'queued' ? (
+              <div className="flex flex-col items-center justify-center p-24 gap-4">
+                <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Report is Generating</h3>
+                <p className="text-slate-500 text-sm">This AI report is currently being generated. Please check back soon.</p>
+              </div>
+            ) : report.status === 'error' ? (
+              <div className="flex flex-col items-center justify-center p-24 gap-4">
+                <div className="p-4 bg-red-50 dark:bg-red-500/10 rounded-full text-red-600">
+                  <X className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Report Generation Failed</h3>
+                <p className="text-slate-500 text-sm">{report.error_message || "An unknown error occurred during generation."}</p>
+              </div>
+            ) : report.category === 'executive' ? (
               <ExecutiveReportViewer report={report} />
             ) : report.category === 'ai-insight' ? (
               <AIDashboardViewer report={report} />

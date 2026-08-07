@@ -54,21 +54,17 @@ export default function ReportsCenterPage() {
 
   useEffect(() => {
     fetchData()
-  }, [searchQuery])
+    const interval = setInterval(fetchData, 5000) // Poll every 5s for background tasks
+    return () => clearInterval(interval)
+  }, []) // Remove searchQuery dependency for the polling interval
 
+  // Debounce search query changes
   useEffect(() => {
-    // Auto-polling if any report is in "generating" or "queued" status
-    const isProcessing = reports.some(r => ['generating', 'queued'].includes(r.status))
-    let interval: NodeJS.Timeout
-    if (isProcessing) {
-      interval = setInterval(() => {
-        fetchData()
-      }, 3000)
-    }
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [reports, searchQuery])
+    const timer = setTimeout(() => {
+      fetchData()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   const handleQuickAction = (action: string) => {
     if (action === 'schedule') {

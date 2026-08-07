@@ -19,7 +19,7 @@ export function OrganizationReports({ reports }: { reports: any[] }) {
         {reports.map((r, i) => (
           <div key={r.id || i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-black/40 transition-colors">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 dark:text-emerald-400 rounded-xl">
                 <FileText className="h-5 w-5" />
               </div>
               <div>

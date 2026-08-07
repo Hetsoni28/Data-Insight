@@ -22,73 +22,76 @@ def profile_dataset_task(self, dataset_id: str):
 
 async def _profile_dataset(task, dataset_id: str):
     import httpx
-    from app.db.session import AsyncSessionLocal
+    from app.db.session import AsyncSessionLocal, engine
     from app.repositories.dataset import DatasetRepository
     from app.models.dataset import DatasetStatus
     from app.core.storage import get_signed_url, DATASETS_BUCKET, is_local_storage, LOCAL_UPLOADS_DIR
     from app.services.ingestion.polars_engine import PolarsEngine
     from app.services.ingestion.profiler import DataProfiler
 
-    async with AsyncSessionLocal() as session:
-        ds_repo = DatasetRepository(session)
-        dataset = await ds_repo.get_by_id(uuid.UUID(dataset_id))
-        if not dataset:
-            logger.error(f"Dataset {dataset_id} not found for profiling")
-            return
+    try:
+        async with AsyncSessionLocal() as session:
+            ds_repo = DatasetRepository(session)
+            dataset = await ds_repo.get_by_id(uuid.UUID(dataset_id))
+            if not dataset:
+                logger.error(f"Dataset {dataset_id} not found for profiling")
+                return
 
-        try:
-            await ds_repo.update_status(dataset, DatasetStatus.profiling)
-            await session.commit()
+            try:
+                await ds_repo.update_status(dataset, DatasetStatus.profiling)
+                await session.commit()
 
-            # Download from Supabase Storage or read from local disk
-            if is_local_storage():
-                local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
-                file_bytes = local_path.read_bytes()
-            else:
-                signed_url = await get_signed_url(
-                    DATASETS_BUCKET, dataset.file_url, expires_in=300
+                # Download from Supabase Storage or read from local disk
+                if is_local_storage():
+                    local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
+                    file_bytes = local_path.read_bytes()
+                else:
+                    signed_url = await get_signed_url(
+                        DATASETS_BUCKET, dataset.file_url, expires_in=300
+                    )
+                    async with httpx.AsyncClient() as client:
+                        response = await client.get(signed_url)
+                        file_bytes = response.content
+
+                # Get file format extension
+                ext = (
+                    dataset.file_type.value
+                    if hasattr(dataset.file_type, "value")
+                    else str(dataset.file_type)
                 )
-                async with httpx.AsyncClient() as client:
-                    response = await client.get(signed_url)
-                    file_bytes = response.content
+                ext = ext.lower().strip().lstrip(".")
 
-            # Get file format extension
-            ext = (
-                dataset.file_type.value
-                if hasattr(dataset.file_type, "value")
-                else str(dataset.file_type)
-            )
-            ext = ext.lower().strip().lstrip(".")
+                # 1. High-speed Ingestion via Polars
+                df = PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
 
-            # 1. High-speed Ingestion via Polars
-            df = PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
+                # 2. Automated Deep Profiling & Quality Scoring
+                profile = DataProfiler.profile_dataframe(df)
 
-            # 2. Automated Deep Profiling & Quality Scoring
-            profile = DataProfiler.profile_dataframe(df)
+                # 3. Persist profile, row count, col count, quality score & mark READY
+                await ds_repo.update_profile(
+                    dataset,
+                    profile=profile,
+                    row_count=profile["row_count"],
+                    column_count=profile["column_count"],
+                    quality_score=profile["quality_score"],
+                )
+                await session.commit()
 
-            # 3. Persist profile, row count, col count, quality score & mark READY
-            await ds_repo.update_profile(
-                dataset,
-                profile=profile,
-                row_count=profile["row_count"],
-                column_count=profile["column_count"],
-                quality_score=profile["quality_score"],
-            )
-            await session.commit()
+                logger.info(
+                    f"Dataset {dataset_id} successfully profiled via Polars/DuckDB: "
+                    f"{profile['row_count']} rows, {profile['column_count']} cols, "
+                    f"quality={profile['quality_score']}/100 (Grade {profile['quality_grade']})"
+                )
 
-            logger.info(
-                f"Dataset {dataset_id} successfully profiled via Polars/DuckDB: "
-                f"{profile['row_count']} rows, {profile['column_count']} cols, "
-                f"quality={profile['quality_score']}/100 (Grade {profile['quality_grade']})"
-            )
-
-        except Exception as exc:
-            logger.exception(f"Profiling failed for dataset {dataset_id}: {exc}")
-            await ds_repo.update_status(
-                dataset, DatasetStatus.error, error_message=str(exc)
-            )
-            await session.commit()
-            raise task.retry(exc=exc)
+            except Exception as exc:
+                logger.exception(f"Profiling failed for dataset {dataset_id}: {exc}")
+                await ds_repo.update_status(
+                    dataset, DatasetStatus.error, error_message=str(exc)
+                )
+                await session.commit()
+                raise task.retry(exc=exc)
+    finally:
+        await engine.dispose()
 
 
 @shared_task(bind=True, name="dataset.analyze", max_retries=2, default_retry_delay=60)

@@ -56,21 +56,4 @@ celery_app.conf.update(
     }
 )
 
-from celery.signals import task_prerun, task_postrun
-
-
-@task_prerun.connect
-def cleanup_session_before_task(task_id, task, *args, **kwargs):
-    from app.db.session import engine
-
-    engine.sync_engine.dispose()
-
-
-@task_postrun.connect
-def cleanup_session_after_task(task_id, task, *args, **kwargs):
-    from app.db.session import engine
-
-    # Dispose the sync engine synchronously after every task finishes.
-    # This prevents SQLAlchemy from keeping asyncpg connections in the pool
-    # that are tied to the asyncio event loop that was just closed by asyncio.run()
-    engine.sync_engine.dispose()
+# Removed dangerous signal handlers that cause MissingGreenlet errors

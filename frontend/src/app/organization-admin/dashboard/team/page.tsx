@@ -74,7 +74,7 @@ export default function TeamManagementPage() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-emerald-950/20 p-6 rounded-3xl border border-slate-200 dark:border-emerald-900/50 shadow-sm">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Users className="h-6 w-6 text-emerald-600 dark:text-emerald-500" />
+              <Users className="h-6 w-6 text-emerald-500 dark:text-emerald-400" />
               Workforce Command Center
             </h1>
             <p className="text-sm text-slate-500 dark:text-emerald-100/70 mt-1">
@@ -86,7 +86,7 @@ export default function TeamManagementPage() {
               <Download className="h-4 w-4" />
               Export
             </Button>
-            <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/25">
+            <Button className="gap-2 bg-emerald-500 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/25">
               <Plus className="h-4 w-4" />
               Invite Member
             </Button>
@@ -134,7 +134,7 @@ function TabButton({ active, onClick, icon, label }: { active: boolean, onClick:
       onClick={onClick}
       className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
         ${active 
-          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400 shadow-sm" 
+          ? "bg-emerald-50 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400 shadow-sm" 
           : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
         }`}
     >

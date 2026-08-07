@@ -8,7 +8,7 @@ export function OrganizationKpiGrid({ kpis }: { kpis: any }) {
     if (growth === undefined || growth === null) return null
     const isPositive = growth >= 0
     return (
-      <div className={`flex items-center text-xs font-medium ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+      <div className={`flex items-center text-xs font-medium ${isPositive ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
         {isPositive ? <TrendingUp className="mr-1 h-3 w-3" /> : <TrendingDown className="mr-1 h-3 w-3" />}
         {Math.abs(growth)}%
       </div>
@@ -20,24 +20,24 @@ export function OrganizationKpiGrid({ kpis }: { kpis: any }) {
       title: "Active Team Members",
       value: kpis.active_users,
       icon: Users,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-100 dark:bg-emerald-500/10"
+      color: "text-emerald-500 dark:text-emerald-400",
+      bg: "bg-emerald-50 dark:bg-emerald-500/10"
     },
     {
       title: "Datasets Processed",
       value: kpis.datasets?.total,
       growth: kpis.datasets?.growth,
       icon: Database,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-100 dark:bg-emerald-500/10"
+      color: "text-emerald-500 dark:text-emerald-400",
+      bg: "bg-emerald-50 dark:bg-emerald-500/10"
     },
     {
       title: "Reports Generated",
       value: kpis.reports?.total,
       growth: kpis.reports?.growth,
       icon: FileText,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-100 dark:bg-emerald-500/10"
+      color: "text-emerald-500 dark:text-emerald-400",
+      bg: "bg-emerald-50 dark:bg-emerald-500/10"
     },
     {
       title: "Storage Used",

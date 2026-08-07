@@ -350,11 +350,11 @@ async def simulate_ai_workflow(tenant_id: uuid.UUID, dataset_id: uuid.UUID, work
                     workspace_id=d.workspace_id,
                     uploaded_by_id=user_id,
                     name=f"{d.name} (AI Generated)",
-                    description="AI Generated Excel Output",
-                    file_type="xlsx",
-                    file_url="mock_url.xlsx",
+                    description="AI Generated Output",
+                    file_type=d.file_type,
+                    file_url=d.file_url,
                     file_size_bytes=d.file_size_bytes + 25000,
-                    original_filename=f"AI_Output_{d.original_filename.split('.')[0]}.xlsx",
+                    original_filename=f"AI_Output_{d.original_filename}",
                     status=DatasetStatus.ready,
                     row_count=d.row_count,
                     column_count=d.column_count,
@@ -368,7 +368,7 @@ async def simulate_ai_workflow(tenant_id: uuid.UUID, dataset_id: uuid.UUID, work
                 action=f"dataset.{workflow_type}.completed",
                 resource_type="dataset",
                 resource_id=str(d.id),
-                ip_address=request.client.host if request.client else "127.0.0.1"
+                ip_address="127.0.0.1"
             )
             db.add(audit)
             await db.commit()

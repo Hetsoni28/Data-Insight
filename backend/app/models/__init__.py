@@ -30,6 +30,7 @@ from app.models.chat import ChatSession, ChatMessage
 from app.models.tenant_role import TenantRole
 from app.models.tenant_department import TenantDepartment
 from app.models.report_schedule import ReportSchedule
+from app.models.dashboard import Dashboard
 
 __all__ = [
     "User",

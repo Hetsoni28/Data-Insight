@@ -22,6 +22,7 @@ export default function DatasetCenterPage() {
   const [datasets, setDatasets] = useState<any[]>([])
   const [activities, setActivities] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
   
   const [actionModalOpen, setActionModalOpen] = useState(false)
   const [currentAction, setCurrentAction] = useState("")
@@ -159,7 +160,7 @@ export default function DatasetCenterPage() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl">
+            <div className="p-2.5 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 rounded-xl">
               <Database className="w-6 h-6" />
             </div>
             Dataset Center
@@ -182,12 +183,14 @@ export default function DatasetCenterPage() {
           <DatasetEnterpriseSearch 
             searchQuery={searchQuery} 
             setSearchQuery={setSearchQuery} 
-            onFilterClick={() => alert("Advanced filters pane opened.")} 
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
           />
           <DatasetExplorerTable 
             datasets={datasets} 
             loading={loadingDatasets} 
             onAction={handleRowAction} 
+            statusFilter={statusFilter}
           />
         </div>
 

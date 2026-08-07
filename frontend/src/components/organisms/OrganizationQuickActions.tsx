@@ -7,22 +7,22 @@ export function OrganizationQuickActions() {
       title: "Generate AI Excel",
       description: "Ask AI to generate a report",
       icon: FileText,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20"
+      color: "text-emerald-500 dark:text-emerald-400",
+      bg: "bg-emerald-50 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20"
     },
     {
       title: "Upload Dataset",
       description: "Add new data to analyze",
       icon: Database,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20"
+      color: "text-emerald-500 dark:text-emerald-400",
+      bg: "bg-emerald-50 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20"
     },
     {
       title: "Invite Team Member",
       description: "Grow your organization",
       icon: UserPlus,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20"
+      color: "text-emerald-500 dark:text-emerald-400",
+      bg: "bg-emerald-50 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20"
     },
     {
       title: "Manage Settings",

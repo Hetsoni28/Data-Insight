@@ -17,8 +17,13 @@ export function NavbarBreadcrumbs() {
   
   if (paths.length > 1) {
     const segment = paths[paths.length - 1]
+    let label = segment.charAt(0).toUpperCase() + segment.slice(1)
+    if (label.length === 36 && label.split('-').length === 5) {
+      label = "Builder"
+    }
+    
     breadcrumbs.push({
-      label: segment.charAt(0).toUpperCase() + segment.slice(1),
+      label,
       isLast: true
     })
     breadcrumbs[0].isLast = false

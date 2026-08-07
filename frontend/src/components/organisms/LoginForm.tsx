@@ -121,7 +121,16 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
       } else if (response.access_token) {
         login(response.access_token, response.refresh_token)
         toast.success("Welcome back! Authenticated successfully.")
-        router.push("/datasets")
+        const role = response.user?.role;
+        if (role === 'owner') {
+          router.push("/owner/dashboard/datasets")
+        } else if (role === 'organization-admin' || role === 'tenant_admin' || role === 'org_admin') {
+          router.push("/organization-admin/dashboard/datasets")
+        } else if (role) {
+          router.push(`/${role}/dashboard/datasets`)
+        } else {
+          router.push("/datasets")
+        }
       }
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>
@@ -157,7 +166,16 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
       if (response.access_token) {
         login(response.access_token, response.refresh_token)
         toast.success("Two-Factor Authentication verified!")
-        router.push("/datasets")
+        const role = response.user?.role;
+        if (role === 'owner') {
+          router.push("/owner/dashboard/datasets")
+        } else if (role === 'organization-admin' || role === 'tenant_admin' || role === 'org_admin') {
+          router.push("/organization-admin/dashboard/datasets")
+        } else if (role) {
+          router.push(`/${role}/dashboard/datasets`)
+        } else {
+          router.push("/datasets")
+        }
       }
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>

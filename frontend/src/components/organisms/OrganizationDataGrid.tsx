@@ -92,8 +92,12 @@ export function OrganizationDataGrid() {
 
   // Reset page when search changes
   useEffect(() => {
-    setCurrentPage(1)
-  }, [search])
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages)
+    } else if (totalPages === 0) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, currentPage])
 
   return (
     <>
@@ -225,10 +229,10 @@ export function OrganizationDataGrid() {
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={(e) => handleImpersonate(tenant, e)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-md" title="Impersonate User">
+                        <Button onClick={(e) => handleImpersonate(tenant, e)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-md" title="Impersonate User">
                           <Shield className="h-4 w-4" />
                         </Button>
-                        <Button onClick={(e) => handleToggleStatus(tenant.id, tenant.is_active, e)} variant="ghost" size="icon" className={`h-8 w-8 text-slate-400 rounded-md ${tenant.is_active ? "hover:text-rose-600" : "hover:text-emerald-600"}`} title={tenant.is_active ? "Suspend Organization" : "Activate Organization"}>
+                        <Button onClick={(e) => handleToggleStatus(tenant.id, tenant.is_active, e)} variant="ghost" size="icon" className={`h-8 w-8 text-slate-400 rounded-md ${tenant.is_active ? "hover:text-rose-600" : "hover:text-emerald-500"}`} title={tenant.is_active ? "Suspend Organization" : "Activate Organization"}>
                           <Power className="h-4 w-4" />
                         </Button>
                       </div>

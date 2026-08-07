@@ -18,8 +18,12 @@ export function DatasetAuditTimeline({ activities, loading }: { activities: any[
   const paginatedActivities = activities?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) || []
 
   React.useEffect(() => {
-    setCurrentPage(1)
-  }, [activities])
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages)
+    } else if (totalPages === 0) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, currentPage])
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm flex flex-col">

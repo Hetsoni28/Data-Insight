@@ -130,10 +130,11 @@ export function CopilotChat({ datasetId }: CopilotChatProps) {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 p-6 overflow-y-auto scroll-smooth" ref={scrollRef}>
+      <div className="flex-1 p-6 overflow-y-auto scroll-smooth flex flex-col" ref={scrollRef}>
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-full py-10">
+          <div className="flex flex-col items-center min-h-full flex-1 w-full">
             <motion.div
+              className="m-auto w-full pb-10"
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}

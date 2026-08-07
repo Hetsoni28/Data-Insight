@@ -21,40 +21,36 @@ You analyze raw statistical profiles and correlation metrics of enterprise datas
 
 Your report must strictly follow this JSON schema:
 {
-  "executive_summary": "A 2-paragraph C-level summary outlining the scope, primary drivers, and health of the dataset.",
-  "key_drivers": [
+  "datasetSummary": "A 1-paragraph summary outlining the scope, primary drivers, and health of the dataset.",
+  "companyOverview": "A brief overview of the company or business domain based on the dataset structure.",
+  "businessHighlights": [
+    "Highlight 1 (string)",
+    "Highlight 2 (string)"
+  ],
+  "executiveKPIs": [
     {
-      "title": "Driver name or key metric",
-      "description": "Detailed explanation of statistical distribution, mean, variance, and significance."
+      "label": "Metric Name (e.g. Total Revenue)",
+      "value": "Numeric value with units (e.g. $1.2M)",
+      "trend": "Up 5% (or any trend context)"
     }
   ],
-  "correlation_insights": [
-    {
-      "variables": ["var1", "var2"],
-      "correlation": 0.85,
-      "interpretation": "Business interpretation of the relationship between these variables."
-    }
+  "revenueOverview": "Analysis of revenue, sales, or primary conversion metrics.",
+  "profitAnalysis": "Analysis of profitability, margins, or cost efficiency.",
+  "growthAnalysis": "Analysis of growth, retention, or expansion opportunities.",
+  "topInsights": [
+    "Insight 1 (string)",
+    "Insight 2 (string)"
   ],
-  "anomalies_and_risks": [
-    {
-      "column": "Column name",
-      "risk_level": "HIGH | MEDIUM | LOW",
-      "description": "Details regarding missing values, extreme outliers, or skewness."
-    }
+  "potentialRisks": [
+    "Risk 1 (string)",
+    "Risk 2 (string)"
   ],
-  "growth_opportunities": [
-    {
-      "title": "Opportunity title",
-      "impact": "HIGH | MEDIUM",
-      "detail": "Actionable business growth or optimization angle."
-    }
+  "executiveConclusion": "A final concluding paragraph for the executive team.",
+  "keyRecommendations": [
+    "Recommendation 1 (string)"
   ],
-  "strategic_recommendations": [
-    {
-      "priority": 1,
-      "action": "Clear, concise imperative action statement",
-      "rationale": "Why this action is justified by the data."
-    }
+  "managementActionPlan": [
+    "Action 1 (string)"
   ]
 }
 
@@ -68,22 +64,36 @@ CRITICAL RULES:
 
     def _prepare_profile_summary(self, profile: Dict[str, Any], correlations: Optional[Dict[str, Any]] = None) -> str:
         """Create a compact, highly informative summary of the dataset profile for the prompt."""
-        overview = profile.get("overview", {})
-        quality = profile.get("quality_score", {})
+        overview = profile.get("overview", {}) # Note: profiler.py returns top-level row_count etc., let's handle both
+        
+        # In the new DataProfiler, these are top-level keys. Fallback to overview dict if not found.
+        row_count = profile.get("row_count", overview.get("row_count"))
+        column_count = profile.get("column_count", overview.get("column_count"))
+        memory_size_mb = profile.get("memory_usage_mb", overview.get("memory_size_mb"))
+        duplicate_rows = profile.get("duplicate_rows", overview.get("duplicate_rows"))
+
+        # In DataProfiler, quality metrics are top-level
+        overall_score = profile.get("quality_score")
+        grade = profile.get("quality_grade")
+        
+        quality_breakdown = profile.get("quality_breakdown", {})
+        completeness = quality_breakdown.get("completeness")
+        uniqueness = quality_breakdown.get("uniqueness")
+        
         columns_profile = profile.get("columns", {})
 
         summary_dict = {
             "dataset_overview": {
-                "total_rows": overview.get("row_count"),
-                "total_columns": overview.get("column_count"),
-                "memory_size_mb": overview.get("memory_size_mb"),
-                "duplicate_rows": overview.get("duplicate_rows"),
+                "total_rows": row_count,
+                "total_columns": column_count,
+                "memory_size_mb": memory_size_mb,
+                "duplicate_rows": duplicate_rows,
             },
             "quality_grade": {
-                "overall_score": quality.get("overall_score"),
-                "grade": quality.get("grade"),
-                "completeness": quality.get("completeness_score"),
-                "uniqueness": quality.get("uniqueness_score"),
+                "overall_score": overall_score,
+                "grade": grade,
+                "completeness": completeness,
+                "uniqueness": uniqueness,
             },
             "column_metrics": {},
         }
@@ -141,12 +151,18 @@ Generate the comprehensive executive narrative analysis."""
         except Exception as e:
             logger.warning(f"[NarrativeGenerator] JSON parsing failed: {e}. Fallback structure applied.")
             report_data = {
-                "executive_summary": response.content,
-                "key_drivers": [],
-                "correlation_insights": [],
-                "anomalies_and_risks": [],
-                "growth_opportunities": [],
-                "strategic_recommendations": [],
+                "datasetSummary": response.content,
+                "companyOverview": "",
+                "businessHighlights": [],
+                "executiveKPIs": [],
+                "revenueOverview": "",
+                "profitAnalysis": "",
+                "growthAnalysis": "",
+                "topInsights": [],
+                "potentialRisks": [],
+                "executiveConclusion": "",
+                "keyRecommendations": [],
+                "managementActionPlan": []
             }
 
         return {

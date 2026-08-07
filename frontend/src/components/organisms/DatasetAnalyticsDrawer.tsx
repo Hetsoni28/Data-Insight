@@ -69,10 +69,11 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
           if (statusRes.status === "SUCCESS") {
             clearInterval(poll);
             // Format result to match ExecutiveReportViewer expected prop structure
+            const aiData = statusRes.result?.report || statusRes.result;
             const reportData = {
               id: datasetId,
               title: `${datasetName || "Dataset"} Executive Analysis`,
-              ai_blueprint: statusRes.result
+              ai_blueprint: aiData
             };
             setNarrative(reportData);
             setIsGeneratingNarrative(false);
@@ -136,8 +137,8 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
+        <div className="flex-1 overflow-hidden flex flex-col relative min-h-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col overflow-hidden">
             <div className="px-6 pt-4 shrink-0">
               <TabsList className="w-full grid grid-cols-3 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
                 <TabsTrigger value="copilot" className="rounded-lg text-sm font-medium data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm">
@@ -152,14 +153,12 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
-              <TabsContent value="copilot" className="h-full m-0 data-[state=active]:flex flex-col">
-                <div className="flex-1 h-full min-h-[500px]">
-                  <CopilotChat datasetId={datasetId} />
-                </div>
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0 relative bg-slate-50/30 dark:bg-slate-900/10">
+              <TabsContent value="copilot" className="h-full w-full m-0 data-[state=active]:flex flex-col overflow-hidden">
+                <CopilotChat datasetId={datasetId} />
               </TabsContent>
 
-              <TabsContent value="visuals" className="m-0 space-y-8">
+              <TabsContent value="visuals" className="h-full w-full m-0 p-6 overflow-y-auto">
                 {loadingProfile ? (
                   <div className="flex flex-col items-center justify-center py-20 text-slate-500">
                     <Loader2 className="w-8 h-8 animate-spin mb-4 text-emerald-500" />
@@ -192,7 +191,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
                 )}
               </TabsContent>
 
-              <TabsContent value="narrative" className="m-0">
+              <TabsContent value="narrative" className="h-full w-full m-0 p-6 overflow-y-auto">
                 {!narrative ? (
                   <div className="flex flex-col items-center justify-center py-20 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50">
                     <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6">
@@ -216,7 +215,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
                   </div>
                 ) : (
                   <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <ExecutiveReportViewer report={narrative} />
+                    <ExecutiveReportViewer report={narrative} hideDownload={true} />
                   </div>
                 )}
               </TabsContent>

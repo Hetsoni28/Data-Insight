@@ -5,9 +5,10 @@ import { toast } from "sonner"
 
 interface ExecutiveReportViewerProps {
   report: any
+  hideDownload?: boolean
 }
 
-export function ExecutiveReportViewer({ report }: ExecutiveReportViewerProps) {
+export function ExecutiveReportViewer({ report, hideDownload = false }: ExecutiveReportViewerProps) {
   const data = report?.ai_blueprint
   if (!data) return <div className="p-8 text-center text-slate-500 font-medium">No AI Blueprint data found.</div>
 
@@ -41,20 +42,22 @@ export function ExecutiveReportViewer({ report }: ExecutiveReportViewerProps) {
           <h2 className="text-lg font-bold text-white leading-tight truncate">{report.title}</h2>
         </div>
         {/* Right: action buttons — always inline */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => handleDownload('pdf')}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-700/80 hover:bg-slate-700 text-slate-200 border border-slate-600/60 rounded-lg text-xs font-semibold transition-all"
-          >
-            <FileText className="w-3.5 h-3.5 text-emerald-400" /> PDF
-          </button>
-          <button
-            onClick={() => handleDownload('excel')}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
-          </button>
-        </div>
+        {!hideDownload && (
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => handleDownload('pdf')}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-700/80 hover:bg-slate-700 text-slate-200 border border-slate-600/60 rounded-lg text-xs font-semibold transition-all"
+            >
+              <FileText className="w-3.5 h-3.5 text-emerald-400" /> PDF
+            </button>
+            <button
+              onClick={() => handleDownload('excel')}
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── DATASET SUMMARY strip ── */}
@@ -182,31 +185,31 @@ export function ExecutiveReportViewer({ report }: ExecutiveReportViewerProps) {
         </div>
 
         {/* Conclusion & Action Plan */}
-        <div className="bg-gradient-to-br from-slate-900 to-emerald-950 rounded-xl p-6 text-white border border-slate-800">
+        <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-6 text-slate-900 dark:text-white border border-emerald-100 dark:border-emerald-900/50">
           <div className="flex items-center gap-2 mb-2">
-            <Target className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-wide">Executive Conclusion & Action Plan</h3>
+            <Target className="w-4 h-4 text-emerald-500" />
+            <h3 className="text-sm font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wide">Executive Conclusion & Action Plan</h3>
           </div>
-          <p className="text-xs text-slate-300 leading-relaxed mb-5">{data.executiveConclusion}</p>
+          <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed mb-5">{data.executiveConclusion}</p>
 
-          <div className="grid grid-cols-2 gap-6 border-t border-slate-800/80 pt-5">
+          <div className="grid grid-cols-2 gap-6 border-t border-emerald-100 dark:border-emerald-900/50 pt-5">
             <div>
-              <h4 className="text-[10px] font-bold text-emerald-400 mb-2.5 uppercase tracking-widest">Key Recommendations</h4>
+              <h4 className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 mb-2.5 uppercase tracking-widest">Key Recommendations</h4>
               <ul className="space-y-2">
                 {data.keyRecommendations?.map((r: string, i: number) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-slate-200">
-                    <span className="text-emerald-400 font-bold shrink-0">›</span>
+                  <li key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-200">
+                    <span className="text-emerald-500 font-bold shrink-0">›</span>
                     <span className="leading-relaxed">{r}</span>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="text-[10px] font-bold text-emerald-400 mb-2.5 uppercase tracking-widest">Management Action Plan</h4>
+              <h4 className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 mb-2.5 uppercase tracking-widest">Management Action Plan</h4>
               <ul className="space-y-2">
                 {data.managementActionPlan?.map((r: string, i: number) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-slate-200">
-                    <span className="text-emerald-400 font-bold shrink-0">›</span>
+                  <li key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-200">
+                    <span className="text-emerald-500 font-bold shrink-0">›</span>
                     <span className="leading-relaxed">{r}</span>
                   </li>
                 ))}

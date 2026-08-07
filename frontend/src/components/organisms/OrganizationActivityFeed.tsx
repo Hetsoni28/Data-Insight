@@ -44,7 +44,7 @@ export function OrganizationActivityFeed({ activity }: { activity: any[] }) {
               <div className="flex flex-col gap-2 mb-2">
                 <div className="flex justify-between items-start gap-2">
                   <span className="font-semibold text-slate-900 dark:text-white text-sm line-clamp-2">{formatActionName(item.action)}</span>
-                  <Badge variant={item.status === 'success' ? 'default' : 'destructive'} className={item.status === 'success' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400' : ''}>
+                  <Badge variant={item.status === 'success' ? 'default' : 'destructive'} className={item.status === 'success' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400' : ''}>
                     {item.status === 'success' ? 'Success' : 'Failed'}
                   </Badge>
                 </div>

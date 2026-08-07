@@ -10,7 +10,7 @@ function formatBytes(bytes: number) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-export function DatasetExplorerTable({ datasets, loading, onAction }: { datasets: any[], loading: boolean, onAction: (action: string, id: string) => void }) {
+export function DatasetExplorerTable({ datasets, loading, onAction, statusFilter = "all" }: { datasets: any[], loading: boolean, onAction: (action: string, id: string) => void, statusFilter?: string }) {
   
   const getFileIcon = (type: string) => {
     if (type.includes('csv') || type.includes('xlsx')) return <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
@@ -41,12 +41,25 @@ export function DatasetExplorerTable({ datasets, loading, onAction }: { datasets
   const [currentPage, setCurrentPage] = React.useState(1)
   const itemsPerPage = 5
 
-  const totalPages = Math.ceil((datasets?.length || 0) / itemsPerPage)
-  const paginatedDatasets = datasets?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) || []
+  const filteredDatasets = React.useMemo(() => {
+    if (!datasets) return [];
+    if (statusFilter === "all") return datasets;
+    return datasets.filter(d => {
+      if (statusFilter === "processing") return ['profiling', 'uploading', 'processing'].includes(d.status.toLowerCase());
+      return d.status.toLowerCase() === statusFilter.toLowerCase();
+    });
+  }, [datasets, statusFilter]);
+
+  const totalPages = Math.ceil(filteredDatasets.length / itemsPerPage)
+  const paginatedDatasets = filteredDatasets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   React.useEffect(() => {
-    setCurrentPage(1)
-  }, [datasets])
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages)
+    } else if (totalPages === 0) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, currentPage])
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm flex flex-col">

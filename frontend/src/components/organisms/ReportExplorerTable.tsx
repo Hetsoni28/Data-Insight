@@ -51,13 +51,24 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 8
 
-  const totalPages = Math.ceil((reports?.length || 0) / itemsPerPage)
-  const paginatedReports = reports?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) || []
+  const [statusFilter, setStatusFilter] = useState("all")
+
+  const filteredReports = reports?.filter(r => {
+    const matchesSearch = !searchQuery || 
+      r.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.status.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || r.status.toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  }) || []
+
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage)
+  const paginatedReports = filteredReports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   // Reset to first page when search changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, reports])
+  }, [searchQuery, statusFilter])
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col">
@@ -74,9 +85,16 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
               className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <button className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-            <Filter className="w-4 h-4" />
-          </button>
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none text-slate-600 dark:text-slate-400"
+          >
+            <option value="all">All Status</option>
+            <option value="ready">Ready</option>
+            <option value="generating">Generating</option>
+            <option value="error">Failed</option>
+          </select>
         </div>
       </div>
 

@@ -127,8 +127,12 @@ export function UsersDataGrid() {
 
   // Reset page when search changes
   useEffect(() => {
-    setCurrentPage(1)
-  }, [search])
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages)
+    } else if (totalPages === 0) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, currentPage])
 
   const getRoleBadge = (role: string) => {
     switch (role?.toLowerCase()) {

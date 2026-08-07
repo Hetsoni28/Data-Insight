@@ -29,6 +29,7 @@ from app.api.v1.tenant_dashboard import router as tenant_dashboard_router
 from app.api.v1.tenant_team import router as tenant_team_router
 from app.api.v1.tenant_datasets import router as tenant_datasets_router
 from app.api.v1.tenant_reports import router as tenant_reports_router
+from app.api.v1.tenant_dashboards import router as tenant_dashboards_router
 
 api_router = APIRouter()
 
@@ -61,3 +62,4 @@ api_router.include_router(tenant_dashboard_router, prefix="/tenant-dashboard", t
 api_router.include_router(tenant_team_router, prefix="/tenant-team", tags=["Tenant Team"])
 api_router.include_router(tenant_datasets_router, prefix="/tenant-datasets", tags=["Tenant Datasets"])
 api_router.include_router(tenant_reports_router, prefix="/tenant-reports", tags=["Tenant Reports"])
+api_router.include_router(tenant_dashboards_router, prefix="/tenant-dashboards", tags=["Tenant Dashboards"])

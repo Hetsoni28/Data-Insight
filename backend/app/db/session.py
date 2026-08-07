@@ -2,16 +2,30 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from contextlib import asynccontextmanager
+from sqlalchemy.pool import NullPool
+import sys
 from app.core.config import settings
 
 # ─── Async Engine ─────────────────────────────────────────────────────────────
-# Uses Supabase Session-mode pooler (port 5432) which supports prepared statements
+# If running inside Celery, we MUST use NullPool because celery uses asyncio.run()
+# for each task, creating a new event loop. Using QueuePool will result in
+# "Future attached to a different loop" errors when connections are reused.
+is_celery = "celery" in sys.argv[0]
+
+engine_kwargs = {
+    "echo": (settings.APP_ENV == "development"),
+    "pool_pre_ping": True,
+}
+
+if is_celery:
+    engine_kwargs["poolclass"] = NullPool
+else:
+    engine_kwargs["pool_size"] = 3
+    engine_kwargs["max_overflow"] = 2
+
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=(settings.APP_ENV == "development"),  # Log SQL in dev only
-    pool_pre_ping=True,
-    pool_size=3,
-    max_overflow=2,
+    **engine_kwargs
 )
 
 

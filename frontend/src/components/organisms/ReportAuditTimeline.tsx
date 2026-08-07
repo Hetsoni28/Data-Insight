@@ -43,8 +43,12 @@ export function ReportAuditTimeline({ logs, isLoading }: ReportAuditTimelineProp
   const paginatedLogs = logs?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) || []
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [logs])
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages)
+    } else if (totalPages === 0) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, currentPage])
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 w-full flex flex-col">
