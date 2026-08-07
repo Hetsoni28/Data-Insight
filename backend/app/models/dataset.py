@@ -28,6 +28,8 @@ class DatasetFileType:
     csv = "csv"
     xlsx = "xlsx"
     json = "json"
+    parquet = "parquet"
+    tsv = "tsv"
 
 
 class Dataset(Base):

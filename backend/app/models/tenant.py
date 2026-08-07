@@ -1,9 +1,9 @@
-"""Tenant model — one per paying organization."""
+"""Tenant model — one per paying organization with enterprise DB routing and quota tracking."""
 
 import uuid
 import enum
 from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, DateTime, Text, JSON, Float
+from sqlalchemy import String, Boolean, DateTime, Text, JSON, Float, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.session import Base
@@ -14,6 +14,11 @@ class PlanType(str, enum.Enum):
     professional = "professional"
     enterprise = "enterprise"
     custom = "custom"
+
+
+class DBConnectionType(str, enum.Enum):
+    shared = "shared"
+    dedicated = "dedicated"
 
 
 class Tenant(Base):
@@ -35,10 +40,21 @@ class Tenant(Base):
         String(50), default=PlanType.starter, nullable=False
     )
 
+    # Database Isolation Routing (Shared vs Dedicated Enterprise VPC)
+    db_connection_type: Mapped[str] = mapped_column(
+        String(20), default=DBConnectionType.shared, nullable=False
+    )
+    dedicated_db_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     # Limits based on plan
     max_users: Mapped[int] = mapped_column(default=5)
     max_storage_gb: Mapped[int] = mapped_column(default=5)
     max_ai_tokens_per_month: Mapped[int] = mapped_column(default=100_000)
+
+    # Real-time usage tracking
+    current_storage_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    current_ai_tokens_used: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    quota_reset_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # White-label configuration
     white_label_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
@@ -46,7 +62,7 @@ class Tenant(Base):
     # Enterprise features
     sso_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     custom_domain: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True)
-    custom_domain_status: Mapped[str | None] = mapped_column(String(50), nullable=True) # pending, verified, failed
+    custom_domain_status: Mapped[str | None] = mapped_column(String(50), nullable=True)  # pending, verified, failed
 
     # Stripe billing
     stripe_customer_id: Mapped[str | None] = mapped_column(
@@ -55,11 +71,15 @@ class Tenant(Base):
     stripe_subscription_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
-    billing_cycle: Mapped[str] = mapped_column(String(20), default="monthly") # monthly, yearly
-    mrr: Mapped[float] = mapped_column(Float, default=0.0) # cached Monthly Recurring Revenue
+    billing_cycle: Mapped[str] = mapped_column(String(20), default="monthly")  # monthly, yearly
+    mrr: Mapped[float] = mapped_column(Float, default=0.0)  # cached Monthly Recurring Revenue
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Status and Lifecycle
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_suspended: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    suspension_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

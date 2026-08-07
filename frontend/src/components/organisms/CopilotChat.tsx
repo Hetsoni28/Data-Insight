@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { StateLayout } from "@/components/molecules/StateLayout";
 import { AiCopilotIllustration } from "@/components/molecules/AiCopilotIllustration";
 import { NoDatasetsIllustration } from "@/components/molecules/NoDatasetsIllustration";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const TypingIndicator = () => (
   <div className="flex items-center space-x-1.5 p-2 px-4 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 shadow-sm rounded-2xl rounded-tl-sm h-10 w-fit">
@@ -56,20 +58,37 @@ export function CopilotChat({ datasetId }: CopilotChatProps) {
     if (!input.trim() || !datasetId) return;
 
     const userMsg: ChatMessage = { role: "user", content: input.trim() };
-    setMessages((prev) => [...prev, userMsg]);
+    const currentHistory = [...messages];
+    setMessages([...currentHistory, userMsg]);
     setInput("");
     setIsTyping(true);
 
-    try {
-      const response = await AIService.chat(userMsg.content, datasetId, messages);
-      const aiMsg: ChatMessage = { role: "assistant", content: response.answer };
-      setMessages((prev) => [...prev, aiMsg]);
-    } catch (error: any) {
-      console.error("Chat error", error);
-      toast.error("Failed to get AI response.");
-    } finally {
-      setIsTyping(false);
-    }
+    let streamedContent = "";
+    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+    await AIService.copilotChatStream(
+      userMsg.content,
+      datasetId,
+      currentHistory,
+      "groq", // default fast provider
+      (chunk) => {
+        setIsTyping(false);
+        streamedContent += chunk;
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1] = { role: "assistant", content: streamedContent };
+          return newMessages;
+        });
+      },
+      () => {
+        setIsTyping(false);
+      },
+      (err) => {
+        console.error("Chat error", err);
+        toast.error("Failed to get AI response.");
+        setIsTyping(false);
+      }
+    );
   };
 
   if (!datasetId) {
@@ -156,7 +175,15 @@ export function CopilotChat({ datasetId }: CopilotChatProps) {
                           : "bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 text-slate-800 dark:text-slate-200 rounded-2xl rounded-bl-sm"
                       )}
                     >
-                      <span className="whitespace-pre-wrap">{msg.content}</span>
+                      {msg.role === "user" ? (
+                        <span className="whitespace-pre-wrap">{msg.content}</span>
+                      ) : (
+                        <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.content || "..."}
+                          </ReactMarkdown>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>

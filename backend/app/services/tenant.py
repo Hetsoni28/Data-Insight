@@ -38,7 +38,7 @@ class TenantService:
         plan: PlanType = PlanType.starter,
     ) -> Tenant:
         """Create a new tenant organization and assign the owner."""
-        if owner.tenant_id:
+        if not owner.is_owner and owner.tenant_id:
             raise ConflictException("You already belong to an organization.")
 
         # Generate unique slug
@@ -51,12 +51,11 @@ class TenantService:
 
         tenant = await self.tenant_repo.create(name=name, slug=slug, plan=plan)
 
-        # Assign the creating user as org_admin
-        # GUARD: Never downgrade the platform OWNER role
-        owner.tenant_id = tenant.id
+        # Assign the creating user as org_admin only if they are not the platform superadmin/owner
         if not owner.is_owner:
+            owner.tenant_id = tenant.id
             owner.role = UserRole.org_admin
-        await self.user_repo.save(owner)
+            await self.user_repo.save(owner)
 
         await self.audit_repo.log(
             "tenant.create",

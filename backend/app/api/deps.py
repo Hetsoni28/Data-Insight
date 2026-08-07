@@ -7,7 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 from jose import jwt, JWTError
 
-from app.db.session import AsyncSessionLocal
+from app.db.session import AsyncSessionLocal as SharedAsyncSessionLocal
+from app.db.router import db_router
+from app.core.tenant_context import get_tenant_context, TenantContext, get_current_tenant_id
 from app.db.redis import get_redis_pool
 from app.core.config import settings
 from app.core.exceptions import UnauthorizedException
@@ -33,15 +35,53 @@ async def get_redis() -> AsyncGenerator[Redis, None]:
         await redis_client.aclose()
 
 
-# ─── DB Session ───────────────────────────────────────────────────────────────
+# ─── DB Sessions (Dynamic Routing) ────────────────────────────────────────────
+async def get_shared_db() -> AsyncGenerator[AsyncSession, None]:
+    """Provides a scoped AsyncSession directly to the shared master database."""
+    async with SharedAsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    FastAPI dependency that provides a scoped AsyncSession.
-    Uses async_sessionmaker context manager directly to avoid the
-    'generator didn't stop after athrow()' RuntimeError in Python 3.12+.
-    The AsyncSessionLocal context manager handles closing the session on exit.
+    FastAPI dependency that provides a scoped AsyncSession dynamically routed
+    to either the shared database or dedicated tenant database.
     """
-    async with AsyncSessionLocal() as session:
+    ctx = get_tenant_context()
+    if ctx and ctx.has_dedicated_db:
+        session_factory = await db_router.get_sessionmaker_for_tenant(
+            tenant_id=ctx.tenant_id, dedicated_url=ctx.dedicated_db_url
+        )
+    else:
+        session_factory = SharedAsyncSessionLocal
+
+    async with session_factory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+
+async def get_tenant_db(
+    request: Request,
+) -> AsyncGenerator[AsyncSession, None]:
+    """
+    Explicit tenant-routed DB session. Ensures tenant context is present and routes appropriately.
+    """
+    ctx = get_tenant_context()
+    tenant_id = ctx.tenant_id if ctx else getattr(request.state, "tenant_id", None)
+    dedicated_url = ctx.dedicated_db_url if ctx else None
+    session_factory = await db_router.get_sessionmaker_for_tenant(
+        tenant_id=tenant_id, dedicated_url=dedicated_url
+    )
+    async with session_factory() as session:
         try:
             yield session
             await session.commit()
@@ -68,8 +108,12 @@ async def get_current_user(
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         user_id: str | None = payload.get("sub")
+        token_type: str | None = payload.get("type", "access")
+        token_version: int = payload.get("token_version", 1)
         if not user_id:
             raise UnauthorizedException("Invalid token payload.")
+        if token_type != "access":
+            raise UnauthorizedException("Invalid token type for API access.")
     except JWTError:
         raise UnauthorizedException("Token is invalid or has expired.")
 
@@ -79,6 +123,22 @@ async def get_current_user(
         raise UnauthorizedException("User not found.")
     if not user.is_active:
         raise UnauthorizedException("Your account has been deactivated.")
+
+    # Validate token version for instant global session revocation
+    if getattr(user, "token_version", 1) != token_version:
+        raise UnauthorizedException(
+            "Session has expired or was revoked. Please log in again."
+        )
+
+    # Check brute-force account lockout
+    if getattr(user, "locked_until", None):
+        from datetime import datetime, timezone
+        now_utc = datetime.now(timezone.utc)
+        if user.locked_until > now_utc:
+            remaining_mins = max(1, int((user.locked_until - now_utc).total_seconds() / 60))
+            raise UnauthorizedException(
+                f"Account is temporarily locked. Please try again in {remaining_mins} minute(s)."
+            )
 
     # Record or touch real active user session
     try:

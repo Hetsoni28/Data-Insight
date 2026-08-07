@@ -127,7 +127,7 @@ export function IntelligenceSection() {
                   />
                   <div className="flex-1 min-w-0">
                     <p className={`text-xs font-medium leading-relaxed ${isSelected ? "text-slate-950 font-semibold" : "text-slate-700"}`}>
-                      "{sq.q}"
+                      &quot;{sq.q}&quot;
                     </p>
                     <span className="text-[10px] text-emerald-700 font-semibold mt-1 block">
                       Target: {sq.metricLabel}

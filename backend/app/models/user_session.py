@@ -27,6 +27,8 @@ class UserSession(Base):
     os: Mapped[str | None] = mapped_column(String(100), nullable=True)
     browser: Mapped[str | None] = mapped_column(String(100), nullable=True)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(100), default="Unknown", nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), default="Unknown", nullable=True)
     ip_address: Mapped[str | None] = mapped_column(String(50), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

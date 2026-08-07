@@ -56,6 +56,71 @@ export class AIService {
   }
 
   /**
+   * Stream a chat response from the AI Copilot.
+   */
+  static async copilotChatStream(
+    question: string,
+    datasetId: string,
+    history: ChatMessage[],
+    provider: string,
+    onChunk: (chunk: string) => void,
+    onDone: () => void,
+    onError: (err: any) => void
+  ) {
+    const token = localStorage.getItem("access_token");
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+    
+    try {
+      const response = await fetch(`${baseUrl}/ai/chat/stream`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ question, dataset_id: datasetId, history, provider })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const dataStr = line.slice(6);
+            if (dataStr === "[DONE]") {
+              onDone();
+              return;
+            }
+            try {
+              const data = JSON.parse(dataStr);
+              if (data.token) onChunk(data.token);
+              if (data.error) throw new Error(data.error);
+            } catch (e) {
+              // Ignore parse errors for incomplete chunks if any
+            }
+          }
+        }
+      }
+      onDone();
+    } catch (error) {
+      onError(error);
+    }
+  }
+
+  /**
    * Stream a chat response from Gemini with owner platform context.
    */
   static async ownerChatStream(

@@ -54,6 +54,8 @@ logger.add(
 
 
 from app.db.redis import close_redis_pool
+from app.db.router import db_router
+from app.middleware.tenant_middleware import TenantMiddleware
 
 
 # ─── Application Lifespan ─────────────────────────────────────────────────────
@@ -70,6 +72,7 @@ async def lifespan(app: FastAPI):
     yield
     logger.info(f"Shutting down {settings.APP_NAME}...")
     await engine.dispose()
+    await db_router.dispose_all()
     await close_redis_pool()
     logger.info("All connections closed.")
 
@@ -99,6 +102,9 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
+
+    # ─── Tenant Isolation Middleware ──────────────────────────────────────────
+    app.add_middleware(TenantMiddleware)
 
     # ─── Request ID Middleware ────────────────────────────────────────────────
     @app.middleware("http")

@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { useAuthStore } from "@/store/authStore"
-import { loginUser, verifyLogin, requestAccess } from "@/lib/auth.service"
+import { loginUser, verifyMFALogin, verifyLogin, requestAccess } from "@/lib/auth.service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -36,6 +36,9 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
 
   const [mode, setMode] = useState<"login" | "request">(defaultMode)
   const [loginStep, setLoginStep] = useState<1 | 2>(1)
+  const [mfaToken, setMfaToken] = useState<string>("")
+  const [isBackupCodeMode, setIsBackupCodeMode] = useState(false)
+  const [backupCodeInput, setBackupCodeInput] = useState("")
   const [requestSuccess, setRequestSuccess] = useState(false)
 
   const [showPassword, setShowPassword] = useState(false)
@@ -110,8 +113,16 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
         email: form.email,
         password: form.password,
       })
-      toast.success(response.message || "2FA code sent to your email!")
-      setLoginStep(2)
+
+      if (response.mfa_required) {
+        setMfaToken(response.mfa_token || "")
+        toast.info("Two-Factor Authentication required. Enter the 6-digit code from your authenticator app.")
+        setLoginStep(2)
+      } else if (response.access_token) {
+        login(response.access_token, response.refresh_token)
+        toast.success("Welcome back! Authenticated successfully.")
+        router.push("/datasets")
+      }
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>
       const msg =
@@ -125,23 +136,29 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
 
   const handleLoginStep2 = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (fullOtpCode.length !== 6) {
+    const codeToVerify = isBackupCodeMode ? backupCodeInput.trim() : fullOtpCode
+    if (!isBackupCodeMode && codeToVerify.length !== 6) {
       setFieldError("Security code must be exactly 6 digits.")
+      return
+    }
+    if (isBackupCodeMode && !codeToVerify) {
+      setFieldError("Please enter your backup recovery code.")
       return
     }
     setIsLoading(true)
     setFieldError("")
 
     try {
-      const { access_token } = await verifyLogin({
-        email: form.email,
-        password: form.password,
-        otp: fullOtpCode
+      const response = await verifyMFALogin({
+        mfa_token: mfaToken,
+        code: codeToVerify
       })
 
-      await login(access_token)
-      toast.success("Authenticated to Private Tenant Node")
-      router.push("/dashboard")
+      if (response.access_token) {
+        login(response.access_token, response.refresh_token)
+        toast.success("Two-Factor Authentication verified!")
+        router.push("/datasets")
+      }
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>
       const msg =
@@ -311,54 +328,94 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
                 </Button>
               </form>
             ) : (
-              /* 2FA Step 2 with 6 Individual Boxes */
+              /* MFA Step 2: Authenticator App TOTP or Recovery Code */
               <form onSubmit={handleLoginStep2} className="space-y-5">
                 <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Security code sent to <strong>{form.email}</strong></span>
+                  <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>
+                    {isBackupCodeMode
+                      ? "Enter one of your 10-character emergency backup recovery codes."
+                      : "Enter the 6-digit verification code from your Authenticator App."}
+                  </span>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold text-slate-700 block text-center">
-                    Enter 6-Digit 2FA Code
-                  </Label>
-                  <div className="flex items-center justify-between gap-2">
-                    {otpDigits.map((digit, idx) => (
-                      <input
-                        key={idx}
-                        ref={(el) => { otpRefs.current[idx] = el }}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(idx, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                        onPaste={handleOtpPaste}
-                        className={`w-12 h-13 text-center text-xl font-mono font-bold rounded-xl border transition-all outline-none ${
-                          digit
-                            ? "border-[#10B981] bg-emerald-50/50 text-slate-950 ring-2 ring-emerald-500/20"
-                            : "border-slate-200 bg-slate-50 text-slate-900 focus:border-[#10B981] focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
-                        }`}
-                      />
-                    ))}
+                {!isBackupCodeMode ? (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-slate-700 block text-center">
+                      6-Digit Authenticator Code
+                    </Label>
+                    <div className="flex items-center justify-between gap-2">
+                      {otpDigits.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          ref={(el) => { otpRefs.current[idx] = el }}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                          onPaste={handleOtpPaste}
+                          className={`w-12 h-13 text-center text-xl font-mono font-bold rounded-xl border transition-all outline-none ${
+                            digit
+                              ? "border-[#10B981] bg-emerald-50/50 text-slate-950 ring-2 ring-emerald-500/20"
+                              : "border-slate-200 bg-slate-50 text-slate-900 focus:border-[#10B981] focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-slate-700 block">
+                      Emergency Backup Code
+                    </Label>
+                    <Input
+                      type="text"
+                      placeholder="e.g. 7F3A-8B92-4C"
+                      value={backupCodeInput}
+                      onChange={(e) => {
+                        setBackupCodeInput(e.target.value)
+                        setFieldError("")
+                      }}
+                      className="font-mono text-center tracking-widest text-sm h-11 border-slate-200 bg-slate-50 text-slate-900 focus:ring-emerald-500"
+                    />
+                  </div>
+                )}
 
                 <Button
                   type="submit"
-                  disabled={isLoading || fullOtpCode.length !== 6}
+                  disabled={isLoading || (!isBackupCodeMode && fullOtpCode.length !== 6) || (isBackupCodeMode && !backupCodeInput.trim())}
                   className="w-full h-11 bg-[#10B981] hover:bg-[#059669] text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 cursor-pointer"
                 >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & Complete Sign In"}
                 </Button>
 
-                <button
-                  type="button"
-                  onClick={() => setLoginStep(1)}
-                  className="w-full text-center text-xs text-slate-500 hover:text-slate-800 pt-1 cursor-pointer"
-                >
-                  ← Back to Email & Password
-                </button>
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsBackupCodeMode(!isBackupCodeMode)
+                      setFieldError("")
+                    }}
+                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium cursor-pointer"
+                  >
+                    {isBackupCodeMode ? "Use Authenticator App" : "Use Backup Recovery Code"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginStep(1)
+                      setIsBackupCodeMode(false)
+                      setBackupCodeInput("")
+                      setOtpDigits(["", "", "", "", "", ""])
+                    }}
+                    className="text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
+                  >
+                    ← Back to Login
+                  </button>
+                </div>
               </form>
             )}
 

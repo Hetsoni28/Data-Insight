@@ -13,6 +13,7 @@ import { DatasetEnterpriseSearch } from "@/components/organisms/DatasetEnterpris
 import { DatasetExplorerTable } from "@/components/organisms/DatasetExplorerTable"
 import { DatasetAuditTimeline } from "@/components/organisms/DatasetAuditTimeline"
 import { DatasetActionModal } from "@/components/organisms/DatasetActionModal"
+import { DatasetAnalyticsDrawer } from "@/components/organisms/DatasetAnalyticsDrawer"
 
 export default function DatasetCenterPage() {
   const { data: user } = useAuth()
@@ -25,6 +26,10 @@ export default function DatasetCenterPage() {
   const [actionModalOpen, setActionModalOpen] = useState(false)
   const [currentAction, setCurrentAction] = useState("")
   
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false)
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null)
+  const [selectedDatasetName, setSelectedDatasetName] = useState("")
+
   const [loadingStats, setLoadingStats] = useState(true)
   const [loadingDatasets, setLoadingDatasets] = useState(true)
   const [loadingActivities, setLoadingActivities] = useState(true)
@@ -47,42 +52,42 @@ export default function DatasetCenterPage() {
     const hasProcessing = datasets.some(d => d.status === 'processing' || d.status === 'uploading' || d.status === 'profiling')
     if (hasProcessing) {
       const interval = setInterval(() => {
-        fetchDatasets()
-        fetchStats()
-        fetchActivities()
+        fetchDatasets(true)
+        fetchStats(true)
+        fetchActivities(true)
       }, 3000)
       return () => clearInterval(interval)
     }
   }, [datasets])
 
-  const fetchStats = async () => {
+  const fetchStats = async (silent = false) => {
     try {
-      setLoadingStats(true)
+      if (!silent) setLoadingStats(true)
       const res = await api.get("/tenant-datasets/stats")
       setStats(res.data.data)
     } catch (e) {
       console.error(e)
     } finally {
-      setLoadingStats(false)
+      if (!silent) setLoadingStats(false)
     }
   }
 
-  const fetchDatasets = async () => {
+  const fetchDatasets = async (silent = false) => {
     try {
-      setLoadingDatasets(true)
+      if (!silent) setLoadingDatasets(true)
       const query = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ""
       const res = await api.get(`/tenant-datasets${query}`)
       setDatasets(res.data.data)
     } catch (e) {
       console.error(e)
     } finally {
-      setLoadingDatasets(false)
+      if (!silent) setLoadingDatasets(false)
     }
   }
 
-  const fetchActivities = async () => {
+  const fetchActivities = async (silent = false) => {
     try {
-      setLoadingActivities(true)
+      if (!silent) setLoadingActivities(true)
       const res = await api.get("/tenant-datasets/activities")
       // Combine audit and AI activities and sort by date descending
       const combined = [
@@ -94,7 +99,7 @@ export default function DatasetCenterPage() {
     } catch (e) {
       console.error(e)
     } finally {
-      setLoadingActivities(false)
+      if (!silent) setLoadingActivities(false)
     }
   }
 
@@ -138,9 +143,12 @@ export default function DatasetCenterPage() {
         console.error("Failed to delete dataset", e)
         toast.error("Failed to delete dataset")
       }
-    } else if (action === 'preview') {
-      toast.info(`Opening schema & AI insights preview for dataset ${id}`)
-    } else if (['analyze', 'ai-excel', 'dashboard'].includes(action)) {
+    } else if (action === 'preview' || action === 'analyze') {
+      const ds = datasets.find(d => d.id === id)
+      setSelectedDatasetId(id)
+      setSelectedDatasetName(ds?.name || "")
+      setIsAnalyticsOpen(true)
+    } else if (['ai-excel', 'dashboard'].includes(action)) {
       await executeWorkflow(id, action)
     }
   }
@@ -198,6 +206,13 @@ export default function DatasetCenterPage() {
         action={currentAction}
         datasets={datasets}
         onConfirm={executeWorkflow}
+      />
+
+      <DatasetAnalyticsDrawer
+        isOpen={isAnalyticsOpen}
+        onClose={() => setIsAnalyticsOpen(false)}
+        datasetId={selectedDatasetId}
+        datasetName={selectedDatasetName}
       />
     </div>
   )

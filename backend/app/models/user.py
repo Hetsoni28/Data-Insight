@@ -77,6 +77,16 @@ class User(Base):
         JSONB, nullable=True, default=lambda: {"email_notifications": True, "slack_notifications": False, "push_notifications": True}
     )
 
+    # Security & Enterprise Auth
+    token_version: Mapped[int] = mapped_column(default=1, nullable=False)
+    mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    mfa_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    mfa_recovery_codes: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    failed_login_attempts: Mapped[int] = mapped_column(default=0, nullable=False)
+    locked_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -88,4 +98,6 @@ class User(Base):
 
     # Relationships
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users", lazy="noload")  # type: ignore[name-defined]
-    sessions: Mapped[list["UserSession"]] = relationship("UserSession", back_populates="user", lazy="noload")  # type: ignore[name-defined]
+    sessions: Mapped[list["UserSession"]] = relationship("UserSession", back_populates="user", cascade="all, delete-orphan", lazy="noload")  # type: ignore[name-defined]
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan", lazy="noload")  # type: ignore[name-defined]
+    login_history: Mapped[list["LoginHistory"]] = relationship("LoginHistory", back_populates="user", cascade="all, delete-orphan", lazy="noload")  # type: ignore[name-defined]

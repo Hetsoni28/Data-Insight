@@ -113,6 +113,7 @@ export default function PlatformOwnerProfilePage() {
           handleTerminateSession={async (id: string) => { if(confirm("Terminate?")) { await ProfileService.terminateSession(id); loadFullData(); } }}
           handleTerminateAllOtherSessions={async () => { if(confirm("Sign out others?")) { await ProfileService.terminateAllOtherSessions(); loadFullData(); } }}
           handleRevokeApiKey={async (id: string) => { if(confirm("Revoke token?")) { await ApiKeysService.revokeKey(id); loadFullData(); } }}
+          reloadProfile={() => { refetch(); loadFullData(); }}
         />
         <ProfileStatsSidebar profileData={profileData} setActiveTab={setActiveTab} setIsApiKeyModalOpen={setIsApiKeyModalOpen} />
       </div>

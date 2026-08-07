@@ -177,6 +177,7 @@ async def get_team_invitations(
     db: AsyncSession = Depends(get_db)
 ):
     try:
+        from app.core.config import settings
         tenant_id = current_user.tenant_id
         stmt = select(Invitation).where(Invitation.tenant_id == tenant_id).order_by(desc(Invitation.created_at)).offset(skip).limit(limit)
         result = await db.execute(stmt)
@@ -189,7 +190,9 @@ async def get_team_invitations(
                     "id": str(i.id),
                     "email": i.email,
                     "role": i.role,
-                    "status": i.status.value,
+                    "status": i.status.value if hasattr(i.status, "value") else str(i.status),
+                    "token": i.token,
+                    "invite_url": f"{settings.FRONTEND_URL}/invite/{i.token}",
                     "expires_at": i.expires_at,
                     "created_at": i.created_at
                 } for i in invitations
@@ -209,9 +212,13 @@ async def invite_team_member(
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
+    from app.core.config import settings
+    from app.services import email as email_service
     
+    clean_email = req.email.strip().lower()
+
     # Check if user already exists
-    stmt = select(User).where(User.tenant_id == tenant_id, User.email == req.email)
+    stmt = select(User).where(User.tenant_id == tenant_id, User.email == clean_email)
     res = await db.execute(stmt)
     if res.scalars().first():
         raise HTTPException(status_code=400, detail="User already exists in this organization")
@@ -219,16 +226,30 @@ async def invite_team_member(
     token = secrets.token_urlsafe(32)
     expires = datetime.now(timezone.utc) + timedelta(days=7)
     
-    invitation = Invitation(
-        email=req.email,
-        tenant_id=tenant_id,
-        role=req.role,
-        token=token,
-        status=InvitationStatus.PENDING,
-        expires_at=expires
+    # Check for existing pending invite
+    existing_invite_stmt = select(Invitation).where(
+        Invitation.tenant_id == tenant_id,
+        Invitation.email == clean_email,
+        Invitation.status == InvitationStatus.PENDING
     )
-    
-    db.add(invitation)
+    existing_invite = (await db.execute(existing_invite_stmt)).scalars().first()
+
+    if existing_invite:
+        existing_invite.token = token
+        existing_invite.role = req.role
+        existing_invite.expires_at = expires
+        existing_invite.updated_at = datetime.now(timezone.utc)
+        invitation = existing_invite
+    else:
+        invitation = Invitation(
+            email=clean_email,
+            tenant_id=tenant_id,
+            role=req.role,
+            token=token,
+            status=InvitationStatus.PENDING,
+            expires_at=expires
+        )
+        db.add(invitation)
     
     # Audit log
     audit = AuditLog(
@@ -237,13 +258,108 @@ async def invite_team_member(
         action="team.invite",
         resource_type="invitation",
         ip_address=request.client.host if request.client else "127.0.0.1",
-        extra_metadata={"invited_email": req.email, "role": req.role}
+        extra_metadata={"invited_email": clean_email, "role": req.role}
     )
     db.add(audit)
     
     await db.commit()
+    await db.refresh(invitation)
     
-    return {"status": "success", "message": "Invitation sent successfully"}
+    invite_url = f"{settings.FRONTEND_URL}/invite/{token}"
+    inviter_name = current_user.full_name or current_user.email
+    tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
+    org_name = tenant.name if tenant else "Organization"
+
+    try:
+        await email_service.send_team_invite(
+            to_email=clean_email,
+            invited_by=inviter_name,
+            org_name=org_name,
+            invite_url=invite_url,
+        )
+    except Exception:
+        pass
+    
+    return {
+        "status": "success",
+        "message": "Invitation sent successfully",
+        "data": {
+            "id": str(invitation.id),
+            "email": invitation.email,
+            "role": invitation.role,
+            "status": invitation.status.value if hasattr(invitation.status, "value") else str(invitation.status),
+            "token": invitation.token,
+            "invite_url": invite_url,
+            "expires_at": invitation.expires_at,
+            "created_at": invitation.created_at
+        }
+    }
+
+@router.post("/invitations/{invitation_id}/resend", summary="Resend an Invitation", dependencies=[Depends(RequireRole(["org_admin"]))])
+async def resend_team_invitation(
+    invitation_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    from app.core.config import settings
+    from app.services import email as email_service
+
+    tenant_id = current_user.tenant_id
+    stmt = select(Invitation).where(Invitation.id == invitation_id, Invitation.tenant_id == tenant_id)
+    res = await db.execute(stmt)
+    inv = res.scalars().first()
+
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+
+    token = secrets.token_urlsafe(32)
+    inv.token = token
+    inv.status = InvitationStatus.PENDING
+    inv.expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    inv.updated_at = datetime.now(timezone.utc)
+
+    audit = AuditLog(
+        tenant_id=tenant_id,
+        user_id=current_user.id,
+        action="team.invite.resend",
+        resource_type="invitation",
+        resource_id=str(inv.id),
+        ip_address=request.client.host if request.client else "127.0.0.1"
+    )
+    db.add(audit)
+
+    await db.commit()
+    await db.refresh(inv)
+
+    invite_url = f"{settings.FRONTEND_URL}/invite/{token}"
+    inviter_name = current_user.full_name or current_user.email
+    tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
+    org_name = tenant.name if tenant else "Organization"
+
+    try:
+        await email_service.send_team_invite(
+            to_email=inv.email,
+            invited_by=inviter_name,
+            org_name=org_name,
+            invite_url=invite_url,
+        )
+    except Exception:
+        pass
+
+    return {
+        "status": "success",
+        "message": "Invitation resent successfully",
+        "data": {
+            "id": str(inv.id),
+            "email": inv.email,
+            "role": inv.role,
+            "status": inv.status.value if hasattr(inv.status, "value") else str(inv.status),
+            "token": inv.token,
+            "invite_url": invite_url,
+            "expires_at": inv.expires_at
+        }
+    }
 
 @router.patch("/invitations/{invitation_id}/revoke", summary="Revoke an Invitation", dependencies=[Depends(RequireRole(["org_admin"]))])
 async def revoke_team_invitation(

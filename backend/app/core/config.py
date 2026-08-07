@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
+    DEFAULT_AI_PROVIDER: str = "groq"  # "groq" | "gemini"
+    GROQ_DEFAULT_MODEL: str = "llama-3.3-70b-versatile"
+    GEMINI_DEFAULT_MODEL: str = "gemini-2.0-flash"
 
     # Email (SMTP)
     SMTP_HOST: str = "smtp.gmail.com"

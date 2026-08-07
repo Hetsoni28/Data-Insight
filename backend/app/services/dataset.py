@@ -23,13 +23,16 @@ from app.core.exceptions import (
     StorageQuotaExceededException,
 )
 
-ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".json"}
+ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".xls", ".json", ".parquet", ".tsv"}
 MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB hard limit per file
 
 EXTENSION_TO_TYPE = {
     ".csv": DatasetFileType.csv,
     ".xlsx": DatasetFileType.xlsx,
+    ".xls": DatasetFileType.xlsx,
     ".json": DatasetFileType.json,
+    ".parquet": DatasetFileType.parquet,
+    ".tsv": DatasetFileType.tsv,
 }
 
 
@@ -70,16 +73,10 @@ class DatasetService:
         if len(file_bytes) > MAX_FILE_SIZE_BYTES:
             raise ValidationException("File exceeds the 100 MB size limit.")
 
-        # Check storage quota
-        from app.models.tenant import Tenant
-        from app.repositories.tenant import TenantRepository
-
-        tenant_repo = TenantRepository(self.session)
-        tenant = await tenant_repo.get_by_id(actor.tenant_id)
-        used_bytes = await self.dataset_repo.get_tenant_storage_used(actor.tenant_id)
-        quota_bytes = (tenant.max_storage_gb or 5) * 1024 * 1024 * 1024
-        if used_bytes + len(file_bytes) > quota_bytes:
-            raise StorageQuotaExceededException()
+        # Check storage quota via QuotaService
+        from app.services.quota_service import QuotaService
+        quota_svc = QuotaService(self.session)
+        await quota_svc.check_storage_quota(actor.tenant_id, additional_bytes=len(file_bytes))
 
         # Upload to Supabase Storage
         storage_path = dataset_storage_path(actor.tenant_id, filename)
@@ -99,6 +96,9 @@ class DatasetService:
             status=DatasetStatus.profiling,
         )
         dataset = await self.dataset_repo.save(dataset)
+
+        # Atomically record storage usage
+        await quota_svc.consume_storage(actor.tenant_id, len(file_bytes))
 
         # Trigger Celery profiling task
         from app.worker.tasks.dataset_tasks import profile_dataset_task
@@ -160,6 +160,12 @@ class DatasetService:
         except Exception:
             pass  # Log but don't fail if storage delete fails
         await self.dataset_repo.soft_delete(ds)
+
+        # Release storage in QuotaService
+        from app.services.quota_service import QuotaService
+        quota_svc = QuotaService(self.session)
+        await quota_svc.release_storage(actor.tenant_id, ds.file_size_bytes or 0)
+
         await self.audit_repo.log(
             "dataset.delete",
             tenant_id=actor.tenant_id,
@@ -167,3 +173,110 @@ class DatasetService:
             resource_type="dataset",
             resource_id=str(ds.id),
         )
+
+    async def load_dataframe(self, dataset: Dataset):
+        """Load dataset into a high-performance Polars DataFrame."""
+        import httpx
+        from app.core.storage import is_local_storage, LOCAL_UPLOADS_DIR
+        from app.services.ingestion.polars_engine import PolarsEngine
+
+        if is_local_storage():
+            local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
+            file_bytes = local_path.read_bytes()
+        else:
+            signed_url = await get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=300)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(signed_url)
+                file_bytes = response.content
+
+        ext = (
+            dataset.file_type.value
+            if hasattr(dataset.file_type, "value")
+            else str(dataset.file_type)
+        )
+        ext = ext.lower().strip().lstrip(".")
+        return PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
+
+    async def get_preview_data(self, dataset_id: uuid.UUID, actor: User, limit: int = 50) -> dict:
+        """Return dataset preview rows and column metadata."""
+        from app.services.ingestion.polars_engine import PolarsEngine
+
+        ds = await self.get_dataset(dataset_id, actor)
+        df = await self.load_dataframe(ds)
+        preview_rows = PolarsEngine.preview_rows(df, n=limit)
+
+        columns = [
+            {"name": col, "dtype": str(df.schema[col])}
+            for col in df.columns
+        ]
+
+        return {
+            "dataset_id": str(ds.id),
+            "name": ds.name,
+            "total_rows": len(df),
+            "total_columns": len(df.columns),
+            "columns": columns,
+            "preview_rows": preview_rows,
+        }
+
+    async def get_dataset_profile(self, dataset_id: uuid.UUID, actor: User) -> dict:
+        """Return cached profile or re-profile dataset on demand."""
+        from app.services.ingestion.profiler import DataProfiler
+
+        ds = await self.get_dataset(dataset_id, actor)
+        if ds.profile and ds.status == DatasetStatus.ready:
+            return ds.profile
+
+        df = await self.load_dataframe(ds)
+        profile = DataProfiler.profile_dataframe(df)
+        await self.dataset_repo.update_profile(
+            ds,
+            profile=profile,
+            row_count=profile["row_count"],
+            column_count=profile["column_count"],
+            quality_score=profile["quality_score"],
+        )
+        await self.session.commit()
+        return profile
+
+    async def get_correlations(self, dataset_id: uuid.UUID, actor: User) -> dict:
+        """Return numeric correlation matrix for dataset."""
+        from app.services.ingestion.duckdb_engine import DuckDBEngine
+
+        ds = await self.get_dataset(dataset_id, actor)
+        if ds.profile and "correlations" in ds.profile:
+            return ds.profile["correlations"]
+
+        df = await self.load_dataframe(ds)
+        return DuckDBEngine.compute_correlation_matrix(df)
+
+    async def execute_query(
+        self,
+        dataset_id: uuid.UUID,
+        sql: str,
+        actor: User,
+        limit: int = 1000,
+        offset: int = 0,
+    ) -> dict:
+        """Execute a safe DuckDB SQL query against the dataset."""
+        from app.services.ingestion.duckdb_engine import DuckDBEngine
+
+        ds = await self.get_dataset(dataset_id, actor)
+        df = await self.load_dataframe(ds)
+        result = DuckDBEngine.execute_query(
+            df=df,
+            sql=sql,
+            table_name="dataset",
+            limit=limit,
+            offset=offset,
+        )
+
+        await self.audit_repo.log(
+            "dataset.query",
+            tenant_id=actor.tenant_id,
+            user_id=actor.id,
+            resource_type="dataset",
+            resource_id=str(ds.id),
+            extra_metadata={"sql": sql, "execution_time_ms": result["execution_time_ms"]},
+        )
+        return result

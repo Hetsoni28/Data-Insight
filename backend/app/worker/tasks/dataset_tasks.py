@@ -1,8 +1,10 @@
-"""Celery tasks — Dataset profiling and AI analysis."""
+"""Celery tasks — Dataset high-speed profiling and AI analysis."""
 
-import uuid
+from __future__ import annotations
+
 import io
 import json
+import uuid
 from loguru import logger
 from celery import shared_task
 
@@ -10,8 +12,8 @@ from celery import shared_task
 @shared_task(bind=True, name="dataset.profile", max_retries=3, default_retry_delay=30)
 def profile_dataset_task(self, dataset_id: str):
     """
-    Phase C1: Load the uploaded dataset from Supabase Storage,
-    run Pandas profiling, and save results to the DB.
+    Phase 3: Ingest dataset using Polars engine, run comprehensive
+    DuckDB & statistical profiling, and persist results.
     """
     import asyncio
 
@@ -19,13 +21,13 @@ def profile_dataset_task(self, dataset_id: str):
 
 
 async def _profile_dataset(task, dataset_id: str):
-    import pandas as pd
-    import numpy as np
+    import httpx
     from app.db.session import AsyncSessionLocal
     from app.repositories.dataset import DatasetRepository
     from app.models.dataset import DatasetStatus
-    from app.core.storage import get_signed_url, DATASETS_BUCKET
-    import httpx
+    from app.core.storage import get_signed_url, DATASETS_BUCKET, is_local_storage, LOCAL_UPLOADS_DIR
+    from app.services.ingestion.polars_engine import PolarsEngine
+    from app.services.ingestion.profiler import DataProfiler
 
     async with AsyncSessionLocal() as session:
         ds_repo = DatasetRepository(session)
@@ -39,8 +41,6 @@ async def _profile_dataset(task, dataset_id: str):
             await session.commit()
 
             # Download from Supabase Storage or read from local disk
-            from app.core.storage import is_local_storage, LOCAL_UPLOADS_DIR
-
             if is_local_storage():
                 local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
                 file_bytes = local_path.read_bytes()
@@ -52,45 +52,34 @@ async def _profile_dataset(task, dataset_id: str):
                     response = await client.get(signed_url)
                     file_bytes = response.content
 
-            # Load into Pandas
-            # file_type may be a string or an Enum depending on DB driver
+            # Get file format extension
             ext = (
                 dataset.file_type.value
                 if hasattr(dataset.file_type, "value")
                 else str(dataset.file_type)
             )
-            ext = ext.lower().strip()
-            if ext == "csv":
-                df = pd.read_csv(io.BytesIO(file_bytes))
-            elif ext == "xlsx":
-                df = pd.read_excel(io.BytesIO(file_bytes), engine="openpyxl")
-            elif ext == "json":
-                df = pd.read_json(io.BytesIO(file_bytes))
-            else:
-                raise ValueError(f"Unsupported file type: {ext}")
+            ext = ext.lower().strip().lstrip(".")
 
-            # Generate profile
-            profile = _generate_profile(df)
+            # 1. High-speed Ingestion via Polars
+            df = PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
 
-            # Calculate data quality score
-            null_pct = (
-                df.isnull().sum().sum() / (df.shape[0] * df.shape[1])
-                if df.shape[1] > 0
-                else 0
-            )
-            dup_pct = df.duplicated().sum() / len(df) if len(df) > 0 else 0
-            quality_score = max(0, int(100 - (null_pct * 40) - (dup_pct * 30)))
+            # 2. Automated Deep Profiling & Quality Scoring
+            profile = DataProfiler.profile_dataframe(df)
 
+            # 3. Persist profile, row count, col count, quality score & mark READY
             await ds_repo.update_profile(
                 dataset,
                 profile=profile,
-                row_count=len(df),
-                column_count=len(df.columns),
-                quality_score=quality_score,
+                row_count=profile["row_count"],
+                column_count=profile["column_count"],
+                quality_score=profile["quality_score"],
             )
             await session.commit()
+
             logger.info(
-                f"Dataset {dataset_id} profiled: {len(df)} rows, {len(df.columns)} cols, quality={quality_score}"
+                f"Dataset {dataset_id} successfully profiled via Polars/DuckDB: "
+                f"{profile['row_count']} rows, {profile['column_count']} cols, "
+                f"quality={profile['quality_score']}/100 (Grade {profile['quality_grade']})"
             )
 
         except Exception as exc:
@@ -102,93 +91,17 @@ async def _profile_dataset(task, dataset_id: str):
             raise task.retry(exc=exc)
 
 
-def _generate_profile(df) -> dict:
-    """Generate column-level profiling statistics."""
-    import pandas as pd
-    import numpy as np
-
-    profile = {
-        "row_count": len(df),
-        "column_count": len(df.columns),
-        "memory_usage_mb": round(df.memory_usage(deep=True).sum() / 1024 / 1024, 3),
-        "duplicate_rows": int(df.duplicated().sum()),
-        "columns": {},
-    }
-
-    for col in df.columns:
-        series = df[col]
-        col_info = {
-            "dtype": str(series.dtype),
-            "null_count": int(series.isnull().sum()),
-            "null_pct": round(series.isnull().mean() * 100, 2),
-            "unique_count": int(series.nunique()),
-        }
-
-        if pd.api.types.is_numeric_dtype(series):
-            col_info.update(
-                {
-                    "type": "numeric",
-                    "min": _safe_val(series.min()),
-                    "max": _safe_val(series.max()),
-                    "mean": _safe_val(series.mean()),
-                    "median": _safe_val(series.median()),
-                    "std": _safe_val(series.std()),
-                    "q25": _safe_val(series.quantile(0.25)),
-                    "q75": _safe_val(series.quantile(0.75)),
-                }
-            )
-            # Outlier detection using IQR
-            q1, q3 = series.quantile(0.25), series.quantile(0.75)
-            iqr = q3 - q1
-            outliers = series[(series < q1 - 1.5 * iqr) | (series > q3 + 1.5 * iqr)]
-            col_info["outlier_count"] = len(outliers)
-
-        elif pd.api.types.is_datetime64_any_dtype(series):
-            col_info.update(
-                {
-                    "type": "datetime",
-                    "min": str(series.min()),
-                    "max": str(series.max()),
-                }
-            )
-        else:
-            col_info.update(
-                {
-                    "type": "categorical",
-                    "top_values": series.value_counts().head(10).to_dict(),
-                }
-            )
-
-        profile["columns"][col] = col_info
-
-    return profile
-
-
-def _safe_val(v):
-    """Convert numpy types to Python native for JSON serialization."""
-    import math
-    import numpy as np
-
-    if v is None or (isinstance(v, float) and math.isnan(v)):
-        return None
-    if isinstance(v, (np.integer,)):
-        return int(v)
-    if isinstance(v, (np.floating,)):
-        return float(v)
-    return v
-
-
 @shared_task(bind=True, name="dataset.analyze", max_retries=2, default_retry_delay=60)
 def analyze_dataset_task(
-    self, dataset_id: str, user_id: str, analysis_type: str = "general"
+    self, dataset_id: str, user_id: str, provider: str = "groq"
 ):
-    """AI deep analysis via Claude 3.5 Sonnet — runs in Celery."""
+    """AI deep analysis via Multi-Provider AI (Groq / Gemini) — runs in Celery."""
     import asyncio
 
-    return asyncio.run(_analyze_dataset(self, dataset_id, user_id, analysis_type))
+    return asyncio.run(_analyze_dataset(self, dataset_id, user_id, provider))
 
 
-async def _analyze_dataset(task, dataset_id: str, user_id: str, analysis_type: str):
+async def _analyze_dataset(task, dataset_id: str, user_id: str, provider: str):
     from app.db.session import AsyncSessionLocal
     from app.repositories.dataset import DatasetRepository
     from app.repositories.user import UserRepository
@@ -203,13 +116,19 @@ async def _analyze_dataset(task, dataset_id: str, user_id: str, analysis_type: s
         if not dataset or not user:
             return {"error": "Dataset or user not found"}
 
-        profile_summary = json.dumps(dataset.profile or {}, indent=2)[:3000]
-
         ai_svc = AIService(session)
-        result = await ai_svc.copilot_chat(
-            question=f"Perform a {analysis_type} analysis of this dataset. Profile: {profile_summary}",
-            dataset_id=uuid.UUID(dataset_id),
-            actor=user,
-        )
+        if dataset.profile:
+            result = await ai_svc.generate_narrative(
+                dataset_id=uuid.UUID(dataset_id),
+                actor=user,
+                preferred_provider=provider,
+            )
+        else:
+            result = await ai_svc.copilot_chat(
+                question="Provide a high-level business intelligence summary of this dataset.",
+                dataset_id=uuid.UUID(dataset_id),
+                actor=user,
+                preferred_provider=provider,
+            )
         await session.commit()
         return result

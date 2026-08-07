@@ -1,56 +1,57 @@
-"""
-Authentication endpoints — register, verify-email, login, resend-otp,
-forgot-password, reset-password, /me, logout.
+"""Enterprise Authentication Endpoints.
 
-Rate limits (applied per IP via SlowAPI):
-  POST /auth/login          → 5 requests / 15 minutes
-  POST /auth/resend-otp     → 3 requests / hour
-  POST /auth/forgot-password→ 3 requests / hour
-  POST /auth/register       → 10 requests / hour
+Provides:
+- Dual-step login (Password -> TOTP MFA / Recovery Code)
+- Refresh Token Rotation (RTR) with Reuse Attack Detection
+- Session and Active Device Management (List, Revoke, Logout All)
+- MFA Configuration (QR setup, verification, recovery codes, disable)
+- Login History Auditing
+- Email OTP verification & Password Reset
+- Invitation Acceptance
 """
 
-from fastapi import APIRouter, Depends, status, Request
+import uuid
+import datetime
+from typing import List, Optional
+from fastapi import APIRouter, Depends, Header, Request, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.api.deps import get_db, get_redis, get_current_user
 from app.models.user import User
+from app.models.invitation import Invitation, InvitationStatus
+from app.models.tenant import Tenant
+from app.models.notification import Notification as NotifModel
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.token import Token
+from app.schemas.auth import (
+    LoginRequest,
+    LoginResponse,
+    MFALoginRequest,
+    MFASetupResponse,
+    MFAVerifyRequest,
+    MFADisableRequest,
+    RefreshTokenRequest,
+    UserSessionResponse,
+    LoginHistoryResponse,
+)
+from app.schemas.invitation import AcceptInvitationRequest, ValidateInviteResponse
 from app.services.auth import AuthService
 from app.core.rate_limit import limiter
+from app.core.security import hash_token, get_password_hash
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-# ── Request / Response Schemas ────────────────────────────────────────────────
-
-
-class LoginPayload(BaseModel):
-    email: EmailStr
-    password: str
-
+# ── Additional Request Payload Schemas ────────────────────────────────────────
 
 class RequestAccessPayload(BaseModel):
     email: EmailStr
     password: str
     full_name: str
     requested_role: str
-
-
-class VerifyLoginPayload(BaseModel):
-    email: EmailStr
-    otp: str
-    password: str | None = None
-
-    @field_validator("otp")
-    @classmethod
-    def otp_must_be_6_digits(cls, v: str) -> str:
-        v = v.strip()
-        if not v.isdigit() or len(v) != 6:
-            raise ValueError("OTP must be a 6-digit number.")
-        return v
 
 
 class VerifyEmailPayload(BaseModel):
@@ -87,17 +88,147 @@ class ResetPasswordPayload(BaseModel):
         return v
 
 
+class MFAEnablePayload(BaseModel):
+    secret: str
+    code: str = Field(..., min_length=6, max_length=6)
+    recovery_codes: List[str]
+
+
 class MessageResponse(BaseModel):
     message: str
 
 
-# ── Endpoints ─────────────────────────────────────────────────────────────────
+# ── Authentication Routes ─────────────────────────────────────────────────────
+
+@router.post(
+    "/login",
+    response_model=LoginResponse,
+    summary="Login: Authenticate with password. Returns tokens or MFA challenge token.",
+)
+@limiter.limit("10/minute")
+async def login(
+    request: Request,
+    payload: LoginRequest,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
+    user_agent = request.headers.get("user-agent", "")
+
+    result = await auth_service.authenticate(
+        email=payload.email,
+        password=payload.password,
+        ip_address=client_ip,
+        user_agent=user_agent,
+    )
+
+    if result.get("mfa_required"):
+        return LoginResponse(
+            mfa_required=True,
+            mfa_token=result["mfa_token"],
+        )
+
+    user_obj = result.get("user")
+    user_resp = UserResponse.model_validate(user_obj) if user_obj else None
+
+    return LoginResponse(
+        access_token=result["access_token"],
+        refresh_token=result["refresh_token"],
+        token_type="bearer",
+        mfa_required=False,
+        user=user_resp,
+    )
+
+
+@router.post(
+    "/login/mfa",
+    response_model=LoginResponse,
+    summary="Login Step 2: Validate 6-digit TOTP code or backup recovery code.",
+)
+@limiter.limit("10/minute")
+async def login_mfa(
+    request: Request,
+    payload: MFALoginRequest,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
+    user_agent = request.headers.get("user-agent", "")
+
+    result = await auth_service.verify_mfa_login(
+        mfa_token=payload.mfa_token,
+        code=payload.code,
+        ip_address=client_ip,
+        user_agent=user_agent,
+    )
+
+    user_obj = result.get("user")
+    user_resp = UserResponse.model_validate(user_obj) if user_obj else None
+
+    return LoginResponse(
+        access_token=result["access_token"],
+        refresh_token=result["refresh_token"],
+        token_type="bearer",
+        mfa_required=False,
+        user=user_resp,
+    )
+
+
+@router.post(
+    "/refresh",
+    response_model=LoginResponse,
+    summary="Refresh Token Rotation: Issue new Access & Refresh tokens, revoking old ones.",
+)
+async def refresh_tokens(
+    request: Request,
+    payload: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
+    user_agent = request.headers.get("user-agent", "")
+
+    result = await auth_service.rotate_refresh_token(
+        refresh_token_str=payload.refresh_token,
+        ip_address=client_ip,
+        user_agent=user_agent,
+    )
+
+    return LoginResponse(
+        access_token=result["access_token"],
+        refresh_token=result["refresh_token"],
+        token_type="bearer",
+        mfa_required=False,
+    )
+
+
+# ── Registration & Email Verification ─────────────────────────────────────────
+
+@router.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user and dispatch email verification OTP",
+)
+@limiter.limit("10/hour")
+async def register(
+    request: Request,
+    user_in: UserCreate,
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    new_user = await auth_service.register(user_in)
+    return new_user
 
 
 @router.post(
     "/request-access",
     response_model=MessageResponse,
-    summary="Submit a request for access to the platform",
+    summary="Submit a request for platform access",
 )
 @limiter.limit("5/hour")
 async def request_access(
@@ -120,8 +251,8 @@ async def request_access(
 
 @router.post(
     "/verify-email",
-    response_model=Token,
-    summary="Submit the 6-digit email OTP to verify your account",
+    response_model=LoginResponse,
+    summary="Verify registration OTP and receive login tokens",
 )
 async def verify_email(
     payload: VerifyEmailPayload,
@@ -129,17 +260,25 @@ async def verify_email(
     redis: Redis = Depends(get_redis),
 ):
     auth_service = AuthService(db, redis)
-    access_token = await auth_service.verify_email_otp(
+    result = await auth_service.verify_email_otp(
         email=payload.email,
         otp=payload.otp,
     )
-    return Token(access_token=access_token, token_type="bearer")
+    user_obj = result.get("user")
+    user_resp = UserResponse.model_validate(user_obj) if user_obj else None
+    return LoginResponse(
+        access_token=result["access_token"],
+        refresh_token=result["refresh_token"],
+        token_type="bearer",
+        mfa_required=False,
+        user=user_resp,
+    )
 
 
 @router.post(
     "/resend-otp",
     response_model=MessageResponse,
-    summary="Resend the verification OTP (max 3 times per hour)",
+    summary="Resend registration verification OTP",
 )
 @limiter.limit("3/hour")
 async def resend_otp(
@@ -150,59 +289,168 @@ async def resend_otp(
 ):
     auth_service = AuthService(db, redis)
     await auth_service.resend_verification_otp(email=payload.email)
-    return MessageResponse(
-        message="A new verification code has been sent to your email."
-    )
+    return MessageResponse(message="A new verification code has been sent to your email.")
+
+
+# ── MFA Configuration ────────────────────────────────────────────────────────
+
+@router.post(
+    "/mfa/setup",
+    response_model=MFASetupResponse,
+    summary="Generate TOTP secret, QR code Data URL, and 10 emergency recovery codes",
+)
+async def setup_mfa(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    return await auth_service.setup_mfa(current_user)
 
 
 @router.post(
-    "/login",
+    "/mfa/enable",
     response_model=MessageResponse,
-    summary="Login step 1: Validate credentials and send 2FA OTP",
+    summary="Confirm 6-digit TOTP code and activate 2FA",
 )
-@limiter.limit("5/15minutes")
-async def login(
-    request: Request,
-    payload: LoginPayload,
+async def enable_mfa(
+    payload: MFAEnablePayload,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
 ):
     auth_service = AuthService(db, redis)
-    response_data = await auth_service.authenticate(
-        email=payload.email,
-        password=payload.password,
+    await auth_service.enable_mfa(
+        user=current_user,
+        secret=payload.secret,
+        code=payload.code,
+        recovery_codes=payload.recovery_codes,
     )
-    return MessageResponse(message=response_data["message"])
+    return MessageResponse(message="Two-factor authentication has been successfully enabled.")
 
 
 @router.post(
-    "/verify-login",
-    response_model=Token,
-    summary="Login step 2: Verify 2FA OTP and issue token",
+    "/mfa/disable",
+    response_model=MessageResponse,
+    summary="Disable two-factor authentication (requires current password)",
 )
-async def verify_login(
-    request: Request,
-    payload: VerifyLoginPayload,
+async def disable_mfa(
+    payload: MFADisableRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
 ):
     auth_service = AuthService(db, redis)
-    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
-    user_agent = request.headers.get("user-agent", "")
-    access_token = await auth_service.verify_login(
-        email=payload.email,
-        otp=payload.otp,
-        password=payload.password,
-        ip_address=client_ip,
-        user_agent=user_agent,
-    )
-    return Token(access_token=access_token, token_type="bearer")
+    await auth_service.disable_mfa(user=current_user, password=payload.password)
+    return MessageResponse(message="Two-factor authentication has been disabled.")
+
+
+# ── Active Sessions & Device Management ──────────────────────────────────────
+
+@router.get(
+    "/sessions",
+    response_model=List[UserSessionResponse],
+    summary="List all active device sessions for authenticated user",
+)
+async def list_sessions(
+    authorization: str | None = Header(default=None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    current_hash = None
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.removeprefix("Bearer ").strip()
+        current_hash = hash_token(token)
+
+    return await auth_service.list_user_sessions(current_user, current_hash)
+
+
+@router.delete(
+    "/sessions/{session_id}",
+    response_model=MessageResponse,
+    summary="Revoke a specific device session",
+)
+async def revoke_session(
+    session_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    await auth_service.revoke_session(current_user, session_id)
+    return MessageResponse(message="Device session revoked successfully.")
+
+
+@router.post(
+    "/logout-all",
+    response_model=MessageResponse,
+    summary="Terminate all active sessions and refresh tokens globally",
+)
+async def logout_all(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    await auth_service.revoke_all_sessions(current_user)
+    return MessageResponse(message="All active sessions have been terminated.")
+
+
+@router.get(
+    "/login-history",
+    response_model=List[LoginHistoryResponse],
+    summary="Get recent login attempts audit history",
+)
+async def get_login_history(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    return await auth_service.list_login_history(current_user)
+
+
+# ── User Profile, Logout & Password Reset ────────────────────────────────────
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Get authenticated user's profile and security status",
+)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.post(
+    "/logout",
+    response_model=MessageResponse,
+    summary="Logout current session",
+)
+async def logout(
+    authorization: str | None = Header(default=None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.removeprefix("Bearer ").strip()
+        t_hash = hash_token(token)
+        from app.models.user_session import UserSession
+        from sqlalchemy import update
+        await db.execute(
+            update(UserSession)
+            .where(UserSession.token_hash == t_hash, UserSession.user_id == current_user.id)
+            .values(is_active=False)
+        )
+        await db.commit()
+    return MessageResponse(message="Logged out successfully.")
 
 
 @router.post(
     "/forgot-password",
     response_model=MessageResponse,
-    summary="Request a password reset OTP (sent to email)",
+    summary="Request a password reset OTP",
 )
 @limiter.limit("3/hour")
 async def forgot_password(
@@ -213,16 +461,13 @@ async def forgot_password(
 ):
     auth_service = AuthService(db, redis)
     await auth_service.request_password_reset(email=payload.email)
-    # Always return success — never reveal if the email exists
-    return MessageResponse(
-        message="If an account exists with this email, a reset code has been sent."
-    )
+    return MessageResponse(message="If an account exists with this email, a reset code has been sent.")
 
 
 @router.post(
     "/reset-password",
     response_model=MessageResponse,
-    summary="Reset password using the OTP from email",
+    summary="Reset password using email OTP",
 )
 async def reset_password(
     payload: ResetPasswordPayload,
@@ -235,66 +480,70 @@ async def reset_password(
         otp=payload.otp,
         new_password=payload.new_password,
     )
-    return MessageResponse(message="Password reset successfully. You can now log in.")
+    return MessageResponse(message="Password reset successfully. All sessions have been invalidated.")
 
+
+# ── Invitation Lifecycle ─────────────────────────────────────────────────────
 
 @router.get(
-    "/me",
-    response_model=UserResponse,
-    summary="Get the authenticated user's profile",
+    "/invite/{token}",
+    response_model=ValidateInviteResponse,
+    summary="Validate invitation token and return organization details",
 )
-async def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
+async def validate_invite(
+    token: str,
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = select(Invitation).where(Invitation.token == token)
+    invitation = (await db.execute(stmt)).scalars().first()
 
+    if not invitation:
+        return ValidateInviteResponse(
+            valid=False,
+            error="This invitation link is invalid or does not exist.",
+        )
 
-@router.post(
-    "/logout",
-    response_model=MessageResponse,
-    summary="Logout (client discards token)",
-)
-async def logout(current_user: User = Depends(get_current_user)):
-    # Stateless JWT — client discards token.
-    # Future: add token to Redis blacklist for forced invalidation.
-    return MessageResponse(message="Logged out successfully.")
+    if invitation.status == InvitationStatus.ACCEPTED:
+        return ValidateInviteResponse(
+            valid=False,
+            error="This invitation has already been accepted. Please sign in with your credentials.",
+        )
 
+    if invitation.status == InvitationStatus.REVOKED:
+        return ValidateInviteResponse(
+            valid=False,
+            error="This invitation has been revoked by an administrator.",
+        )
 
-@router.post(
-    "/refresh-token",
-    response_model=Token,
-    summary="Get a fresh token with updated DB claims",
-)
-async def refresh_token(current_user: User = Depends(get_current_user)):
-    from app.core.security import create_access_token
+    if invitation.expires_at < datetime.datetime.now(datetime.timezone.utc):
+        return ValidateInviteResponse(
+            valid=False,
+            error="This invitation link has expired. Please request a new invitation.",
+        )
 
-    access_token = create_access_token(
-        subject=str(current_user.id),
-        role=current_user.role,
-        tenant_id=str(current_user.tenant_id) if current_user.tenant_id else None,
+    tenant = await db.scalar(select(Tenant).where(Tenant.id == invitation.tenant_id))
+    org_name = tenant.name if tenant else "Organization"
+
+    return ValidateInviteResponse(
+        valid=True,
+        email=invitation.email,
+        role=invitation.role,
+        org_name=org_name,
+        error=None,
     )
-    return Token(access_token=access_token, token_type="bearer")
-
-
-from app.schemas.invitation import AcceptInvitationRequest
-from app.models.invitation import Invitation, InvitationStatus
-from sqlalchemy import select
-from app.core.security import create_access_token
 
 
 @router.post(
     "/accept-invite",
-    response_model=Token,
-    summary="Accept an invitation using the secure token and create account",
+    response_model=LoginResponse,
+    summary="Accept invitation and initialize user account",
 )
 async def accept_invite(
     payload: AcceptInvitationRequest,
     db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
 ):
-    from app.core.exceptions import (
-        ResourceNotFoundException,
-        ValidationException,
-        ConflictException,
-    )
-    from app.core.security import get_password_hash
+    from app.core.exceptions import ResourceNotFoundException, ValidationException, ConflictException
 
     stmt = select(Invitation).where(
         Invitation.token == payload.token, Invitation.status == InvitationStatus.PENDING
@@ -304,20 +553,16 @@ async def accept_invite(
     if not invitation:
         raise ResourceNotFoundException("Invalid or expired invitation token.")
 
-    import datetime
-
     if invitation.expires_at < datetime.datetime.now(datetime.timezone.utc):
         invitation.status = InvitationStatus.REVOKED
         await db.commit()
         raise ValidationException("Invitation token has expired.")
 
-    # Check if a user with this email already exists
     stmt_user = select(User).where(User.email == invitation.email)
     existing_user = (await db.execute(stmt_user)).scalars().first()
     if existing_user:
         raise ConflictException("A user with this email already exists.")
 
-    # Create the new user
     new_user = User(
         email=invitation.email,
         hashed_password=get_password_hash(payload.password),
@@ -325,43 +570,38 @@ async def accept_invite(
         role=invitation.role,
         tenant_id=invitation.tenant_id,
         is_active=True,
-        is_email_verified=True,  # Accepting the email invite implies verification
-        account_type="organization",  # By definition, they are joining an org
+        is_email_verified=True,
+        account_type="organization",
+        token_version=1,
     )
-
     db.add(new_user)
-
-    # Mark invitation as accepted
     invitation.status = InvitationStatus.ACCEPTED
 
-    # Notify the owner: invited user has accepted and activated their account
-    from datetime import datetime, timezone
-    from app.models.notification import Notification as NotifModel
     display_name = payload.full_name or invitation.email
     invite_notif = NotifModel(
         title="New User Joined via Invitation",
-        message=f"{display_name} ({invitation.email}) has accepted their invitation and activated their account as {invitation.role}.",
+        message=f"{display_name} ({invitation.email}) has accepted their invitation as {invitation.role}.",
         category="Organization",
         priority="Medium",
         icon="users",
         type="org.invite_accepted",
-        tenant_id=invitation.tenant_id,  # Visible to the inviting org's admin
+        tenant_id=invitation.tenant_id,
         user_id=None,
         is_read=False,
         status="Unread",
         is_pinned=False,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.datetime.now(datetime.timezone.utc),
     )
     db.add(invite_notif)
-
     await db.commit()
     await db.refresh(new_user)
 
-    # Issue a fresh token
-    access_token = create_access_token(
-        subject=str(new_user.id),
-        role=new_user.role,
-        tenant_id=str(new_user.tenant_id) if new_user.tenant_id else None,
+    auth_service = AuthService(db, redis)
+    tokens = await auth_service._create_tokens_and_session(user=new_user)
+    return LoginResponse(
+        access_token=tokens["access_token"],
+        refresh_token=tokens["refresh_token"],
+        token_type="bearer",
+        mfa_required=False,
+        user=UserResponse.model_validate(new_user),
     )
-    return Token(access_token=access_token, token_type="bearer")
-

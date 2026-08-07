@@ -57,16 +57,28 @@ class TenantQuotaExceededException(DataInsightException):
     def __init__(
         self,
         message: str = "You have reached your plan limit. Please upgrade your subscription.",
+        resource_type: str = "general",
+        current_usage: int | float | None = None,
+        max_limit: int | float | None = None,
+        plan_name: str | None = None,
     ):
+        self.resource_type = resource_type
+        self.current_usage = current_usage
+        self.max_limit = max_limit
+        self.plan_name = plan_name
         super().__init__(message=message, code="DI-BE-BILL-009")
 
 
 class StorageQuotaExceededException(DataInsightException):
-    def __init__(self):
-        super().__init__(
-            message="You have reached your storage limit. Please upgrade your plan or delete old datasets.",
-            code="DI-BE-DATASET-016",
-        )
+    def __init__(
+        self,
+        message: str = "You have reached your storage limit. Please upgrade your plan or delete old datasets.",
+        current_storage_mb: float | None = None,
+        max_storage_mb: float | None = None,
+    ):
+        self.current_storage_mb = current_storage_mb
+        self.max_storage_mb = max_storage_mb
+        super().__init__(message=message, code="DI-BE-DATASET-016")
 
 
 class AIServiceException(DataInsightException):
@@ -137,16 +149,38 @@ async def validation_handler(
 async def quota_exceeded_handler(
     request: Request, exc: TenantQuotaExceededException
 ) -> JSONResponse:
-    return _error_response(
-        402, "QUOTA_EXCEEDED", exc.message, exc.code, str(uuid.uuid4())
+    request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
+    return JSONResponse(
+        status_code=402,
+        content={
+            "error": "QUOTA_EXCEEDED",
+            "message": exc.message,
+            "code": exc.code,
+            "resource_type": exc.resource_type,
+            "current_usage": exc.current_usage,
+            "max_limit": exc.max_limit,
+            "plan_name": exc.plan_name,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "request_id": request_id,
+        },
     )
 
 
 async def storage_quota_handler(
     request: Request, exc: StorageQuotaExceededException
 ) -> JSONResponse:
-    return _error_response(
-        402, "STORAGE_QUOTA_EXCEEDED", exc.message, exc.code, str(uuid.uuid4())
+    request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
+    return JSONResponse(
+        status_code=402,
+        content={
+            "error": "STORAGE_QUOTA_EXCEEDED",
+            "message": exc.message,
+            "code": exc.code,
+            "current_storage_mb": exc.current_storage_mb,
+            "max_storage_mb": exc.max_storage_mb,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "request_id": request_id,
+        },
     )
 
 

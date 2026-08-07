@@ -39,6 +39,7 @@ class UserResponse(UserBase):
     is_superuser: bool
     is_owner: bool
     is_email_verified: bool
+    mfa_enabled: bool = False
     created_at: datetime
     updated_at: datetime
     notification_preferences: dict | None = None

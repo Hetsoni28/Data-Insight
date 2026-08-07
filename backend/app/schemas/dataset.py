@@ -1,8 +1,11 @@
 """Pydantic schemas for Dataset requests/responses."""
 
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
-from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field
 
 
 class DatasetResponse(BaseModel):
@@ -10,14 +13,14 @@ class DatasetResponse(BaseModel):
     tenant_id: uuid.UUID
     workspace_id: uuid.UUID
     name: str
-    description: str | None
+    description: Optional[str] = None
     file_type: str
-    file_size_bytes: int | None
+    file_size_bytes: Optional[int] = None
     original_filename: str
     status: str
-    row_count: int | None
-    column_count: int | None
-    data_quality_score: int | None
+    row_count: Optional[int] = None
+    column_count: Optional[int] = None
+    data_quality_score: Optional[int] = None
     version: int
     created_at: datetime
     updated_at: datetime
@@ -26,14 +29,45 @@ class DatasetResponse(BaseModel):
 
 
 class DatasetProfileResponse(DatasetResponse):
-    profile: dict | None = None
+    profile: Optional[Dict[str, Any]] = None
 
 
 class DatasetUploadResponse(BaseModel):
     id: uuid.UUID
     name: str
     status: str
-    celery_task_id: str | None
-    message: str = "Dataset uploaded. Profiling has started."
+    celery_task_id: Optional[str] = None
+    message: str = "Dataset uploaded. High-speed profiling has started."
 
     model_config = {"from_attributes": True}
+
+
+class DatasetPreviewResponse(BaseModel):
+    dataset_id: str
+    name: str
+    total_rows: int
+    total_columns: int
+    columns: List[Dict[str, Any]]
+    preview_rows: List[Dict[str, Any]]
+
+
+class DatasetCorrelationsResponse(BaseModel):
+    columns: List[str]
+    matrix: Dict[str, Dict[str, Optional[float]]]
+
+
+class DatasetQueryRequest(BaseModel):
+    sql: str = Field(..., description="SQL query to execute over the dataset view")
+    limit: int = Field(default=1000, ge=1, le=10000, description="Max rows to return")
+    offset: int = Field(default=0, ge=0, description="Row offset for pagination")
+
+
+class DatasetQueryResponse(BaseModel):
+    columns: List[str]
+    column_types: List[str]
+    rows: List[List[Any]]
+    total_rows: int
+    returned_rows: int
+    limit: int
+    offset: int
+    execution_time_ms: float

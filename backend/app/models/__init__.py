@@ -4,7 +4,8 @@ from app.models.user import User, UserRole, AccountType
 from app.models.user_profile import UserProfile
 from app.models.user_activity import UserActivity
 from app.models.user_session import UserSession
-from app.models.tenant import Tenant, PlanType
+from app.models.auth import RefreshToken, LoginHistory
+from app.models.tenant import Tenant, PlanType, DBConnectionType
 from app.models.workspace import Workspace
 from app.models.dataset import Dataset, DatasetStatus, DatasetFileType
 from app.models.report import Report, ReportStatus, ReportType
@@ -37,6 +38,8 @@ __all__ = [
     "UserProfile",
     "UserActivity",
     "UserSession",
+    "LoginHistory",
+    "RefreshToken",
     "Tenant",
     "PlanType",
     "Workspace",
