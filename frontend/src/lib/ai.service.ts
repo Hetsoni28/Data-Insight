@@ -341,5 +341,19 @@ export class AIService {
     const response = await api.post("/owner/ai/history", historyData);
     return response.data;
   }
+
+  /**
+   * Run real Machine Learning time-series forecasting on a dataset.
+   */
+  static async generateForecast(params: {
+    dataset_id: string;
+    horizon?: number;
+    target_column?: string;
+    date_column?: string;
+    confidence_level?: number;
+  }): Promise<any> {
+    const response = await api.post("/ai/forecast", params);
+    return response.data;
+  }
 }
 

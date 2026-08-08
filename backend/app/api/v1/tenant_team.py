@@ -215,6 +215,17 @@ async def invite_team_member(
     from app.core.config import settings
     from app.services import email as email_service
     
+    # Phase 5: Quota Enforcement
+    from app.services.entitlements import check_quota, BillingResource, get_usage
+    from app.models.tenant import Tenant
+    
+    tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
+    usage = await get_usage(tenant, db)
+    quota = check_quota(tenant, usage, BillingResource.USERS)
+    if not quota.allowed:
+        raise HTTPException(status_code=402, detail="User seat limit exceeded for your organization's plan.")
+        
+    
     clean_email = req.email.strip().lower()
 
     # Check if user already exists

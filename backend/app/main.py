@@ -172,6 +172,15 @@ def create_app() -> FastAPI:
     # ─── Local Storage Fallback Mount ─────────────────────────────────────
     import os
     from fastapi.staticfiles import StaticFiles
+    
+    uploads_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads")
+    os.makedirs(uploads_dir, exist_ok=True)
+    app.mount(
+        "/api/v1/storage",
+        StaticFiles(directory=uploads_dir),
+        name="storage",
+    )
+
     # ─── Static Assets Mount ──────────────────────────────────────────────
     static_dir = os.path.join(os.path.dirname(__file__), "static")
     os.makedirs(static_dir, exist_ok=True)

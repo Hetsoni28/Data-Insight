@@ -6,8 +6,9 @@ import { cn } from "@/lib/utils"
 function Progress({
   className,
   value,
+  indicatorClassName,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & { value?: number }) {
+}: React.HTMLAttributes<HTMLDivElement> & { value?: number, indicatorClassName?: string }) {
   return (
     <div
       role="progressbar"
@@ -18,7 +19,7 @@ function Progress({
       {...props}
     >
       <div 
-        className="h-full bg-emerald-500 transition-all duration-500 ease-in-out" 
+        className={cn("h-full bg-emerald-500 transition-all duration-500 ease-in-out", indicatorClassName)} 
         style={{ width: `${value || 0}%` }}
       />
     </div>

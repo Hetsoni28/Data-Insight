@@ -45,6 +45,8 @@ class QuotaService:
         Raises StorageQuotaExceededException if limit would be breached.
         """
         tenant = await self.get_tenant_record(tenant_id)
+        if tenant.max_storage_gb is None or tenant.max_storage_gb == 0:
+            return True  # Unlimited
         max_bytes = int(tenant.max_storage_gb) * 1024 * 1024 * 1024
         current_bytes = tenant.current_storage_bytes or 0
         projected_bytes = current_bytes + additional_bytes
@@ -125,6 +127,9 @@ class QuotaService:
         max_tokens = tenant.max_ai_tokens_per_month
         used_tokens = tenant.current_ai_tokens_used or 0
 
+        if max_tokens is None:  # Unlimited plan (enterprise/custom)
+            return True
+
         if used_tokens + estimated_tokens > max_tokens:
             logger.warning(
                 f"[Quota] Tenant {tenant_id} exceeded AI token budget: "
@@ -170,6 +175,9 @@ class QuotaService:
         """
         tenant = await self.get_tenant_record(tenant_id)
         max_users = tenant.max_users
+
+        if max_users is None:
+            return True  # Unlimited seats
 
         # Count active users for this tenant
         count_stmt = (

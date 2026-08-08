@@ -282,6 +282,17 @@ async def upload_dataset(
 ):
     try:
         tenant_id = current_user.tenant_id
+        
+        # Phase 5: Quota Enforcement
+        from app.services.entitlements import check_quota, BillingResource, get_usage
+        from app.models.tenant import Tenant
+        from sqlalchemy import select
+        
+        tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
+        usage = await get_usage(tenant, db)
+        quota = check_quota(tenant, usage, BillingResource.DATASETS)
+        if not quota.allowed:
+            raise HTTPException(status_code=402, detail="Dataset quota exceeded for your organization's plan.")
     
         d = Dataset(
             tenant_id=tenant_id,
@@ -443,6 +454,15 @@ async def generate_ai_excel(
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
+    
+    # Phase 5: Quota Enforcement
+    from app.services.entitlements import can_use_feature, BillingFeature
+    from app.models.tenant import Tenant
+    from sqlalchemy import select
+    tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
+    if not can_use_feature(tenant, BillingFeature.AI_EXCEL):
+        raise HTTPException(status_code=403, detail="AI Excel generation is not included in your organization's plan.")
+        
     stmt = select(Dataset).where(Dataset.id == dataset_id, Dataset.tenant_id == tenant_id)
     res = await db.execute(stmt)
     d = res.scalars().first()

@@ -55,7 +55,6 @@ export default function OrganizationSettingsPage() {
     { id: "security", label: "Security & SSO", icon: Shield },
     { id: "data", label: "Data Connections", icon: Database },
     { id: "integrations", label: "Integrations", icon: LinkIcon },
-    { id: "billing", label: "Billing & Plans", icon: CreditCard },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "audit", label: "Audit Logs", icon: ScrollText },
     { id: "advanced", label: "Advanced", icon: Settings },

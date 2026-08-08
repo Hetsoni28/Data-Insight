@@ -58,6 +58,17 @@ async def create_dashboard(
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
+    # Phase 5: Quota Enforcement
+    from app.services.entitlements import check_quota, BillingResource, get_usage
+    from app.models.tenant import Tenant
+    from sqlalchemy import select
+    
+    tenant = await db.scalar(select(Tenant).where(Tenant.id == current_user.tenant_id))
+    usage = await get_usage(tenant, db)
+    quota = check_quota(tenant, usage, BillingResource.DASHBOARDS)
+    if not quota.allowed:
+        raise HTTPException(status_code=402, detail="Dashboards quota exceeded for your organization's plan.")
+
     name = data.get("name", "New Dashboard")
     description = data.get("description", "")
     layout_json = data.get("layout_json", {})

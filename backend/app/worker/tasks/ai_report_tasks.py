@@ -182,46 +182,10 @@ async def _process_ai_report(tenant_id: str, report_id: str, dataset_id: str, re
                     }
                 }
             
-            elif report_category == "forecast":
-                prompt = f"""
-                You are an Expert Financial Modeler and Statistician.
-                Analyze the following dataset and generate a Trend Forecast and Predictive Analysis.
-                Identify any time-series data, revenue growth, or linear trends.
-                Dataset Info: {dataset.name} ({total_rows} rows, {total_cols} columns).
-                Below is a sample of the data (up to 5000 rows):
-                
-                {csv_data}
-                
-                Generate a professional predictive JSON model exactly matching the schema.
-                """
-                schema = {
-                    "type": "OBJECT",
-                    "properties": {
-                        "forecastTitle": {"type": "STRING"},
-                        "executiveSummary": {"type": "STRING"},
-                        "growthDrivers": {"type": "ARRAY", "items": {"type": "STRING"}},
-                        "riskFactors": {"type": "ARRAY", "items": {"type": "STRING"}},
-                        "predictedTrendline": {
-                            "type": "ARRAY",
-                            "items": {
-                                "type": "OBJECT",
-                                "properties": {
-                                    "period": {"type": "STRING"}, # e.g. "Q1 2027", "Next Month"
-                                    "historicalValue": {"type": "NUMBER"}, # Can be null if it's future
-                                    "predictedValue": {"type": "NUMBER"},
-                                    "optimisticBound": {"type": "NUMBER"},
-                                    "pessimisticBound": {"type": "NUMBER"}
-                                }
-                            }
-                        }
-                    }
-                }
-
-            else:
-                raise ValueError(f"Unsupported report category: {report_category}")
-
-            # 4. Generate AI Report
-            ai_blueprint = generate_structured_report(prompt, schema)
+            elif report_category in ["forecast", "trend_forecast"]:
+                # Use real Machine Learning Time-Series Forecasting Engine
+                from app.services.analytics.forecasting_engine import ForecastingEngine
+                ai_blueprint = ForecastingEngine.fit_and_forecast(df, horizon=6)
 
             # 5. Save to database
             report.ai_blueprint = ai_blueprint

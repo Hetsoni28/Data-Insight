@@ -112,6 +112,79 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
             # Add chart to sheet
             c_ws.add_chart(xl_chart, "E4")
             
+    elif "predictedTrendline" in blueprint and isinstance(blueprint["predictedTrendline"], list):
+        # ── ML Trend Forecast Report ──
+        ws = wb.active
+        ws.title = "Forecast Summary"
+
+        # Title
+        ws.merge_cells('A1:E1')
+        title_cell = ws['A1']
+        title_cell.value = blueprint.get("forecastTitle", title)
+        title_cell.font = Font(size=18, bold=True, color="FFFFFF")
+        title_cell.fill = PatternFill(start_color="059669", end_color="059669", fill_type="solid") # Emerald
+        title_cell.alignment = Alignment(horizontal="center", vertical="center")
+        ws.row_dimensions[1].height = 35
+
+        # Key Metrics Row
+        ws['A3'] = "Projected Growth"
+        ws['A3'].font = Font(bold=True, color="4B5563")
+        ws['B3'] = blueprint.get("projectedGrowth", blueprint.get("growthRate", "N/A"))
+        ws['B3'].font = Font(size=14, bold=True, color="059669")
+
+        ws['C3'] = "Trend Direction"
+        ws['C3'].font = Font(bold=True, color="4B5563")
+        ws['D3'] = blueprint.get("trendDirection", "Upward")
+        ws['D3'].font = Font(size=14, bold=True, color="2563EB")
+
+        # Executive Summary
+        ws.merge_cells('A5:E6')
+        summary_cell = ws['A5']
+        summary_cell.value = blueprint.get("executiveSummary", "")
+        summary_cell.font = Font(size=11, italic=True)
+        summary_cell.alignment = Alignment(vertical="top", wrap_text=True)
+
+        # Create Forecast Data Sheet with Native Line Chart
+        c_ws = wb.create_sheet(title="Predictive Trendline")
+        
+        headers = ["Period", "Historical Value", "Predicted Value", "Pessimistic Bound (P10)", "Optimistic Bound (P90)"]
+        for c_idx, h in enumerate(headers, start=1):
+            cell = c_ws.cell(row=3, column=c_idx, value=h)
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill(start_color="1F2937", end_color="1F2937", fill_type="solid")
+            cell.alignment = Alignment(horizontal="center")
+        c_ws.row_dimensions[3].height = 25
+
+        trend_data = blueprint["predictedTrendline"]
+        for r_idx, pt in enumerate(trend_data, start=4):
+            c_ws.cell(row=r_idx, column=1, value=pt.get("period"))
+            c_ws.cell(row=r_idx, column=2, value=pt.get("historicalValue"))
+            c_ws.cell(row=r_idx, column=3, value=pt.get("predictedValue"))
+            c_ws.cell(row=r_idx, column=4, value=pt.get("pessimisticBound"))
+            c_ws.cell(row=r_idx, column=5, value=pt.get("optimisticBound"))
+
+        c_ws.column_dimensions['A'].width = 20
+        c_ws.column_dimensions['B'].width = 18
+        c_ws.column_dimensions['C'].width = 18
+        c_ws.column_dimensions['D'].width = 24
+        c_ws.column_dimensions['E'].width = 24
+
+        # Add Native Excel LineChart
+        if trend_data:
+            chart = LineChart()
+            chart.title = blueprint.get("forecastTitle", "Predictive Forecast Model")
+            chart.style = 13
+            chart.y_axis.title = blueprint.get("targetMetric", "Value")
+            chart.x_axis.title = "Period"
+            chart.width = 18
+            chart.height = 12
+
+            data_ref = Reference(c_ws, min_col=2, min_row=3, max_col=5, max_row=3 + len(trend_data))
+            cats_ref = Reference(c_ws, min_col=1, min_row=4, max_row=3 + len(trend_data))
+            chart.add_data(data_ref, titles_from_data=True)
+            chart.set_categories(cats_ref)
+            c_ws.add_chart(chart, "G3")
+
     elif "missingValues" in blueprint or "aiInsights" in blueprint:
         # This is an Executive Summary / AI Analysis
         ws = wb.active
