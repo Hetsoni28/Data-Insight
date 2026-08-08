@@ -55,30 +55,28 @@ const ArtifactView = memo(({ artifact, onPin }: { artifact: any; onPin: (art: an
   if (!artifact) return null;
 
   if (artifact.type === "kpi") {
-    const kpi = artifact.kpi_data || {};
+    const kpi = artifact;
+    const metrics = kpi.kpi_metrics || [];
     return (
-      <div className="mt-3 p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-slate-900/10 border border-emerald-500/20 backdrop-blur-md shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-            {kpi.title || "Key Metric"}
-          </span>
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <TrendingUp className="w-3 h-3" />
-            {kpi.badge || "Live Aggregation"}
-          </span>
-        </div>
-        <div className="mt-1.5 text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          {kpi.formatted_value || kpi.value || "—"}
-        </div>
-        {kpi.subtitle && (
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{kpi.subtitle}</p>
-        )}
-        <div className="mt-3 flex items-center justify-end">
+      <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+        {metrics.map((m: any, idx: number) => (
+          <div key={idx} className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-slate-900/10 border border-emerald-500/20 backdrop-blur-md shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                {m.label || "Key Metric"}
+              </span>
+            </div>
+            <div className="mt-1.5 text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              {m.value || "—"}
+            </div>
+          </div>
+        ))}
+        <div className="col-span-full flex justify-end">
           <Button
             size="sm"
             variant="outline"
             onClick={() => onPin(artifact)}
-            className="text-xs gap-1.5 h-7 rounded-lg border-slate-200 dark:border-white/10 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+            className="text-xs gap-1.5 h-7 rounded-lg border-slate-200 dark:border-white/10 hover:bg-emerald-50"
           >
             <Pin className="w-3.5 h-3.5 text-emerald-600" />
             Pin to Dashboard
@@ -89,9 +87,13 @@ const ArtifactView = memo(({ artifact, onPin }: { artifact: any; onPin: (art: an
   }
 
   if (artifact.type === "chart") {
-    const config = artifact.chart_config || {};
-    const chartType = (config.chart_type || "bar").toLowerCase();
-    const chartData = config.data || [];
+    const chartType = (artifact.chart_type || "bar").toLowerCase();
+    const xKey = artifact.x_key || "name";
+    const yKey = artifact.y_key || "value";
+    const chartData = (artifact.data || []).map((item: any) => ({
+      name: item[xKey],
+      value: item[yKey],
+    }));
 
     return (
       <div className="mt-4 p-4 rounded-xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-white/10 shadow-sm">
@@ -107,7 +109,7 @@ const ArtifactView = memo(({ artifact, onPin }: { artifact: any; onPin: (art: an
               )}
             </div>
             <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
-              {config.title || "Visual Data Analysis"}
+              {artifact.title || "Visual Data Analysis"}
             </h4>
           </div>
           <Button
