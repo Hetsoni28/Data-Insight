@@ -8,6 +8,7 @@ COPY package.json package-lock.json ./
 # Install all dependencies
 RUN npm install
 
-# Source code is mounted via docker-compose volume in dev mode
-# Start Next.js in development mode with hot reload
-CMD ["npm", "run", "dev"]
+# Remove any stale/corrupted .next cache before starting.
+# This prevents the "Network Error" login issue that occurs when the cache
+# gets corrupted from a previous dev session or package update.
+CMD ["sh", "-c", "rm -rf /app/.next && npm run dev"]
