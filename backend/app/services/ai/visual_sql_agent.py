@@ -296,8 +296,8 @@ Provide the corrected DuckDB SQL in JSON format."""
 Executed SQL:
 {generated_sql}
 
-Query Results (Sample rows):
-{json.dumps(records[:20], default=str, indent=2)}
+Query Results (Top {min(8, len(records))} rows):
+{json.dumps(records[:8], default=str, indent=2)}
 
 Total Rows: {total_rows}
 

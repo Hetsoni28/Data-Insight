@@ -99,6 +99,31 @@ class GroqProvider(BaseLLMProvider):
                 model=target_model,
             )
         except Exception as e:
+            err_str = str(e)
+            # Automatic fallback to llama-3.1-8b-instant on rate limits
+            if ("429" in err_str or "rate_limit" in err_str.lower()) and target_model != "llama-3.1-8b-instant":
+                logger.warning(f"[GroqProvider] {target_model} rate limited. Falling back to llama-3.1-8b-instant...")
+                try:
+                    kwargs["model"] = "llama-3.1-8b-instant"
+                    resp = await client.chat.completions.create(**kwargs)
+                    latency_ms = (time.perf_counter() - start_time) * 1000.0
+                    content = resp.choices[0].message.content or ""
+                    usage = resp.usage
+                    prompt_tokens = usage.prompt_tokens if usage else int(len(prompt) / 4)
+                    completion_tokens = usage.completion_tokens if usage else int(len(content) / 4)
+                    return LLMResponse(
+                        content=content,
+                        prompt_tokens=prompt_tokens,
+                        completion_tokens=completion_tokens,
+                        total_tokens=prompt_tokens + completion_tokens,
+                        cost_usd=self.calculate_cost("llama-3.1-8b-instant", prompt_tokens, completion_tokens),
+                        latency_ms=round(latency_ms, 2),
+                        provider=self.provider_name,
+                        model="llama-3.1-8b-instant",
+                    )
+                except Exception as fb_err:
+                    logger.error(f"[GroqProvider] Fallback model also failed: {fb_err}")
+
             logger.error(f"[GroqProvider] Generation failed with error: {e}")
             raise AIServiceException(f"Groq generation failed: {str(e)}")
 
