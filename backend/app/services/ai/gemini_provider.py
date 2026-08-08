@@ -19,10 +19,12 @@ class GeminiProvider(BaseLLMProvider):
     """Deep analytical provider powered by Google Gemini models with 1M+ context."""
 
     provider_name: str = "gemini"
-    default_model: str = "gemini-2.0-flash"
+    default_model: str = "gemini-2.5-flash"  # Switched from gemini-2.0-flash (quota exhausted)
 
     # Pricing per 1M tokens in USD
     PRICING: Dict[str, Dict[str, float]] = {
+        "gemini-2.5-flash": {"prompt": 0.075, "completion": 0.30},
+        "gemini-2.5-flash-lite": {"prompt": 0.04, "completion": 0.15},
         "gemini-2.0-flash": {"prompt": 0.10, "completion": 0.40},
         "gemini-1.5-pro": {"prompt": 1.25, "completion": 5.00},
         "gemini-1.5-flash": {"prompt": 0.075, "completion": 0.30},
