@@ -151,6 +151,9 @@ export class AIService {
 
   /**
    * Stream a chat response from the AI Copilot.
+   * If sessionId is provided, uses the persistent session stream endpoint
+   * which saves messages, runs visual SQL agent, and returns chart artifacts.
+   * Otherwise falls back to the stateless /ai/chat/stream endpoint.
    */
   static async copilotChatStream(
     question: string,
@@ -165,21 +168,24 @@ export class AIService {
   ) {
     const token = localStorage.getItem("access_token");
     const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-    
+
+    // Use persistent session stream if session exists — persists history + visual SQL artifacts
+    const url = sessionId
+      ? `${baseUrl}/ai/sessions/${sessionId}/messages/stream`
+      : `${baseUrl}/ai/chat/stream`;
+
+    const body = sessionId
+      ? JSON.stringify({ question, provider })
+      : JSON.stringify({ question, dataset_id: datasetId || undefined, history, provider });
+
     try {
-      const response = await fetch(`${baseUrl}/ai/chat/stream`, {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          question,
-          dataset_id: datasetId || undefined,
-          session_id: sessionId || undefined,
-          history,
-          provider
-        })
+        body,
       });
 
       if (!response.ok) {
@@ -200,20 +206,31 @@ export class AIService {
         buffer = lines.pop() || "";
 
         for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const dataStr = line.slice(6);
-            if (dataStr === "[DONE]") {
+          if (!line.startsWith("data: ")) continue;
+          const dataStr = line.slice(6);
+          if (dataStr === "[DONE]") {
+            onDone?.();
+            return;
+          }
+          try {
+            const data = JSON.parse(dataStr);
+
+            // Session stream format: { type: "token"|"artifact"|"done"|"meta", content, artifact_data }
+            if (data.type === "token" && data.content && onChunk) {
+              onChunk(data.content);
+            } else if (data.type === "artifact" && data.artifact_data && onArtifact) {
+              onArtifact(data.artifact_data);
+            } else if (data.type === "done") {
               onDone?.();
               return;
             }
-            try {
-              const data = JSON.parse(dataStr);
-              if (data.token && onChunk) onChunk(data.token);
-              if (data.artifact && onArtifact) onArtifact(data.artifact);
-              if (data.error) throw new Error(data.error);
-            } catch (e) {
-              // Ignore parse errors
-            }
+
+            // Stateless stream format: { token, artifact, error }
+            if (data.token && onChunk) onChunk(data.token);
+            if (data.artifact && onArtifact) onArtifact(data.artifact);
+            if (data.error) throw new Error(data.error);
+          } catch (e) {
+            // Ignore JSON parse errors for partial chunks
           }
         }
       }
