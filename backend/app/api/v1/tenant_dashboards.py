@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.api.deps import get_db, get_current_active_tenant_user
+from app.api.deps import get_db, get_current_active_tenant_user, get_current_workspace
 from app.models.user import User
+from app.models.workspace import Workspace
 from app.models.dashboard import Dashboard
 from app.models.dataset import Dataset
 
@@ -18,15 +19,17 @@ router = APIRouter()
 async def get_dashboards(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
 ) -> Any:
     """Retrieve all dashboards for the current user's organization."""
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
-    stmt = select(Dashboard).where(
-        Dashboard.tenant_id == current_user.tenant_id,
-        Dashboard.is_deleted == False
-    ).order_by(Dashboard.updated_at.desc())
+    base_conditions = [Dashboard.tenant_id == current_user.tenant_id, Dashboard.is_deleted == False]
+    if workspace:
+        base_conditions.append(Dashboard.workspace_id == workspace.id)
+
+    stmt = select(Dashboard).where(*base_conditions).order_by(Dashboard.updated_at.desc())
     
     result = await db.execute(stmt)
     dashboards = result.scalars().all()
@@ -49,6 +52,7 @@ async def create_dashboard(
     data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
 ) -> Any:
     """Create a new empty dashboard or with a layout."""
     if not current_user.tenant_id:
@@ -64,6 +68,7 @@ async def create_dashboard(
         name=name,
         description=description,
         layout_json=layout_json,
+        workspace_id=workspace.id if workspace else None,
     )
     db.add(dashboard)
     await db.commit()
@@ -81,18 +86,17 @@ async def get_dashboard(
     id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
 ) -> Any:
     """Get a specific dashboard by ID with its layout."""
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
-    result = await db.execute(
-        select(Dashboard).where(
-            Dashboard.id == id,
-            Dashboard.tenant_id == current_user.tenant_id,
-            Dashboard.is_deleted == False
-        )
-    )
+    base_conditions = [Dashboard.id == id, Dashboard.tenant_id == current_user.tenant_id, Dashboard.is_deleted == False]
+    if workspace:
+        base_conditions.append(Dashboard.workspace_id == workspace.id)
+
+    result = await db.execute(select(Dashboard).where(*base_conditions))
     dashboard = result.scalar_one_or_none()
 
     if not dashboard:
@@ -117,18 +121,17 @@ async def update_dashboard(
     data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
 ) -> Any:
     """Update a dashboard's name, description, or layout_json."""
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
-    result = await db.execute(
-        select(Dashboard).where(
-            Dashboard.id == id,
-            Dashboard.tenant_id == current_user.tenant_id,
-            Dashboard.is_deleted == False
-        )
-    )
+    base_conditions = [Dashboard.id == id, Dashboard.tenant_id == current_user.tenant_id, Dashboard.is_deleted == False]
+    if workspace:
+        base_conditions.append(Dashboard.workspace_id == workspace.id)
+
+    result = await db.execute(select(Dashboard).where(*base_conditions))
     dashboard = result.scalar_one_or_none()
 
     if not dashboard:
@@ -158,18 +161,17 @@ async def delete_dashboard(
     id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
 ) -> Any:
     """Soft delete a dashboard."""
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
-    result = await db.execute(
-        select(Dashboard).where(
-            Dashboard.id == id,
-            Dashboard.tenant_id == current_user.tenant_id,
-            Dashboard.is_deleted == False
-        )
-    )
+    base_conditions = [Dashboard.id == id, Dashboard.tenant_id == current_user.tenant_id, Dashboard.is_deleted == False]
+    if workspace:
+        base_conditions.append(Dashboard.workspace_id == workspace.id)
+
+    result = await db.execute(select(Dashboard).where(*base_conditions))
     dashboard = result.scalar_one_or_none()
 
     if not dashboard:
@@ -186,6 +188,7 @@ async def ai_generate_dashboard(
     data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
 ) -> Any:
     """
     Generate a full dashboard layout using AI based on a dataset and a prompt.
@@ -200,12 +203,11 @@ async def ai_generate_dashboard(
     if not dataset_id:
         raise HTTPException(status_code=400, detail="dataset_id is required")
         
-    result = await db.execute(
-        select(Dataset).where(
-            Dataset.id == dataset_id,
-            Dataset.tenant_id == current_user.tenant_id
-        )
-    )
+    ds_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == current_user.tenant_id]
+    if workspace:
+        ds_conditions.append(Dataset.workspace_id == workspace.id)
+
+    result = await db.execute(select(Dataset).where(*ds_conditions))
     dataset = result.scalar_one_or_none()
     
     if not dataset:
@@ -256,6 +258,7 @@ async def ai_generate_dashboard(
         name=f"AI Generated: {prompt[:30]}...",
         description=f"Generated via Copilot. Prompt: '{prompt}' on dataset {dataset.name}",
         layout_json=generated_layout,
+        workspace_id=workspace.id if workspace else None,
     )
     db.add(dashboard)
     await db.commit()

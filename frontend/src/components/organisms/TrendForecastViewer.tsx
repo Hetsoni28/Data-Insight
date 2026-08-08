@@ -23,11 +23,11 @@ export function TrendForecastViewer({ report }: TrendForecastViewerProps) {
     <div className="w-full bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
       
       {/* ── HEADER ── */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-4 flex items-center gap-3 border-b border-slate-700/60">
-        <TrendingUp className="w-6 h-6 text-emerald-400 shrink-0" />
+      <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 flex items-center gap-3 border-b border-emerald-800/40">
+        <TrendingUp className="w-6 h-6 text-white/80 shrink-0" />
         <div className="min-w-0">
           <h2 className="text-base font-bold text-white truncate">{data.forecastTitle || report.title}</h2>
-          <p className="text-xs text-slate-400 leading-tight">Predictive Machine Learning & Growth Modeling</p>
+          <p className="text-xs text-emerald-100/80 leading-tight">Predictive Machine Learning & Growth Modeling</p>
         </div>
       </div>
 
@@ -51,8 +51,8 @@ export function TrendForecastViewer({ report }: TrendForecastViewerProps) {
               <RechartsTooltip 
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }}
                 formatter={(value: any, name?: any) => {
-                  if (name === "confidenceBound" && Array.isArray(value)) {
-                    return [`${value[0]} - ${value[1]}`, "Confidence Interval"]
+                  if (name === "Confidence Interval" && Array.isArray(value)) {
+                    return [`${value[0]} - ${value[1]}`, name]
                   }
                   return [value, name || ""]
                 }}

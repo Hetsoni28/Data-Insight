@@ -124,9 +124,9 @@ export function StorageFileExplorer({
 
   const getFileIcon = (category: string) => {
     switch(category) {
-      case 'document': return <FileText className="h-5 w-5 text-blue-500" />
+      case 'document': return <FileText className="h-5 w-5 text-emerald-500" />
       case 'spreadsheet': return <FileSpreadsheet className="h-5 w-5 text-emerald-500" />
-      case 'image': return <ImageIcon className="h-5 w-5 text-purple-500" />
+      case 'image': return <ImageIcon className="h-5 w-5 text-teal-500" />
       case 'data': return <Database className="h-5 w-5 text-amber-500" />
       case 'archive': return <Archive className="h-5 w-5 text-orange-500" />
       default: return <File className="h-5 w-5 text-slate-500" />

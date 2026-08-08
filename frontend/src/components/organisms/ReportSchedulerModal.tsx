@@ -93,7 +93,7 @@ export function ReportSchedulerModal({ open, onOpenChange, onScheduleCreated }: 
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CalendarClock className="h-5 w-5 text-indigo-600" />
+            <CalendarClock className="h-5 w-5 text-emerald-600" />
             Schedule AI Report
           </DialogTitle>
           <DialogDescription>
@@ -175,7 +175,7 @@ export function ReportSchedulerModal({ open, onOpenChange, onScheduleCreated }: 
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || datasets.length === 0} className="bg-indigo-600 hover:bg-indigo-700">
+            <Button type="submit" disabled={isSubmitting || datasets.length === 0} className="bg-emerald-600 hover:bg-emerald-700 text-white">
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...

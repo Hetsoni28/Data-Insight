@@ -8,8 +8,9 @@ import uuid
 import asyncio
 import random
 
-from app.api.deps import get_db, get_current_active_tenant_user, RequireRole
+from app.api.deps import get_db, get_current_active_tenant_user, RequireRole, get_current_workspace
 from app.models.user import User
+from app.models.workspace import Workspace
 from app.models.report import Report, ReportStatus, ReportType
 from app.models.report_schedule import ReportSchedule
 from app.models.dataset import Dataset
@@ -29,6 +30,7 @@ from app.worker.tasks.ai_report_tasks import (
     generate_bi_dashboard_task,
     generate_trend_forecast_task
 )
+from app.worker.tasks.report_tasks import generate_excel_report_task
 
 router = APIRouter()
 
@@ -41,20 +43,24 @@ class GenerateReportRequest(BaseModel):
 @router.get("/stats", summary="Get Reports Center Statistics")
 async def get_report_stats(
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     try:
         tenant_id = current_user.tenant_id
+        
+        base_conditions = [Report.tenant_id == tenant_id, Report.is_deleted == False]
+        if workspace:
+            base_conditions.append(Report.workspace_id == workspace.id)
     
         # Total reports
-        total_stmt = select(func.count(Report.id)).where(Report.tenant_id == tenant_id, Report.is_deleted == False)
+        total_stmt = select(func.count(Report.id)).where(*base_conditions)
         total_res = await db.execute(total_stmt)
         total_reports = total_res.scalar() or 0
     
         # AI Reports
         ai_stmt = select(func.count(Report.id)).where(
-            Report.tenant_id == tenant_id, 
-            Report.is_deleted == False,
+            *base_conditions,
             Report.ai_tokens_used > 0
         )
         ai_res = await db.execute(ai_stmt)
@@ -85,14 +91,16 @@ async def list_reports(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
     
-    stmt = select(Report).where(
-        Report.tenant_id == tenant_id,
-        Report.is_deleted == False
-    ).order_by(desc(Report.created_at))
+    base_conditions = [Report.tenant_id == tenant_id, Report.is_deleted == False]
+    if workspace:
+        base_conditions.append(Report.workspace_id == workspace.id)
+        
+    stmt = select(Report).where(*base_conditions).order_by(desc(Report.created_at))
     
     if search:
         stmt = stmt.where(Report.title.ilike(f"%{search}%"))
@@ -121,15 +129,19 @@ async def get_report_activities(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     try:
         tenant_id = current_user.tenant_id
-    
-        audit_stmt = select(AuditLog).where(
+        
+        # AuditLog has no workspace_id column — filter by tenant + action only
+        audit_conditions = [
             AuditLog.tenant_id == tenant_id,
             AuditLog.action.like("report.%")
-        ).order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)
+        ]
+    
+        audit_stmt = select(AuditLog).where(*audit_conditions).order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)
     
         audit_res = await db.execute(audit_stmt)
         audit_logs = []
@@ -145,7 +157,9 @@ async def get_report_activities(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 @router.post("/schedules", response_model=ReportScheduleResponse, summary="Create a Report Schedule")
 async def create_schedule(
@@ -393,11 +407,16 @@ async def generate_report(
     request: Request,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
     
-    d_stmt = select(Dataset).where(Dataset.id == req.dataset_id, Dataset.tenant_id == tenant_id)
+    d_stmt = select(Dataset).where(
+        Dataset.id == req.dataset_id, 
+        Dataset.tenant_id == tenant_id,
+        Dataset.workspace_id == workspace.id
+    )
     d_res = await db.execute(d_stmt)
     dataset = d_res.scalars().first()
     if not dataset:
@@ -434,6 +453,8 @@ async def generate_report(
         generate_bi_dashboard_task.delay(str(tenant_id), str(r.id), str(dataset.id))
     elif req.report_category == "forecast":
         generate_trend_forecast_task.delay(str(tenant_id), str(r.id), str(dataset.id))
+    elif req.report_category == "excel" or req.report_type == ReportType.excel:
+        generate_excel_report_task.delay(str(r.id))
     else:
         # Fallback to the old simulation workflow (or for other types until we implement them)
         background_tasks.add_task(simulate_report_workflow, tenant_id, r.id, current_user.id, dataset.id)

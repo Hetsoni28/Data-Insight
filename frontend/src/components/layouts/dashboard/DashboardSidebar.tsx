@@ -66,9 +66,11 @@ export default function Sidebar({ user, workspaces = [], activeWs = null, loadin
         </svg>
       </div>
 
-      <div className={`px-4 pb-6 relative z-10 transition-all duration-300 ${isCollapsed ? "px-2" : ""}`}>
+      {/* Workspace picker — overflow-visible so dropdown escapes sidebar bounds */}
+      <div className={`px-4 pb-6 relative z-[100] transition-all duration-300 ${isCollapsed ? "px-2" : ""}`}>
         <WorkspacePicker workspaces={workspaces} activeWs={activeWs} loadingWs={loadingWs} isCollapsed={isCollapsed} />
       </div>
+
 
       <SidebarNav navGroups={navGroups} isCollapsed={isCollapsed} />
 

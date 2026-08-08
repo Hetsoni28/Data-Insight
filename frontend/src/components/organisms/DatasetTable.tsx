@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { format } from "date-fns";
@@ -67,7 +67,7 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
   const getStatusBadge = (status: string) => {
     switch (status.toUpperCase()) {
       case "PROFILING":
-        return <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/20">Profiling <Loader2 className="ml-1 h-3 w-3 animate-spin inline-block" /></Badge>;
+        return <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-500/20">Profiling <Loader2 className="ml-1 h-3 w-3 animate-spin inline-block" /></Badge>;
       case "READY":
         return <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-500/20 hover:bg-emerald-500/20">Ready</Badge>;
       case "FAILED":

@@ -64,7 +64,7 @@ export default function DashboardBuilderHubPage() {
         <div className="flex space-x-3">
           <button 
             onClick={handleAIGenerate}
-            className="flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 rounded-xl font-medium hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors"
+            className="flex items-center px-4 py-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 rounded-xl font-medium hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors border border-emerald-200 dark:border-emerald-500/20"
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Generate with AI
@@ -93,8 +93,8 @@ export default function DashboardBuilderHubPage() {
         
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
-              <Activity className="w-6 h-6 text-blue-500" />
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl">
+              <Activity className="w-6 h-6 text-emerald-500" />
             </div>
           </div>
           <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-1">

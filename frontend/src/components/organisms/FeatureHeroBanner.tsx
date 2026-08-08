@@ -73,7 +73,7 @@ export function FeatureHeroBanner({ overview, isLoading }: FeatureHeroBannerProp
                 <MetricCard 
                     title="Total Features" 
                     value={overview?.total_flags} 
-                    icon={<ToggleRight className="h-5 w-5 text-indigo-400" />}
+                    icon={<ToggleRight className="h-5 w-5 text-emerald-400" />}
                     isLoading={isLoading}
                     trend="Managed globally"
                 />

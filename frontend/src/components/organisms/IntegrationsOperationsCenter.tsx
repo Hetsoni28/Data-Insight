@@ -29,7 +29,7 @@ function StatusBadge({ status }: { status: IntegrationConnection["status"] }) {
     online: "bg-emerald-50 dark:bg-green-500/10 text-emerald-700 dark:text-green-400 border-emerald-200 dark:border-green-500/20",
     degraded: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20",
     offline: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/20",
-    maintenance: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20",
+    maintenance: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20",
   };
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${map[status] ?? map.offline}`}>
@@ -159,7 +159,7 @@ function WebhooksTable({ webhooks }: { webhooks: WebhookEndpoint[] }) {
             <motion.tr key={w.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="group hover:bg-slate-50 dark:hover:bg-white/3 transition-colors">
               <td className="py-3 px-4 pl-0">
                 <div className="flex items-center gap-3">
-                  <Webhook size={16} className="text-blue-500" />
+                  <Webhook size={16} className="text-emerald-500" />
                   <div>
                     <p className="text-sm font-medium text-slate-900 dark:text-white">{w.name}</p>
                     <p className="text-xs text-slate-500 dark:text-white/40 max-w-[200px] truncate">{w.url}</p>
@@ -216,7 +216,7 @@ function WorkflowsGrid({ workflows }: { workflows: AutomationWorkflow[] }) {
         {paginatedWorkflows.map((w, i) => (
         <motion.div key={w.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-slate-300 dark:hover:border-white/20 transition-all">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-2 py-1 rounded-full uppercase tracking-wider font-semibold">{w.trigger_type}</span>
+            <span className="text-xs bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-full uppercase tracking-wider font-semibold">{w.trigger_type}</span>
             {w.status === "active" ? <CheckCircle2 size={16} className="text-emerald-500 dark:text-green-400" /> : <AlertTriangle size={16} className="text-amber-500 dark:text-amber-400" />}
           </div>
           <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{w.name}</h4>

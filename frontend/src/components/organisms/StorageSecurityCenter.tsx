@@ -1,4 +1,4 @@
-import { ShieldCheck, ShieldAlert, Lock, Unlock, Search, Activity } from "lucide-react"
+﻿import { ShieldCheck, ShieldAlert, Lock, Unlock, Search, Activity } from "lucide-react"
 
 interface StorageSecurity {
   public_files: number
@@ -90,7 +90,7 @@ export function StorageSecurityCenter({ security }: StorageSecurityCenterProps) 
 
             <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
+                <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                   <Search className="h-4 w-4" />
                 </div>
                 <div>

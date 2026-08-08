@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
@@ -67,7 +67,7 @@ export const ServerErrorIllustration: React.FC = () => {
         }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       >
-        <motion.div className="w-2 h-1 bg-blue-400 rounded-full" animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 0.5, repeat: Infinity }} />
+        <motion.div className="w-2 h-1 bg-emerald-400 rounded-full" animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 0.5, repeat: Infinity }} />
         {/* Robot arm */}
         <div className="absolute -right-3 w-3 h-1 bg-slate-600 rounded-full origin-left rotate-45" />
       </motion.div>

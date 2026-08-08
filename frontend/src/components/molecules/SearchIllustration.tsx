@@ -8,7 +8,7 @@ export const SearchIllustration: React.FC = () => {
     <div className="relative w-64 h-64 flex items-center justify-center">
       {/* Glow */}
       <motion.div
-        className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl"
+        className="absolute inset-0 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-3xl"
         animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -37,7 +37,7 @@ export const SearchIllustration: React.FC = () => {
 
         {/* Scanning Laser */}
         <motion.div
-          className="absolute z-20 left-[-10px] right-[-10px] h-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,1)]"
+          className="absolute z-20 left-[-10px] right-[-10px] h-0.5 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,1)]"
           animate={{ top: ["0%", "100%", "0%"] }}
           transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         />
@@ -45,7 +45,7 @@ export const SearchIllustration: React.FC = () => {
 
       {/* Magnifying Glass Reticle */}
       <motion.div
-        className="absolute z-30 w-16 h-16 rounded-full border-2 border-blue-400 bg-blue-500/10 backdrop-blur-[2px] pointer-events-none"
+        className="absolute z-30 w-16 h-16 rounded-full border-2 border-emerald-400 bg-emerald-500/10 backdrop-blur-[2px] pointer-events-none"
         animate={{
           x: [-20, 20, -10, 15, -20],
           y: [-20, -10, 20, 5, -20],
@@ -53,9 +53,9 @@ export const SearchIllustration: React.FC = () => {
         }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
-        <div className="absolute top-1/2 left-1/2 w-2 h-2 border border-blue-400 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-blue-400/50 -translate-x-1/2" />
-        <div className="absolute left-0 right-0 top-1/2 h-[1px] bg-blue-400/50 -translate-y-1/2" />
+        <div className="absolute top-1/2 left-1/2 w-2 h-2 border border-emerald-400 rounded-full -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-emerald-400/50 -translate-x-1/2" />
+        <div className="absolute left-0 right-0 top-1/2 h-[1px] bg-emerald-400/50 -translate-y-1/2" />
       </motion.div>
     </div>
   );

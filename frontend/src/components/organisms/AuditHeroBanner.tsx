@@ -63,7 +63,7 @@ export function AuditHeroBanner({ overview, isLoading }: AuditHeroBannerProps) {
                 <MetricCard 
                     title="Total Events" 
                     value={overview?.total_events} 
-                    icon={<FileSearch className="h-5 w-5 text-indigo-400" />}
+                    icon={<FileSearch className="h-5 w-5 text-emerald-400" />}
                     isLoading={isLoading}
                     trend="Lifetime logs retained"
                 />

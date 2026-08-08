@@ -239,7 +239,7 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+            <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
               <Users className="h-5 w-5" />
             </div>
             Platform User Management
@@ -470,7 +470,7 @@ export default function UsersPage() {
                                     size="sm"
                                     disabled={actionLoadingId === inv.id}
                                     onClick={() => handleResendInvite(inv.id, inv.email)}
-                                    className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:bg-blue-50 hover:text-blue-700"
+                                    className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
                                     title="Extend expiration and resend email"
                                   >
                                     <RotateCw

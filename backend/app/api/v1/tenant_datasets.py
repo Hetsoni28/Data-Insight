@@ -7,8 +7,9 @@ import uuid
 import asyncio
 import random
 
-from app.api.deps import get_db, get_current_active_tenant_user, RequireRole
+from app.api.deps import get_db, get_current_active_tenant_user, RequireRole, get_current_workspace
 from app.models.user import User
+from app.models.workspace import Workspace
 from app.models.dataset import Dataset, DatasetStatus
 from app.models.ai_token_usage import AITokenUsage
 from app.models.audit_log import AuditLog
@@ -28,52 +29,60 @@ class UploadDatasetRequest(BaseModel):
 @router.get("/stats", summary="Get Dataset Center Statistics")
 async def get_dataset_stats(
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     try:
         tenant_id = current_user.tenant_id
     
+        # Base filter conditions
+        base_conditions = [Dataset.tenant_id == tenant_id, Dataset.is_deleted == False]
+        if workspace:
+            base_conditions.append(Dataset.workspace_id == workspace.id)
+
         # Total datasets
-        total_stmt = select(func.count(Dataset.id)).where(Dataset.tenant_id == tenant_id, Dataset.is_deleted == False)
+        total_stmt = select(func.count(Dataset.id)).where(*base_conditions)
         total_res = await db.execute(total_stmt)
         total_datasets = total_res.scalar() or 0
     
         # Processing datasets
         proc_stmt = select(func.count(Dataset.id)).where(
-            Dataset.tenant_id == tenant_id, 
-            Dataset.is_deleted == False,
+            *base_conditions,
             or_(Dataset.status == DatasetStatus.profiling, Dataset.status == DatasetStatus.uploading)
         )
         proc_res = await db.execute(proc_stmt)
         processing_datasets = proc_res.scalar() or 0
     
         # Completed datasets
-        comp_stmt = select(func.count(Dataset.id)).where(Dataset.tenant_id == tenant_id, Dataset.is_deleted == False, Dataset.status == DatasetStatus.ready)
+        comp_stmt = select(func.count(Dataset.id)).where(*base_conditions, Dataset.status == DatasetStatus.ready)
         comp_res = await db.execute(comp_stmt)
         completed_datasets = comp_res.scalar() or 0
     
         # Failed datasets
-        err_stmt = select(func.count(Dataset.id)).where(Dataset.tenant_id == tenant_id, Dataset.is_deleted == False, Dataset.status == DatasetStatus.error)
+        err_stmt = select(func.count(Dataset.id)).where(*base_conditions, Dataset.status == DatasetStatus.error)
         err_res = await db.execute(err_stmt)
         failed_datasets = err_res.scalar() or 0
     
         # Storage used
-        storage_stmt = select(func.sum(Dataset.file_size_bytes)).where(Dataset.tenant_id == tenant_id, Dataset.is_deleted == False)
+        storage_stmt = select(func.sum(Dataset.file_size_bytes)).where(*base_conditions)
         storage_res = await db.execute(storage_stmt)
         storage_used = storage_res.scalar() or 0
     
         # Total rows processed
-        rows_stmt = select(func.sum(Dataset.row_count)).where(Dataset.tenant_id == tenant_id, Dataset.is_deleted == False)
+        rows_stmt = select(func.sum(Dataset.row_count)).where(*base_conditions)
         rows_res = await db.execute(rows_stmt)
         rows_processed = rows_res.scalar() or 0
 
         # Total cols analyzed
-        cols_stmt = select(func.sum(Dataset.column_count)).where(Dataset.tenant_id == tenant_id, Dataset.is_deleted == False)
+        cols_stmt = select(func.sum(Dataset.column_count)).where(*base_conditions)
         cols_res = await db.execute(cols_stmt)
         cols_analyzed = cols_res.scalar() or 0
     
         # AI Tasks (Reports, Excel, Dashboards) - querying AITokenUsage
-        ai_tasks_stmt = select(AITokenUsage.feature, func.count(AITokenUsage.id)).where(AITokenUsage.tenant_id == tenant_id).group_by(AITokenUsage.feature)
+        # AITokenUsage has no workspace_id column — filter by tenant only
+        ai_tasks_stmt = select(AITokenUsage.feature, func.count(AITokenUsage.id)).where(
+            AITokenUsage.tenant_id == tenant_id
+        ).group_by(AITokenUsage.feature)
         ai_tasks_res = await db.execute(ai_tasks_stmt)
     
         ai_reports = 0
@@ -86,7 +95,7 @@ async def get_dataset_stats(
             elif feature == 'dashboard_generation': dashboards = count
         
         # Avg Quality Score
-        q_stmt = select(func.avg(Dataset.data_quality_score)).where(Dataset.tenant_id == tenant_id, Dataset.is_deleted == False, Dataset.data_quality_score != None)
+        q_stmt = select(func.avg(Dataset.data_quality_score)).where(*base_conditions, Dataset.data_quality_score != None)
         q_res = await db.execute(q_stmt)
         avg_quality = float(q_res.scalar() or 0)
     
@@ -119,10 +128,16 @@ async def list_datasets(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
-    stmt = select(Dataset, User).outerjoin(User, Dataset.uploaded_by_id == User.id).where(Dataset.tenant_id == tenant_id, Dataset.is_deleted == False).order_by(desc(Dataset.created_at))
+    
+    base_conditions = [Dataset.tenant_id == tenant_id, Dataset.is_deleted == False]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+        
+    stmt = select(Dataset, User).outerjoin(User, Dataset.uploaded_by_id == User.id).where(*base_conditions).order_by(desc(Dataset.created_at))
     
     if search:
         stmt = stmt.where(Dataset.name.ilike(f"%{search}%"))
@@ -156,15 +171,18 @@ async def get_dataset_activities(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     try:
         tenant_id = current_user.tenant_id
     
+        # AuditLog has no workspace_id — filter by tenant + resource type only
+        audit_conditions = [AuditLog.tenant_id == tenant_id, AuditLog.resource_type == 'dataset']
+
         # Get last 20 audit logs for datasets
         audit_stmt = select(AuditLog, User).outerjoin(User, AuditLog.user_id == User.id).where(
-            AuditLog.tenant_id == tenant_id,
-            AuditLog.resource_type == 'dataset'
+            *audit_conditions
         ).order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)
     
         audit_res = await db.execute(audit_stmt)
@@ -180,6 +198,7 @@ async def get_dataset_activities(
             })
         
         # Get recent AI tasks (from AITokenUsage)
+        # AITokenUsage has no workspace_id column — filter by tenant only
         ai_stmt = select(AITokenUsage).where(
             AITokenUsage.tenant_id == tenant_id
         ).order_by(desc(AITokenUsage.created_at)).offset(skip).limit(limit)

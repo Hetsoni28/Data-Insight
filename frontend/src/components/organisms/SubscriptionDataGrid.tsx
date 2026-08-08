@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useMemo } from "react"
 import { 
@@ -187,7 +187,7 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
                 <td className="px-6 py-4">
                   <Badge variant="outline" className={`
                     ${tenant.plan.toLowerCase() === 'enterprise' ? 'border-purple-200 text-purple-700 bg-purple-50 dark:border-purple-500/20 dark:text-purple-400 dark:bg-purple-500/10' : ''}
-                    ${tenant.plan.toLowerCase() === 'professional' || tenant.plan.toLowerCase() === 'pro' ? 'border-blue-200 text-blue-700 bg-blue-50 dark:border-blue-500/20 dark:text-blue-400 dark:bg-blue-500/10' : ''}
+                    ${tenant.plan.toLowerCase() === 'professional' || tenant.plan.toLowerCase() === 'pro' ? 'border-emerald-200 text-emerald-700 bg-emerald-50 dark:border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-500/10' : ''}
                     ${tenant.plan.toLowerCase() === 'starter' || tenant.plan.toLowerCase() === 'free' ? 'border-slate-200 text-slate-700 bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:bg-white/5' : ''}
                   `}>
                     {tenant.plan.toUpperCase()}

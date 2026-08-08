@@ -50,7 +50,7 @@ function OrgActionMenu({ org }: { org: OrgHealth }) {
       <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
         <DropdownMenuHeader title={org.org_name} subtitle={`${org.plan} · ${org.status}`} />
         <DropdownMenuItem onClick={() => handleAction("Email Admins", "success")}>
-          <Mail className="h-4 w-4 mr-2.5 text-blue-500" />
+          <Mail className="h-4 w-4 mr-2.5 text-emerald-500" />
           Send Re-engagement Email
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleAction("View Details", "info")}>
@@ -112,7 +112,7 @@ export function CustomerHealthMatrix() {
   const getPlanBadge = (plan: string) => {
     const base = "inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold";
     if (plan.toLowerCase() === "enterprise")    return <span className={`${base} bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400`}>{plan}</span>;
-    if (plan.toLowerCase() === "professional")  return <span className={`${base} bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400`}>{plan}</span>;
+    if (plan.toLowerCase() === "professional")  return <span className={`${base} bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400`}>{plan}</span>;
     return <span className={`${base} bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300`}>{plan}</span>;
   };
 

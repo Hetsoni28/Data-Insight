@@ -34,17 +34,18 @@ export default function ReportsCenterPage() {
 
   const fetchData = async () => {
     try {
-      const [statsRes, reportsRes, actRes, schedRes] = await Promise.all([
+      // Use allSettled so one failing API doesn't break the whole page
+      const [statsRes, reportsRes, actRes, schedRes] = await Promise.allSettled([
         api.get('/tenant-reports/stats'),
         api.get(`/tenant-reports?search=${searchQuery}`),
         api.get('/tenant-reports/activities'),
         ReportScheduleService.list()
       ])
-      
-      setStats(statsRes.data.data)
-      setReports(reportsRes.data.data)
-      setActivities(actRes.data.data.audit_logs)
-      setSchedules(schedRes)
+
+      if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.data)
+      if (reportsRes.status === 'fulfilled') setReports(reportsRes.value.data.data)
+      if (actRes.status === 'fulfilled') setActivities(actRes.value.data.data.audit_logs || [])
+      if (schedRes.status === 'fulfilled') setSchedules(schedRes.value)
     } catch (e) {
       console.error("Failed to fetch reports center data", e)
     } finally {

@@ -35,7 +35,7 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`
                                 relative flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium rounded-lg transition-all duration-200
-                                ${activeTab === tab.id ? 'text-indigo-700 dark:text-cyan-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10'}
+                                ${activeTab === tab.id ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10'}
                             `}
                         >
                             {activeTab === tab.id && (

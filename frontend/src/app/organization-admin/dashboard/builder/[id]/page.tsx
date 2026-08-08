@@ -133,9 +133,9 @@ export default function DashboardBuilderWorkspace() {
         <div className="flex items-center space-x-2">
           <button 
             onClick={() => setIsPreviewMode(!isPreviewMode)}
-            className={`flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${isPreviewMode ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+            className={`flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${isPreviewMode ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
           >
-            <Play className={`w-4 h-4 mr-1.5 ${isPreviewMode ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`} />
+            <Play className={`w-4 h-4 mr-1.5 ${isPreviewMode ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
             {isPreviewMode ? 'Exit Preview' : 'Preview'}
           </button>
           

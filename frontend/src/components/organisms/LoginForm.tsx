@@ -124,7 +124,7 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
         const role = response.user?.role;
         if (role === 'owner') {
           router.push("/owner/dashboard/datasets")
-        } else if (role === 'organization-admin' || role === 'tenant_admin' || role === 'org_admin') {
+        } else if ((role as string) === 'organization-admin' || (role as string) === 'tenant_admin' || role === 'org_admin') {
           router.push("/organization-admin/dashboard/datasets")
         } else if (role) {
           router.push(`/${role}/dashboard/datasets`)
@@ -169,7 +169,7 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
         const role = response.user?.role;
         if (role === 'owner') {
           router.push("/owner/dashboard/datasets")
-        } else if (role === 'organization-admin' || role === 'tenant_admin' || role === 'org_admin') {
+        } else if ((role as string) === 'organization-admin' || (role as string) === 'tenant_admin' || role === 'org_admin') {
           router.push("/organization-admin/dashboard/datasets")
         } else if (role) {
           router.push(`/${role}/dashboard/datasets`)

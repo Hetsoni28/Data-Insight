@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AnimatePresence } from "framer-motion"
@@ -122,7 +122,7 @@ export default function OnboardingPage() {
       {/* Decorative Background */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-200/40 blur-[100px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-blue-200/40 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-emerald-200/40 blur-[100px] rounded-full" />
       </div>
 
       <div className="w-full max-w-xl relative z-10">

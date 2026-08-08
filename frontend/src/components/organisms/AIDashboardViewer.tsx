@@ -35,11 +35,11 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
     <div className="w-full bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
 
       {/* ── HEADER ── */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-4 flex items-center gap-3 border-b border-slate-700/60">
-        <Brain className="w-6 h-6 text-emerald-400 shrink-0" />
+      <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 flex items-center gap-3 border-b border-emerald-800/40">
+        <Brain className="w-6 h-6 text-white/80 shrink-0" />
         <div className="min-w-0">
           <h2 className="text-base font-bold text-white truncate">{report.title}</h2>
-          <p className="text-xs text-slate-400 leading-tight">Deep AI Data Profiling & Statistical Analysis</p>
+          <p className="text-xs text-emerald-100/80 leading-tight">Deep AI Data Profiling & Statistical Analysis</p>
         </div>
       </div>
 

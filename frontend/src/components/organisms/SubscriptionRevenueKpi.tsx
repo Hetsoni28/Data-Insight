@@ -66,9 +66,9 @@ export function SubscriptionRevenueKpi({ data, isLoading }: KpiProps) {
       trend: "+15.2%",
       trendUp: true,
       sparkline: (data?.sparkline_revenue || []).map((v: number) => v * 12),
-      color: "text-blue-500",
-      bg: "bg-blue-50 dark:bg-blue-500/10",
-      sparklineColor: "#3b82f6"
+      color: "text-emerald-500",
+      bg: "bg-emerald-50 dark:bg-emerald-500/10",
+      sparklineColor: "#10b981"
     },
     {
       title: "Active Subscriptions",
@@ -77,9 +77,9 @@ export function SubscriptionRevenueKpi({ data, isLoading }: KpiProps) {
       trend: "+2 this month",
       trendUp: true,
       sparkline: [10, 12, 12, 14, 15, 18, 20],
-      color: "text-indigo-500",
-      bg: "bg-indigo-50 dark:bg-indigo-500/10",
-      sparklineColor: "#6366f1"
+      color: "text-teal-600 dark:text-teal-400",
+      bg: "bg-teal-50 dark:bg-teal-500/10",
+      sparklineColor: "#0d9488"
     },
     {
       title: "Total Revenue Collected",

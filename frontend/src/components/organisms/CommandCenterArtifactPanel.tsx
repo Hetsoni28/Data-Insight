@@ -18,8 +18,8 @@ export function CommandCenterArtifactPanel({ isOpen, onClose, type, title, conte
   const getIcon = () => {
     switch (type) {
       case "report": return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />
-      case "sql": return <Code className="w-5 h-5 text-blue-500" />
-      case "chart": return <LineChart className="w-5 h-5 text-purple-500" />
+      case "sql": return <Code className="w-5 h-5 text-emerald-500" />
+      case "chart": return <LineChart className="w-5 h-5 text-teal-500" />
       default: return null
     }
   }

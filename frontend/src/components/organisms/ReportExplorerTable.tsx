@@ -82,7 +82,7 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
               placeholder="Search reports..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           <select 
@@ -103,7 +103,7 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
           <thead className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 uppercase border-b border-slate-200 dark:border-slate-800">
             <tr>
               <th className="px-6 py-4 font-medium w-10">
-                <input type="checkbox" className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                <input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
               </th>
               <th className="px-6 py-4 font-medium">Report Name</th>
               <th className="px-6 py-4 font-medium">Category</th>
@@ -133,7 +133,7 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
               paginatedReports.map((report) => (
                 <tr key={report.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                   <td className="px-6 py-4">
-                    <input type="checkbox" className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
                   </td>
                   <td className="px-6 py-4 font-medium text-slate-900 dark:text-white flex items-center gap-3">
                     {report.report_type === 'excel' ? (
@@ -149,13 +149,13 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
                   <td className="px-6 py-4 text-slate-500">{new Date(report.created_at).toLocaleDateString()}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => onAction('preview', report.id)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded" title="Preview">
+                      <button onClick={() => onAction('preview', report.id)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded" title="Preview">
                         <Eye className="w-4 h-4" />
                       </button>
                       <button onClick={() => onAction('download', report.id)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded" title="Download">
                         <Download className="w-4 h-4" />
                       </button>
-                      <button onClick={() => onAction('share', report.id)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded" title="Share">
+                      <button onClick={() => onAction('share', report.id)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded" title="Share">
                         <Share2 className="w-4 h-4" />
                       </button>
                       <button onClick={() => onAction('duplicate', report.id)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded" title="Duplicate">

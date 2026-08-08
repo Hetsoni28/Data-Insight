@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { 
   User, ShieldAlert, KeyRound, Save, Loader2, Image as ImageIcon, Smartphone, 
@@ -156,7 +156,7 @@ export function ProfileContentTabs({
             {/* QUICK STATS */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "AI Requests", value: profileData?.stats?.ai_requests?.toLocaleString() ?? "0", icon: Terminal, color: "text-blue-600", bg: "bg-blue-50" },
+                { label: "AI Requests", value: profileData?.stats?.ai_requests?.toLocaleString() ?? "0", icon: Terminal, color: "text-emerald-600", bg: "bg-emerald-50" },
                 { label: "Reports Generated", value: profileData?.stats?.reports_generated?.toLocaleString() ?? "0", icon: Database, color: "text-emerald-600", bg: "bg-emerald-50" },
                 { label: "API Calls", value: profileData?.stats?.api_calls?.toLocaleString() ?? "0", icon: Code, color: "text-purple-600", bg: "bg-purple-50" },
                 { label: "Storage (MB)", value: profileData?.stats?.storage_used_mb?.toLocaleString() ?? "0", icon: Server, color: "text-amber-600", bg: "bg-amber-50" },

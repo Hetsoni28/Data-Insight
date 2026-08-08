@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
@@ -73,7 +73,7 @@ export const AnalyticsComingSoonIllustration: React.FC = () => {
         transition={{ opacity: { duration: 0.5, delay: 0.2 }, x: { duration: 0.5, delay: 0.2 }, y: { duration: 3.5, repeat: Infinity, delay: 0.2 } }}
       >
         <span className="text-xs font-bold text-slate-800 dark:text-slate-200">8.4k</span>
-        <span className="text-[8px] text-blue-500 font-medium">Views</span>
+        <span className="text-[8px] text-emerald-500 font-medium">Views</span>
       </motion.div>
 
       {/* Floating Particles */}

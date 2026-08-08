@@ -64,11 +64,12 @@ async def client(test_db: AsyncSession):
     """
     from contextlib import asynccontextmanager
 
-    @asynccontextmanager
+    from app.api.deps import get_db
+
     async def override_get_db():
         yield test_db
 
-    app.dependency_overrides[get_async_session] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

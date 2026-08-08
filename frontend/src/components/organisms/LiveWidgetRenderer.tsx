@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React, { useEffect, useState } from "react"
 import ReactECharts from "echarts-for-react"
@@ -234,7 +234,7 @@ export function LiveWidgetRenderer({ widget }: LiveWidgetRendererProps) {
 
 function DatabaseIcon({ type }: { type: string }) {
   if (type === 'kpi') return <Activity className="w-12 h-12 opacity-30 text-emerald-500" />
-  if (type === 'chart_bar') return <BarChart3 className="w-12 h-12 opacity-30 text-blue-500" />
+  if (type === 'chart_bar') return <BarChart3 className="w-12 h-12 opacity-30 text-emerald-500" />
   if (type === 'chart_line') return <LineChart className="w-12 h-12 opacity-30 text-indigo-500" />
   if (type === 'chart_pie') return <PieChart className="w-12 h-12 opacity-30 text-amber-500" />
   return <FileText className="w-12 h-12 opacity-30" />

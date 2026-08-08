@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -402,7 +402,7 @@ function ExperimentsGrid({ experiments, isLoading }: { experiments?: FeatureExpe
                 {paginatedExperiments.map(exp => (
                 <div key={exp.id} className="border border-slate-200/60 dark:border-white/10 rounded-xl p-5 bg-slate-50 dark:bg-white/5 relative overflow-hidden">
                     {exp.status === 'running' && (
-                        <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
+                        <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
                             Running
                         </div>
                     )}

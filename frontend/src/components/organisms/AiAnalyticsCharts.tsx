@@ -77,9 +77,9 @@ export function AiAnalyticsCharts() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { title: "Total Monthly Requests", value: (kpis?.monthly_requests || 0).toLocaleString(), change: requestsTrend, icon: Zap, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
-          { title: "Active AI Models", value: (kpis?.available_models || 0).toString(), change: modelsTrend, icon: Bot, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-500/10" },
+          { title: "Active AI Models", value: (kpis?.available_models || 0).toString(), change: modelsTrend, icon: Bot, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
           { title: "Avg. Latency", value: `${kpis?.avg_latency_ms || 0}ms`, change: latencyTrend, icon: Clock, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/10", inverse: true },
-          { title: "Monthly AI Cost", value: `$${(kpis?.monthly_cost_usd || 0).toLocaleString()}`, change: costTrend, icon: Coins, color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-500/10", inverse: true },
+          { title: "Monthly AI Cost", value: `$${(kpis?.monthly_cost_usd || 0).toLocaleString()}`, change: costTrend, icon: Coins, color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-500/10", inverse: true },
         ].map((metric, idx) => (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}

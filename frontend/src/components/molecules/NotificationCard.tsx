@@ -16,7 +16,7 @@ export const CATEGORY_ICONS: Record<string, any> = {
 export const PRIORITY_COLORS: Record<string, string> = {
   Critical: "border-red-500 bg-red-50 text-red-700",
   High: "border-orange-500 bg-orange-50 text-orange-700",
-  Medium: "border-blue-500 bg-blue-50 text-blue-700",
+  Medium: "border-emerald-500 bg-emerald-50 text-emerald-700",
   Low: "border-slate-300 bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-slate-300",
 };
 

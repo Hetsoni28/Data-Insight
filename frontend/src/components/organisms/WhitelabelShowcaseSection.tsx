@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import React, { useState } from "react"
 import { motion } from "framer-motion"
 import {
@@ -44,9 +44,9 @@ const BRAND_THEMES = [
     tertiary: "#EFF6FF",
     neutral: "#F8FAFC",
     activeCardBorder: "border-[#2563EB]",
-    activeCardBg: "bg-blue-50/80",
+    activeCardBg: "bg-emerald-50/80",
     activeRing: "ring-[#2563EB]",
-    activeTextColor: "text-blue-700",
+    activeTextColor: "text-emerald-700",
     sampleDomain: "insights.vortexgroup.io",
     primaryRamp: ["#172554", "#1e3a8a", "#1e40af", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe", "#dbeafe"],
     secondaryRamp: ["#0f172a", "#172554", "#1e3a8a", "#1e40af", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe"],

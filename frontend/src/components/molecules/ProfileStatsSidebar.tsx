@@ -31,10 +31,10 @@ export function ProfileStatsSidebar({ profileData, setActiveTab, setIsApiKeyModa
 
         <div className="p-5 rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400"/> Security Score
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400"/> Security Score
           </h3>
           <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2 mb-2 overflow-hidden">
-            <div className={`h-2 rounded-full ${securityScore >= 80 ? 'bg-blue-500' : securityScore >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${securityScore}%` }}></div>
+            <div className={`h-2 rounded-full ${securityScore >= 80 ? 'bg-emerald-500' : securityScore >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${securityScore}%` }}></div>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
             {securityScore >= 80 ? 'Excellent! 2FA is enabled and passwords are strong.' : 'Your security score is low. Please review your settings.'}

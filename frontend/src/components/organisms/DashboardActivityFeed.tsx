@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { FileSpreadsheet, Loader2, Clock, Database, ChevronRight } from "lucide-react"
@@ -49,8 +49,8 @@ export function DashboardActivityFeed() {
     >
       <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-            <Clock className="h-4 w-4 text-blue-600" />
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <Clock className="h-4 w-4 text-emerald-600" />
           </div>
           <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Recent Activity</h3>
         </div>
@@ -95,7 +95,7 @@ export function DashboardActivityFeed() {
                 <div className="flex items-center gap-3">
                   <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
                     item.status === 'processed' ? 'bg-emerald-100 text-emerald-700' : 
-                    item.status === 'processing' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                    item.status === 'processing' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-100 text-amber-700'
                   }`}>
                     {item.status}
                   </span>

@@ -22,9 +22,10 @@ interface GenerateReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onReportGenerated: () => void;
+  defaultCategory?: string;
 }
 
-export function GenerateReportDialog({ open, onOpenChange, onReportGenerated }: GenerateReportDialogProps) {
+export function GenerateReportDialog({ open, onOpenChange, onReportGenerated, defaultCategory = "executive" }: GenerateReportDialogProps) {
   const { activeWs } = useWorkspaceStore();
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [isLoadingDatasets, setIsLoadingDatasets] = useState(false);
@@ -32,13 +33,15 @@ export function GenerateReportDialog({ open, onOpenChange, onReportGenerated }: 
   const [selectedDatasetId, setSelectedDatasetId] = useState("");
   const [title, setTitle] = useState("");
   const [reportType, setReportType] = useState("excel");
+  const [reportCategory, setReportCategory] = useState(defaultCategory);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (open && activeWs) {
       fetchDatasets();
+      setReportCategory(defaultCategory);
     }
-  }, [open, activeWs]);
+  }, [open, activeWs, defaultCategory]);
 
   const fetchDatasets = async () => {
     if (!activeWs) return;
@@ -69,7 +72,7 @@ export function GenerateReportDialog({ open, onOpenChange, onReportGenerated }: 
 
     setIsSubmitting(true);
     try {
-      await ReportService.generate(selectedDatasetId, title, reportType);
+      await ReportService.generate(selectedDatasetId, title, reportType, reportCategory);
       toast.success("Report generation started! This may take a minute.");
       onReportGenerated();
       onOpenChange(false);
@@ -90,7 +93,7 @@ export function GenerateReportDialog({ open, onOpenChange, onReportGenerated }: 
             Generate New Report
           </DialogTitle>
           <DialogDescription>
-            Our AI will analyze your dataset and generate a professional, multi-sheet executive report.
+            Our AI will analyze your dataset and generate a professional report.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
@@ -131,16 +134,19 @@ export function GenerateReportDialog({ open, onOpenChange, onReportGenerated }: 
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="type">Report Format</Label>
+            <Label htmlFor="category">Report Type</Label>
             <select
-              id="type"
-              value={reportType}
-              onChange={(e) => setReportType(e.target.value)}
+              id="category"
+              value={reportCategory}
+              onChange={(e) => setReportCategory(e.target.value)}
               className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               disabled={isSubmitting}
             >
-              <option value="excel">AI Excel Workbook (.xlsx)</option>
-              <option value="pdf" disabled>Executive PDF (Coming Soon)</option>
+              <option value="executive">Executive Summary (JSON + UI)</option>
+              <option value="ai-insight">AI Analysis Report (JSON + UI)</option>
+              <option value="dashboard">BI Dashboard Layout (JSON + UI)</option>
+              <option value="forecast">Trend Forecast (JSON + UI)</option>
+              <option value="excel">Full AI Excel Workbook (.xlsx)</option>
             </select>
           </div>
           <DialogFooter className="pt-4">

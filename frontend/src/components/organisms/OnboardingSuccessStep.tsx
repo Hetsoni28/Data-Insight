@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+﻿import React, { useMemo } from "react"
 import { motion } from "framer-motion"
 import { CheckCircle2, Check, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -38,7 +38,7 @@ export function OnboardingSuccessStep({ router }: OnboardingSuccessStepProps) {
             transition={{ duration: p.duration, ease: "easeOut", delay: p.delay }}
             className={cn(
               "absolute w-3 h-3 rounded-sm",
-              ["bg-blue-500", "bg-emerald-500", "bg-yellow-400", "bg-pink-500", "bg-purple-500"][p.id % 5]
+              ["bg-emerald-500", "bg-emerald-500", "bg-yellow-400", "bg-pink-500", "bg-purple-500"][p.id % 5]
             )}
           />
         ))}

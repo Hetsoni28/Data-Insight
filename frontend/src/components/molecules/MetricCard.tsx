@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -44,9 +44,9 @@ export function MetricCard({
       stroke: "#10b981",
     },
     blue: {
-      bg: "bg-blue-50 dark:bg-blue-500/10",
-      text: "text-blue-600 dark:text-blue-400",
-      trendText: "text-blue-600 dark:text-blue-400",
+      bg: "bg-emerald-50 dark:bg-emerald-500/10",
+      text: "text-emerald-600 dark:text-emerald-400",
+      trendText: "text-emerald-600 dark:text-emerald-400",
       stroke: "#3b82f6",
     },
     rose: {

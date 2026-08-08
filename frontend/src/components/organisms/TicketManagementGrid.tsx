@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { Search, Filter, MoreHorizontal, MessageSquare, Clock, Eye, CheckCircle2, UserPlus, Trash2 } from "lucide-react";
@@ -80,7 +80,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
     switch (priority) {
       case "critical": return "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20";
       case "high": return "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20";
-      case "medium": return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
+      case "medium": return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
       default: return "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20";
     }
   };
@@ -88,7 +88,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "open": return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400">Open</Badge>;
-      case "in_progress": return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400">In Progress</Badge>;
+      case "in_progress": return <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400">In Progress</Badge>;
       case "resolved": return <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400">Resolved</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
@@ -191,7 +191,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenuItem onClick={() => toast.info(`Viewing ticket: ${ticket.subject}`)}>  
-                    <Eye className="h-4 w-4 mr-2.5 text-blue-500" /> View Details
+                    <Eye className="h-4 w-4 mr-2.5 text-emerald-500" /> View Details
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => updateTicketMutation.mutate({ id: ticket.id, data: { status: 'resolved' } })}>  
                     <CheckCircle2 className="h-4 w-4 mr-2.5 text-emerald-500" /> Mark as Resolved

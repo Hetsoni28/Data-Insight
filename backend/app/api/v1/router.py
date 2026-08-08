@@ -30,6 +30,7 @@ from app.api.v1.tenant_team import router as tenant_team_router
 from app.api.v1.tenant_datasets import router as tenant_datasets_router
 from app.api.v1.tenant_reports import router as tenant_reports_router
 from app.api.v1.tenant_dashboards import router as tenant_dashboards_router
+from app.api.v1.tenant_settings import router as tenant_settings_router
 
 api_router = APIRouter()
 
@@ -48,18 +49,21 @@ api_router.include_router(webhooks_router)
 api_router.include_router(profile_router)
 api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(support_router, prefix="/support", tags=["Support"])
-api_router.include_router(owner_billing_router, prefix="/owner/subscriptions", tags=["Owner Billing"])
+api_router.include_router(owner_billing_router, prefix="/owner/billing", tags=["Owner Billing"])
 api_router.include_router(owner_ai_router, prefix="/owner/ai", tags=["Owner AI"])
 api_router.include_router(owner_analytics_router, prefix="/owner/analytics", tags=["Owner Analytics"])
-api_router.include_router(owner_api_gateway_router)
-api_router.include_router(owner_storage_router)
+api_router.include_router(owner_api_gateway_router, prefix="/owner/api-gateway", tags=["Owner API Gateway"])
+api_router.include_router(owner_storage_router, prefix="/owner/storage", tags=["Owner Storage"])
 api_router.include_router(owner_integrations_router, prefix="/owner/integrations", tags=["Owner Integrations"])
 api_router.include_router(owner_security_router, prefix="/owner/security", tags=["Owner Security"])
 api_router.include_router(owner_audit_router, prefix="/owner/audit", tags=["Owner Audit"])
 api_router.include_router(owner_features_router, prefix="/owner/features", tags=["Owner Features"])
 api_router.include_router(owner_health_router, prefix="/owner/health", tags=["Owner Health"])
+
+# Tenant specific scoped routes
 api_router.include_router(tenant_dashboard_router, prefix="/tenant-dashboard", tags=["Tenant Dashboard"])
 api_router.include_router(tenant_team_router, prefix="/tenant-team", tags=["Tenant Team"])
 api_router.include_router(tenant_datasets_router, prefix="/tenant-datasets", tags=["Tenant Datasets"])
 api_router.include_router(tenant_reports_router, prefix="/tenant-reports", tags=["Tenant Reports"])
 api_router.include_router(tenant_dashboards_router, prefix="/tenant-dashboards", tags=["Tenant Dashboards"])
+api_router.include_router(tenant_settings_router, prefix="/tenant-settings", tags=["Tenant Settings"])

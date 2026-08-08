@@ -42,7 +42,7 @@ export const LoadingPulse: React.FC<LoadingPulseProps> = ({
           animate={{ rotate: -360 }}
           transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
         >
-          <div className="absolute bottom-0 right-1/2 -mr-1.5 -mb-1.5 w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+          <div className="absolute bottom-0 right-1/2 -mr-1.5 -mb-1.5 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
         </motion.div>
 
         {/* Center Pulse Core */}
@@ -56,7 +56,7 @@ export const LoadingPulse: React.FC<LoadingPulseProps> = ({
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         >
           <motion.div
-            className="w-4 h-4 bg-gradient-to-tr from-emerald-500 to-blue-500 rounded-full"
+            className="w-4 h-4 bg-gradient-to-tr from-emerald-400 to-emerald-600 rounded-full"
             animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />

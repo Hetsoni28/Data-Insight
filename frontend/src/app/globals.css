@@ -8,7 +8,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  /* Wire Inter to --font-sans so Tailwind's font-sans utility uses it */
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
@@ -51,7 +50,7 @@
 }
 
 /* ─── Brand Color System (Data Insight) ──────────────────────────────────── */
-/* Primary:   #108981  (Teal Green)    */
+/* Primary:   #10B981  (Emerald Green) */
 /* Secondary: #059669  (Deep Green)    */
 /* Tertiary:  #ECFDF5  (Mint Tint)     */
 /* Neutral:   #F8FAFC  (Off White)     */
@@ -64,7 +63,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.13 0.015 265);
 
-  /* Primary: #10B981 (Emerald 500 — exact design system color) */
+  /* Primary: #10B981 (Emerald 500) */
   --primary: oklch(0.70 0.17 162);
   --primary-foreground: oklch(1 0 0);
 
@@ -79,9 +78,11 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.92 0.005 265);
   --input: oklch(0.92 0.005 265);
+
+  /* Ring: brand emerald — no more blue focus rings */
   --ring: oklch(0.70 0.17 162);
 
-  /* Chart colors: exact green spectrum from design system */
+  /* Charts: green spectrum */
   --chart-1: oklch(0.70 0.17 162);
   --chart-2: oklch(0.60 0.16 162);
   --chart-3: oklch(0.80 0.13 162);
@@ -107,7 +108,6 @@
   --popover: oklch(0.14 0.012 265);
   --popover-foreground: oklch(0.97 0.005 265);
 
-  /* Primary: slightly lighter #10B981 in dark mode for contrast */
   --primary: oklch(0.72 0.18 162);
   --primary-foreground: oklch(0.08 0.01 265);
 
@@ -149,6 +149,69 @@
     @apply font-sans;
     scroll-behavior: smooth;
   }
+
+  /* ─── Global: Replace ALL blue accents with brand emerald #10B981 ────────── */
+
+  /* Focus rings → emerald (replaces browser blue) */
+  *:focus-visible {
+    outline-color: #10B981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+  }
+
+  /* Text selection → emerald tint */
+  ::selection {
+    background-color: rgba(16, 185, 129, 0.18);
+    color: inherit;
+  }
+
+  /* Global scrollbar → emerald */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.25);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(16, 185, 129, 0.45);
+  }
+}
+
+/* ─── Prose / Markdown: Override default blue → brand emerald ──────────────── */
+.prose a, .prose-sm a {
+  color: #10B981 !important;
+  text-decoration-color: rgba(16, 185, 129, 0.4) !important;
+}
+.prose a:hover, .prose-sm a:hover {
+  color: #059669 !important;
+}
+.prose code, .prose-sm code {
+  color: #059669 !important;
+  background-color: #ECFDF5 !important;
+  border: 1px solid #A7F3D0;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.8em;
+}
+.dark .prose code, .dark .prose-sm code {
+  color: #6EE7B7 !important;
+  background-color: rgba(16, 185, 129, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+/* Bullet points → emerald */
+.prose ul > li::marker, .prose-sm ul > li::marker {
+  color: #10B981 !important;
+}
+.prose ol > li::marker, .prose-sm ol > li::marker {
+  color: #10B981 !important;
+}
+/* Blockquote border → emerald */
+.prose blockquote, .prose-sm blockquote {
+  border-left-color: #10B981 !important;
 }
 
 /* ─── Custom Animations ────────────────────────────────────────────────────── */
@@ -158,8 +221,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px oklch(0.56 0.13 178 / 30%); }
-  50% { box-shadow: 0 0 40px oklch(0.56 0.13 178 / 60%); }
+  0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); }
 }
 
 @keyframes gradient-shift {
@@ -168,30 +231,29 @@
   100% { background-position: 0% 50%; }
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
 .gradient-animated {
   background-size: 200% 200%;
   animation: gradient-shift 6s ease infinite;
 }
 
-/* ─── Custom Scrollbar ─────────────────────────────────────────────────────── */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ─── Custom Scrollbar (legacy class) ─────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.3);
+  background: rgba(16, 185, 129, 0.3);
   border-radius: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.5);
+  background: rgba(16, 185, 129, 0.5);
+}
+
+/* ─── No Scrollbar Utility ─────────────────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { Link2, Activity, ShieldCheck, Zap, AlertTriangle } from "lucide-react";
@@ -40,7 +40,7 @@ function KpiCard({
         <div className={`p-2 rounded-xl ${color} bg-opacity-20`}>
           <Icon size={18} className="text-white" />
         </div>
-        <Activity size={14} className="text-blue-400 opacity-80" />
+        <Activity size={14} className="text-emerald-400 opacity-80" />
       </div>
       <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
       <p className="text-xs text-white/70 mt-1 font-medium">{label}</p>
@@ -64,7 +64,7 @@ export function IntegrationsHeroBanner() {
       label: "Active Connections",
       value: isLoading ? "—" : `${kpis?.online_connections ?? 0}/${kpis?.total_connections ?? 0}`,
       sub: "Connected platforms",
-      color: "bg-blue-500",
+      color: "bg-emerald-500",
     },
     {
       icon: Zap,
@@ -107,7 +107,7 @@ export function IntegrationsHeroBanner() {
               className="flex items-center gap-3 mb-2"
             >
               <div className="p-2.5 bg-white/10 rounded-xl border border-white/20">
-                <Link2 size={22} className="text-blue-400" />
+                <Link2 size={22} className="text-emerald-400" />
               </div>
               <h1 className="text-3xl font-bold text-white tracking-tight">
                 Enterprise Integration Hub

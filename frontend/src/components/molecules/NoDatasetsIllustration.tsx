@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
@@ -21,7 +21,7 @@ export const NoDatasetsIllustration: React.FC = () => {
     <div className="relative w-64 h-64 flex items-center justify-center">
       {/* Background Pulse */}
       <motion.div
-        className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl"
+        className="absolute inset-0 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-3xl"
         animate={{
           scale: [1, 1.2, 1],
           opacity: [0.4, 0.7, 0.4],
@@ -35,12 +35,12 @@ export const NoDatasetsIllustration: React.FC = () => {
 
       {/* Cloud Core */}
       <motion.div
-        className="relative z-10 w-28 h-20 bg-white dark:bg-white/10 rounded-3xl shadow-[0_10px_40px_-10px_rgba(59,130,246,0.3)] border border-slate-200/60 dark:border-white/10 flex items-center justify-center overflow-hidden"
+        className="relative z-10 w-28 h-20 bg-white dark:bg-white/10 rounded-3xl shadow-[0_10px_40px_-10px_rgba(16,185,129,0.3)] border border-slate-200/60 dark:border-white/10 flex items-center justify-center overflow-hidden"
         initial={{ y: 0 }}
         animate={{ y: [-4, 4, -4] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent opacity-60" />
         
         {/* Cloud symbol details */}
         <div className="relative flex items-center justify-center">
@@ -48,7 +48,7 @@ export const NoDatasetsIllustration: React.FC = () => {
             <motion.path
               d="M14 26C8.47715 26 4 21.5228 4 16C4 10.4772 8.47715 6 14 6C15.1122 6 16.182 6.18182 17.1788 6.51351C19.1171 2.65997 23.1873 0 28 0C35.1797 0 41 5.8203 41 13C41 13.435 40.9786 13.865 40.937 14.2891C44.9388 15.228 48 18.847 48 23.1111C48 28.0204 44.0204 32 39.1111 32H14V26Z"
               fill="currentColor"
-              className="text-blue-500/20"
+              className="text-emerald-500/20"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 1 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
@@ -58,7 +58,7 @@ export const NoDatasetsIllustration: React.FC = () => {
               stroke="currentColor"
               strokeWidth="3"
               strokeLinecap="round"
-              className="text-blue-500"
+              className="text-emerald-500"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 2, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}
@@ -123,7 +123,7 @@ export const NoDatasetsIllustration: React.FC = () => {
       {particles.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute w-1 h-1 bg-blue-400 rounded-full"
+          className="absolute w-1 h-1 bg-emerald-400 rounded-full"
           style={{ left: p.left, top: p.top }}
           initial={{ opacity: 0, scale: 0 }}
           animate={{

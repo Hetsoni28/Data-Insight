@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Info, Activity, Clock } from "lucide-react";
@@ -14,14 +14,14 @@ export function PlatformIncidents({ incidents }: PlatformIncidentsProps) {
     switch (severity) {
       case "critical": return "border-rose-500 bg-rose-50 dark:bg-rose-950/20";
       case "major": return "border-orange-500 bg-orange-50 dark:bg-orange-950/20";
-      default: return "border-blue-500 bg-blue-50 dark:bg-blue-950/20";
+      default: return "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "investigating": return <AlertTriangle className="w-5 h-5 text-orange-500" />;
-      case "monitoring": return <Activity className="w-5 h-5 text-blue-500" />;
+      case "monitoring": return <Activity className="w-5 h-5 text-emerald-500" />;
       case "resolved": return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
       default: return <Info className="w-5 h-5 text-slate-500" />;
     }

@@ -25,7 +25,7 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
   
   // Determine gradient based on role
   const gradientClass = user.role === "manager" 
-    ? "bg-gradient-to-br from-indigo-500 to-purple-600" 
+    ? "bg-gradient-to-br from-teal-500 to-emerald-600" 
     : user.role === "org_admin"
     ? "bg-gradient-to-br from-amber-500 to-orange-600"
     : "bg-gradient-to-br from-emerald-500 to-teal-600"
@@ -61,7 +61,7 @@ export function UserCard({ user, type, isProcessing = false, onApprove, onReject
             <span className="hidden sm:inline w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full" />
             
             <span className={`flex items-center gap-1 capitalize px-2 py-0.5 rounded-md text-xs font-medium border
-              ${user.role === 'manager' ? 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20' : 
+              ${user.role === 'manager' ? 'bg-teal-50 text-teal-700 border-teal-100 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20' : 
                 user.role === 'org_admin' ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20' : 
                 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'}`}
             >

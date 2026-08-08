@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -151,7 +151,7 @@ export function AnalyticsHeroBanner({ onRefresh, onFilterChange }: AnalyticsHero
               <FileSpreadsheet className="h-4 w-4 mr-2 text-emerald-400" /> Export as CSV
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleExport("Shareable Link")}>
-              <Share2 className="h-4 w-4 mr-2 text-blue-400" /> Copy Shareable Link
+              <Share2 className="h-4 w-4 mr-2 text-emerald-400" /> Copy Shareable Link
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

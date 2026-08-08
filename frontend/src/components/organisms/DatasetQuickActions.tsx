@@ -18,9 +18,9 @@ export function DatasetQuickActions({ onAction }: { onAction: (action: string) =
 
       <button 
         onClick={() => onAction('ai-excel')}
-        className="flex items-center gap-3 p-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:border-indigo-500 hover:shadow-sm transition-all text-left"
+        className="flex items-center gap-3 p-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:border-emerald-500 hover:shadow-sm transition-all text-left"
       >
-        <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg">
+        <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
           <FileSpreadsheet className="w-5 h-5" />
         </div>
         <div>
@@ -31,9 +31,9 @@ export function DatasetQuickActions({ onAction }: { onAction: (action: string) =
 
       <button 
         onClick={() => onAction('dashboard')}
-        className="flex items-center gap-3 p-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:border-blue-500 hover:shadow-sm transition-all text-left"
+        className="flex items-center gap-3 p-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:border-emerald-500 hover:shadow-sm transition-all text-left"
       >
-        <div className="p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg">
+        <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
           <LayoutDashboard className="w-5 h-5" />
         </div>
         <div>

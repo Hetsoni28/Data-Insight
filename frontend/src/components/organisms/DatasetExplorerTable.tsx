@@ -131,10 +131,10 @@ export function DatasetExplorerTable({ datasets, loading, onAction, statusFilter
                       <button onClick={() => onAction('analyze', dataset.id)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded" title="Analyze Dataset">
                         <ShieldCheck className="w-4 h-4" />
                       </button>
-                      <button onClick={() => onAction('ai-excel', dataset.id)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded" title="Generate AI Excel">
+                      <button onClick={() => onAction('ai-excel', dataset.id)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded" title="Generate AI Excel">
                         <FileSpreadsheet className="w-4 h-4" />
                       </button>
-                      <button onClick={() => onAction('dashboard', dataset.id)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded" title="Create Dashboard">
+                      <button onClick={() => onAction('dashboard', dataset.id)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded" title="Create Dashboard">
                         <Database className="w-4 h-4" />
                       </button>
                       <div className="w-px h-4 bg-slate-200 dark:bg-white/10 my-auto mx-1"></div>

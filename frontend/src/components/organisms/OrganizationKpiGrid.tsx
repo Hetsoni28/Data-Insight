@@ -51,8 +51,8 @@ export function OrganizationKpiGrid({ kpis }: { kpis: any }) {
       value: kpis.ai_requests?.total,
       growth: kpis.ai_requests?.growth,
       icon: Cpu,
-      color: "text-purple-600 dark:text-purple-400",
-      bg: "bg-purple-100 dark:bg-purple-500/10"
+      color: "text-teal-600 dark:text-teal-400",
+      bg: "bg-teal-50 dark:bg-teal-500/10"
     }
   ]
 

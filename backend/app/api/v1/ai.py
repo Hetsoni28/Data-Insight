@@ -2,6 +2,7 @@
 
 import uuid
 import json
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_db, get_current_active_tenant_user
 from app.models.user import User
 from app.services.ai_service import AIService
-from app.core.exceptions import ForbiddenException, AIServiceException
+from app.repositories.chat import ChatRepository
+from app.core.exceptions import ForbiddenException, ResourceNotFoundException, AIServiceException
 from app.schemas.ai import (
     AIChatRequest,
     AIChatResponse,
@@ -18,6 +20,14 @@ from app.schemas.ai import (
     AIAnalyzeRequest,
     AIAnalyzeResponse,
     AIProvidersListResponse,
+    ChatSessionCreate,
+    ChatSessionUpdate,
+    ChatSessionResponse,
+    ChatSessionListResponse,
+    ChatMessageResponse,
+    AICopilotMessageRequest,
+    AICopilotMessageResponse,
+    AICopilotSuggestionsResponse,
 )
 
 router = APIRouter(prefix="/ai", tags=["AI Copilot"])
@@ -167,3 +177,309 @@ async def get_job_status(job_id: str):
         "status": result.status,
         "result": result.result if result.ready() else None,
     }
+
+
+# =========================================================================
+# Phase 6: AI Copilot — Sessions, Multi-Turn Memory & Visual Artifacts
+# =========================================================================
+
+@router.get(
+    "/suggestions/{dataset_id}",
+    response_model=AICopilotSuggestionsResponse,
+    summary="Get proactive smart contextual questions for a dataset",
+)
+async def get_dataset_suggestions(
+    dataset_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Inspects dataset profiling and returns smart categorized questions."""
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required.")
+    svc = AIService(db)
+    try:
+        suggestions = await svc.get_dataset_suggestions(dataset_id=dataset_id, actor=current_user)
+        return {
+            "dataset_id": dataset_id,
+            "suggestions": suggestions,
+        }
+    except ResourceNotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate suggestions: {str(e)}")
+
+
+@router.get(
+    "/sessions",
+    response_model=ChatSessionListResponse,
+    summary="List persistent chat sessions for current user",
+)
+async def list_chat_sessions(
+    dataset_id: Optional[uuid.UUID] = None,
+    limit: int = 50,
+    offset: int = 0,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve chat history sessions ordered by latest activity."""
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required.")
+    chat_repo = ChatRepository(db)
+    sessions = await chat_repo.list_sessions(
+        tenant_id=current_user.tenant_id,
+        user_id=current_user.id,
+        dataset_id=dataset_id,
+        limit=limit,
+        offset=offset,
+    )
+    total = await chat_repo.count_sessions(
+        tenant_id=current_user.tenant_id,
+        user_id=current_user.id,
+        dataset_id=dataset_id,
+    )
+
+    results = []
+    for s in sessions:
+        results.append(
+            ChatSessionResponse(
+                id=s.id,
+                tenant_id=s.tenant_id,
+                user_id=s.user_id,
+                title=s.title,
+                dataset_id=s.dataset_id,
+                dataset_name=s.dataset.name if s.dataset else None,
+                created_at=s.created_at,
+                updated_at=s.updated_at,
+                message_count=len(s.messages) if s.messages else 0,
+                messages=[
+                    ChatMessageResponse(
+                        id=m.id,
+                        session_id=m.session_id,
+                        role=m.role,
+                        content=m.content,
+                        artifact_data=m.artifact_data,
+                        created_at=m.created_at,
+                    )
+                    for m in (s.messages or [])
+                ],
+            )
+        )
+
+    return {"sessions": results, "total": total}
+
+
+@router.post(
+    "/sessions",
+    response_model=ChatSessionResponse,
+    status_code=201,
+    summary="Create a new persistent AI Copilot chat session",
+)
+async def create_chat_session(
+    body: ChatSessionCreate,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Start a new chat session optionally bound to a dataset."""
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required.")
+    chat_repo = ChatRepository(db)
+    session = await chat_repo.create_session(
+        tenant_id=current_user.tenant_id,
+        user_id=current_user.id,
+        title=body.title or "New Chat",
+        dataset_id=body.dataset_id,
+    )
+    return ChatSessionResponse(
+        id=session.id,
+        tenant_id=session.tenant_id,
+        user_id=session.user_id,
+        title=session.title,
+        dataset_id=session.dataset_id,
+        dataset_name=session.dataset.name if session.dataset else None,
+        created_at=session.created_at,
+        updated_at=session.updated_at,
+        message_count=0,
+        messages=[],
+    )
+
+
+@router.get(
+    "/sessions/{session_id}",
+    response_model=ChatSessionResponse,
+    summary="Get a chat session with full conversation history and visual artifacts",
+)
+async def get_chat_session(
+    session_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Fetch complete session history with interactive chart artifacts."""
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required.")
+    chat_repo = ChatRepository(db)
+    session = await chat_repo.get_session(
+        session_id=session_id,
+        tenant_id=current_user.tenant_id,
+        user_id=current_user.id,
+        load_messages=True,
+    )
+    if not session:
+        raise HTTPException(status_code=404, detail="Chat session not found.")
+
+    return ChatSessionResponse(
+        id=session.id,
+        tenant_id=session.tenant_id,
+        user_id=session.user_id,
+        title=session.title,
+        dataset_id=session.dataset_id,
+        dataset_name=session.dataset.name if session.dataset else None,
+        created_at=session.created_at,
+        updated_at=session.updated_at,
+        message_count=len(session.messages) if session.messages else 0,
+        messages=[
+            ChatMessageResponse(
+                id=m.id,
+                session_id=m.session_id,
+                role=m.role,
+                content=m.content,
+                artifact_data=m.artifact_data,
+                created_at=m.created_at,
+            )
+            for m in (session.messages or [])
+        ],
+    )
+
+
+@router.patch(
+    "/sessions/{session_id}",
+    response_model=ChatSessionResponse,
+    summary="Update chat session title or bound dataset",
+)
+async def update_chat_session(
+    session_id: uuid.UUID,
+    body: ChatSessionUpdate,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Rename a session or switch its dataset."""
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required.")
+    chat_repo = ChatRepository(db)
+    session = await chat_repo.update_session(
+        session_id=session_id,
+        tenant_id=current_user.tenant_id,
+        user_id=current_user.id,
+        title=body.title,
+        dataset_id=body.dataset_id,
+    )
+    if not session:
+        raise HTTPException(status_code=404, detail="Chat session not found.")
+
+    return ChatSessionResponse(
+        id=session.id,
+        tenant_id=session.tenant_id,
+        user_id=session.user_id,
+        title=session.title,
+        dataset_id=session.dataset_id,
+        dataset_name=session.dataset.name if session.dataset else None,
+        created_at=session.created_at,
+        updated_at=session.updated_at,
+        message_count=len(session.messages) if session.messages else 0,
+        messages=[
+            ChatMessageResponse(
+                id=m.id,
+                session_id=m.session_id,
+                role=m.role,
+                content=m.content,
+                artifact_data=m.artifact_data,
+                created_at=m.created_at,
+            )
+            for m in (session.messages or [])
+        ],
+    )
+
+
+@router.delete(
+    "/sessions/{session_id}",
+    status_code=204,
+    summary="Delete a chat session and all messages",
+)
+async def delete_chat_session(
+    session_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete conversation session permanently."""
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required.")
+    chat_repo = ChatRepository(db)
+    deleted = await chat_repo.delete_session(
+        session_id=session_id,
+        tenant_id=current_user.tenant_id,
+        user_id=current_user.id,
+    )
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Chat session not found.")
+    return None
+
+
+@router.post(
+    "/sessions/{session_id}/messages",
+    response_model=AICopilotMessageResponse,
+    summary="Send message into persistent session (returns answer + visual artifacts)",
+)
+async def send_session_message(
+    session_id: uuid.UUID,
+    body: AICopilotMessageRequest,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Execute AI query, store user & assistant messages, and generate visual artifacts."""
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required.")
+    svc = AIService(db)
+    try:
+        return await svc.chat_in_session(
+            session_id=session_id,
+            question=body.question,
+            actor=current_user,
+            preferred_provider=body.provider,
+        )
+    except ResourceNotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Copilot query failed: {str(e)}"
+        )
+
+
+@router.post(
+    "/sessions/{session_id}/messages/stream",
+    summary="Stream message in real-time via SSE and persist visual artifacts upon completion",
+)
+async def send_session_message_stream(
+    session_id: uuid.UUID,
+    body: AICopilotMessageRequest,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Stream token chunks and deliver visual artifact events directly into chat session."""
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required.")
+    svc = AIService(db)
+
+    async def sse_event_stream():
+        try:
+            async for chunk in svc.chat_in_session_stream(
+                session_id=session_id,
+                question=body.question,
+                actor=current_user,
+                preferred_provider=body.provider,
+            ):
+                yield chunk
+        except Exception as e:
+            err_payload = json.dumps({"type": "error", "error": str(e)})
+            yield f"data: {err_payload}\n\n"
+
+    return StreamingResponse(sse_event_stream(), media_type="text/event-stream")
+

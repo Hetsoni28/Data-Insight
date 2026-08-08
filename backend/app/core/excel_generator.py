@@ -90,10 +90,10 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
             if chart_type == "bar":
                 xl_chart = BarChart()
                 xl_chart.type = "col"
-                xl_chart.style = 10
+                xl_chart.style = 27
             elif chart_type == "line":
                 xl_chart = LineChart()
-                xl_chart.style = 13
+                xl_chart.style = 27
             elif chart_type == "pie":
                 xl_chart = PieChart()
             elif chart_type == "area":

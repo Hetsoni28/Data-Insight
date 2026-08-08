@@ -1,4 +1,4 @@
-import { Users, UserCheck, Mail, ShieldAlert } from "lucide-react"
+﻿import { Users, UserCheck, Mail, ShieldAlert } from "lucide-react"
 
 export function TeamOverviewKPIs({ stats }: { stats: any }) {
   if (!stats) return null
@@ -15,8 +15,8 @@ export function TeamOverviewKPIs({ stats }: { stats: any }) {
       title: "Online Now",
       value: stats.online_now,
       icon: UserCheck,
-      color: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-100 dark:bg-blue-500/10"
+      color: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-50 dark:bg-emerald-500/10"
     },
     {
       title: "Pending Invites",

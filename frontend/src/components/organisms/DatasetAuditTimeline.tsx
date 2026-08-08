@@ -4,8 +4,8 @@ import { PaginationControls } from "@/components/molecules/PaginationControls"
 
 export function DatasetAuditTimeline({ activities, loading }: { activities: any[], loading: boolean }) {
   const getIcon = (type: string, action: string) => {
-    if (type === 'ai_activity') return <Bot className="w-4 h-4 text-indigo-500" />
-    if (action.includes('upload')) return <UploadCloud className="w-4 h-4 text-blue-500" />
+    if (type === 'ai_activity') return <Bot className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+    if (action.includes('upload')) return <UploadCloud className="w-4 h-4 text-emerald-500" />
     if (action.includes('delete')) return <Trash2 className="w-4 h-4 text-rose-500" />
     if (action.includes('security')) return <ShieldCheck className="w-4 h-4 text-emerald-500" />
     return <Activity className="w-4 h-4 text-slate-500" />

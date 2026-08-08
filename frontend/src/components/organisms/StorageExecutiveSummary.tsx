@@ -1,4 +1,4 @@
-import { Sparkles, TrendingUp, AlertTriangle, ArrowRight, ShieldCheck } from "lucide-react"
+﻿import { Sparkles, TrendingUp, AlertTriangle, ArrowRight, ShieldCheck } from "lucide-react"
 
 interface StorageExecutiveSummaryProps {
   overview?: any
@@ -58,8 +58,8 @@ export function StorageExecutiveSummary({ overview }: StorageExecutiveSummaryPro
         </div>
 
         {/* Insight 4 */}
-        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/10 hover:border-blue-500/30 transition-colors">
-          <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 font-medium text-sm">
+        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/10 hover:border-emerald-500/30 transition-colors">
+          <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-400 font-medium text-sm">
             <ShieldCheck className="h-4 w-4" />
             Backup Health
           </div>

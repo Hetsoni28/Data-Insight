@@ -25,6 +25,13 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+      
+      // Inject workspace ID
+      const { useWorkspaceStore } = require("@/store/workspaceStore");
+      const activeWs = useWorkspaceStore.getState().activeWs;
+      if (activeWs?.id) {
+        config.headers["x-workspace-id"] = activeWs.id;
+      }
     }
 
     // Allow browser to set Content-Type with boundary for FormData

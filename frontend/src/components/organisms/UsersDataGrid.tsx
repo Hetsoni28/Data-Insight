@@ -137,13 +137,13 @@ export function UsersDataGrid() {
   const getRoleBadge = (role: string) => {
     switch (role?.toLowerCase()) {
       case 'owner':
-        return <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 text-xs font-semibold uppercase tracking-wider">Owner</span>
+        return <span className="px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 text-xs font-semibold uppercase tracking-wider">Owner</span>
       case 'org_admin':
-        return <span className="px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 text-xs font-semibold uppercase tracking-wider">Org Admin</span>
+        return <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 text-xs font-semibold uppercase tracking-wider">Org Admin</span>
       case 'manager':
-        return <span className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 text-xs font-semibold uppercase tracking-wider">Manager</span>
+        return <span className="px-2.5 py-1 rounded-md bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20 text-xs font-semibold uppercase tracking-wider">Manager</span>
       case 'analyst':
-        return <span className="px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 text-xs font-semibold uppercase tracking-wider">Analyst</span>
+        return <span className="px-2.5 py-1 rounded-md bg-cyan-50 text-cyan-700 border border-cyan-200 dark:bg-cyan-500/10 dark:text-cyan-400 dark:border-cyan-500/20 text-xs font-semibold uppercase tracking-wider">Analyst</span>
       case 'viewer':
       default:
         return <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 text-xs font-semibold uppercase tracking-wider">Viewer</span>
@@ -161,7 +161,7 @@ export function UsersDataGrid() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search users, emails, or orgs..." 
-              className="pl-9 h-10 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 dark:text-white dark:placeholder:text-slate-500 rounded-md focus-visible:ring-blue-500 shadow-sm"
+              className="pl-9 h-10 bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 dark:text-white dark:placeholder:text-slate-500 rounded-md focus-visible:ring-emerald-500 shadow-sm"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -222,7 +222,7 @@ export function UsersDataGrid() {
                     {/* User Info */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center border border-blue-100 dark:border-blue-500/20 shadow-sm">
+                        <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/20 shadow-sm">
                           {user.full_name ? user.full_name.charAt(0).toUpperCase() : <User className="h-5 w-5" />}
                         </div>
                         <div>
@@ -284,7 +284,7 @@ export function UsersDataGrid() {
                            />
                            <DropdownMenuSeparator />
                            <DropdownMenuItem onClick={() => handleViewDetails(user)}>
-                             <Eye className="h-4 w-4 mr-2.5 text-blue-500" /> View Details
+                             <Eye className="h-4 w-4 mr-2.5 text-emerald-500" /> View Details
                            </DropdownMenuItem>
                            <DropdownMenuItem onClick={() => handleImpersonate(user)}>
                              <Shield className="h-4 w-4 mr-2.5 text-violet-500" /> Impersonate User
@@ -330,7 +330,7 @@ export function UsersDataGrid() {
             <div className="flex flex-col h-full">
               <SheetHeader className="mb-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="h-12 w-12 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center border border-blue-100 dark:border-blue-500/20 shadow-sm">
+                  <div className="h-12 w-12 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/20 shadow-sm">
                     {selectedUser.full_name ? selectedUser.full_name.charAt(0).toUpperCase() : <User className="h-6 w-6" />}
                   </div>
                   <div>
@@ -365,7 +365,7 @@ export function UsersDataGrid() {
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider">Security</h3>
                   <Button variant="outline" onClick={() => handleImpersonate(selectedUser)} className="w-full justify-start h-10 mb-2">
-                    <Shield className="h-4 w-4 mr-2 text-purple-600" />
+                    <Shield className="h-4 w-4 mr-2 text-emerald-600 dark:text-emerald-400" />
                     Impersonate Session
                   </Button>
                   <Button variant="outline" onClick={() => handleResetPassword(selectedUser)} className="w-full justify-start h-10 mb-2">

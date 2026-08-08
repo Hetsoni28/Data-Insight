@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
@@ -70,7 +70,7 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
       case "PENDING":
       case "GENERATING":
         return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+          <Badge variant="secondary" className="bg-emerald-50 text-emerald-800 border-emerald-200">
             <Loader2 className="mr-1 h-3 w-3 animate-spin inline-block" /> 
             {progress}%
           </Badge>

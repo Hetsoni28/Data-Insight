@@ -119,7 +119,7 @@ export function LiveKpiDashboard() {
         icon={Building2} 
         trend={+12.5} 
         sparklineData={orgSparkline}
-        colorClass="text-blue-500"
+        colorClass="text-emerald-500"
         delay={0.1}
       />
       <KpiCard 
@@ -128,7 +128,7 @@ export function LiveKpiDashboard() {
         icon={Users} 
         trend={+8.2} 
         sparklineData={userSparkline}
-        colorClass="text-indigo-500"
+        colorClass="text-teal-500"
         delay={0.2}
       />
       <KpiCard 

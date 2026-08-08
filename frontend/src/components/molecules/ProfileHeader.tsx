@@ -39,7 +39,7 @@ export function ProfileHeader({ user, profileData, avatarUrl, setIsAvatarModalOp
             <div className="flex items-center gap-3">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{user?.full_name || "Platform Owner"}</h2>
               <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs font-semibold border border-emerald-200 dark:border-emerald-800">Owner</span>
-              <span className="px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 text-xs font-semibold border border-blue-200 dark:border-blue-800">Verified</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs font-semibold border border-emerald-200 dark:border-emerald-800">Verified</span>
             </div>
             <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500 dark:text-slate-400 font-medium">
               <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {user?.email}</span>

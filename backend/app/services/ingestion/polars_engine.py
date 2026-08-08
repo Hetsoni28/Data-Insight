@@ -224,6 +224,17 @@ class PolarsEngine:
         ft = file_type or p.suffix.lstrip(".")
         return cls.load_from_bytes(p.read_bytes(), file_type=ft, sheet_name=sheet_name, n_rows=n_rows)
 
+    @classmethod
+    def read_file(
+        cls,
+        path_or_url: Union[str, Path],
+        file_type: Optional[str] = None,
+        sheet_name: Optional[str] = None,
+        n_rows: Optional[int] = None,
+    ) -> pl.DataFrame:
+        """Load dataframe from path or file URL."""
+        return cls.load_from_path(path_or_url, file_type=file_type, sheet_name=sheet_name, n_rows=n_rows)
+
     @staticmethod
     def preview_rows(df: pl.DataFrame, n: int = 50) -> List[Dict[str, Any]]:
         """Return the top N rows formatted as JSON-serializable dictionaries."""

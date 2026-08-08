@@ -3,6 +3,47 @@ import api from "./api";
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  artifact_data?: any;
+}
+
+export interface ChatSessionItem {
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  dataset_id: string | null;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  messages?: ChatMessageItem[];
+  dataset?: {
+    id: string;
+    name: string;
+    row_count?: number;
+    column_count?: number;
+  };
+}
+
+export interface ChatMessageItem {
+  id: string;
+  session_id: string;
+  role: "user" | "assistant";
+  content: string;
+  artifact_data?: {
+    type: "chart" | "kpi" | "summary";
+    chart_config?: any;
+    kpi_data?: any;
+    metadata?: any;
+  } | null;
+  created_at: string;
+}
+
+export interface SuggestionItem {
+  question: string;
+  intent?: string;
+  expected_chart?: string;
+  category?: string;
+  icon?: string;
+  title?: string;
 }
 
 export interface ChatResponse {
@@ -18,16 +59,69 @@ export interface JobStatusResponse {
 
 export class AIService {
   /**
+   * Fetch all chat sessions for the current workspace / dataset.
+   */
+  static async getSessions(datasetId?: string, limit = 50, offset = 0): Promise<{ sessions: ChatSessionItem[]; total: number }> {
+    const params = new URLSearchParams();
+    if (datasetId) params.append("dataset_id", datasetId);
+    params.append("limit", limit.toString());
+    params.append("offset", offset.toString());
+    const res = await api.get(`/ai/sessions?${params.toString()}`);
+    return res.data;
+  }
+
+  /**
+   * Create a new persistent chat session.
+   */
+  static async createSession(data: { title?: string; dataset_id?: string }): Promise<ChatSessionItem> {
+    const res = await api.post("/ai/sessions", data);
+    return res.data;
+  }
+
+  /**
+   * Get a specific chat session with its full message history.
+   */
+  static async getSession(sessionId: string): Promise<ChatSessionItem> {
+    const res = await api.get(`/ai/sessions/${sessionId}`);
+    return res.data;
+  }
+
+  /**
+   * Update / rename a chat session.
+   */
+  static async updateSession(sessionId: string, data: { title: string }): Promise<ChatSessionItem> {
+    const res = await api.patch(`/ai/sessions/${sessionId}`, data);
+    return res.data;
+  }
+
+  /**
+   * Delete a chat session.
+   */
+  static async deleteSession(sessionId: string): Promise<void> {
+    await api.delete(`/ai/sessions/${sessionId}`);
+  }
+
+  /**
+   * Fetch dynamic contextual suggestions for a dataset.
+   */
+  static async getSuggestions(datasetId: string): Promise<SuggestionItem[]> {
+    const res = await api.get(`/ai/suggestions/${datasetId}`);
+    return res.data?.suggestions || [];
+  }
+
+  /**
    * Send a chat message to the AI Copilot.
    */
   static async chat(
     question: string,
-    datasetId: string,
+    datasetId?: string,
+    sessionId?: string,
     history: ChatMessage[] = []
   ): Promise<ChatResponse> {
     const response = await api.post("/ai/chat", {
       question,
       dataset_id: datasetId,
+      session_id: sessionId,
       history,
     });
     return response.data;
@@ -60,12 +154,14 @@ export class AIService {
    */
   static async copilotChatStream(
     question: string,
-    datasetId: string,
-    history: ChatMessage[],
-    provider: string,
-    onChunk: (chunk: string) => void,
-    onDone: () => void,
-    onError: (err: any) => void
+    datasetId?: string | null,
+    history: ChatMessage[] = [],
+    provider = "groq",
+    onChunk?: (chunk: string) => void,
+    onDone?: () => void,
+    onError?: (err: any) => void,
+    sessionId?: string | null,
+    onArtifact?: (artifact: any) => void
   ) {
     const token = localStorage.getItem("access_token");
     const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -77,7 +173,13 @@ export class AIService {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ question, dataset_id: datasetId, history, provider })
+        body: JSON.stringify({
+          question,
+          dataset_id: datasetId || undefined,
+          session_id: sessionId || undefined,
+          history,
+          provider
+        })
       });
 
       if (!response.ok) {
@@ -101,22 +203,23 @@ export class AIService {
           if (line.startsWith("data: ")) {
             const dataStr = line.slice(6);
             if (dataStr === "[DONE]") {
-              onDone();
+              onDone?.();
               return;
             }
             try {
               const data = JSON.parse(dataStr);
-              if (data.token) onChunk(data.token);
+              if (data.token && onChunk) onChunk(data.token);
+              if (data.artifact && onArtifact) onArtifact(data.artifact);
               if (data.error) throw new Error(data.error);
             } catch (e) {
-              // Ignore parse errors for incomplete chunks if any
+              // Ignore parse errors
             }
           }
         }
       }
-      onDone();
+      onDone?.();
     } catch (error) {
-      onError(error);
+      if (onError) onError(error);
     }
   }
 

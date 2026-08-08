@@ -51,12 +51,14 @@ export class ReportService {
     datasetId: string,
     title: string,
     reportType: string = "excel",
+    reportCategory: string = "executive",
     generationConfig?: Record<string, any>
   ): Promise<ReportJobResponse> {
-    const response = await api.post("/reports/generate", {
+    const response = await api.post("/tenant-reports/generate", {
       dataset_id: datasetId,
       title,
       report_type: reportType,
+      report_category: reportCategory,
       generation_config: generationConfig,
     });
     return response.data;

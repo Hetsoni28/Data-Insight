@@ -18,12 +18,12 @@ interface QuickAction {
 }
 
 const quickActions: QuickAction[] = [
-  { id: "exec-report", title: "Executive Report", icon: FileSpreadsheet, description: "Generate a summary of all metrics", color: "text-blue-500" },
+  { id: "exec-report", title: "Executive Report", icon: FileSpreadsheet, description: "Generate a summary of all metrics", color: "text-emerald-500" },
   { id: "analyze-revenue", title: "Analyze Revenue", icon: TrendingUp, description: "Compare MRR to last month", color: "text-emerald-500" },
   { id: "analyze-usage", title: "AI Usage", icon: Zap, description: "View API cost and token limits", color: "text-amber-500" },
   { id: "audit-security", title: "Security Review", icon: ShieldCheck, description: "Check recent audit logs", color: "text-rose-500" },
-  { id: "optimize-storage", title: "Optimize Storage", icon: Database, description: "Find unused large datasets", color: "text-indigo-500" },
-  { id: "create-dashboard", title: "Create Dashboard", icon: LineChart, description: "Build a new KPI dashboard", color: "text-purple-500" },
+  { id: "optimize-storage", title: "Optimize Storage", icon: Database, description: "Find unused large datasets", color: "text-teal-500" },
+  { id: "create-dashboard", title: "Create Dashboard", icon: LineChart, description: "Build a new KPI dashboard", color: "text-cyan-500" },
 ]
 
 interface CommandCenterQuickActionsProps {

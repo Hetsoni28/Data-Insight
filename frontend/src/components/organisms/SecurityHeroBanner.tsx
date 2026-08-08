@@ -79,7 +79,7 @@ export function SecurityHeroBanner({ overview, isLoading }: SecurityHeroBannerPr
                 <MetricCard 
                     title="Active Sessions" 
                     value={overview?.active_sessions} 
-                    icon={<UserCheck className="h-5 w-5 text-blue-400" />}
+                    icon={<UserCheck className="h-5 w-5 text-emerald-400" />}
                     isLoading={isLoading}
                     trend="Across the platform"
                 />
@@ -93,7 +93,7 @@ export function SecurityHeroBanner({ overview, isLoading }: SecurityHeroBannerPr
                 <MetricCard 
                     title="Total Events Logged" 
                     value={overview?.total_events} 
-                    icon={<Activity className="h-5 w-5 text-indigo-400" />}
+                    icon={<Activity className="h-5 w-5 text-emerald-400" />}
                     isLoading={isLoading}
                     trend="Since platform launch"
                 />

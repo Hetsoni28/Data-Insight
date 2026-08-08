@@ -15,19 +15,19 @@ interface StorageActivityTimelineProps {
 
 export function StorageActivityTimeline({ activities = [] }: StorageActivityTimelineProps) {
   const getActionIcon = (action: string) => {
-    if (action.includes('upload')) return <UploadCloud className="h-4 w-4 text-blue-500" />
+    if (action.includes('upload')) return <UploadCloud className="h-4 w-4 text-emerald-500" />
     if (action.includes('delete')) return <Trash2 className="h-4 w-4 text-red-500" />
     if (action.includes('bucket')) return <Database className="h-4 w-4 text-emerald-500" />
-    if (action.includes('download')) return <DownloadCloud className="h-4 w-4 text-purple-500" />
+    if (action.includes('download')) return <DownloadCloud className="h-4 w-4 text-teal-600 dark:text-teal-400" />
     if (action.includes('backup')) return <ShieldCheck className="h-4 w-4 text-emerald-500" />
     return <Activity className="h-4 w-4 text-slate-500" />
   }
 
   const getActionColor = (action: string) => {
-    if (action.includes('upload')) return 'bg-blue-100 dark:bg-blue-500/20'
+    if (action.includes('upload')) return 'bg-emerald-50 dark:bg-emerald-500/20'
     if (action.includes('delete')) return 'bg-red-100 dark:bg-red-500/20'
     if (action.includes('bucket')) return 'bg-emerald-100 dark:bg-emerald-500/20'
-    if (action.includes('download')) return 'bg-purple-100 dark:bg-purple-500/20'
+    if (action.includes('download')) return 'bg-teal-50 dark:bg-teal-500/20'
     if (action.includes('backup')) return 'bg-emerald-100 dark:bg-emerald-500/20'
     return 'bg-slate-100 dark:bg-white/10'
   }

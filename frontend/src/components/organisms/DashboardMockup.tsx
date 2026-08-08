@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Play, ArrowRight, CheckCircle2, Zap, BarChart3, Database, FileSpreadsheet, BrainCircuit, TrendingUp, Download, Sparkles, RefreshCw, Search, Send, FileText } from "lucide-react"
@@ -157,7 +157,7 @@ export function DashboardMockup() {
                 </div>
                 <div className="space-y-2.5 overflow-y-auto pr-1 flex-1">
                   {[
-                    { name: "PostgreSQL Production", rows: "14.2M rows", status: "Synced 2m ago", color: "bg-blue-500" },
+                    { name: "PostgreSQL Production", rows: "14.2M rows", status: "Synced 2m ago", color: "bg-emerald-500" },
                     { name: "Stripe Billing", rows: "840K records", status: "Synced 15m ago", color: "bg-indigo-500" },
                     { name: "Salesforce CRM", rows: "2.1M rows", status: "Synced 1h ago", color: "bg-sky-500" },
                   ].map((ds, i) => {

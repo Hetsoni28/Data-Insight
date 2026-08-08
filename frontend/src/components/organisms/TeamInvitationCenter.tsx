@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect, useMemo } from "react"
 import {
@@ -306,7 +306,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
                                 size="sm"
                                 disabled={actionLoadingId === inv.id}
                                 onClick={() => handleResend(inv.id, inv.email)}
-                                className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:bg-blue-50 hover:text-blue-700"
+                                className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
                                 title="Extend expiration and resend email"
                               >
                                 <RotateCw

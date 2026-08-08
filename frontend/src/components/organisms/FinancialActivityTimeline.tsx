@@ -20,7 +20,7 @@ export function FinancialActivityTimeline() {
       case 'subscription_canceled': return <XCircle className="w-4 h-4 text-rose-500" />
       case 'payment_succeeded': return <CheckCircle2 className="w-4 h-4 text-emerald-500" />
       case 'payment_failed': return <ArrowDownCircle className="w-4 h-4 text-rose-500" />
-      default: return <CreditCard className="w-4 h-4 text-indigo-500" />
+      default: return <CreditCard className="w-4 h-4 text-teal-600 dark:text-teal-400" />
     }
   }
 

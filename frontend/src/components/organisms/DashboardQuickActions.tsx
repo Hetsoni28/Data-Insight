@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { motion } from "framer-motion"
 import { UploadCloud, FileBarChart, UserPlus, Zap } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -22,9 +22,9 @@ export function DashboardQuickActions() {
       title: "Generate Report",
       description: "Create AI insights",
       icon: FileBarChart,
-      color: "bg-blue-500",
-      lightBg: "bg-blue-50",
-      textColor: "text-blue-700",
+      color: "bg-emerald-500",
+      lightBg: "bg-emerald-50",
+      textColor: "text-emerald-700",
       onClick: () => router.push("/dashboard/reports")
     },
     {

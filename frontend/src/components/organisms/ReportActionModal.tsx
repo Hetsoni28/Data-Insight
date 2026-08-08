@@ -25,6 +25,17 @@ export function ReportActionModal({ isOpen, onClose, actionType, onSuccess }: Re
   const [reportTitle, setReportTitle] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const getActionLabel = () => {
+    switch(actionType) {
+      case 'excel': return 'Generate AI Excel Workbook'
+      case 'executive': return 'Generate Executive Summary'
+      case 'ai-insight': return 'Generate AI Analysis'
+      case 'dashboard': return 'Create BI Dashboard'
+      case 'forecast': return 'Generate Trend Forecast'
+      default: return `Generate ${actionType}`
+    }
+  }
+
   useEffect(() => {
     if (isOpen) {
       fetchDatasets()

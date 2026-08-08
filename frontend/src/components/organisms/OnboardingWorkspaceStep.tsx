@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+﻿import { motion } from "framer-motion"
 import { Sparkles, Loader2, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,8 +32,8 @@ export function OnboardingWorkspaceStep({
       exit={{ opacity: 0, x: -20, scale: 0.95 }}
       className="bg-white dark:bg-white/5 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-white/5 p-8 sm:p-10"
     >
-      <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-blue-100">
-        <Sparkles className="h-7 w-7 text-blue-500" />
+      <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-emerald-100">
+        <Sparkles className="h-7 w-7 text-emerald-500" />
       </div>
       <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
         Name your first workspace
@@ -54,7 +54,7 @@ export function OnboardingWorkspaceStep({
             onBlur={() => setFocusedField(null)}
             className={cn(
               "h-12 bg-slate-50/50 border-slate-200 dark:border-white/10 transition-all duration-300",
-              focusedField === "wsName" && "border-blue-500 ring-4 ring-blue-500/10 shadow-sm bg-white dark:bg-white/5"
+              focusedField === "wsName" && "border-emerald-500 ring-4 ring-emerald-500/10 shadow-sm bg-white dark:bg-white/5"
             )}
             onKeyDown={(e) => e.key === "Enter" && handleCreateWorkspace()}
           />
@@ -71,7 +71,7 @@ export function OnboardingWorkspaceStep({
                 className={cn(
                   "aspect-square rounded-xl text-2xl flex items-center justify-center transition-all border",
                   workspace.icon === emoji
-                    ? "border-blue-500 bg-blue-50 shadow-sm ring-2 ring-blue-500/20 scale-110 z-10"
+                    ? "border-emerald-500 bg-emerald-50 shadow-sm ring-2 ring-emerald-500/20 scale-110 z-10"
                     : "border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-200 dark:border-white/10"
                 )}
               >

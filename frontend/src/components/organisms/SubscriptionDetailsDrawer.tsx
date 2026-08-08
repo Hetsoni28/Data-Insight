@@ -124,13 +124,13 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
 
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
-                <Users className="w-5 h-5 text-indigo-500 mb-2" />
+                <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mb-2" />
                 <div className="text-2xl font-bold text-slate-900 dark:text-white">
                   {seatsUsed}<span className="text-sm font-normal text-slate-500"> / {seatsTotal}</span>
                 </div>
                 <div className="text-xs text-slate-500 font-medium mt-1">Active / Total Seats</div>
                 <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-1.5 mt-3">
-                  <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${seatsPercent}%` }} />
+                  <div className="bg-emerald-500 h-1.5 rounded-full transition-all" style={{ width: `${seatsPercent}%` }} />
                 </div>
               </div>
 

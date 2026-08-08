@@ -17,17 +17,17 @@ interface ReportAuditTimelineProps {
 
 export function ReportAuditTimeline({ logs, isLoading }: ReportAuditTimelineProps) {
   const getActionIcon = (action: string) => {
-    if (action.includes('generated') || action.includes('started')) return <FileText className="w-4 h-4 text-indigo-600" />
+    if (action.includes('generated') || action.includes('started')) return <FileText className="w-4 h-4 text-emerald-600" />
     if (action.includes('download')) return <Download className="w-4 h-4 text-emerald-600" />
-    if (action.includes('share')) return <Share2 className="w-4 h-4 text-blue-600" />
+    if (action.includes('share')) return <Share2 className="w-4 h-4 text-emerald-600" />
     if (action.includes('ready')) return <CheckCircle2 className="w-4 h-4 text-green-600" />
     return <Clock className="w-4 h-4 text-slate-600" />
   }
 
   const getActionColor = (action: string) => {
-    if (action.includes('generated') || action.includes('started')) return "bg-indigo-50 border-indigo-200"
-    if (action.includes('download')) return "bg-emerald-50 border-emerald-200"
-    if (action.includes('share')) return "bg-blue-50 border-blue-200"
+    if (action.includes('generated') || action.includes('started')) return "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20"
+    if (action.includes('download')) return "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20"
+    if (action.includes('share')) return "bg-emerald-50 border-emerald-200"
     if (action.includes('ready')) return "bg-green-50 border-green-200"
     return "bg-slate-50 border-slate-200"
   }

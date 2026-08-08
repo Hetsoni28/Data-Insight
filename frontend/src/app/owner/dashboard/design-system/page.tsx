@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { motion } from "framer-motion"
 import {
   Home, Search, User, Edit3, Share2, Tag, Trash2, Bell, Settings,
@@ -333,9 +333,9 @@ export default function DesignSystemPage() {
                 <XCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-500" />
                 <p className="text-sm font-medium text-red-700 dark:text-red-300">Error — Something went wrong.</p>
               </div>
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30">
-                <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" />
-                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Info — Here&apos;s some helpful information.</p>
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/30">
+                <Info className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />
+                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Info — Here&apos;s some helpful information.</p>
               </div>
             </div>
           </div>

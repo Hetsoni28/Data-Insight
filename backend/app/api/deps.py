@@ -259,3 +259,46 @@ class RequireRole:
 
 get_current_org_admin = RequireRole(["org_admin"])
 get_current_editor = RequireRole(["org_admin", "editor"])
+
+
+# ─── Workspace Dependencies ───────────────────────────────────────────────────
+async def get_workspace_id_header(
+    x_workspace_id: str | None = Header(default=None, alias="x-workspace-id")
+) -> str | None:
+    """Extracts the optional x-workspace-id header from requests."""
+    return x_workspace_id
+
+
+async def get_current_workspace(
+    workspace_id: str | None = Depends(get_workspace_id_header),
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Validates that the workspace exists and belongs to the current user's tenant.
+    Returns the Workspace object or raises Forbidden/Not Found.
+    """
+    if not workspace_id:
+        return None
+        
+    import uuid
+    try:
+        ws_uuid = uuid.UUID(workspace_id)
+    except ValueError:
+        from app.core.exceptions import BadRequestException
+        raise BadRequestException("Invalid workspace ID format.")
+        
+    from sqlalchemy import select
+    from app.models.workspace import Workspace
+    from app.core.exceptions import ForbiddenException, ResourceNotFoundException
+
+    stmt = select(Workspace).where(Workspace.id == ws_uuid, Workspace.is_deleted == False)
+    workspace = (await db.execute(stmt)).scalar_one_or_none()
+    
+    if not workspace:
+        raise ResourceNotFoundException("Workspace not found.")
+        
+    if workspace.tenant_id != current_user.tenant_id:
+        raise ForbiddenException("You do not have access to this workspace.")
+        
+    return workspace

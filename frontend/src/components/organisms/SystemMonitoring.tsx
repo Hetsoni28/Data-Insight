@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { 
@@ -104,8 +104,8 @@ export function SystemMonitoring() {
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/10">
-              <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10">
+              <Activity className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
           <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Active Connections</h3>
@@ -146,7 +146,7 @@ export function SystemMonitoring() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Cpu className="h-4 w-4 text-blue-600" />
+                <Cpu className="h-4 w-4 text-emerald-600" />
                 Cluster Resource Utilization
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">CPU and Memory mapped in real-time.</p>

@@ -74,7 +74,7 @@ export function AiOpsHeroBanner() {
       label: "AI Providers",
       value: isLoading ? "—" : `${kpis?.online_providers ?? 0}/${kpis?.connected_providers ?? 0}`,
       sub: "Online / Connected",
-      color: "bg-blue-500",
+      color: "bg-emerald-500",
     },
     {
       icon: Cpu,

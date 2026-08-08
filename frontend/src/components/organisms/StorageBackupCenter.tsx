@@ -1,4 +1,4 @@
-import { ShieldCheck, HardDrive, AlertCircle, PlayCircle, Clock } from "lucide-react"
+﻿import { ShieldCheck, HardDrive, AlertCircle, PlayCircle, Clock } from "lucide-react"
 
 interface Backup {
   id: string
@@ -28,7 +28,7 @@ export function StorageBackupCenter({ backups = [] }: StorageBackupCenterProps) 
     switch (status) {
       case 'completed': return <ShieldCheck className="h-4 w-4 text-emerald-500" />
       case 'failed': return <AlertCircle className="h-4 w-4 text-red-500" />
-      case 'in_progress': return <PlayCircle className="h-4 w-4 text-blue-500 animate-pulse" />
+      case 'in_progress': return <PlayCircle className="h-4 w-4 text-emerald-500 animate-pulse" />
       default: return <Clock className="h-4 w-4 text-amber-500" />
     }
   }
@@ -37,7 +37,7 @@ export function StorageBackupCenter({ backups = [] }: StorageBackupCenterProps) 
     switch (status) {
       case 'completed': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400'
       case 'failed': return 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'
-      case 'in_progress': return 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400'
+      case 'in_progress': return 'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400'
       default: return 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400'
     }
   }

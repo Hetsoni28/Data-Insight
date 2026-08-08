@@ -182,7 +182,7 @@ export function SupportHero({ activeIncidents = 0 }: SupportHeroProps) {
           <Dialog open={broadcastOpen} onOpenChange={setBroadcastOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="bg-white/5 border-white/10 text-white hover:bg-white/10">
-                <Megaphone className="w-4 h-4 mr-2 text-indigo-300" />
+                <Megaphone className="w-4 h-4 mr-2 text-emerald-300" />
                 Broadcast
               </Button>
             </DialogTrigger>
