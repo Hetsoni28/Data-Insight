@@ -412,6 +412,16 @@ async def generate_report(
 ):
     tenant_id = current_user.tenant_id
     
+    # Phase 5: Quota Enforcement
+    from app.services.entitlements import check_quota, BillingResource, get_usage
+    from app.models.tenant import Tenant
+    
+    tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
+    usage = await get_usage(tenant, db)
+    quota = check_quota(tenant, usage, BillingResource.REPORTS)
+    if not quota.allowed:
+        raise HTTPException(status_code=402, detail="Reports quota exceeded for your organization's plan.")
+        
     d_stmt = select(Dataset).where(
         Dataset.id == req.dataset_id, 
         Dataset.tenant_id == tenant_id,

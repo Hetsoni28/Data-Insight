@@ -71,6 +71,10 @@ class Tenant(Base):
     stripe_subscription_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
+    subscription_status: Mapped[str] = mapped_column(String(50), default="active", nullable=False)
+    current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cancel_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    seats_purchased: Mapped[int] = mapped_column(default=0, nullable=False)
     billing_cycle: Mapped[str] = mapped_column(String(20), default="monthly")  # monthly, yearly
     mrr: Mapped[float] = mapped_column(Float, default=0.0)  # cached Monthly Recurring Revenue
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

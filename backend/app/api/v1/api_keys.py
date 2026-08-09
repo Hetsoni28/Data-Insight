@@ -34,6 +34,19 @@ async def create_api_key(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
+    # Phase 5: Quota Enforcement
+    from app.services.entitlements import can_use_feature, BillingFeature
+    from app.models.tenant import Tenant
+    from sqlalchemy import select
+    from app.core.exceptions import ForbiddenException
+    
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required to create API keys.")
+        
+    tenant = await db.scalar(select(Tenant).where(Tenant.id == current_user.tenant_id))
+    if not can_use_feature(tenant, BillingFeature.API_ACCESS):
+        raise HTTPException(status_code=403, detail="Developer API access is not included in your organization's plan.")
+
     raw_key, hashed_key = generate_api_key()
     
     new_key = ApiKey(

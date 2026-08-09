@@ -7,11 +7,12 @@ import json
 import logging
 from typing import Optional, List, Dict, Any, AsyncIterator
 from sqlalchemy.ext.asyncio import AsyncSession
+import polars as pl
 
 from app.models.user import User
 from app.models.ai_token_usage import AITokenUsage
 from app.core.config import settings
-from app.core.exceptions import AIServiceException, ResourceNotFoundException
+from app.core.exceptions import AIServiceException, ResourceNotFoundException, ValidationException
 from app.services.ai.router import LLMRouter
 from app.services.ai.nl_sql_agent import NLSQLAgent
 from app.services.ai.visual_sql_agent import VisualSQLAgent

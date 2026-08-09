@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_current_active_tenant_user
 from app.models.user import User
+from app.models.tenant import Tenant
 from app.services.ai_service import AIService
+from app.services.entitlements import check_quota, BillingResource, get_usage
 from app.repositories.chat import ChatRepository
 from app.core.exceptions import ForbiddenException, ResourceNotFoundException, AIServiceException
 from app.schemas.ai import (
@@ -31,6 +33,16 @@ from app.schemas.ai import (
 )
 
 router = APIRouter(prefix="/ai", tags=["AI Copilot"])
+
+async def _ensure_ai_quota(tenant_id: uuid.UUID, db: AsyncSession, buffer: int = 100):
+    from sqlalchemy import select
+    tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
+    usage = await get_usage(tenant, db)
+    quota = check_quota(tenant, usage, BillingResource.AI_TOKENS, buffer=buffer)
+    if not quota.allowed:
+        raise HTTPException(status_code=402, detail="AI Tokens quota exceeded for your organization's plan.")
+    return tenant
+
 
 
 @router.get(
@@ -62,6 +74,8 @@ async def copilot_chat(
 ):
     if not current_user.tenant_id:
         raise ForbiddenException("Organization required.")
+    
+    await _ensure_ai_quota(current_user.tenant_id, db)
     svc = AIService(db)
     try:
         history_dicts = [h.model_dump() for h in body.history] if body.history else []
@@ -89,6 +103,8 @@ async def copilot_chat_stream(
 ):
     if not current_user.tenant_id:
         raise ForbiddenException("Organization required.")
+    
+    await _ensure_ai_quota(current_user.tenant_id, db)
     svc = AIService(db)
     history_dicts = [h.model_dump() for h in body.history] if body.history else []
 
@@ -482,4 +498,70 @@ async def send_session_message_stream(
             yield f"data: {err_payload}\n\n"
 
     return StreamingResponse(sse_event_stream(), media_type="text/event-stream")
+
+
+@router.post(
+    "/forecast",
+    response_model=Dict[str, Any],
+    summary="Generate real ML time-series forecast on a dataset",
+)
+async def generate_ml_forecast(
+    body: Dict[str, Any],
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Run the Machine Learning time-series forecasting engine on any tenant dataset.
+    Returns trendline, confidence intervals, growth projections, and statistical metrics.
+    """
+    if not current_user.tenant_id:
+        raise ForbiddenException("Organization required.")
+
+    dataset_id_str = body.get("dataset_id")
+    if not dataset_id_str:
+        raise HTTPException(status_code=400, detail="dataset_id is required.")
+
+    from app.models.dataset import Dataset, DatasetFileType
+    from app.core.storage import download_file_bytes, DATASETS_BUCKET
+    from app.services.analytics.forecasting_engine import ForecastingEngine
+    import io
+    import pandas as pd
+    from sqlalchemy import select
+
+    stmt = select(Dataset).where(
+        Dataset.id == uuid.UUID(dataset_id_str),
+        Dataset.tenant_id == current_user.tenant_id,
+    )
+    dataset = (await db.execute(stmt)).scalars().first()
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found.")
+
+    try:
+        file_bytes = await download_file_bytes(DATASETS_BUCKET, dataset.file_url)
+        file_buffer = io.BytesIO(file_bytes)
+
+        if dataset.file_type == DatasetFileType.csv:
+            df = pd.read_csv(file_buffer)
+        elif dataset.file_type == DatasetFileType.xlsx:
+            df = pd.read_excel(file_buffer)
+        elif dataset.file_type == DatasetFileType.json:
+            df = pd.read_json(file_buffer)
+        else:
+            df = pd.read_csv(file_buffer)
+
+        horizon = int(body.get("horizon", 6))
+        target_column = body.get("target_column")
+        date_column = body.get("date_column")
+        confidence_level = float(body.get("confidence_level", 0.95))
+
+        forecast_result = ForecastingEngine.fit_and_forecast(
+            df=df,
+            target_column=target_column,
+            date_column=date_column,
+            horizon=horizon,
+            confidence_level=confidence_level,
+        )
+        return forecast_result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
 

@@ -159,34 +159,8 @@ async def stripe_webhook(
         result = await billing_service.handle_webhook(
             payload=payload,
             sig_header=stripe_signature,
+            db=db,
         )
-
-        event_type = result.get("event")
-        tenant_id_str = result.get("tenant_id")
-
-        if tenant_id_str:
-            tenant_repo = TenantRepository(db)
-            tenant = await tenant_repo.get_by_id(tenant_id_str)
-
-            if tenant:
-                if event_type == "checkout.session.completed":
-                    # The payload might just be a string if plan is invalid, but let's assume valid PlanType
-                    plan_val = result.get("plan")
-                    if plan_val in [p.value for p in PlanType]:
-                        tenant.plan = PlanType(plan_val)
-                    tenant.stripe_customer_id = (
-                        result.get("stripe_customer_id") or tenant.stripe_customer_id
-                    )
-                    tenant.stripe_subscription_id = (
-                        result.get("stripe_subscription_id")
-                        or tenant.stripe_subscription_id
-                    )
-                    await tenant_repo.save(tenant)
-
-                elif event_type == "customer.subscription.deleted":
-                    tenant.plan = PlanType.starter
-                    tenant.stripe_subscription_id = None
-                    await tenant_repo.save(tenant)
 
         return {"received": True, **result}
     except stripe.SignatureVerificationError:
@@ -195,7 +169,7 @@ async def stripe_webhook(
             detail="Invalid Stripe webhook signature.",
         )
     except Exception as exc:
-        logger.error(f"[API /billing/webhook] Unexpected error: {exc}")
+        logger.exception(f"[API /billing/webhook] Unexpected error: {exc}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Webhook processing failed.",
