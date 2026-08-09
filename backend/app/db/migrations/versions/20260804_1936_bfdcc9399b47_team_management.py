@@ -46,10 +46,7 @@ def upgrade() -> None:
     op.add_column('users', sa.Column('department', sa.String(length=100), nullable=True))
     op.add_column('users', sa.Column('phone', sa.String(length=50), nullable=True))
     op.add_column('users', sa.Column('location', sa.String(length=100), nullable=True))
-    op.alter_column('users', 'notification_preferences',
-               existing_type=postgresql.JSONB(astext_type=sa.Text()),
-               server_default=None,
-               existing_nullable=True)
+    op.add_column('users', sa.Column('notification_preferences', postgresql.JSONB(astext_type=sa.Text()), nullable=True))
     op.create_index(op.f('ix_users_department'), 'users', ['department'], unique=False)
     op.create_index(op.f('ix_users_employee_id'), 'users', ['employee_id'], unique=False)
     # ### end Alembic commands ###

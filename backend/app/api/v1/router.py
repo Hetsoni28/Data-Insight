@@ -31,6 +31,9 @@ from app.api.v1.tenant_datasets import router as tenant_datasets_router
 from app.api.v1.tenant_reports import router as tenant_reports_router
 from app.api.v1.tenant_dashboards import router as tenant_dashboards_router
 from app.api.v1.tenant_settings import router as tenant_settings_router
+from app.api.v1.viewer import router as viewer_router
+from app.api.v1.viewer_analytics import router as viewer_analytics_router
+from app.api.v1.viewer_profile import router as viewer_profile_router
 
 api_router = APIRouter()
 
@@ -67,3 +70,6 @@ api_router.include_router(tenant_datasets_router, prefix="/tenant-datasets", tag
 api_router.include_router(tenant_reports_router, prefix="/tenant-reports", tags=["Tenant Reports"])
 api_router.include_router(tenant_dashboards_router, prefix="/tenant-dashboards", tags=["Tenant Dashboards"])
 api_router.include_router(tenant_settings_router, prefix="/tenant-settings", tags=["Tenant Settings"])
+api_router.include_router(viewer_router)
+api_router.include_router(viewer_analytics_router)
+api_router.include_router(viewer_profile_router)

@@ -40,13 +40,13 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
 }
 
 /* ─── Brand Color System (Data Insight) ──────────────────────────────────── */
@@ -89,7 +89,7 @@
   --chart-4: oklch(0.88 0.09 162);
   --chart-5: oklch(0.95 0.05 162);
 
-  --radius: 0;
+  --radius: 0px;
   --sidebar: oklch(0.98 0.005 160);
   --sidebar-foreground: oklch(0.13 0.015 265);
   --sidebar-primary: oklch(0.56 0.13 178);

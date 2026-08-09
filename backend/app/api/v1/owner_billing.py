@@ -89,16 +89,34 @@ async def get_kpis(
     api_revenue = 0.0
 
     # Real Sparklines: Last 7 months revenue
+    now = datetime.now(timezone.utc)
+    start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    for _ in range(6):
+        start_date = (start_date - timedelta(days=1)).replace(day=1)
+        
+    sparkline_stmt = (
+        select(
+            func.date_trunc('month', Invoice.invoice_date).label('month'),
+            func.sum(Invoice.amount).label('total')
+        )
+        .where(
+            Invoice.status == InvoiceStatus.paid,
+            Invoice.invoice_date >= start_date
+        )
+        .group_by(text('1'))
+    )
+    sparkline_result = (await db.execute(sparkline_stmt)).all()
+    sparkline_by_month = {}
+    for row in sparkline_result:
+        dt = row.month if not isinstance(row.month, str) else datetime.fromisoformat(row.month)
+        sparkline_by_month[dt.strftime('%Y-%m')] = float(row.total or 0.0)
+
     sparkline_revenue = []
-    for i in range(6, -1, -1):
-        d = datetime.now(timezone.utc) - timedelta(days=30*i)
-        month_start = d.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        next_month_start = (month_start + timedelta(days=32)).replace(day=1)
-        rev = await db.scalar(
-            select(func.sum(Invoice.amount))
-            .where(Invoice.status == InvoiceStatus.paid, Invoice.invoice_date >= month_start, Invoice.invoice_date < next_month_start)
-        ) or 0.0
-        sparkline_revenue.append(float(rev))
+    current_month = start_date
+    for i in range(7):
+        key = current_month.strftime('%Y-%m')
+        sparkline_revenue.append(sparkline_by_month.get(key, 0.0))
+        current_month = (current_month + timedelta(days=32)).replace(day=1)
 
     return {
         "mrr": total_mrr,
@@ -143,24 +161,36 @@ async def get_revenue_trends(
 
     # Group revenue by month for the last 6 months (simplification)
     now = datetime.now(timezone.utc)
+    start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    for _ in range(5):
+        start_date = (start_date - timedelta(days=1)).replace(day=1)
+        
+    rev_stmt = (
+        select(
+            func.date_trunc('month', Invoice.invoice_date).label('month'),
+            func.sum(Invoice.amount).label('total')
+        )
+        .where(
+            Invoice.status == InvoiceStatus.paid,
+            Invoice.invoice_date >= start_date
+        )
+        .group_by(text('1'))
+    )
+    rev_result = (await db.execute(rev_stmt)).all()
+    rev_by_month = {}
+    for row in rev_result:
+        dt = row.month if not isinstance(row.month, str) else datetime.fromisoformat(row.month)
+        rev_by_month[dt.strftime('%Y-%m')] = float(row.total or 0.0)
+
     months = []
-    for i in range(5, -1, -1):
-        d = now - timedelta(days=30*i)
-        month_name = d.strftime("%b")
-        # In a real app we'd group by `date_trunc('month', invoice_date)`
-        # Here we do it manually by filtering for each month for speed
-        month_start = d.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        next_month_start = (month_start + timedelta(days=32)).replace(day=1)
-        
-        month_rev = await db.scalar(
-            select(func.sum(Invoice.amount))
-            .where(Invoice.status == InvoiceStatus.paid, Invoice.invoice_date >= month_start, Invoice.invoice_date < next_month_start)
-        ) or 0.0
-        
+    current_month = start_date
+    for i in range(6):
+        key = current_month.strftime('%Y-%m')
         months.append({
-            "name": month_name,
-            "revenue": float(month_rev)
+            "name": current_month.strftime("%b"),
+            "revenue": rev_by_month.get(key, 0.0)
         })
+        current_month = (current_month + timedelta(days=32)).replace(day=1)
 
     return {
         "revenue_history": months,

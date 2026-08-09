@@ -41,42 +41,42 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_dashboards_tenant_id'), 'dashboards', ['tenant_id'], unique=False)
     op.create_index(op.f('ix_dashboards_workspace_id'), 'dashboards', ['workspace_id'], unique=False)
-    op.alter_column('tenants', 'db_connection_type',
-               existing_type=sa.VARCHAR(length=20),
-               server_default=None,
-               existing_nullable=False)
-    op.alter_column('tenants', 'current_storage_bytes',
-               existing_type=sa.BIGINT(),
-               server_default=None,
-               existing_nullable=False)
-    op.alter_column('tenants', 'current_ai_tokens_used',
-               existing_type=sa.BIGINT(),
-               server_default=None,
-               existing_nullable=False)
-    op.alter_column('tenants', 'is_suspended',
-               existing_type=sa.BOOLEAN(),
-               server_default=None,
-               existing_nullable=False)
-    op.alter_column('user_sessions', 'country',
-               existing_type=sa.VARCHAR(length=100),
-               server_default=None,
-               existing_nullable=True)
-    op.alter_column('user_sessions', 'city',
-               existing_type=sa.VARCHAR(length=100),
-               server_default=None,
-               existing_nullable=True)
-    op.alter_column('users', 'token_version',
-               existing_type=sa.INTEGER(),
-               server_default=None,
-               existing_nullable=False)
-    op.alter_column('users', 'mfa_enabled',
-               existing_type=sa.BOOLEAN(),
-               server_default=None,
-               existing_nullable=False)
-    op.alter_column('users', 'failed_login_attempts',
-               existing_type=sa.INTEGER(),
-               server_default=None,
-               existing_nullable=False)
+    # op.alter_column('tenants', 'db_connection_type',
+    #            existing_type=sa.VARCHAR(length=20),
+    #            server_default=None,
+    #            existing_nullable=False)
+    # op.alter_column('tenants', 'current_storage_bytes',
+    #            existing_type=sa.BIGINT(),
+    #            server_default=None,
+    #            existing_nullable=False)
+    # op.alter_column('tenants', 'current_ai_tokens_used',
+    #            existing_type=sa.BIGINT(),
+    #            server_default=None,
+    #            existing_nullable=False)
+    # op.alter_column('tenants', 'is_suspended',
+    #            existing_type=sa.BOOLEAN(),
+    #            server_default=None,
+    #            existing_nullable=False)
+    # op.alter_column('user_sessions', 'country',
+    #            existing_type=sa.VARCHAR(length=100),
+    #            server_default=None,
+    #            existing_nullable=True)
+    # op.alter_column('user_sessions', 'city',
+    #            existing_type=sa.VARCHAR(length=100),
+    #            server_default=None,
+    #            existing_nullable=True)
+    # op.alter_column('users', 'token_version',
+    #            existing_type=sa.INTEGER(),
+    #            server_default=None,
+    #            existing_nullable=False)
+    # op.alter_column('users', 'mfa_enabled',
+    #            existing_type=sa.BOOLEAN(),
+    #            server_default=None,
+    #            existing_nullable=False)
+    # op.alter_column('users', 'failed_login_attempts',
+    #            existing_type=sa.INTEGER(),
+    #            server_default=None,
+    #            existing_nullable=False)
     # ### end Alembic commands ###
 
 

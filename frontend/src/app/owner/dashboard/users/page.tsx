@@ -135,7 +135,7 @@ export default function UsersPage() {
           u.email,
           u.role,
           `"${u.tenant_name || u.organization || ""}"`,
-          u.is_active ? "Active" : "Suspended",
+          u.is_active ? "Active" : !u.tenant_id ? "Pending Approval" : "Suspended",
           u.created_at ? new Date(u.created_at).toLocaleDateString() : "",
         ].join(","))
       })

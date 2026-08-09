@@ -6,6 +6,13 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
+/** Clears all persisted workspace data from localStorage to prevent cross-user stale state. */
+function clearWorkspaceStorage() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("workspace-storage-v1")
+  }
+}
+
 interface AuthState {
   /** Raw JWT access token */
   token: string | null
@@ -27,6 +34,8 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
 
       login: (accessToken: string, refreshToken?: string | null) => {
+        // Clear any stale workspace data from a previous user session before logging in
+        clearWorkspaceStorage()
         if (typeof window !== "undefined") {
           localStorage.setItem("access_token", accessToken)
           document.cookie = `access_token=${accessToken}; path=/; max-age=604800; samesite=lax`
@@ -47,6 +56,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        // Clear workspace data so the next user starts with a clean slate
+        clearWorkspaceStorage()
         if (typeof window !== "undefined") {
           localStorage.removeItem("access_token")
           localStorage.removeItem("refresh_token")

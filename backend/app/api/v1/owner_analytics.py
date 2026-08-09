@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, text
 from datetime import datetime, timezone, timedelta
 
 from app.api.deps import get_db, get_current_user
@@ -163,48 +163,71 @@ async def get_revenue_analytics(
 ):
     """Returns 12-month revenue trend from real Invoice data."""
     now = datetime.now(timezone.utc)
-    data = []
-    for i in range(11, -1, -1):
-        # Calculate month boundaries
-        month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
+    
+    start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    for _ in range(11):
+        start_date = (start_date - timedelta(days=1)).replace(day=1)
+        
+    revenue_stmt = (
+        select(
+            func.date_trunc('month', Invoice.invoice_date).label('month'),
+            func.sum(Invoice.amount).label('total')
         )
-        month_end = (month_start + timedelta(days=32)).replace(day=1)
+        .where(
+            Invoice.status == "paid",
+            Invoice.invoice_date >= start_date
+        )
+        .group_by(text('1'))
+    )
+    revenue_result = (await db.execute(revenue_stmt)).all()
+    revenue_by_month = {}
+    for row in revenue_result:
+        dt = row.month if not isinstance(row.month, str) else datetime.fromisoformat(row.month)
+        revenue_by_month[dt.strftime('%Y-%m')] = float(row.total or 0.0)
 
-        revenue = await db.scalar(
-            select(func.coalesce(func.sum(Invoice.amount), 0.0))
-            .where(
-                Invoice.status == "paid",
-                Invoice.invoice_date >= month_start,
-                Invoice.invoice_date < month_end,
-            )
-        ) or 0.0
+    new_tenants_stmt = (
+        select(
+            func.date_trunc('month', Tenant.created_at).label('month'),
+            func.count(Tenant.id).label('total')
+        )
+        .where(
+            Tenant.created_at >= start_date,
+            Tenant.is_deleted == False
+        )
+        .group_by(text('1'))
+    )
+    new_tenants_result = (await db.execute(new_tenants_stmt)).all()
+    new_tenants_by_month = {}
+    for row in new_tenants_result:
+        dt = row.month if not isinstance(row.month, str) else datetime.fromisoformat(row.month)
+        new_tenants_by_month[dt.strftime('%Y-%m')] = int(row.total)
 
-        new_tenants = await db.scalar(
-            select(func.count(Tenant.id)).where(
-                Tenant.created_at >= month_start,
-                Tenant.created_at < month_end,
-                Tenant.is_deleted == False,
-            )
-        ) or 0
+    base_active_tenants = await db.scalar(
+        select(func.count(Tenant.id)).where(
+            Tenant.created_at < start_date,
+            Tenant.is_deleted == False
+        )
+    ) or 0
 
-        active_tenants = await db.scalar(
-            select(func.count(Tenant.id)).where(
-                Tenant.created_at < month_end,
-                Tenant.is_deleted == False,
-            )
-        ) or 0
-
+    data = []
+    current_active = base_active_tenants
+    current_month = start_date
+    for i in range(12):
+        key = current_month.strftime('%Y-%m')
+        rev = revenue_by_month.get(key, 0.0)
+        new_t = new_tenants_by_month.get(key, 0)
+        
+        current_active += new_t
+        
         data.append({
-            "date": month_start.strftime("%b"),
-            "amount": round(revenue, 2),
-            "target": round(revenue * 1.2, 2) if revenue > 0 else 1000,
-            "active": active_tenants,
-            "new": new_tenants,
+            "date": current_month.strftime("%b"),
+            "amount": round(rev, 2),
+            "target": round(rev * 1.2, 2) if rev > 0 else 1000,
+            "active": current_active,
+            "new": new_t,
         })
-
-    # Reverse data so it's chronological
-    data.reverse()
+        
+        current_month = (current_month + timedelta(days=32)).replace(day=1)
 
     return {"status": "success", "data": data}
 
@@ -216,45 +239,63 @@ async def get_user_analytics(
 ):
     """Returns 12-month User/Org growth trend from real DB data."""
     now = datetime.now(timezone.utc)
-    data = []
-    for i in range(11, -1, -1):
-        month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
+    
+    start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    for _ in range(11):
+        start_date = (start_date - timedelta(days=1)).replace(day=1)
+
+    new_users_stmt = (
+        select(
+            func.date_trunc('month', User.created_at).label('month'),
+            func.count(User.id).label('total')
         )
-        month_end = (month_start + timedelta(days=32)).replace(day=1)
+        .where(User.created_at >= start_date)
+        .group_by(text('1'))
+    )
+    new_users_result = (await db.execute(new_users_stmt)).all()
+    new_users_by_month = {}
+    for row in new_users_result:
+        dt = row.month if not isinstance(row.month, str) else datetime.fromisoformat(row.month)
+        new_users_by_month[dt.strftime('%Y-%m')] = int(row.total)
 
-        new_users = await db.scalar(
-            select(func.count(User.id)).where(
-                User.created_at >= month_start,
-                User.created_at < month_end,
-            )
-        ) or 0
+    new_orgs_stmt = (
+        select(
+            func.date_trunc('month', Tenant.created_at).label('month'),
+            func.count(Tenant.id).label('total')
+        )
+        .where(Tenant.created_at >= start_date, Tenant.is_deleted == False)
+        .group_by(text('1'))
+    )
+    new_orgs_result = (await db.execute(new_orgs_stmt)).all()
+    new_orgs_by_month = {}
+    for row in new_orgs_result:
+        dt = row.month if not isinstance(row.month, str) else datetime.fromisoformat(row.month)
+        new_orgs_by_month[dt.strftime('%Y-%m')] = int(row.total)
 
-        new_orgs = await db.scalar(
-            select(func.count(Tenant.id)).where(
-                Tenant.created_at >= month_start,
-                Tenant.created_at < month_end,
-                Tenant.is_deleted == False,
-            )
-        ) or 0
+    base_users = await db.scalar(select(func.count(User.id)).where(User.created_at < start_date)) or 0
+    base_orgs = await db.scalar(select(func.count(Tenant.id)).where(Tenant.created_at < start_date, Tenant.is_deleted == False)) or 0
 
-        cumulative_users = await db.scalar(
-            select(func.count(User.id)).where(User.created_at < month_end)
-        ) or 0
+    data = []
+    cum_users = base_users
+    cum_orgs = base_orgs
+    current_month = start_date
 
-        cumulative_orgs = await db.scalar(
-            select(func.count(Tenant.id)).where(
-                Tenant.created_at < month_end, Tenant.is_deleted == False
-            )
-        ) or 0
+    for i in range(12):
+        key = current_month.strftime('%Y-%m')
+        nu = new_users_by_month.get(key, 0)
+        no = new_orgs_by_month.get(key, 0)
+
+        cum_users += nu
+        cum_orgs += no
 
         data.append({
-            "month": month_start.strftime("%b"),
-            "active_users": cumulative_users,
-            "active_orgs": cumulative_orgs,
-            "new_signups": new_users,
-            "new_orgs": new_orgs,
+            "month": current_month.strftime("%b"),
+            "active_users": cum_users,
+            "active_orgs": cum_orgs,
+            "new_signups": nu,
+            "new_orgs": no,
         })
+        current_month = (current_month + timedelta(days=32)).replace(day=1)
 
     return {"status": "success", "data": data}
 
@@ -266,23 +307,35 @@ async def get_predictive_forecast(
 ):
     """Returns 6 months actual + 6 months projected MRR based on real DB data."""
     now = datetime.now(timezone.utc)
-    data = []
+    
+    start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    for _ in range(5):
+        start_date = (start_date - timedelta(days=1)).replace(day=1)
 
-    # Last 6 months — actual paid invoice revenue
-    for i in range(5, -1, -1):
-        month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
+    actuals_stmt = (
+        select(
+            func.date_trunc('month', Invoice.invoice_date).label('month'),
+            func.sum(Invoice.amount).label('total')
         )
-        month_end = (month_start + timedelta(days=32)).replace(day=1)
-        actual = await db.scalar(
-            select(func.coalesce(func.sum(Invoice.amount), 0.0))
-            .where(
-                Invoice.status == "paid",
-                Invoice.invoice_date >= month_start,
-                Invoice.invoice_date < month_end,
-            )
-        ) or 0.0
-        data.append({"month": month_start.strftime("%b"), "mrr_actual": round(actual, 2), "mrr_forecast": None})
+        .where(
+            Invoice.status == "paid",
+            Invoice.invoice_date >= start_date
+        )
+        .group_by(text('1'))
+    )
+    actuals_result = (await db.execute(actuals_stmt)).all()
+    actuals_by_month = {}
+    for row in actuals_result:
+        dt = row.month if not isinstance(row.month, str) else datetime.fromisoformat(row.month)
+        actuals_by_month[dt.strftime('%Y-%m')] = float(row.total or 0.0)
+
+    data = []
+    current_month = start_date
+    for i in range(6):
+        key = current_month.strftime('%Y-%m')
+        actual = actuals_by_month.get(key, 0.0)
+        data.append({"month": current_month.strftime("%b"), "mrr_actual": round(actual, 2), "mrr_forecast": None})
+        current_month = (current_month + timedelta(days=32)).replace(day=1)
 
     # Current MRR base from Tenant.mrr
     current_mrr = await db.scalar(
@@ -292,11 +345,9 @@ async def get_predictive_forecast(
 
     # Next 6 months — 5% monthly growth projection
     for i in range(1, 7):
-        month_start = (now.replace(day=1) + timedelta(days=i * 30)).replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
-        )
         projected = current_mrr * (1.05 ** i)
-        data.append({"month": month_start.strftime("%b"), "mrr_actual": None, "mrr_forecast": round(projected, 2)})
+        data.append({"month": current_month.strftime("%b"), "mrr_actual": None, "mrr_forecast": round(projected, 2)})
+        current_month = (current_month + timedelta(days=32)).replace(day=1)
 
     return {"status": "success", "data": data}
 

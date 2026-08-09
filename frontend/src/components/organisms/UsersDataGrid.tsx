@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import { 
-  User, Building2, MoreHorizontal, CheckCircle2, XCircle, Search, Filter, Settings2, Power, Eye, Shield, Key, Mail
+  User, Building2, MoreHorizontal, CheckCircle2, XCircle, Search, Filter, Settings2, Power, Eye, Shield, Key, Mail, Clock
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -251,11 +251,14 @@ export function UsersDataGrid() {
                       {getRoleBadge(user.role)}
                     </td>
                     
-                    {/* Status */}
                     <td className="px-6 py-4">
                       {user.is_active ? (
                         <span className="inline-flex items-center gap-1.5 text-emerald-600 text-sm font-medium">
                           <CheckCircle2 className="h-4 w-4" /> Active
+                        </span>
+                      ) : !user.tenant_id ? (
+                        <span className="inline-flex items-center gap-1.5 text-amber-600 text-sm font-medium">
+                          <Clock className="h-3.5 w-3.5 animate-pulse" /> Pending Approval
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 text-rose-600 text-sm font-medium">
@@ -298,7 +301,7 @@ export function UsersDataGrid() {
                              className={user.is_active ? "text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10" : "text-emerald-600 dark:text-emerald-400"}
                            >
                              <Power className="h-4 w-4 mr-2.5" />
-                             {user.is_active ? "Suspend User" : "Activate User"}
+                             {user.is_active ? "Suspend User" : !user.tenant_id ? "Approve & Activate" : "Activate User"}
                            </DropdownMenuItem>
                          </DropdownMenuContent>
                        </DropdownMenu>
@@ -346,7 +349,9 @@ export function UsersDataGrid() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10">
                       <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Status</div>
-                      <div className="font-semibold text-slate-900 dark:text-white">{selectedUser.is_active ? "Active" : "Suspended"}</div>
+                      <div className="font-semibold text-slate-900 dark:text-white">
+                        {selectedUser.is_active ? "Active" : !selectedUser.tenant_id ? "Pending Approval" : "Suspended"}
+                      </div>
                     </div>
                     <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10">
                       <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Role</div>

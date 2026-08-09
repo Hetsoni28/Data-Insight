@@ -1,6 +1,6 @@
-﻿"use client"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+"use client"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AnimatePresence } from "framer-motion"
 import { Loader2, LogOut, Check } from "lucide-react"
 import { toast } from "sonner"
@@ -15,12 +15,16 @@ import { OnboardingOrgStep } from "@/components/organisms/OnboardingOrgStep"
 import { OnboardingWorkspaceStep } from "@/components/organisms/OnboardingWorkspaceStep"
 import { OnboardingSuccessStep } from "@/components/organisms/OnboardingSuccessStep"
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const action = searchParams.get("action")
+  
   const { data: user, isLoading: authLoading, refetch: fetchMe } = useAuth()
   const { login, logout } = useAuthStore()
 
-  const [step, setStep] = useState(1)
+  // If action is create-workspace, default to step 2
+  const [step, setStep] = useState(action === "create-workspace" ? 2 : 1)
   const [isLoading, setIsLoading] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
   
@@ -28,9 +32,10 @@ export default function OnboardingPage() {
   const [workspace, setWorkspace] = useState({ name: "My First Workspace", icon: "📊" })
 
   // ── Auth Guards ──────────────────────────────────────────────────────────
-  const { workspaces, loadingWs, setWorkspaces, setLoadingWs } = useWorkspaceStore()
+  const { workspaces, loadingWs, setWorkspaces, setLoadingWs, setActiveWs } = useWorkspaceStore()
   
-  // Fetch workspaces if user has a tenant_id to determine if they need step 2
+  // Fetch workspaces if user has a tenant_id to determine if they need step 2.
+  // If they have NO tenant_id, clear any stale workspaces so the guard can't misfire.
   useEffect(() => {
     if (user?.tenant_id) {
       setLoadingWs(true)
@@ -38,15 +43,20 @@ export default function OnboardingPage() {
         .then(({ data }) => setWorkspaces(data))
         .finally(() => setLoadingWs(false))
     } else if (!authLoading) {
+      // No org yet — clear stale workspace data from previous session
+      setWorkspaces([])
+      setActiveWs(null)
       setLoadingWs(false)
     }
-  }, [user?.tenant_id, authLoading, setWorkspaces, setLoadingWs])
+  }, [user?.tenant_id, authLoading, setWorkspaces, setActiveWs, setLoadingWs])
 
   useEffect(() => {
     if (!authLoading && !loadingWs) {
       if (!user) {
         toast.error("Please log in to continue onboarding.")
         router.push("/login")
+      } else if (action === "create-workspace") {
+        if (step === 1) setStep(2) // ensure we're at least on step 2
       } else if (user.tenant_id && workspaces.length > 0) {
         // User has finished both org and workspace creation
         router.push("/dashboard")
@@ -55,10 +65,10 @@ export default function OnboardingPage() {
         setStep(2)
       }
     }
-  }, [user, authLoading, router, workspaces, loadingWs, step])
+  }, [user, authLoading, router, workspaces, loadingWs, step, action])
 
   // Prevent rendering if not ready
-  if (authLoading || loadingWs || !user || (user.tenant_id && workspaces.length > 0)) {
+  if (authLoading || loadingWs || !user || (!action && user.tenant_id && workspaces.length > 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-white/5">
         <Loader2 className="h-8 w-8 animate-spin text-[#10B981]" />
@@ -181,5 +191,13 @@ export default function OnboardingPage() {
         </AnimatePresence>
       </div>
     </div>
+  )
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="h-8 w-8 animate-spin text-[#10B981]" /></div>}>
+      <OnboardingContent />
+    </Suspense>
   )
 }
