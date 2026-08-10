@@ -1,4 +1,4 @@
-import React from "react"
+﻿import React from "react"
 import { FileSpreadsheet, FileJson, FileText, MoreHorizontal, Database, Eye, Trash2, ShieldCheck, AlertTriangle } from "lucide-react"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
 
@@ -62,11 +62,11 @@ export function DatasetExplorerTable({ datasets, loading, onAction, statusFilter
   }, [totalPages, currentPage])
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm flex flex-col">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/50">
+            <tr className="border-b border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-white/5">
               <th className="px-6 py-4">Dataset Name</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4">Rows / Cols</th>
@@ -95,7 +95,7 @@ export function DatasetExplorerTable({ datasets, loading, onAction, statusFilter
                 <tr key={dataset.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                      <div className="p-2 bg-slate-100 dark:bg-white/5 rounded-lg">
                         {getFileIcon(dataset.file_type)}
                       </div>
                       <div>

@@ -7,7 +7,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-// ─── Colour Token ────────────────────────────────────────────────────────────
+// --- Colour Token ------------------------------------------------------------
 const brand = {
   primary:   "#10B981",
   secondary: "#059669",
@@ -40,7 +40,7 @@ const colorPalettes = [
   },
 ]
 
-// ─── Section wrapper ─────────────────────────────────────────────────────────
+// --- Section wrapper ---------------------------------------------------------
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <motion.div
@@ -55,7 +55,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-// ─── Copyable hex badge ───────────────────────────────────────────────────────
+// --- Copyable hex badge -------------------------------------------------------
 function HexBadge({ hex }: { hex: string }) {
   const [copied, setCopied] = useState(false)
   return (
@@ -74,7 +74,7 @@ export default function DesignSystemPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-6 space-y-8">
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      {/* -- Hero ------------------------------------------------------------ */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -91,7 +91,7 @@ export default function DesignSystemPage() {
               <h1 className="text-3xl font-bold text-white tracking-tight">Design System</h1>
             </div>
             <p className="text-emerald-100/70 text-sm max-w-xl">
-              The single source of truth for Data Insight&apos;s visual language — colours, typography, components, and interactions. All tokens use the brand palette: <span className="text-white font-semibold">Primary #10B981</span>.
+              The single source of truth for Data Insight&apos;s visual language � colours, typography, components, and interactions. All tokens use the brand palette: <span className="text-white font-semibold">Primary #10B981</span>.
             </p>
           </div>
           <div className="flex gap-3 shrink-0">
@@ -111,7 +111,7 @@ export default function DesignSystemPage() {
         </div>
       </motion.div>
 
-      {/* ── Colour Palettes ────────────────────────────────────────────────── */}
+      {/* -- Colour Palettes -------------------------------------------------- */}
       <Section title="Colour Palettes">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {colorPalettes.map((p) => (
@@ -140,8 +140,8 @@ export default function DesignSystemPage() {
       </Section>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* ── Typography ──────────────────────────────────────────────────── */}
-        <Section title="Typography — Inter">
+        {/* -- Typography ---------------------------------------------------- */}
+        <Section title="Typography � Inter">
           <div className="space-y-6">
             {[
               { label: "Headline / Bold", size: "text-4xl", weight: "font-bold", sample: "Aa" },
@@ -172,7 +172,7 @@ export default function DesignSystemPage() {
           </div>
         </Section>
 
-        {/* ── Buttons ─────────────────────────────────────────────────────── */}
+        {/* -- Buttons ------------------------------------------------------- */}
         <Section title="Button Variants">
           <div className="space-y-5">
             {/* Size variants */}
@@ -198,10 +198,10 @@ export default function DesignSystemPage() {
                 <button className="px-5 py-2 text-sm font-semibold rounded-xl border-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition" style={{ borderColor: brand.primary, color: brand.primary }}>
                   Outlined
                 </button>
-                <button className="px-5 py-2 text-sm font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                <button className="px-5 py-2 text-sm font-semibold rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
                   Secondary
                 </button>
-                <button className="px-5 py-2 text-sm font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50" disabled>
+                <button className="px-5 py-2 text-sm font-semibold rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 cursor-not-allowed opacity-50" disabled>
                   Disabled
                 </button>
               </div>
@@ -226,7 +226,7 @@ export default function DesignSystemPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* ── Form Controls ───────────────────────────────────────────────── */}
+        {/* -- Form Controls ------------------------------------------------- */}
         <Section title="Form Controls">
           <div className="space-y-4">
             {/* Text input */}
@@ -236,8 +236,8 @@ export default function DesignSystemPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   defaultValue=""
-                  placeholder="Search…"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 transition"
+                  placeholder="Search�"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 transition"
                   style={{ "--tw-ring-color": brand.primary } as any}
                 />
               </div>
@@ -247,7 +247,7 @@ export default function DesignSystemPage() {
               <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">Focused State</label>
               <input
                 defaultValue="Active input"
-                className="w-full px-4 py-2.5 rounded-xl border-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border-2 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm focus:outline-none"
                 style={{ borderColor: brand.primary, boxShadow: `0 0 0 3px ${brand.primary}25` }}
               />
             </div>
@@ -277,7 +277,7 @@ export default function DesignSystemPage() {
             {/* Select */}
             <div>
               <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">Select</label>
-              <select className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none" style={{ accentColor: brand.primary }}>
+              <select className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm focus:outline-none" style={{ accentColor: brand.primary }}>
                 <option>All Environments</option>
                 <option>Production</option>
                 <option>Staging</option>
@@ -286,7 +286,7 @@ export default function DesignSystemPage() {
           </div>
         </Section>
 
-        {/* ── Badges & Status ─────────────────────────────────────────────── */}
+        {/* -- Badges & Status ----------------------------------------------- */}
         <Section title="Badges, Status & Alerts">
           <div className="space-y-5">
             {/* Badges */}
@@ -323,26 +323,26 @@ export default function DesignSystemPage() {
               <p className="text-xs text-slate-400 mb-3">Alert Variants</p>
               <div className="flex items-start gap-2 p-3 rounded-xl" style={{ background: `${brand.primary}18`, border: `1px solid ${brand.primary}40` }}>
                 <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" style={{ color: brand.primary }} />
-                <p className="text-sm font-medium" style={{ color: brand.secondary }}>Success — Operation completed successfully.</p>
+                <p className="text-sm font-medium" style={{ color: brand.secondary }}>Success � Operation completed successfully.</p>
               </div>
               <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/30">
                 <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
-                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Warning — Please review before proceeding.</p>
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Warning � Please review before proceeding.</p>
               </div>
               <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30">
                 <XCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-500" />
-                <p className="text-sm font-medium text-red-700 dark:text-red-300">Error — Something went wrong.</p>
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">Error � Something went wrong.</p>
               </div>
               <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/30">
                 <Info className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />
-                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Info — Here&apos;s some helpful information.</p>
+                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Info � Here&apos;s some helpful information.</p>
               </div>
             </div>
           </div>
         </Section>
       </div>
 
-      {/* ── Icons & Action Buttons ────────────────────────────────────────── */}
+      {/* -- Icons & Action Buttons ------------------------------------------ */}
       <Section title="Icons & Action Buttons">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Icon grid */}
@@ -352,7 +352,7 @@ export default function DesignSystemPage() {
               {[Home, Search, User, Settings, Bell, ShieldCheck, LayoutDashboard, TrendingUp,
                 Edit3, Share2, Tag, Trash2, Star, Zap, CheckCircle2, ArrowRight].map((Icon, i) => (
                 <div key={i} className="flex flex-col items-center gap-1 group">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 group-hover:border-emerald-400 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 transition-all">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 group-hover:border-emerald-400 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 transition-all">
                     <Icon className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
                   </div>
                 </div>
@@ -379,7 +379,7 @@ export default function DesignSystemPage() {
           {/* KPI Card preview */}
           <div>
             <p className="text-xs text-slate-400 mb-4">KPI Card</p>
-            <div className="rounded-2xl border border-slate-200 dark:border-white/10 p-5 bg-white dark:bg-slate-800 shadow-sm relative overflow-hidden">
+            <div className="rounded-2xl border border-slate-200 dark:border-white/10 p-5 bg-white dark:bg-white/5 shadow-sm relative overflow-hidden">
               <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full blur-2xl opacity-30" style={{ background: brand.primary }} />
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-3">
@@ -424,7 +424,7 @@ export default function DesignSystemPage() {
         </div>
       </Section>
 
-      {/* ── Spacing & Radii tokens ────────────────────────────────────────── */}
+      {/* -- Spacing & Radii tokens ------------------------------------------ */}
       <Section title="Spacing & Border Radius Tokens">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>

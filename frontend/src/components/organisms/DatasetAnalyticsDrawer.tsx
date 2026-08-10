@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -159,7 +159,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
       const strLabels = labels.map((l: any) => String(l).substring(0, 8));
 
       return (
-        <div key={col} className="mb-6 border border-slate-100 dark:border-slate-800 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-900/50">
+        <div key={col} className="mb-6 border border-slate-100 dark:border-slate-800 rounded-xl p-4 bg-slate-50/50 dark:bg-white/5">
           <DistributionChart 
             title={`Distribution of ${col}`}
             labels={strLabels}
@@ -173,9 +173,9 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-[95vw] sm:max-w-4xl p-0 flex flex-col h-full bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800" side="right">
+      <SheetContent className="w-[95vw] sm:max-w-4xl p-0 flex flex-col h-full bg-white dark:bg-[#0B0F17] border-l border-slate-200 dark:border-slate-800" side="right">
         
-        <SheetHeader className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+        <SheetHeader className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5 shrink-0">
           <SheetTitle className="flex items-center gap-2 text-xl font-bold">
             <BarChart2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             Analytics & AI Copilot
@@ -188,35 +188,35 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
         <div className="flex-1 overflow-hidden flex flex-col relative min-h-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col overflow-hidden">
             <div className="px-0 shrink-0 border-b border-slate-200 dark:border-slate-800">
-              <TabsList className="w-full grid grid-cols-3 bg-transparent p-0 h-auto rounded-none gap-0">
+              <TabsList variant="line" className="w-full grid grid-cols-4 bg-transparent p-0 h-12 rounded-none gap-0 border-b border-slate-200 dark:border-slate-800">
                 <TabsTrigger
                   value="copilot"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium py-3 px-6 bg-transparent data-[state=active]:bg-transparent shadow-none transition-colors"
+                  className="rounded-none border-b-2 border-transparent data-active:border-emerald-500 data-active:text-emerald-600 dark:data-active:text-emerald-400 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium h-full px-4 sm:px-6 data-active:bg-transparent data-active:shadow-none transition-colors"
                 >
                   <MessageSquare className="w-4 h-4 mr-2" /> Copilot Chat
                 </TabsTrigger>
                 <TabsTrigger
                   value="visuals"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium py-3 px-6 bg-transparent data-[state=active]:bg-transparent shadow-none transition-colors"
+                  className="rounded-none border-b-2 border-transparent data-active:border-emerald-500 data-active:text-emerald-600 dark:data-active:text-emerald-400 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium h-full px-4 sm:px-6 data-active:bg-transparent data-active:shadow-none transition-colors"
                 >
                   <BarChart2 className="w-4 h-4 mr-2" /> Visualizations
                 </TabsTrigger>
                 <TabsTrigger
                   value="narrative"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium py-3 px-6 bg-transparent data-[state=active]:bg-transparent shadow-none transition-colors"
+                  className="rounded-none border-b-2 border-transparent data-active:border-emerald-500 data-active:text-emerald-600 dark:data-active:text-emerald-400 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium h-full px-4 sm:px-6 data-active:bg-transparent data-active:shadow-none transition-colors"
                 >
                   <FileText className="w-4 h-4 mr-2" /> Executive Report
                 </TabsTrigger>
                 <TabsTrigger
                   value="forecast"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium py-3 px-6 bg-transparent data-[state=active]:bg-transparent shadow-none transition-colors"
+                  className="rounded-none border-b-2 border-transparent data-active:border-emerald-500 data-active:text-emerald-600 dark:data-active:text-emerald-400 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium h-full px-4 sm:px-6 data-active:bg-transparent data-active:shadow-none transition-colors"
                 >
                   <TrendingUp className="w-4 h-4 mr-2" /> Trend Forecast
                 </TabsTrigger>
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-hidden flex flex-col min-h-0 relative bg-slate-50/30 dark:bg-slate-900/10">
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0 relative bg-slate-50/30 dark:bg-white/5">
               <TabsContent value="copilot" className="h-full w-full m-0 data-[state=active]:flex flex-col overflow-hidden">
                 <CopilotChat datasetId={datasetId} />
               </TabsContent>
@@ -237,7 +237,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
                       <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
                         Correlation Matrix
                       </h3>
-                      <div className="border border-slate-100 dark:border-slate-800 rounded-2xl p-4 bg-white dark:bg-slate-900 shadow-sm">
+                      <div className="border border-slate-100 dark:border-slate-800 rounded-2xl p-4 bg-white dark:bg-white/5 shadow-sm">
                         <CorrelationHeatmap data={profile.correlation_matrix} height={400} />
                       </div>
                     </div>
@@ -256,7 +256,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
 
               <TabsContent value="narrative" className="h-full w-full m-0 p-6 overflow-y-auto">
                 {!narrative ? (
-                  <div className="flex flex-col items-center justify-center py-20 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="flex flex-col items-center justify-center py-20 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-white/5">
                     <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6">
                       <FileText className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                     </div>
@@ -285,7 +285,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
 
               <TabsContent value="forecast" className="h-full w-full m-0 p-6 overflow-y-auto">
                 {!forecast ? (
-                  <div className="flex flex-col items-center justify-center py-20 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="flex flex-col items-center justify-center py-20 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-white/5">
                     <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6">
                       <TrendingUp className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                     </div>

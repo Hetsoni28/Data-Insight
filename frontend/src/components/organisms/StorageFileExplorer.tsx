@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+﻿import { useState, useMemo } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { storageService } from "@/lib/storageService"
@@ -305,7 +305,7 @@ export function StorageFileExplorer({
                     </button>
                     <button 
                       onClick={() => setSelectedFile(file)}
-                      className="p-1.5 text-slate-400 hover:text-emerald-500 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-colors cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-emerald-500 bg-white dark:bg-white/5 rounded-lg shadow-sm border border-slate-100 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-colors cursor-pointer"
                       title="View Details"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />

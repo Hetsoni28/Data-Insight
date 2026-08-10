@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -59,7 +59,7 @@ export default function NotFound() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => router.push("/support")}
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm"
           >
             <LifeBuoy className="w-4 h-4" />
             Contact Support

@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+﻿import { ReactNode } from "react"
 import { motion } from "framer-motion"
 import { Brain, User } from "lucide-react"
 import ReactMarkdown from "react-markdown"
@@ -51,7 +51,7 @@ export function CommandCenterMessage({ role, content, isStreaming }: CommandCent
       </div>
 
       {!isAssistant && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center mt-1">
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-200 dark:bg-white/5 flex items-center justify-center mt-1">
           <User className="w-4 h-4 text-slate-600 dark:text-slate-400" />
         </div>
       )}

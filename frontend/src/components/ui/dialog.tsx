@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { createPortal } from "react-dom"
@@ -171,7 +171,7 @@ function DialogContent({
         aria-modal="true"
         data-slot="dialog-content"
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white dark:bg-slate-900 p-6 shadow-xl ring-1 ring-black/10 sm:max-w-lg",
+          "fixed left-1/2 top-1/2 z-50 w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white dark:bg-white/5 p-6 shadow-xl ring-1 ring-black/10 sm:max-w-lg",
           className
         )}
         onClick={(e) => e.stopPropagation()}
@@ -220,7 +220,7 @@ function DialogFooter({
         <button
           type="button"
           onClick={() => onOpenChange(false)}
-          className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5"
+          className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5"
         >
           Close
         </button>

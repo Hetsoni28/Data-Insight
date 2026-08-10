@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { FileText, TrendingUp, Sparkles, Clock, CheckCircle2, Calendar } from "lucide-react"
 
@@ -19,7 +19,7 @@ export function ReportExecutiveKPIs({ stats }: ReportExecutiveKPIsProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 h-28"></div>
+          <div key={i} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800 rounded-xl p-5 h-28"></div>
         ))}
       </div>
     )
@@ -59,7 +59,7 @@ export function ReportExecutiveKPIs({ stats }: ReportExecutiveKPIsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {kpis.map((kpi, i) => (
-        <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
+        <div key={i} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{kpi.title}</p>

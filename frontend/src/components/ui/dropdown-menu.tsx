@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { createPortal } from "react-dom"
@@ -173,7 +173,7 @@ export function DropdownMenuContent({
         overflowY: "auto",
       }}
       className={cn(
-        "min-w-[10rem] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1.5 shadow-2xl",
+        "min-w-[10rem] rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 p-1.5 shadow-2xl",
         className
       )}
       onClick={(e) => e.stopPropagation()}

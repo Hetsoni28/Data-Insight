@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect, useMemo } from "react"
 import {
@@ -341,7 +341,7 @@ export default function UsersPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-9 px-3 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="h-9 px-3 text-sm bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -458,7 +458,7 @@ export default function UsersPage() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleCopyLink(directUrl)}
-                                    className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
+                                    className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
                                     title="Copy direct invite link"
                                   >
                                     <Copy className="w-3.5 h-3.5" />
@@ -470,7 +470,7 @@ export default function UsersPage() {
                                     size="sm"
                                     disabled={actionLoadingId === inv.id}
                                     onClick={() => handleResendInvite(inv.id, inv.email)}
-                                    className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
+                                    className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
                                     title="Extend expiration and resend email"
                                   >
                                     <RotateCw
@@ -510,7 +510,7 @@ export default function UsersPage() {
 
       {/* Invite User Dialog */}
       <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
               <Mail className="h-5 w-5 text-emerald-600" />
@@ -548,7 +548,7 @@ export default function UsersPage() {
                 value={selectedTenantId}
                 onChange={(e) => setSelectedTenantId(e.target.value)}
                 disabled={isInviting || loadingTenants}
-                className="w-full h-10 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full h-10 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 {tenants.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -568,7 +568,7 @@ export default function UsersPage() {
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value)}
                 disabled={isInviting}
-                className="w-full h-10 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full h-10 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="analyst">Analyst — Data modeling & analysis</option>
                 <option value="manager">Manager — Team & workflow management</option>
@@ -613,7 +613,7 @@ export default function UsersPage() {
         open={Boolean(createdInviteUrl)}
         onOpenChange={(open) => !open && setCreatedInviteUrl(null)}
       >
-        <DialogContent className="sm:max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10">
+        <DialogContent className="sm:max-w-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
           <DialogHeader>
             <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center mb-2">
               <CheckCircle2 className="w-6 h-6" />

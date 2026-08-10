@@ -340,7 +340,7 @@ export function ProfileContentTabs({
                             <div>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-sm font-bold text-slate-900 dark:text-white">
-                                  {session.device_name || session.os || "Desktop Device"} • {session.browser || "Browser"}
+                                  {session.device_name || session.os || "Desktop Device"} � {session.browser || "Browser"}
                                 </p>
                                 {session.is_current && (
                                   <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 uppercase tracking-wider">
@@ -350,7 +350,7 @@ export function ProfileContentTabs({
                               </div>
                               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
                                 <span className="font-mono">{session.ip_address}</span>
-                                <span>•</span>
+                                <span>�</span>
                                 <span>{session.location || (session.city ? `${session.city}, ${session.country}` : "Location Secured")}</span>
                               </p>
                               <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
@@ -396,7 +396,7 @@ export function ProfileContentTabs({
                               {key.name}
                               {key.is_active ? <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active"></span> : <span className="w-2 h-2 rounded-full bg-red-500" title="Revoked"></span>}
                             </h5>
-                            <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">{key.prefix}••••••••••••••••••••••••••••••••</p>
+                            <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">{key.prefix}��������������������������������</p>
                             <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Created on {new Date(key.created_at).toLocaleDateString()}</p>
                           </div>
                           <Button variant="ghost" size="sm" onClick={() => handleRevokeApiKey(key.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
@@ -497,7 +497,7 @@ export function ProfileContentTabs({
 
       </AnimatePresence>
 
-      {/* ── MFA SETUP MODAL ── */}
+      {/* -- MFA SETUP MODAL -- */}
       <Dialog open={isMfaSetupOpen} onOpenChange={setIsMfaSetupOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -584,7 +584,7 @@ export function ProfileContentTabs({
         </DialogContent>
       </Dialog>
 
-      {/* ── MFA DISABLE MODAL ── */}
+      {/* -- MFA DISABLE MODAL -- */}
       <Dialog open={isMfaDisableOpen} onOpenChange={setIsMfaDisableOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -603,7 +603,7 @@ export function ProfileContentTabs({
               </Label>
               <Input 
                 type="password" 
-                placeholder="••••••••••••" 
+                placeholder="������������" 
                 value={disablePassword} 
                 onChange={(e) => setDisablePassword(e.target.value)}
                 className="h-10"

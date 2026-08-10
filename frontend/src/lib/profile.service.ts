@@ -117,5 +117,21 @@ export const ProfileService = {
   async getAuditLogs(): Promise<AuditLog[]> {
     const { data } = await api.get("/profile/audit");
     return data;
+  },
+
+  async uploadAvatar(file: File): Promise<{ avatar_url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post("/profile/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return data;
+  },
+
+  async removeAvatar(): Promise<{ message: string }> {
+    const { data } = await api.delete("/profile/avatar");
+    return data;
   }
 };

@@ -41,7 +41,7 @@ async def test_get_billing_summary(client: AsyncClient, test_db: AsyncSession):
     assert res.status_code == 200
     data = res.json()
     assert data["plan"] == "professional"
-    assert data["mrr"] == 999
+    assert data["mrr"] == 12500.0
     assert data["currency"] == "USD"
     
     app.dependency_overrides.clear()

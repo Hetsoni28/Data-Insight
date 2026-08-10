@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react"
+﻿import { useState, useRef, useEffect, useCallback } from "react"
 import { Send, Loader2, Paperclip, FileType, X, Brain } from "lucide-react"
 import { CommandCenterMessage } from "@/components/molecules/CommandCenterMessage"
 import { CommandCenterArtifactPanel, ArtifactType } from "@/components/organisms/CommandCenterArtifactPanel"
@@ -139,7 +139,7 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
       <input {...getInputProps()} />
       {isDragActive && (
         <div className="absolute inset-0 z-50 bg-emerald-500/10 backdrop-blur-sm border-2 border-emerald-500 border-dashed flex items-center justify-center">
-          <div className="bg-white dark:bg-slate-800 px-6 py-4 rounded-none shadow-xl flex items-center gap-3">
+          <div className="bg-white dark:bg-white/5 px-6 py-4 rounded-none shadow-xl flex items-center gap-3">
             <Paperclip className="w-6 h-6 text-emerald-500" />
             <span className="font-semibold text-emerald-600 dark:text-emerald-400">Drop files to upload</span>
           </div>
@@ -206,11 +206,11 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
       </AnimatePresence>
 
       <div className="w-full shrink-0 bg-gradient-to-t from-white via-white to-transparent dark:from-slate-900 dark:via-slate-900 dark:to-transparent pt-6 pb-6 px-4">
-        <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none shadow-sm p-3">
+        <div className="max-w-4xl mx-auto bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-none shadow-sm p-3">
           {files.length > 0 && (
             <div className="flex gap-2 flex-wrap mb-3 px-2">
               {files.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-none border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div key={i} className="flex items-center gap-2 bg-slate-100 dark:bg-white/5 text-xs text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-none border border-slate-200 dark:border-slate-700 shadow-sm">
                   <FileType className="w-3 h-3 text-emerald-500" />
                   <span className="truncate max-w-[120px]">{f.name}</span>
                   <button 

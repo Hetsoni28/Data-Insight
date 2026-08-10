@@ -68,7 +68,7 @@ export function PaginationControls({
                             className="h-8 w-16 rounded-md border border-slate-200 dark:border-white/10 bg-transparent px-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         >
                             {pageSizeOptions.map(size => (
-                                <option key={size} value={size}>{size}</option>
+                                <option key={size} value={size} className="bg-white dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100">{size}</option>
                             ))}
                         </select>
                     </div>

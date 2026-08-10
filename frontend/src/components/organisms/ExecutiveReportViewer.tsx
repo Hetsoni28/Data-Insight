@@ -1,4 +1,4 @@
-import React from "react"
+﻿import React from "react"
 import { Brain, TrendingUp, DollarSign, Activity, AlertTriangle, Lightbulb, CheckCircle2, ShieldCheck, FileSpreadsheet, FileText, BarChart3, Target, Users, Zap, PieChart, Layers } from "lucide-react"
 import api from "@/lib/api"
 import { toast } from "sonner"
@@ -55,7 +55,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
   const scores = data.confidenceScores || {}
 
   return (
-    <div className="w-full bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
+    <div className="w-full bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
 
       {/* ── HEADER ── */}
       <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 flex items-center justify-between gap-4 border-b border-emerald-800/40">
@@ -98,7 +98,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
 
         {/* Row 1: Customer Behavior + Business Trends */}
         <div className="grid grid-cols-2 gap-5">
-          <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200/80 dark:border-slate-800">
+          <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-xl border border-slate-200/80 dark:border-slate-800">
             <div className="flex items-center gap-2 mb-3">
               <div className="p-1.5 bg-emerald-100 dark:bg-emerald-950/70 rounded-md text-emerald-600 dark:text-emerald-400">
                 <Users className="w-4 h-4" />
@@ -107,7 +107,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
             </div>
             {renderText(data.customerBehavior)}
           </div>
-          <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200/80 dark:border-slate-800">
+          <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-xl border border-slate-200/80 dark:border-slate-800">
             <div className="flex items-center gap-2 mb-3">
               <div className="p-1.5 bg-emerald-100 dark:bg-emerald-950/70 rounded-md text-emerald-600 dark:text-emerald-400">
                 <TrendingUp className="w-4 h-4" />
@@ -125,7 +125,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
             { icon: <BarChart3 className="w-4 h-4" />, title: "Profitability", value: data.profitability },
             { icon: <Activity className="w-4 h-4" />, title: "Sales Performance", value: data.salesPerformance },
           ].map((item, i) => (
-            <div key={i} className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200/80 dark:border-slate-800">
+            <div key={i} className="p-5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/80 dark:border-slate-800">
               <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-400">
                 {item.icon}
                 <h3 className="text-xs font-bold text-slate-900 dark:text-white">{item.title}</h3>
@@ -142,7 +142,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
             { icon: <Layers className="w-4 h-4" />, title: "Correlations", value: data.correlations },
             { icon: <Activity className="w-4 h-4" />, title: "Seasonality", value: data.seasonality },
           ].map((item, i) => (
-            <div key={i} className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200/80 dark:border-slate-800">
+            <div key={i} className="p-5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/80 dark:border-slate-800">
               <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-400">
                 {item.icon}
                 <h3 className="text-xs font-bold text-slate-900 dark:text-white">{item.title}</h3>
@@ -180,7 +180,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
         {(data.forecastOpportunities || data.departmentPerformance) && (
           <div className="grid grid-cols-2 gap-5">
             {data.forecastOpportunities && (
-              <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200/80 dark:border-slate-800">
+              <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-xl border border-slate-200/80 dark:border-slate-800">
                 <div className="flex items-center gap-2 mb-3 text-emerald-600 dark:text-emerald-400">
                   <Zap className="w-4 h-4" />
                   <h3 className="text-xs font-bold text-slate-900 dark:text-white">Forecast Opportunities</h3>
@@ -189,7 +189,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
               </div>
             )}
             {data.departmentPerformance && (
-              <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200/80 dark:border-slate-800">
+              <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-xl border border-slate-200/80 dark:border-slate-800">
                 <div className="flex items-center gap-2 mb-3 text-emerald-600 dark:text-emerald-400">
                   <BarChart3 className="w-4 h-4" />
                   <h3 className="text-xs font-bold text-slate-900 dark:text-white">Department Performance</h3>

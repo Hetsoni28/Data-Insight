@@ -150,6 +150,12 @@
     scroll-behavior: smooth;
   }
 
+  /* Native select dropdown options in dark mode */
+  .dark select option {
+    background-color: #0B0F17 !important;
+    color: #f8fafc !important;
+  }
+
   /* ─── Global: Replace ALL blue accents with brand emerald #10B981 ────────── */
 
   /* Focus rings → emerald (replaces browser blue) */

@@ -1,4 +1,4 @@
-import React from "react"
+﻿import React from "react"
 import { Brain, Activity, TrendingUp, LineChart, Target, ShieldCheck, Zap, Database } from "lucide-react"
 
 interface AIDashboardViewerProps {
@@ -13,7 +13,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
     const color = score >= 80 ? '#059669' : score >= 50 ? '#f59e0b' : '#ef4444'
     const textColor = score >= 80 ? 'text-emerald-600 dark:text-emerald-400' : score >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'
     return (
-      <div className="flex flex-col items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/80 dark:border-slate-800">
+      <div className="flex flex-col items-center p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/80 dark:border-slate-800">
         <div className="relative w-14 h-14 mb-2">
           <svg className="w-full h-full -rotate-90">
             <circle cx="28" cy="28" r="24" fill="none" stroke="#e2e8f0" strokeWidth="4" />
@@ -32,7 +32,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
   }
 
   return (
-    <div className="w-full bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
+    <div className="w-full bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
 
       {/* ── HEADER ── */}
       <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 flex items-center gap-3 border-b border-emerald-800/40">
@@ -73,7 +73,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
                 { label: "Anomalies & Outliers", value: data.outliers },
                 { label: "Data Distribution", value: data.dataDistribution },
               ].map((item, i) => (
-                <div key={i} className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div key={i} className="bg-slate-50 dark:bg-white/5 px-4 py-3 rounded-lg border border-slate-200/80 dark:border-slate-800">
                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">{item.label}</div>
                   <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{item.value}</p>
                 </div>
@@ -91,7 +91,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
                 { label: "Feature Correlations", value: data.correlations },
                 { label: "Seasonality / Time Trends", value: data.seasonality },
               ].map((item, i) => (
-                <div key={i} className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div key={i} className="bg-slate-50 dark:bg-white/5 px-4 py-3 rounded-lg border border-slate-200/80 dark:border-slate-800">
                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">{item.label}</div>
                   <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{item.value}</p>
                 </div>
@@ -112,7 +112,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
               { title: "Sales Performance", value: data.salesPerformance },
               { title: "Revenue Drivers", value: data.revenueDrivers },
             ].map((item, i) => (
-              <div key={i} className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200/80 dark:border-slate-800">
+              <div key={i} className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/80 dark:border-slate-800">
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-1.5">{item.title}</h4>
                 <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{item.value}</p>
               </div>

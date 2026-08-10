@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -31,7 +31,7 @@ export default function AICommandCenterPage() {
     <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] relative bg-slate-50/50 dark:bg-[#020617]">
       
       {/* Top Navigation Bar */}
-      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-white/5 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-none bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
             <Brain className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -48,7 +48,7 @@ export default function AICommandCenterPage() {
               setSelectedSessionId(undefined)
               setSelectedActionTitle(undefined)
             }}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-none hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             <Plus className="w-3 h-3" /> New Chat
           </button>

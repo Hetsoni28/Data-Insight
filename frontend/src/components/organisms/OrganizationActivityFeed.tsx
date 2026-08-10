@@ -1,75 +1,60 @@
 "use client"
+import Link from "next/link"
+import { Activity, Shield, Database, FileText, Users, Cpu, ArrowRight } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import { StatusBadge } from "@/components/molecules/StatusBadge"
 
-import React, { useState } from "react"
-import { format } from "date-fns"
-import { Activity, LogIn, UploadCloud, FileText, Shield } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { PaginationControls } from "@/components/molecules/PaginationControls"
+interface ActivityItem { id: string; action: string; resource_type: string; status: string; created_at: string }
 
-export function OrganizationActivityFeed({ activity }: { activity: any[] }) {
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 5
+function resolveIcon(action: string) {
+  if (action.includes("login")) return Shield
+  if (action.includes("dataset") || action.includes("data")) return Database
+  if (action.includes("report")) return FileText
+  if (action.includes("user")) return Users
+  if (action.includes("ai") || action.includes("inference")) return Cpu
+  return Activity
+}
 
-  if (!activity || activity.length === 0) return null
-
-  const getActionIcon = (action: string) => {
-    if (action.includes('login')) return <LogIn className="h-4 w-4 text-emerald-500" />
-    if (action.includes('dataset') || action.includes('upload')) return <UploadCloud className="h-4 w-4 text-emerald-500" />
-    if (action.includes('report') || action.includes('generate')) return <FileText className="h-4 w-4 text-emerald-500" />
-    if (action.includes('admin') || action.includes('permission')) return <Shield className="h-4 w-4 text-rose-500" />
-    return <Activity className="h-4 w-4 text-slate-500" />
-  }
-
-  const formatActionName = (action: string) => {
-    return action.split('.').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-  }
-
-  const totalPages = Math.ceil(activity.length / itemsPerPage)
-  const paginatedActivity = activity.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-
+export function OrganizationActivityFeed({ activity }: { activity: ActivityItem[] }) {
   return (
-    <div className="p-8 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm flex flex-col">
-      <div className="mb-6 shrink-0">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Organization Timeline</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Live feed of organization events.</p>
+    <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 p-6 shadow-sm flex flex-col h-full">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Activity className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          <h3 className="font-bold text-slate-900 dark:text-white text-sm">Live Activity Feed</h3>
+        </div>
+        <Link href="/organization-admin/dashboard/team">
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-semibold cursor-pointer">
+            View all <ArrowRight className="h-3 w-3" />
+          </span>
+        </Link>
       </div>
-
-      <div className="relative border-l-2 border-slate-100 dark:border-slate-800 ml-5 space-y-6 flex-1 mt-4">
-        {paginatedActivity.map((item, i) => (
-          <div key={item.id || i} className="relative pl-6">
-            <span className="absolute -left-[21px] top-0 flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-[#09090b] bg-slate-100 dark:bg-slate-800 shadow-sm z-10">
-              {getActionIcon(item.action)}
-            </span>
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5 shadow-sm">
-              <div className="flex flex-col gap-2 mb-2">
-                <div className="flex justify-between items-start gap-2">
-                  <span className="font-semibold text-slate-900 dark:text-white text-sm line-clamp-2">{formatActionName(item.action)}</span>
-                  <Badge variant={item.status === 'success' ? 'default' : 'destructive'} className={item.status === 'success' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400' : ''}>
-                    {item.status === 'success' ? 'Success' : 'Failed'}
-                  </Badge>
-                </div>
+      <div className="flex-1 space-y-3 overflow-y-auto max-h-[300px] pr-1">
+        {(!activity || activity.length === 0) && (
+          <p className="text-xs text-slate-500 text-center py-8">No recent activity.</p>
+        )}
+        {(activity || []).slice(0, 12).map(a => {
+          const Icon = resolveIcon(a.action)
+          const ok = a.status === "success"
+          return (
+            <div key={a.id} className="flex items-start gap-3">
+              <div className={`mt-0.5 flex-shrink-0 p-1.5 rounded-lg ${ok ? "bg-emerald-50 dark:bg-emerald-500/10" : "bg-rose-50 dark:bg-rose-500/10"}`}>
+                <Icon className={`h-3.5 w-3.5 ${ok ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`} />
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">
-                {item.created_at ? format(new Date(item.created_at), 'MMM d, h:mm a') : 'Just now'}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-slate-900 dark:text-slate-200 font-semibold truncate">{a.action}</p>
+                  <StatusBadge status={a.status} />
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  {a.resource_type && <span className="capitalize mr-1">{a.resource_type} &bull;</span>}
+                  {formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}
+                </p>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
-
-      {activity.length > 0 && (
-        <div className="mt-8 pt-4">
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={activity.length}
-            pageSize={itemsPerPage}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={() => {}}
-            pageSizeOptions={[5]}
-          />
-        </div>
-      )}
     </div>
   )
 }

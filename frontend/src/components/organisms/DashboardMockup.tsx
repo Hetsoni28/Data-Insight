@@ -71,7 +71,7 @@ export function DashboardMockup() {
       </div>
 
       <div className="flex h-[360px] sm:h-[400px] flex-col sm:flex-row">
-        {/* Mobile tab bar — only visible on small screens */}
+        {/* Mobile tab bar � only visible on small screens */}
         <div className="flex sm:hidden overflow-x-auto border-b border-slate-200/60 dark:border-white/10 bg-white dark:bg-transparent px-1 shrink-0">
           {TABS.map(({ icon: Icon, label, id }) => {
             const active = activeTab === id
@@ -177,7 +177,7 @@ export function DashboardMockup() {
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#10B981]" />
                               )}
                               {isSyncing ? "Syncing..." : ds.status}
-                              <span className="px-1 text-slate-300">•</span>
+                              <span className="px-1 text-slate-300">�</span>
                               {ds.rows}
                             </div>
                           </div>

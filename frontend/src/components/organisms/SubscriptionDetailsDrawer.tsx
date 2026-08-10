@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -171,9 +171,9 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                 </div>
               ) : invoicesData && invoicesData.length > 0 ? (
                 invoicesData.map((inv: any) => (
-                  <div key={inv.id} className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                  <div key={inv.id} className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded bg-slate-100 dark:bg-white/5 flex items-center justify-center">
                         <CreditCard className="w-5 h-5 text-slate-500" />
                       </div>
                       <div>

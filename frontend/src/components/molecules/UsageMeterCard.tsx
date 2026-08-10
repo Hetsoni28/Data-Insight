@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+﻿import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -28,7 +28,7 @@ export function UsageMeterCard({ title, icon: Icon, used, limit, pct, warningSta
     high: "text-orange-500 dark:text-orange-400 bg-orange-100 dark:bg-orange-500/10",
     critical: "text-red-500 dark:text-red-400 bg-red-100 dark:bg-red-500/10",
     limit: "text-red-600 dark:text-red-500 bg-red-100 dark:bg-red-500/10",
-  }[warningState] || "text-slate-500 bg-slate-100 dark:bg-slate-800"
+  }[warningState] || "text-slate-500 bg-slate-100 dark:bg-white/5"
 
   // Format numbers (e.g. 100000 -> 100,000)
   const formatNumber = (num: number) => new Intl.NumberFormat("en-US").format(num)
@@ -66,7 +66,7 @@ export function UsageMeterCard({ title, icon: Icon, used, limit, pct, warningSta
             indicatorClassName={progressColor}
           />
         ) : (
-          <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
             <div className="h-full w-full bg-slate-300 dark:bg-slate-600 opacity-50" />
           </div>
         )}

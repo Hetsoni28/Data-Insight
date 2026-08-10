@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState, useCallback } from "react"
 
@@ -72,13 +72,13 @@ export default function ApiGatewayPage() {
   if (loadingOverview || loadingUsage) {
     return (
       <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6">
-        <div className="h-[280px] w-full bg-slate-200 dark:bg-slate-800 animate-pulse rounded-3xl" />
+        <div className="h-[280px] w-full bg-slate-200 dark:bg-white/5 animate-pulse rounded-3xl" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-            <div key={i} className="h-28 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
+            <div key={i} className="h-28 bg-slate-200 dark:bg-white/5 animate-pulse rounded-2xl" />
           ))}
         </div>
-        <div className="h-[400px] bg-slate-200 dark:bg-slate-800 animate-pulse rounded-3xl" />
+        <div className="h-[400px] bg-slate-200 dark:bg-white/5 animate-pulse rounded-3xl" />
       </div>
     )
   }

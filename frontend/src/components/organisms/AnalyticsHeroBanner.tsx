@@ -83,7 +83,7 @@ export function AnalyticsHeroBanner({ onRefresh, onFilterChange }: AnalyticsHero
           </h1>
         </div>
         <p className="text-slate-500 dark:text-slate-400 max-w-2xl text-[15px]">
-          Monitor global platform metrics, forecast revenue, and generate AI‑powered insights across all organizations.
+          Monitor global platform metrics, forecast revenue, and generate AI-powered insights across all organizations.
         </p>
       </div>
 

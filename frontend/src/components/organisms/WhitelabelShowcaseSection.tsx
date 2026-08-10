@@ -107,7 +107,7 @@ export function WhitelabelShowcaseSection() {
     <section id="whitelabel" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 border-t border-slate-200 overflow-hidden">
       <div className="max-w-7xl mx-auto space-y-12">
         
-        {/* ── SECTION HEADER ── */}
+        {/* -- SECTION HEADER -- */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -125,7 +125,7 @@ export function WhitelabelShowcaseSection() {
           </p>
         </motion.div>
 
-        {/* ── CLEAN TOP CONTROLS BAR (NO CRAMPED SIDEBAR, NO BOX ERRORS) ── */}
+        {/* -- CLEAN TOP CONTROLS BAR (NO CRAMPED SIDEBAR, NO BOX ERRORS) -- */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -178,7 +178,7 @@ export function WhitelabelShowcaseSection() {
           </div>
         </motion.div>
 
-        {/* ── FULL-WIDTH DESIGN SYSTEM & TOKENS CANVAS ── */}
+        {/* -- FULL-WIDTH DESIGN SYSTEM & TOKENS CANVAS -- */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

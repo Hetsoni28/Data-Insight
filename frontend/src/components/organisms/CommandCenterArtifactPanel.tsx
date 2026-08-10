@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+﻿import { motion } from "framer-motion"
 import { Code, FileSpreadsheet, LineChart, X } from "lucide-react"
 import { ReactNode } from "react"
 
@@ -29,9 +29,9 @@ export function CommandCenterArtifactPanel({ isOpen, onClose, type, title, conte
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="absolute top-4 right-4 bottom-4 w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl flex flex-col z-50 overflow-hidden"
+      className="absolute top-4 right-4 bottom-4 w-96 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl flex flex-col z-50 overflow-hidden"
     >
-      <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+      <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5">
         <div className="flex items-center gap-3">
           {getIcon()}
           <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{title}</h3>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useMemo } from "react";
 import { EChartsWrapper } from "@/components/ui/echarts-wrapper";
@@ -89,7 +89,7 @@ export function DistributionChart({
   if (!labels.length || !values.length) {
     return (
       <div 
-        className="w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800"
+        className="w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-slate-800"
         style={{ height }}
       >
         <p className="text-sm text-slate-500 font-medium">{title}</p>

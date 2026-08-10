@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React from "react"
 import { FileText, Shield, CheckCircle2, Calendar, Award, Download, Mail, ExternalLink } from "lucide-react"
@@ -33,11 +33,11 @@ export function ContractDetailsCard({ contract }: ContractDetailsCardProps) {
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
               <FileText className="h-5 w-5" />
             </div>
             <div>
@@ -57,28 +57,28 @@ export function ContractDetailsCard({ contract }: ContractDetailsCardProps) {
 
       <CardContent className="space-y-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800">
             <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">Contract Type</span>
             <span className="font-bold text-slate-900 dark:text-white text-sm">
               {contract.contract_type === "custom_global_license" ? "Custom Global License" : "Dedicated System Rental"}
             </span>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800">
             <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">Term & Renewal</span>
             <span className="font-bold text-slate-900 dark:text-white text-sm">
               {formatDate(contract.start_date)} – {formatDate(contract.renewal_date)}
             </span>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800">
             <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">SLA Guarantee</span>
             <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
               {contract.sla_guarantee}
             </span>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800">
             <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">Deployment Model</span>
             <span className="font-bold text-slate-900 dark:text-white text-sm">
               {contract.deployment_model}

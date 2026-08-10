@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useState, useEffect } from "react"
 import { Building2, Save, Loader2, Settings2 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
@@ -110,13 +110,13 @@ export default function SettingsPage() {
   )
   if (isLoading) return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <div className="h-12 w-72 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
+      <div className="h-12 w-72 rounded-lg bg-slate-100 dark:bg-white/5 animate-pulse" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-48 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+          <div key={i} className="h-48 rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />
         ))}
       </div>
-      <div className="h-32 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+      <div className="h-32 rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />
     </div>
   )
 

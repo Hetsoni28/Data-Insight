@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+﻿import { useState, useEffect } from "react"
 import { ShieldAlert, Key, Smartphone, Laptop, Globe, Monitor, Activity, ShieldCheck, AlertTriangle } from "lucide-react"
 import api from "@/lib/api"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
@@ -73,7 +73,7 @@ export function TeamSecurityAudit() {
           <button
             onClick={() => setActiveTab("audit")}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-              activeTab === "audit" ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              activeTab === "audit" ? "bg-white dark:bg-white/5 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
             }`}
           >
             Audit Logs
@@ -81,7 +81,7 @@ export function TeamSecurityAudit() {
           <button
             onClick={() => setActiveTab("sessions")}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-              activeTab === "sessions" ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              activeTab === "sessions" ? "bg-white dark:bg-white/5 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
             }`}
           >
             Active Sessions

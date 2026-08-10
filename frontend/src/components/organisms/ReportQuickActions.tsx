@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { FileText, Sparkles, Database, TrendingUp, Calendar, Upload, FileSpreadsheet } from "lucide-react"
 
@@ -60,14 +60,14 @@ export function ReportQuickActions({ onAction }: ReportQuickActionsProps) {
   ]
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
       <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Quick Actions</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
         {actions.map((action) => (
           <button
             key={action.id}
             onClick={() => onAction(action.id)}
-            className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:shadow-md transition-all group bg-slate-50 dark:bg-slate-800/50"
+            className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:shadow-md transition-all group bg-slate-50 dark:bg-white/5"
           >
             <div className={`p-3 rounded-xl mb-3 transition-transform group-hover:scale-110 ${action.bg} dark:bg-opacity-10`}>
               {action.icon}

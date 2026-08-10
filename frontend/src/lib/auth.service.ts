@@ -209,3 +209,9 @@ export async function resetPassword(payload: { email: string; otp: string; new_p
 export async function logoutUser(): Promise<void> {
   await api.post("/auth/logout")
 }
+
+/** POST /auth/deactivate */
+export async function deactivateAccount(password: string): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>("/auth/deactivate", { password })
+  return data
+}

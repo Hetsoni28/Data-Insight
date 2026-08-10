@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React from "react"
 import { DollarSign, FileText, CheckCircle2, ShieldAlert, CreditCard, Download, ArrowRight } from "lucide-react"
@@ -35,7 +35,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -136,7 +136,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
           </div>
         </div>
 
-        <Separator className="bg-slate-200 dark:bg-slate-800" />
+        <Separator className="bg-slate-200 dark:bg-white/5" />
 
         {/* Totals Section */}
         <div className="space-y-2 pt-1 text-sm">
@@ -179,7 +179,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
         </div>
 
         {/* Action Footnote */}
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-300">
             <CreditCard className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>

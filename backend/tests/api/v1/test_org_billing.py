@@ -37,7 +37,7 @@ async def test_get_billing_summary_as_org_admin(client: AsyncClient, test_db: As
     assert data["plan"] == "professional"
     assert data["subscription_status"] == "active"
     assert data["currency"] == "USD"
-    assert data["mrr"] == 999
+    assert data["mrr"] == 12500.0
     
     app.dependency_overrides.pop(get_current_org_admin, None)
 

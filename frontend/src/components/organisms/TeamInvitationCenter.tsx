@@ -183,7 +183,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 px-3 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="h-9 px-3 text-sm bg-white dark:bg-[#0B0F17] border border-slate-200 dark:border-white/10 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -294,7 +294,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleCopyLink(directUrl)}
-                                className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
+                                className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-[#0B0F17] border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
                                 title="Copy direct invite link"
                               >
                                 <Copy className="w-3.5 h-3.5" />
@@ -306,7 +306,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
                                 size="sm"
                                 disabled={actionLoadingId === inv.id}
                                 onClick={() => handleResend(inv.id, inv.email)}
-                                className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
+                                className="h-8 px-2.5 text-xs gap-1 bg-white dark:bg-[#0B0F17] border-slate-200 dark:border-white/10 hover:bg-emerald-50 hover:text-emerald-700"
                                 title="Extend expiration and resend email"
                               >
                                 <RotateCw
@@ -344,7 +344,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
 
       {/* Invite Member Dialog */}
       <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-[#0B0F17] border border-slate-200 dark:border-white/10">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
               <UserPlus className="h-5 w-5 text-emerald-600" />
@@ -380,7 +380,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
                 disabled={isSending}
-                className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full h-10 px-3 bg-white dark:bg-[#0B0F17] border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="analyst">Analyst — Data modeling & exploration</option>
                 <option value="manager">Manager — Team & workflow oversight</option>
@@ -425,7 +425,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
         open={Boolean(createdInviteUrl)}
         onOpenChange={(open) => !open && setCreatedInviteUrl(null)}
       >
-        <DialogContent className="sm:max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10">
+        <DialogContent className="sm:max-w-lg bg-white dark:bg-[#0B0F17] border border-slate-200 dark:border-white/10">
           <DialogHeader>
             <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center mb-2">
               <CheckCircle2 className="w-6 h-6" />

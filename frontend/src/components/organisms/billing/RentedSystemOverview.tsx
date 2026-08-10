@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React from "react"
 import { Database, HardDrive, Cpu, ShieldCheck, Activity, CheckCircle2, Clock, Zap, ArrowUpRight } from "lucide-react"
@@ -36,7 +36,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Card 1: Dedicated Database */}
-        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm hover:shadow-md transition-all">
+        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
@@ -62,24 +62,24 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
                 <span>Database Storage Allocated</span>
                 <span>{resources.database.used_gb} GB / {resources.database.allocated_gb} GB ({dbUsedPct}%)</span>
               </div>
-              <Progress value={dbUsedPct} className="h-2 bg-slate-100 dark:bg-slate-800" />
+              <Progress value={dbUsedPct} className="h-2 bg-slate-100 dark:bg-white/5" />
             </div>
 
             {/* Spec Details Grid */}
             <div className="grid grid-cols-2 gap-2.5 text-xs pt-1 border-t border-slate-100 dark:border-slate-800/80">
-              <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+              <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Deployment Region</span>
                 <span className="font-medium text-slate-800 dark:text-slate-200">{resources.database.region}</span>
               </div>
-              <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+              <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Connection Pooling</span>
                 <span className="font-medium text-slate-800 dark:text-slate-200">{resources.database.connection_pooling}</span>
               </div>
-              <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+              <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Backup Retention</span>
                 <span className="font-medium text-slate-800 dark:text-slate-200">{resources.database.backup_retention_days} Days WAL Archival</span>
               </div>
-              <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+              <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Isolation Mode</span>
                 <span className="font-medium text-emerald-600 dark:text-emerald-400">Single-Tenant Physical</span>
               </div>
@@ -99,7 +99,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
         </Card>
 
         {/* Card 2: Dedicated Storage */}
-        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm hover:shadow-md transition-all">
+        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 border border-teal-200/60 dark:border-teal-800/60">
@@ -125,20 +125,20 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
                 <span>Storage Utilization</span>
                 <span>{resources.storage.used_gb} GB / {resources.storage.allocated_gb} GB ({storageUsedPct}%)</span>
               </div>
-              <Progress value={storageUsedPct} className="h-2 bg-slate-100 dark:bg-slate-800" />
+              <Progress value={storageUsedPct} className="h-2 bg-slate-100 dark:bg-white/5" />
             </div>
 
             {/* Spec Details Grid */}
             <div className="grid grid-cols-3 gap-2 text-xs pt-1 border-t border-slate-100 dark:border-slate-800/80">
-              <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-center">
+              <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 text-center">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Datasets</span>
                 <span className="font-bold text-slate-900 dark:text-white text-sm">{resources.storage.datasets_count}</span>
               </div>
-              <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-center">
+              <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 text-center">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Reports</span>
                 <span className="font-bold text-slate-900 dark:text-white text-sm">{resources.storage.reports_count}</span>
               </div>
-              <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-center">
+              <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 text-center">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Snapshots</span>
                 <span className="font-bold text-slate-900 dark:text-white text-sm">{resources.storage.backup_snapshots_count}</span>
               </div>
@@ -162,7 +162,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
         </Card>
 
         {/* Card 3: AI Processing Engine */}
-        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm hover:shadow-md transition-all">
+        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 border border-violet-200/60 dark:border-violet-800/60">
@@ -188,20 +188,20 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
                 <span>Monthly AI Tokens Allocation</span>
                 <span>{(resources.ai_processing.used_tokens / 1_000_000).toFixed(2)}M / {(resources.ai_processing.monthly_quota_tokens / 1_000_000).toFixed(0)}M ({aiUsedPct}%)</span>
               </div>
-              <Progress value={aiUsedPct} className="h-2 bg-slate-100 dark:bg-slate-800" />
+              <Progress value={aiUsedPct} className="h-2 bg-slate-100 dark:bg-white/5" />
             </div>
 
             {/* AI Features Breakdown */}
             <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800/80">
               <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Feature Usage</span>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+                <div className="flex justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/5">
                   <span className="text-slate-600 dark:text-slate-300">AI Copilot</span>
                   <span className="font-bold text-slate-900 dark:text-white">
                     {((resources.ai_processing.features_breakdown["copilot_chat"]?.tokens || 0) / 1000).toFixed(0)}k
                   </span>
                 </div>
-                <div className="flex justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+                <div className="flex justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/5">
                   <span className="text-slate-600 dark:text-slate-300">Excel Engine</span>
                   <span className="font-bold text-slate-900 dark:text-white">
                     {((resources.ai_processing.features_breakdown["excel_compiler"]?.tokens || 0) / 1000).toFixed(0)}k
@@ -224,7 +224,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
         </Card>
 
         {/* Card 4: Backup & Disaster Recovery */}
-        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm hover:shadow-md transition-all">
+        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">
@@ -245,25 +245,25 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
           </CardHeader>
           <CardContent className="space-y-4 pt-1">
             <div className="grid grid-cols-2 gap-2.5 text-xs">
-              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-white/5">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Recovery Point (RPO)</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{resources.backup_recovery.rpo}</span>
               </div>
-              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-white/5">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Recovery Time (RTO)</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{resources.backup_recovery.rto}</span>
               </div>
-              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-white/5">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Point-In-Time Restore</span>
                 <span className="font-medium text-emerald-600 dark:text-emerald-400">Continuous Enabled</span>
               </div>
-              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-white/5">
                 <span className="text-slate-400 block text-[10px] uppercase font-semibold">Daily Snapshots</span>
                 <span className="font-medium text-emerald-600 dark:text-emerald-400">Automated 02:00 UTC</span>
               </div>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-slate-400" />
                 <span className="text-slate-600 dark:text-slate-300">Last System Snapshot</span>

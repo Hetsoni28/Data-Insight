@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { toast } from "sonner";
 import { SupportHero } from "@/components/organisms/SupportHero";
@@ -38,11 +38,11 @@ export default function SupportCenterPage() {
   if (loading) {
     return (
       <div className="p-8 max-w-7xl mx-auto space-y-8 pb-24 animate-pulse">
-        <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl w-full"></div>
+        <div className="h-64 bg-slate-200 dark:bg-white/5 rounded-2xl w-full"></div>
         <div className="grid grid-cols-6 gap-4">
-          {[...Array(6)].map((_, i) => <div key={i} className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>)}
+          {[...Array(6)].map((_, i) => <div key={i} className="h-32 bg-slate-200 dark:bg-white/5 rounded-2xl"></div>)}
         </div>
-        <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl w-full"></div>
+        <div className="h-96 bg-slate-200 dark:bg-white/5 rounded-2xl w-full"></div>
       </div>
     );
   }
