@@ -3,8 +3,7 @@
 import React, { useState, useRef, useEffect, memo, useCallback } from "react";
 import {
   Send,
-  Bot,
-  Sparkles,
+    Sparkles,
   Plus,
   Trash2,
   Edit2,
@@ -67,7 +66,7 @@ const ArtifactView = memo(({ artifact, onPin }: { artifact: any; onPin: (art: an
               </span>
             </div>
             <div className="mt-1.5 text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {m.value || "—"}
+              {m.value || ""}
             </div>
           </div>
         ))}
@@ -260,7 +259,7 @@ const ChatMessageBubble = memo(({
       <div className="flex max-w-[88%] items-end gap-2.5">
         {!isUser && (
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shrink-0 mb-1 shadow-sm ring-1 ring-emerald-500/20">
-            <Bot className="h-3.5 w-3.5 text-white" />
+            <Logo size={14} showText={false} href={null} whiteMode />
           </div>
         )}
         <div
@@ -780,7 +779,7 @@ export function CopilotChat({
               {isTyping && (
                 <div className="flex justify-start items-end gap-2.5">
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 mb-1 shadow-sm ring-1 ring-emerald-500/20">
-                    <Bot className="h-3.5 w-3.5 text-white" />
+                    <Logo size={14} showText={false} href={null} whiteMode />
                   </div>
                   <div className="flex items-center space-x-1.5 p-2 px-3 bg-white dark:bg-card border border-slate-100 dark:border-white/10 shadow-sm rounded-2xl rounded-tl-sm h-8 w-fit">
                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" />

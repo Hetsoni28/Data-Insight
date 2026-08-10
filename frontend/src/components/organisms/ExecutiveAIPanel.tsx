@@ -66,16 +66,16 @@ export function ExecutiveAIPanel() {
   }
 
   return (
-    <div className={`fixed z-50 transition-all duration-300 ease-in-out ${isOpen ? (expanded ? 'inset-4 md:inset-10' : 'bottom-6 right-6 w-[400px] h-[600px]') : 'bottom-6 right-6 w-14 h-14'}`}>
+    <div className={`fixed z-50 transition-all duration-300 ease-in-out ${isOpen ? (expanded ? 'inset-4 md:inset-10' : 'bottom-6 right-6 w-[400px] h-[600px]') : 'bottom-6 right-6 w-auto h-14'}`}>
       
       {!isOpen && (
         <motion.button 
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(true)}
-          className="w-14 h-14 bg-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.5)] border-2 border-emerald-400 text-white cursor-pointer hover:bg-emerald-500 transition-colors"
+          className="h-14 px-5 bg-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.5)] border-2 border-emerald-400 text-white cursor-pointer hover:bg-emerald-500 transition-colors"
         >
-          <Logo size={24} showText={false} href={null} whiteMode />
+          <Logo size={24} showText={true} href={null} whiteMode />
         </motion.button>
       )}
 
