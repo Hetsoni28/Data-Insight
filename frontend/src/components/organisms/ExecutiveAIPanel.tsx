@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Bot, Send, User, Sparkles, Loader2, Maximize2, Minimize2 } from "lucide-react"
+import { Send, User, Sparkles, Loader2, Maximize2, Minimize2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/atoms/Logo"
 import api from "@/lib/api"
 
 export function ExecutiveAIPanel() {
@@ -74,7 +75,7 @@ export function ExecutiveAIPanel() {
           onClick={() => setIsOpen(true)}
           className="w-14 h-14 bg-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.5)] border-2 border-emerald-400 text-white cursor-pointer hover:bg-emerald-500 transition-colors"
         >
-          <Bot className="w-6 h-6" />
+          <Logo size={24} showText={false} href={null} whiteMode />
         </motion.button>
       )}
 
@@ -90,7 +91,7 @@ export function ExecutiveAIPanel() {
             <div className="p-4 bg-slate-50 dark:bg-card border-b border-slate-200 dark:border-border flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-inner">
-                  <Bot className="w-5 h-5 text-white" />
+                  <Logo size={20} showText={false} href={null} whiteMode />
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-white">AI Executive Assistant</h3>
@@ -121,8 +122,8 @@ export function ExecutiveAIPanel() {
                   key={i} 
                   className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-slate-200 dark:bg-white/5' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
-                    {msg.role === 'user' ? <User className="w-4 h-4 text-slate-600 dark:text-slate-400" /> : <Bot className="w-4 h-4" />}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-slate-200 dark:bg-white/5' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
+                    {msg.role === 'user' ? <User className="w-4 h-4 text-slate-600 dark:text-slate-400" /> : <Logo size={16} showText={false} href={null} />}
                   </div>
                   <div className={`max-w-[80%] rounded-2xl p-4 text-sm ${msg.role === 'user' ? 'bg-emerald-600 text-white rounded-tr-sm' : 'bg-white dark:bg-white/5 border border-slate-100 dark:border-slate-700 rounded-tl-sm text-slate-700 dark:text-slate-300 shadow-sm'}`}>
                     {msg.text}
@@ -131,8 +132,8 @@ export function ExecutiveAIPanel() {
               ))}
               {isTyping && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                    <Bot className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                    <Logo size={16} showText={false} href={null} />
                   </div>
                   <div className="bg-white dark:bg-white/5 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-tl-sm p-4 shadow-sm flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
