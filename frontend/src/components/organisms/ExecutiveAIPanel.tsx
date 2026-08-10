@@ -73,9 +73,9 @@ export function ExecutiveAIPanel() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(true)}
-          className="h-14 px-6 bg-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.5)] border-2 border-emerald-400 text-white cursor-pointer hover:bg-emerald-500 transition-colors"
+          className="w-14 h-14 bg-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.5)] border-2 border-emerald-400 text-white cursor-pointer hover:bg-emerald-500 transition-colors"
         >
-          <img src="/logo.svg" alt="Data Insight" className="h-7 w-auto brightness-0 invert" />
+          <img src="/icon.svg" alt="Data Insight AI" className="h-7 w-auto brightness-0 invert" />
         </motion.button>
       )}
 
@@ -88,12 +88,12 @@ export function ExecutiveAIPanel() {
             className="w-full h-full bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="p-4 bg-slate-50 dark:bg-card border-b border-slate-200 dark:border-border flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <img src="/logo.svg" alt="Data Insight" className="h-8 w-auto dark:brightness-0 dark:invert" />
-                <div className="pl-4 border-l border-slate-200 dark:border-slate-700 flex flex-col justify-center">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight">Executive AI</h3>
-                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+            <div className="p-4 bg-slate-50 dark:bg-card border-b border-slate-200 dark:border-border flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-4 overflow-hidden">
+                <img src="/logo.svg" alt="Data Insight" className="h-8 w-32 shrink-0 dark:brightness-0 dark:invert" />
+                <div className="pl-4 border-l border-slate-200 dark:border-slate-700 flex flex-col justify-center shrink-0">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight whitespace-nowrap">Executive AI</h3>
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 whitespace-nowrap">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
