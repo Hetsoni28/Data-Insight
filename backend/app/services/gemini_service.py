@@ -6,6 +6,7 @@ from sqlalchemy.future import select
 from sqlalchemy import func
 from app.models.tenant import Tenant
 from app.models.user import User
+from app.models.ai_ops import AIProvider, AIUsageLog, ProviderStatus
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -37,8 +38,49 @@ class GeminiService:
         Active: {tenant.is_active}
         """
 
-    async def generate_chat_response(self, db: AsyncSession, tenant_id: str, message: str, history: list, files: list = None) -> str:
-        context = await self._get_platform_context(db, tenant_id)
+    async def _get_owner_system_context(self, db: AsyncSession) -> str:
+        """Fetches live DB data for the entire platform (Super Admin context)"""
+        # Tenants
+        tenants_result = await db.execute(select(func.count(Tenant.id)))
+        total_tenants = tenants_result.scalar() or 0
+        
+        active_tenants_result = await db.execute(select(func.count(Tenant.id)).where(Tenant.is_active == True))
+        active_tenants = active_tenants_result.scalar() or 0
+        
+        # Users
+        users_result = await db.execute(select(func.count(User.id)))
+        total_users = users_result.scalar() or 0
+        
+        # AI Health & Metrics
+        providers_result = await db.execute(select(AIProvider))
+        providers = providers_result.scalars().all()
+        total_providers = len(providers)
+        online_providers = sum(1 for p in providers if p.status == ProviderStatus.ONLINE)
+        
+        usage_result = await db.execute(
+            select(
+                func.count(AIUsageLog.id),
+                func.sum(AIUsageLog.cost_usd)
+            )
+        )
+        usage_stats = usage_result.fetchone()
+        total_ai_requests = int(usage_stats[0] or 0)
+        total_ai_cost = float(usage_stats[1] or 0.0)
+
+        return f"""
+        GLOBAL PLATFORM CONTEXT (OWNER):
+        Total Organizations: {total_tenants} ({active_tenants} active)
+        Total Users Across Platform: {total_users}
+        AI Providers: {online_providers}/{total_providers} online
+        Total AI Requests: {total_ai_requests}
+        Total AI API Cost: ${total_ai_cost:.2f}
+        """
+
+    async def generate_chat_response(self, db: AsyncSession, tenant_id: str, message: str, history: list, files: list = None, is_owner: bool = False) -> str:
+        if is_owner:
+            context = await self._get_owner_system_context(db)
+        else:
+            context = await self._get_platform_context(db, tenant_id)
         
         system_instruction = f"""
         You are the Data Insight Owner AI Command Center.

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Bot, Send, User, Sparkles, Loader2, Maximize2, Minimize2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import api from "@/lib/api"
 
 export function ExecutiveAIPanel() {
   const [isOpen, setIsOpen] = useState(false)
@@ -13,6 +14,7 @@ export function ExecutiveAIPanel() {
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [sessionId, setSessionId] = useState<string>("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -31,11 +33,35 @@ export function ExecutiveAIPanel() {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }])
     setIsTyping(true)
 
-    // TODO: Wire to real /api/v1/owner/ai/chat endpoint with streaming support
-    setTimeout(() => {
+    try {
+      const formData = new FormData()
+      formData.append("message", userMsg)
+      formData.append("workspace_id", "owner-context") // Dummy ID for validation if required by backend structure
+      
+      if (sessionId) {
+        formData.append("session_id", sessionId)
+      }
+      
+      // Pass previous messages as history (excluding the first mock greeting if desired, but we can pass all)
+      const historyToPass = messages.map(m => ({
+        role: m.role,
+        content: m.text
+      }))
+      formData.append("history", JSON.stringify(historyToPass))
+
+      const response = await api.post("/owner/ai/chat", formData)
+      
+      if (response.data?.session_id && !sessionId) {
+        setSessionId(response.data.session_id)
+      }
+      
+      setMessages(prev => [...prev, { role: 'ai', text: response.data.response }])
+    } catch (error) {
+      console.error("AI chat failed:", error)
+      setMessages(prev => [...prev, { role: 'ai', text: "I encountered an error connecting to the platform services. Please check your network and API configurations." }])
+    } finally {
       setIsTyping(false)
-      setMessages(prev => [...prev, { role: 'ai', text: "Based on the latest analytics, your MRR grew by 15.2% this month. The platform health is optimal, and all AI providers are responding within 50ms. I recommend reviewing the recent audit logs for the newly invited managers." }])
-    }, 1500)
+    }
   }
 
   return (
