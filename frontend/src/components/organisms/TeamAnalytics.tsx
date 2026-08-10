@@ -1,4 +1,4 @@
-import { BarChart3, PieChart } from "lucide-react"
+﻿import { BarChart3, PieChart } from "lucide-react"
 import { PieChart as RechartsPieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
 
 const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#14B8A6']

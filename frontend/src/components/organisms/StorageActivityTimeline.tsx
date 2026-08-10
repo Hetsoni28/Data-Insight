@@ -1,4 +1,4 @@
-import { Activity, UploadCloud, Trash2, Database, ShieldCheck, DownloadCloud } from "lucide-react"
+﻿import { Activity, UploadCloud, Trash2, Database, ShieldCheck, DownloadCloud } from "lucide-react"
 
 interface ActivityLog {
   id: string

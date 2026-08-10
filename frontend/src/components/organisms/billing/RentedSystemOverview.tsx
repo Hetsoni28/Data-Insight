@@ -1,4 +1,4 @@
-"use client"
+ï»¿"use client"
 
 import React from "react"
 import { Database, HardDrive, Cpu, ShieldCheck, Activity, CheckCircle2, Clock, Zap, ArrowUpRight } from "lucide-react"
@@ -173,7 +173,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
                   AI Processing Engine
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Claude 3.5 Sonnet · GPT-4o · DeepSeek R1
+                  Claude 3.5 Sonnet â€¢ GPT-4o â€¢ DeepSeek R1
                 </CardDescription>
               </div>
             </div>

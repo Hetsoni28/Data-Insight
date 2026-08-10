@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Users, Building2, Banknote, BrainCircuit, Activity } from "lucide-react";

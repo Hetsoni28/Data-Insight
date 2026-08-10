@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import type { Workspace } from "@/types"
 import { SidebarNav } from "@/components/molecules/SidebarNav"
 import { WorkspacePicker } from "@/components/molecules/WorkspacePicker"

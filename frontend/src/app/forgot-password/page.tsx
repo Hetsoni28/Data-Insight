@@ -1,4 +1,4 @@
-import { ForgotPasswordForm } from "@/components/organisms/ForgotPasswordForm"
+﻿import { ForgotPasswordForm } from "@/components/organisms/ForgotPasswordForm"
 import { AuthLayout } from "@/components/templates/AuthLayout"
 
 export default function ForgotPasswordPage() {

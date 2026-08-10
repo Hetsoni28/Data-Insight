@@ -1,4 +1,4 @@
-import React from "react"
+ï»¿import React from "react"
 import { Brain, TrendingUp, DollarSign, Activity, AlertTriangle, Lightbulb, CheckCircle2, ShieldCheck, FileSpreadsheet, FileText, BarChart3, Target, Users, Zap, PieChart, Layers } from "lucide-react"
 import api from "@/lib/api"
 import { toast } from "sonner"
@@ -118,7 +118,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
           </div>
         </div>
 
-        {/* Row 2: Revenue + Profitability + Sales — 3 cols */}
+        {/* Row 2: Revenue + Profitability + Sales - 3 cols */}
         <div className="grid grid-cols-3 gap-4">
           {[
             { icon: <DollarSign className="w-4 h-4" />, title: "Revenue Drivers", value: data.revenueDrivers },
@@ -135,7 +135,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
           ))}
         </div>
 
-        {/* Row 3: Data Quality — 3 cols */}
+        {/* Row 3: Data Quality - 3 cols */}
         <div className="grid grid-cols-3 gap-4">
           {[
             { icon: <PieChart className="w-4 h-4" />, title: "Data Distribution", value: data.dataDistribution },

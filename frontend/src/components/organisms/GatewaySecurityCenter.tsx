@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { motion } from "framer-motion"
 import { ShieldAlert, Fingerprint, Lock, ShieldCheck } from "lucide-react"
 

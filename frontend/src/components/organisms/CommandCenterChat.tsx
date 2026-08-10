@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react"
+﻿import { useState, useRef, useEffect, useCallback } from "react"
 import { Send, Loader2, Paperclip, FileType, X, Brain } from "lucide-react"
 import { CommandCenterMessage } from "@/components/molecules/CommandCenterMessage"
 import { CommandCenterArtifactPanel, ArtifactType } from "@/components/organisms/CommandCenterArtifactPanel"

@@ -1,4 +1,4 @@
-import { CheckCircle, RefreshCw, AlertTriangle } from "lucide-react"
+﻿import { CheckCircle, RefreshCw, AlertTriangle } from "lucide-react"
 
 export function StatusBadge({ status }: { status: string }) {
   const s = status?.toLowerCase()

@@ -1,4 +1,4 @@
-"use client"
+ï»¿"use client"
 
 import React from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -45,7 +45,7 @@ export function InvoiceHistoryTable({
   }
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "—"
+    if (!dateStr) return "â€¢"
     return new Date(dateStr).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -97,7 +97,7 @@ export function InvoiceHistoryTable({
                       <InvoiceStatusBadge status={invoice.status} />
                     </TableCell>
                     <TableCell className="text-slate-500">
-                      {formatDate(invoice.periodStart)} – {formatDate(invoice.periodEnd)}
+                      {formatDate(invoice.periodStart)} â€¢ {formatDate(invoice.periodEnd)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">

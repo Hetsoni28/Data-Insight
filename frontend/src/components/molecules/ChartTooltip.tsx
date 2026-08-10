@@ -1,4 +1,4 @@
-export function ChartTooltip({ active, payload, label }: any) {
+﻿export function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-xl p-3 shadow-xl text-xs">

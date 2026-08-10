@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { Users, Database, LayoutDashboard, BarChart2, Brain, Settings, UploadCloud, LayoutTemplate, FileSpreadsheet, Activity, User, Receipt } from "lucide-react"
 import DashboardSidebar, { NavItem } from "@/components/layouts/dashboard/DashboardSidebar"
 import DashboardNavbar from "@/components/layouts/dashboard/DashboardNavbar"

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+﻿import { motion } from "framer-motion"
 import { Check, X, Clock, ShieldAlert, ShieldCheck, Mail, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { User } from "@/types"

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -43,7 +43,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     enabled: isOpen && !!tenant?.id,
   })
 
-  // Stable date for renewal � derived from created_at + 30 days
+  // Stable date for renewal • derived from created_at + 30 days
   const renewalDate = useMemo(() => {
     if (!tenant?.created_at) return new Date()
     const d = new Date(tenant.created_at)

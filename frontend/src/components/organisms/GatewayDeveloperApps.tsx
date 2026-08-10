@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Blocks, Key, Settings2, Trash2, X, Copy, Check, Loader2, AlertTriangle, Eye, EyeOff, Plus } from "lucide-react"

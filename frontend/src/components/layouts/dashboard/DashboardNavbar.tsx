@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import React, { useState } from "react"
 import { CommandPalette } from "@/components/organisms/CommandPalette"
 import { NavbarBreadcrumbs } from "@/components/molecules/NavbarBreadcrumbs"

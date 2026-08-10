@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+﻿import { Button } from "@/components/ui/button"
 import { Database, FileText, UserPlus, Settings2 } from "lucide-react"
 
 export function OrganizationQuickActions() {

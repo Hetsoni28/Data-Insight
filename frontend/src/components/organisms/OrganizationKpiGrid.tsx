@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useRouter } from "next/navigation"
 import { Users, Database, FileText, HardDrive, Cpu, ChevronRight } from "lucide-react"
 import { TrendBadge } from "@/components/molecules/TrendBadge"

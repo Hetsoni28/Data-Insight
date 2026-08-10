@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { CheckCircle2, ShieldCheck, KeyRound, Code, History } from "lucide-react";
 import { FullProfile } from "@/lib/profile.service";
 

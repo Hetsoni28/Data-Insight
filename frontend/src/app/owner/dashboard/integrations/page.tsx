@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { IntegrationsHeroBanner } from "@/components/organisms/IntegrationsHeroBanner";
 import { IntegrationsOperationsCenter } from "@/components/organisms/IntegrationsOperationsCenter";

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { motion } from 'framer-motion';
 import { ShieldCheck, AlertTriangle, UserCheck, ShieldAlert, Activity } from 'lucide-react';

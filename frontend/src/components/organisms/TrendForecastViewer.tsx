@@ -1,4 +1,4 @@
-import React from "react"
+﻿import React from "react"
 import { ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from "recharts"
 import { TrendingUp, AlertTriangle, Target } from "lucide-react"
 
@@ -66,7 +66,7 @@ export function TrendForecastViewer({ report }: TrendForecastViewerProps) {
           </ResponsiveContainer>
         </div>
 
-        {/* Drivers and Risks � 2 cols */}
+        {/* Drivers and Risks • 2 cols */}
         <div className="grid grid-cols-2 gap-5">
           <div className="bg-emerald-50/70 dark:bg-emerald-950/30 rounded-xl border border-emerald-200/80 dark:border-emerald-900/40 p-4">
             <h3 className="text-xs font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wide flex items-center gap-2 mb-3">

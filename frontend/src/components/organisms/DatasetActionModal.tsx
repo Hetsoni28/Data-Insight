@@ -1,4 +1,4 @@
-import { X, Database, Play, Loader2 } from "lucide-react"
+﻿import { X, Database, Play, Loader2 } from "lucide-react"
 import { useState } from "react"
 
 export function DatasetActionModal({ 
@@ -80,7 +80,7 @@ export function DatasetActionModal({
                   </div>
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white text-sm">{d.name}</p>
-                    <p className="text-xs text-slate-500">{d.row_count} rows � {d.column_count} cols</p>
+                    <p className="text-xs text-slate-500">{d.row_count} rows • {d.column_count} cols</p>
                   </div>
                 </button>
               ))

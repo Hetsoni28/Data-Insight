@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   Building2, Users, CreditCard, Palette, Shield, Link, AlertTriangle 
 } from "lucide-react"
 import { SettingCard } from "@/components/molecules/SettingCard"

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import DashboardSidebar from "@/components/layouts/dashboard/DashboardSidebar"
 import DashboardNavbar from "@/components/layouts/dashboard/DashboardNavbar"
 import { useEffect } from "react"

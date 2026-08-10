@@ -1,4 +1,4 @@
-import { AuthLayout } from "@/components/templates/AuthLayout"
+﻿import { AuthLayout } from "@/components/templates/AuthLayout"
 import { ResetPasswordForm } from "@/components/organisms/ResetPasswordForm"
 
 export default function ResetPasswordPage() {

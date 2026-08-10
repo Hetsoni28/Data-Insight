@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 export const PRIORITY_BADGE_COLORS: Record<string, string> = {
   Critical: "bg-red-100 text-red-700 ring-red-500/20",

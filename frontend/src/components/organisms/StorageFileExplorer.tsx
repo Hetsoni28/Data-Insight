@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+﻿import { useState, useMemo } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { storageService } from "@/lib/storageService"
@@ -314,7 +314,7 @@ export function StorageFileExplorer({
                 </div>
                 <div>
                   <p className="font-medium text-slate-800 dark:text-white truncate" title={file.file_name}>{file.file_name}</p>
-                  <p className="text-xs text-slate-500 mt-1">{formatBytes(file.size_bytes)} � {formatDate(file.created_at)}</p>
+                  <p className="text-xs text-slate-500 mt-1">{formatBytes(file.size_bytes)} • {formatDate(file.created_at)}</p>
                 </div>
               </div>
             ))}

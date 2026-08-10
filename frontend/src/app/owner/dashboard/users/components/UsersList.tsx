@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion"
+﻿import { motion, AnimatePresence } from "framer-motion"
 import { UserCard } from "./UserCard"
 import { EmptyState } from "./EmptyState"
 import type { User } from "@/types"

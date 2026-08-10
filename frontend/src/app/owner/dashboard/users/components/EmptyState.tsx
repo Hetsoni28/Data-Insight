@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+﻿import { motion } from "framer-motion"
 import { ShieldCheck, Users } from "lucide-react"
 
 interface EmptyStateProps {

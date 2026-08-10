@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { motion } from "framer-motion"
 import { UploadCloud, FileBarChart, UserPlus, Zap } from "lucide-react"
 import { useRouter } from "next/navigation"
