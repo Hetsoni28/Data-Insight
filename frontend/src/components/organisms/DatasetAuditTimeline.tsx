@@ -1,4 +1,4 @@
-﻿import React from "react"
+import React from "react"
 import { History, Bot, UploadCloud, Trash2, ShieldCheck, Activity } from "lucide-react"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
 

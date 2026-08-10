@@ -1,4 +1,4 @@
-﻿import { useCallback } from "react"
+import { useCallback } from "react"
 import { useDropzone } from "react-dropzone"
 import { UploadCloud, FileType, X } from "lucide-react"
 

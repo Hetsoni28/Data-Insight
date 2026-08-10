@@ -1,4 +1,4 @@
-﻿import { Users, UserCheck, Mail, ShieldAlert } from "lucide-react"
+import { Users, UserCheck, Mail, ShieldAlert } from "lucide-react"
 
 export function TeamOverviewKPIs({ stats }: { stats: any }) {
   if (!stats) return null

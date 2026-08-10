@@ -35,7 +35,7 @@ export function CreateOrganizationModal({ isOpen, onClose, onSuccess }: { isOpen
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
+      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-white dark:bg-card/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
         <div className="p-6 pb-4 border-b border-slate-100 dark:border-white/10">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">

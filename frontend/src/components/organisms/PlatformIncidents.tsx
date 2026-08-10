@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Info, Activity, Clock } from "lucide-react";

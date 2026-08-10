@@ -1,4 +1,4 @@
-﻿import React from "react"
+import React from "react"
 import { Brain, TrendingUp, DollarSign, Activity, AlertTriangle, Lightbulb, CheckCircle2, ShieldCheck, FileSpreadsheet, FileText, BarChart3, Target, Users, Zap, PieChart, Layers } from "lucide-react"
 import api from "@/lib/api"
 import { toast } from "sonner"
@@ -57,7 +57,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
   return (
     <div className="w-full bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
 
-      {/* ── HEADER ── */}
+      {/* -- HEADER -- */}
       <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 flex items-center justify-between gap-4 border-b border-emerald-800/40">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-white/70 text-[10px] font-bold uppercase tracking-widest mb-1">
@@ -79,7 +79,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
         )}
       </div>
 
-      {/* ── CONFIDENCE SCORES strip ── */}
+      {/* -- CONFIDENCE SCORES strip -- */}
       {Object.keys(scores).length > 0 && (
         <div className="bg-emerald-50 dark:bg-emerald-950/20 px-6 py-3 border-b border-emerald-100 dark:border-emerald-900/30 flex flex-wrap items-center gap-x-6 gap-y-1">
           <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">AI Confidence</span>
@@ -93,7 +93,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
         </div>
       )}
 
-      {/* ── BODY ── */}
+      {/* -- BODY -- */}
       <div className="p-6 space-y-6">
 
         {/* Row 1: Customer Behavior + Business Trends */}
@@ -118,7 +118,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
           </div>
         </div>
 
-        {/* Row 2: Revenue + Profitability + Sales — 3 cols */}
+        {/* Row 2: Revenue + Profitability + Sales � 3 cols */}
         <div className="grid grid-cols-3 gap-4">
           {[
             { icon: <DollarSign className="w-4 h-4" />, title: "Revenue Drivers", value: data.revenueDrivers },
@@ -135,7 +135,7 @@ export function ExecutiveReportViewer({ report, hideDownload = false }: Executiv
           ))}
         </div>
 
-        {/* Row 3: Data Quality — 3 cols */}
+        {/* Row 3: Data Quality � 3 cols */}
         <div className="grid grid-cols-3 gap-4">
           {[
             { icon: <PieChart className="w-4 h-4" />, title: "Data Distribution", value: data.dataDistribution },

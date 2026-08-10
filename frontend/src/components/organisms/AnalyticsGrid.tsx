@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
@@ -11,7 +11,7 @@ interface AnalyticsGridProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 p-3 rounded-xl shadow-lg">
+      <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-700 p-3 rounded-xl shadow-lg">
         <p className="text-slate-900 dark:text-white font-medium mb-2">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm font-medium" style={{ color: entry.color || entry.fill || '#10B981' }}>

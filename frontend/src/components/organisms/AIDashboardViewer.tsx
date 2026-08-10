@@ -1,4 +1,4 @@
-﻿import React from "react"
+import React from "react"
 import { Brain, Activity, TrendingUp, LineChart, Target, ShieldCheck, Zap, Database } from "lucide-react"
 
 interface AIDashboardViewerProps {
@@ -34,7 +34,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
   return (
     <div className="w-full bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
 
-      {/* ── HEADER ── */}
+      {/* -- HEADER -- */}
       <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 flex items-center gap-3 border-b border-emerald-800/40">
         <Brain className="w-6 h-6 text-white/80 shrink-0" />
         <div className="min-w-0">
@@ -45,7 +45,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
 
       <div className="p-6 space-y-7">
 
-        {/* Confidence Scores — 3 cols */}
+        {/* Confidence Scores � 3 cols */}
         {data.confidenceScores && (
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -60,7 +60,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
           </div>
         )}
 
-        {/* Data Health + Statistical — 2 cols */}
+        {/* Data Health + Statistical � 2 cols */}
         <div className="grid grid-cols-2 gap-5 pt-2 border-t border-slate-200 dark:border-slate-800">
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -100,7 +100,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
           </div>
         </div>
 
-        {/* Business Analysis — 3 cols */}
+        {/* Business Analysis � 3 cols */}
         <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2 mb-3">
             <LineChart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -120,7 +120,7 @@ export function AIDashboardViewer({ report }: AIDashboardViewerProps) {
           </div>
         </div>
 
-        {/* AI Insights + Recommendations — 2 cols */}
+        {/* AI Insights + Recommendations � 2 cols */}
         <div className="bg-emerald-950/20 dark:bg-emerald-950/40 rounded-xl px-5 py-5 border border-emerald-500/20">
           <div className="grid grid-cols-2 gap-6">
             <div>

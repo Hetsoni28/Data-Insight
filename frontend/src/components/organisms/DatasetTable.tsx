@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { format } from "date-fns";
@@ -154,7 +154,7 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
+                  <DropdownMenuContent align="end" className="bg-white dark:bg-card/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
                     <DropdownMenuItem onClick={() => handleDownload(dataset.id)}>
                       <Download className="mr-2 h-4 w-4" /> Download Raw File
                     </DropdownMenuItem>

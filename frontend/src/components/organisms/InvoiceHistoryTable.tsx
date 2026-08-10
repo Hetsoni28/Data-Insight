@@ -1,4 +1,4 @@
-ï»¿"use client"
+"use client"
 
 import React from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -45,7 +45,7 @@ export function InvoiceHistoryTable({
   }
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "â€”"
+    if (!dateStr) return "—"
     return new Date(dateStr).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -54,7 +54,7 @@ export function InvoiceHistoryTable({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm">
       <CardHeader className="pb-4">
         <CardTitle className="text-base font-bold text-slate-900 dark:text-white">Contract Invoices & Statements</CardTitle>
         <CardDescription className="text-xs">
@@ -97,7 +97,7 @@ export function InvoiceHistoryTable({
                       <InvoiceStatusBadge status={invoice.status} />
                     </TableCell>
                     <TableCell className="text-slate-500">
-                      {formatDate(invoice.periodStart)} â€“ {formatDate(invoice.periodEnd)}
+                      {formatDate(invoice.periodStart)} – {formatDate(invoice.periodEnd)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">

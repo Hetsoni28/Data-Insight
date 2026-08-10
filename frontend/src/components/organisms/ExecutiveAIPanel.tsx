@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -61,7 +61,7 @@ export function ExecutiveAIPanel() {
             className="w-full h-full bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="p-4 bg-slate-50 dark:bg-[#0B0F17] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-4 bg-slate-50 dark:bg-card border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-inner">
                   <Bot className="w-5 h-5 text-white" />
@@ -118,7 +118,7 @@ export function ExecutiveAIPanel() {
             </div>
 
             {/* Input */}
-            <div className="p-4 bg-white dark:bg-[#0B0F17] border-t border-slate-200 dark:border-slate-800">
+            <div className="p-4 bg-white dark:bg-card border-t border-slate-200 dark:border-slate-800">
               <div className="flex gap-2">
                 <input 
                   type="text" 

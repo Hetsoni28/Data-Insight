@@ -1,4 +1,4 @@
-ï»¿"use client"
+"use client"
 
 import React from "react"
 import { FileText, Shield, CheckCircle2, Calendar, Award, Download, Mail, ExternalLink } from "lucide-react"
@@ -24,7 +24,7 @@ export function ContractDetailsCard({ contract }: ContractDetailsCardProps) {
   }
 
   const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return "â€”"
+    if (!dateStr) return "—"
     return new Date(dateStr).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -33,7 +33,7 @@ export function ContractDetailsCard({ contract }: ContractDetailsCardProps) {
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-3">
@@ -67,7 +67,7 @@ export function ContractDetailsCard({ contract }: ContractDetailsCardProps) {
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800">
             <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">Term & Renewal</span>
             <span className="font-bold text-slate-900 dark:text-white text-sm">
-              {formatDate(contract.start_date)} â€“ {formatDate(contract.renewal_date)}
+              {formatDate(contract.start_date)} – {formatDate(contract.renewal_date)}
             </span>
           </div>
 
@@ -96,7 +96,7 @@ export function ContractDetailsCard({ contract }: ContractDetailsCardProps) {
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Total Contract Value: <strong>{formatCurrency(contract.annual_contract_value, contract.currency)}/yr</strong> Â· Annual Multi-Year Discount: <strong className="text-emerald-600 dark:text-emerald-400">-{formatCurrency(contract.annual_discount, contract.currency)}</strong>
+              Total Contract Value: <strong>{formatCurrency(contract.annual_contract_value, contract.currency)}/yr</strong> · Annual Multi-Year Discount: <strong className="text-emerald-600 dark:text-emerald-400">-{formatCurrency(contract.annual_discount, contract.currency)}</strong>
             </p>
           </div>
 

@@ -1,4 +1,4 @@
-﻿import { X, Database, Play, Loader2 } from "lucide-react"
+import { X, Database, Play, Loader2 } from "lucide-react"
 import { useState } from "react"
 
 export function DatasetActionModal({ 
@@ -43,7 +43,7 @@ export function DatasetActionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#0B0F17] rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-white/10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-card rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-white/10 animate-in fade-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             {getActionLabel()}
@@ -80,7 +80,7 @@ export function DatasetActionModal({
                   </div>
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white text-sm">{d.name}</p>
-                    <p className="text-xs text-slate-500">{d.row_count} rows • {d.column_count} cols</p>
+                    <p className="text-xs text-slate-500">{d.row_count} rows � {d.column_count} cols</p>
                   </div>
                 </button>
               ))

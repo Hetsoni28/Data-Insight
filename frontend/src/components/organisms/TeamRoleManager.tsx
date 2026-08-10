@@ -1,4 +1,4 @@
-﻿import { Plus, Shield, Check, X } from "lucide-react"
+import { Plus, Shield, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function TeamRoleManager({ roles }: { roles: any[] }) {

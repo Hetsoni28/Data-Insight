@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -43,7 +43,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     enabled: isOpen && !!tenant?.id,
   })
 
-  // Stable date for renewal — derived from created_at + 30 days
+  // Stable date for renewal � derived from created_at + 30 days
   const renewalDate = useMemo(() => {
     if (!tenant?.created_at) return new Date()
     const d = new Date(tenant.created_at)
@@ -66,7 +66,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-xl p-0 border-l border-slate-200/60 dark:border-white/10 shadow-2xl flex flex-col bg-white dark:bg-[#0B0F17] gap-0">
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0 border-l border-slate-200/60 dark:border-white/10 shadow-2xl flex flex-col bg-white dark:bg-card gap-0">
         {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
           <div className="flex items-center gap-4">
@@ -83,7 +83,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                 )}
               </h2>
               <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-1 gap-4">
-                {/* ✅ Fix: real industry from tenant data */}
+                {/* ? Fix: real industry from tenant data */}
                 <span className="flex items-center gap-1"><Building2 className="w-3 h-3" /> {tenant?.industry || "Technology"}</span>
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Since {new Date(tenant?.created_at).toLocaleDateString()}</span>
               </div>
@@ -116,7 +116,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             </div>
           </div>
 
-          {/* ✅ Fix: Real Limits & Usage from tenant fields */}
+          {/* ? Fix: Real Limits & Usage from tenant fields */}
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
               <Database className="w-4 h-4 text-slate-400" /> Quotas & Usage
@@ -159,7 +159,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             </div>
           </div>
 
-          {/* ✅ Fix: Real Invoice list from API */}
+          {/* ? Fix: Real Invoice list from API */}
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-slate-400" /> Recent Invoices
@@ -204,7 +204,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-[#0B0F17] flex justify-between gap-3 mt-auto">
+        <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-card flex justify-between gap-3 mt-auto">
           <Button 
             variant="outline" 
             className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 border-rose-200 dark:border-rose-500/20"

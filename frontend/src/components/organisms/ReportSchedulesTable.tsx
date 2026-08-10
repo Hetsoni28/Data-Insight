@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { Clock, Play, Pause, Trash2, CalendarClock } from "lucide-react"

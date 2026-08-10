@@ -30,7 +30,7 @@ function ViewSecretModal({ app, onClose }: { app: any; onClose: () => void }) {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
+        className="relative bg-white dark:bg-card/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
@@ -101,7 +101,7 @@ function SettingsModal({ app, onClose }: { app: any; onClose: () => void }) {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
+        className="relative bg-white dark:bg-card/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
@@ -170,7 +170,7 @@ function DeleteModal({ app, onClose, onConfirm }: { app: any; onClose: () => voi
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-red-500/20 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
+        className="relative bg-white dark:bg-card/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-red-500/20 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
         <div className="text-center mb-5">
           <div className="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center mx-auto mb-4">
             <Trash2 className="w-6 h-6 text-red-500" />
@@ -221,7 +221,7 @@ function RegisterAppModal({ open, onClose }: { open: boolean; onClose: () => voi
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-            className="relative bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl z-10">
+            className="relative bg-white dark:bg-card/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl z-10">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">

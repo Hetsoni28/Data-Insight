@@ -13,7 +13,7 @@ function WidgetRenderer({ widget, isSelected, isPreviewMode, onClick }: { widget
   return (
     <div 
       onClick={isPreviewMode ? undefined : onClick}
-      className={`relative bg-white dark:bg-[#0B0F17] rounded-xl shadow-sm transition-all group overflow-hidden ${
+      className={`relative bg-white dark:bg-card rounded-xl shadow-sm transition-all group overflow-hidden ${
         !isPreviewMode && isSelected 
           ? 'ring-2 ring-emerald-500 z-10 shadow-emerald-500/10 shadow-lg' 
           : 'border border-slate-200 dark:border-white/10 hover:border-emerald-500/30'
@@ -25,7 +25,7 @@ function WidgetRenderer({ widget, isSelected, isPreviewMode, onClick }: { widget
     >
       {/* Sleek static header in builder mode */}
       {!isPreviewMode && (
-        <div className="absolute top-0 left-0 right-0 h-10 bg-slate-50/95 dark:bg-[#0B0F17] backdrop-blur-md border-b border-slate-200 dark:border-white/5 flex items-center justify-between px-3 z-20 group-hover:bg-slate-100/50 dark:group-hover:bg-white/5 transition-colors">
+        <div className="absolute top-0 left-0 right-0 h-10 bg-slate-50/95 dark:bg-card backdrop-blur-md border-b border-slate-200 dark:border-white/5 flex items-center justify-between px-3 z-20 group-hover:bg-slate-100/50 dark:group-hover:bg-white/5 transition-colors">
           <div className="flex items-center text-slate-700 dark:text-white/90 space-x-2">
             <GripHorizontal className="w-4 h-4 cursor-grab active:cursor-grabbing opacity-40 hover:opacity-100 transition-opacity" />
             <span className="text-xs font-semibold tracking-wide truncate max-w-[150px]">{widget.title}</span>

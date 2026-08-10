@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { motion } from "framer-motion"
 import { Activity, Search, RefreshCw, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"

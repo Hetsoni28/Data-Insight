@@ -40,7 +40,7 @@ export function DashboardBuilderProperties() {
   
   if (!selectedWidget) {
     return (
-      <div className="w-80 border-l border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B0F17] flex flex-col h-full shrink-0">
+      <div className="w-80 border-l border-slate-200 dark:border-white/10 bg-white dark:bg-card flex flex-col h-full shrink-0">
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
             <Settings className="w-8 h-8 text-slate-300 dark:text-slate-600" />
@@ -65,7 +65,7 @@ export function DashboardBuilderProperties() {
   }
 
   return (
-    <div className="w-80 border-l border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B0F17] flex flex-col h-full shrink-0 relative">
+    <div className="w-80 border-l border-slate-200 dark:border-white/10 bg-white dark:bg-card flex flex-col h-full shrink-0 relative">
       <div className="p-5 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50 dark:bg-white/5">
         <h2 className="font-bold text-slate-900 dark:text-white flex items-center">
           <Settings className="w-5 h-5 mr-2 text-emerald-500" />
@@ -206,7 +206,7 @@ export function DashboardBuilderProperties() {
       </div>
 
       {/* Sticky Destructive Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-[#0B0F17] border-t border-slate-200 dark:border-slate-800">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-card border-t border-slate-200 dark:border-slate-800">
         <button 
           onClick={() => removeWidget(selectedWidget.id)}
           className="w-full flex items-center justify-center px-4 py-2.5 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-xl text-sm font-semibold transition-colors"

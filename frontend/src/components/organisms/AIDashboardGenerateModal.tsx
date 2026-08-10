@@ -114,7 +114,7 @@ export function AIDashboardGenerateModal({ isOpen, onClose }: AIDashboardGenerat
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-2xl bg-white dark:bg-[#0B0F17] rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-white/10 flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-2xl bg-white dark:bg-card rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-white/10 flex flex-col max-h-[90vh]"
           style={{ minHeight: "500px" }}
         >
           {/* Close Button */}
@@ -296,7 +296,7 @@ export function AIDashboardGenerateModal({ isOpen, onClose }: AIDashboardGenerat
               >
                 <div className="relative w-24 h-24">
                   <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
-                  <div className="relative w-full h-full bg-white dark:bg-[#0B0F17] border-2 border-emerald-500/30 rounded-full flex items-center justify-center shadow-[0_0_40px_-10px_rgba(16,185,129,0.3)]">
+                  <div className="relative w-full h-full bg-white dark:bg-card border-2 border-emerald-500/30 rounded-full flex items-center justify-center shadow-[0_0_40px_-10px_rgba(16,185,129,0.3)]">
                     <Sparkles className="w-10 h-10 text-emerald-500 animate-pulse" />
                     <svg className="absolute inset-0 w-full h-full animate-spin-slow" viewBox="0 0 100 100">
                       <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="10 5" className="text-emerald-500/40" />

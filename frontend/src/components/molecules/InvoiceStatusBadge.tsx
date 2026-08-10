@@ -1,4 +1,4 @@
-﻿import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Circle, AlertCircle, XCircle, FileText } from "lucide-react"
 
 interface InvoiceStatusBadgeProps {

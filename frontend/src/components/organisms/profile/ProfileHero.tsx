@@ -26,7 +26,7 @@ export function ProfileHero({ user, profileData, avatarUrl, setIsAvatarModalOpen
       <div className="px-8 pb-8 relative">
         <div className="flex flex-col sm:flex-row sm:items-end gap-5 sm:gap-6">
           <div className="relative group shrink-0 -mt-12 sm:-mt-16 z-10">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white dark:bg-[#0B0F17] p-1.5 shadow-md">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white dark:bg-card p-1.5 shadow-md">
               <div 
                 className="w-full h-full rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-700 dark:text-emerald-400 text-4xl sm:text-5xl font-bold overflow-hidden relative cursor-pointer" 
                 onClick={() => setIsAvatarModalOpen(true)}

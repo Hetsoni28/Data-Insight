@@ -49,7 +49,7 @@ function DraggableWidgetTemplate({ widget }: { widget: any }) {
 
 export function DashboardBuilderSidebar() {
   return (
-    <div className="w-72 border-r border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B0F17] flex flex-col h-full shrink-0">
+    <div className="w-72 border-r border-slate-200 dark:border-white/10 bg-white dark:bg-card flex flex-col h-full shrink-0">
       <div className="p-4 border-b border-slate-200 dark:border-white/10">
         <h2 className="font-bold text-slate-900 dark:text-white flex items-center">
           Widget Library

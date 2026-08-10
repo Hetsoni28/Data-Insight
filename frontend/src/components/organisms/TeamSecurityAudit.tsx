@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { ShieldAlert, Key, Smartphone, Laptop, Globe, Monitor, Activity, ShieldCheck, AlertTriangle } from "lucide-react"
 import api from "@/lib/api"
 import { PaginationControls } from "@/components/molecules/PaginationControls"

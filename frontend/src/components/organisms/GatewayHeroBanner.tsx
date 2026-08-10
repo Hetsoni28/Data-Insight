@@ -56,7 +56,7 @@ function ExportLogsModal({ open, onClose, requests }: { open: boolean; onClose: 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
+            className="relative bg-white dark:bg-card/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
@@ -125,7 +125,7 @@ function GenerateReportModal({ open, onClose }: { open: boolean; onClose: () => 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
+            className="relative bg-white dark:bg-card/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
@@ -205,7 +205,7 @@ function CreateApiKeyModal({ open, onClose }: { open: boolean; onClose: () => vo
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl z-10">
+            className="relative bg-white dark:bg-card/95 dark:backdrop-blur-2xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl z-10">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">

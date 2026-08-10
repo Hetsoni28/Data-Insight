@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import React, { useState } from "react"
 import { Layers, Plus, CheckCircle2, Clock, AlertCircle, RefreshCw, Server, HardDrive, Cpu, Database, ShieldCheck, ChevronDown } from "lucide-react"
@@ -105,7 +105,7 @@ export function ResourceRequestCenter({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">

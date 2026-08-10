@@ -2,6 +2,7 @@
 import { motion } from "framer-motion"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Bar, BarChart } from "recharts"
 import { BarChart3, TrendingUp } from "lucide-react"
+import { ChartTooltip } from "@/components/molecules/ChartTooltip"
 
 interface GatewayUsageChartsProps {
   trends: any[];
@@ -64,16 +65,7 @@ export function GatewayUsageCharts({ trends, errors }: GatewayUsageChartsProps) 
                   className="text-slate-500 dark:text-slate-400" 
                   tickFormatter={(val) => val > 1000 ? `${(val/1000).toFixed(1)}k` : val}
                 />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#0B0F17',
-                    borderRadius: '12px', 
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
-                    color: '#ffffff'
-                  }}
-                  itemStyle={{ color: '#10B981' }}
-                />
+                <Tooltip content={<ChartTooltip />} />
                 <Area 
                   type="monotone" 
                   dataKey="requests" 
@@ -110,7 +102,7 @@ export function GatewayUsageCharts({ trends, errors }: GatewayUsageChartsProps) 
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
                 <XAxis type="number" hide />
                 <YAxis dataKey="code" type="category" axisLine={false} tickLine={false} className="text-slate-500 dark:text-slate-400 font-medium text-xs" width={60} />
-                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#0B0F17', color: '#fff' }} />
+                <Tooltip cursor={{ fill: 'transparent' }} content={<ChartTooltip />} />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>

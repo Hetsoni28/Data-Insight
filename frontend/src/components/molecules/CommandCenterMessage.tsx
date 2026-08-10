@@ -1,4 +1,4 @@
-﻿import { ReactNode } from "react"
+import { ReactNode } from "react"
 import { motion } from "framer-motion"
 import { Brain, User } from "lucide-react"
 import ReactMarkdown from "react-markdown"

@@ -66,7 +66,7 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
                         </div>
                         <select 
                             onChange={(e) => setFilterModule(e.target.value)}
-                            className="bg-white dark:bg-[#0B0F17] border border-slate-200/60 dark:border-white/10 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-700 dark:text-slate-300"
+                            className="bg-white dark:bg-card border border-slate-200/60 dark:border-white/10 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-700 dark:text-slate-300"
                         >
                             <option value="all">All Modules</option>
                             <option value="authentication">Authentication</option>
@@ -78,7 +78,7 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
                         </select>
                         <select 
                             onChange={(e) => setFilterSeverity(e.target.value)}
-                            className="bg-white dark:bg-[#0B0F17] border border-slate-200/60 dark:border-white/10 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-700 dark:text-slate-300"
+                            className="bg-white dark:bg-card border border-slate-200/60 dark:border-white/10 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-700 dark:text-slate-300"
                         >
                             <option value="all">All Severities</option>
                             <option value="info">Info</option>

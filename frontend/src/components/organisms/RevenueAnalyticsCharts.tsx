@@ -17,7 +17,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const title = label || payload[0]?.payload?.name
     return (
-      <div className="bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md border border-slate-200 dark:border-white/15 p-3 rounded-xl shadow-2xl min-w-[150px]">
+      <div className="bg-white/95 dark:bg-card/95 backdrop-blur-md border border-slate-200 dark:border-white/15 p-3 rounded-xl shadow-2xl min-w-[150px]">
         {title && <p className="font-bold text-slate-900 dark:text-white mb-2 text-sm">{title}</p>}
         {payload.map((entry: any, index: number) => (
           <div key={index} className="text-xs font-semibold flex items-center justify-between gap-4 py-0.5">

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { FileText, TrendingUp, Sparkles, Clock, CheckCircle2, Calendar } from "lucide-react"
 

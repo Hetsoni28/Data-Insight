@@ -1,4 +1,4 @@
-ï»¿"use client"
+"use client"
 
 import React from "react"
 import { Database, HardDrive, Cpu, ShieldCheck, Activity, CheckCircle2, Clock, Zap, ArrowUpRight } from "lucide-react"
@@ -36,7 +36,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Card 1: Dedicated Database */}
-        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm hover:shadow-md transition-all">
+        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
@@ -99,7 +99,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
         </Card>
 
         {/* Card 2: Dedicated Storage */}
-        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm hover:shadow-md transition-all">
+        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 border border-teal-200/60 dark:border-teal-800/60">
@@ -162,7 +162,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
         </Card>
 
         {/* Card 3: AI Processing Engine */}
-        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm hover:shadow-md transition-all">
+        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 border border-violet-200/60 dark:border-violet-800/60">
@@ -173,7 +173,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
                   AI Processing Engine
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Claude 3.5 Sonnet Â· GPT-4o Â· DeepSeek R1
+                  Claude 3.5 Sonnet · GPT-4o · DeepSeek R1
                 </CardDescription>
               </div>
             </div>
@@ -224,7 +224,7 @@ export function RentedSystemOverview({ resources, onRequestExpansion }: RentedSy
         </Card>
 
         {/* Card 4: Backup & Disaster Recovery */}
-        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm hover:shadow-md transition-all">
+        <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">

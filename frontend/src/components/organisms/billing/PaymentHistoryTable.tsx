@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import React from "react"
 import { History, CheckCircle2, ArrowRight, Shield, CreditCard, ChevronLeft, ChevronRight } from "lucide-react"
@@ -47,7 +47,7 @@ export function PaymentHistoryTable({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0B0F17] shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">

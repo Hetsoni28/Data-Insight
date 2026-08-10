@@ -1,4 +1,4 @@
-﻿import { motion } from "framer-motion"
+import { motion } from "framer-motion"
 import { Code, FileSpreadsheet, LineChart, X } from "lucide-react"
 import { ReactNode } from "react"
 

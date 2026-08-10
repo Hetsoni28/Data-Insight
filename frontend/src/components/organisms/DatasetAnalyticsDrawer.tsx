@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -173,7 +173,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-[95vw] sm:max-w-4xl p-0 flex flex-col h-full bg-white dark:bg-[#0B0F17] border-l border-slate-200 dark:border-slate-800" side="right">
+      <SheetContent className="w-[95vw] sm:max-w-4xl p-0 flex flex-col h-full bg-white dark:bg-card border-l border-slate-200 dark:border-slate-800" side="right">
         
         <SheetHeader className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5 shrink-0">
           <SheetTitle className="flex items-center gap-2 text-xl font-bold">
