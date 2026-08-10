@@ -73,9 +73,9 @@ export function ExecutiveAIPanel() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(true)}
-          className="h-14 px-5 bg-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.5)] border-2 border-emerald-400 text-white cursor-pointer hover:bg-emerald-500 transition-colors"
+          className="h-14 px-6 bg-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.5)] border-2 border-emerald-400 text-white cursor-pointer hover:bg-emerald-500 transition-colors"
         >
-          <Logo size={24} showText={true} href={null} whiteMode />
+          <img src="/logo.svg" alt="Data Insight" className="h-7 w-auto brightness-0 invert" />
         </motion.button>
       )}
 
@@ -90,7 +90,7 @@ export function ExecutiveAIPanel() {
             {/* Header */}
             <div className="p-4 bg-slate-50 dark:bg-card border-b border-slate-200 dark:border-border flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Logo size={32} showText={true} href={null} className="drop-shadow-sm" />
+                <img src="/logo.svg" alt="Data Insight" className="h-8 w-auto dark:brightness-0 dark:invert" />
                 <div className="pl-4 border-l border-slate-200 dark:border-slate-700 flex flex-col justify-center">
                   <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight">Executive AI</h3>
                   <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
