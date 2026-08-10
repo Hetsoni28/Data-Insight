@@ -59,6 +59,12 @@ class Tenant(Base):
     # White-label configuration
     white_label_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
+    # General configuration blocks for settings
+    data_connections_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    integrations_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    notifications_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    advanced_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
     # Enterprise features
     sso_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     custom_domain: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True)
