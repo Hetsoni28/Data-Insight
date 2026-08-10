@@ -89,18 +89,16 @@ export function ExecutiveAIPanel() {
           >
             {/* Header */}
             <div className="p-4 bg-slate-50 dark:bg-card border-b border-slate-200 dark:border-border flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-inner">
-                  <Logo size={20} showText={false} href={null} whiteMode />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white">AI Executive Assistant</h3>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center gap-4">
+                <Logo size={32} showText={true} href={null} className="drop-shadow-sm" />
+                <div className="pl-4 border-l border-slate-200 dark:border-slate-700 flex flex-col justify-center">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight">Executive AI</h3>
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    Connected to Platform Data
+                    Live Data
                   </div>
                 </div>
               </div>
