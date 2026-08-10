@@ -1,5 +1,5 @@
-﻿import React from "react"
-import { FileSpreadsheet, FileJson, FileText, MoreHorizontal, Database, Eye, Trash2, ShieldCheck, AlertTriangle } from "lucide-react"
+import React from "react"
+import { FileSpreadsheet, FileJson, FileText, Database, Eye, Trash2, ShieldCheck, AlertTriangle, Sparkles, Loader2 } from "lucide-react"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
 
 function formatBytes(bytes: number) {
@@ -10,36 +10,80 @@ function formatBytes(bytes: number) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-export function DatasetExplorerTable({ datasets, loading, onAction, statusFilter = "all" }: { datasets: any[], loading: boolean, onAction: (action: string, id: string) => void, statusFilter?: string }) {
+export function DatasetExplorerTable({ 
+  datasets, 
+  loading, 
+  onAction, 
+  statusFilter = "all", 
+  currentUser 
+}: { 
+  datasets: any[], 
+  loading: boolean, 
+  onAction: (action: string, id: string) => void, 
+  statusFilter?: string, 
+  currentUser?: { id: string, role: string } | null 
+}) {
   
   const getFileIcon = (type: string) => {
     if (type.includes('csv') || type.includes('xlsx')) return <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
     if (type.includes('json')) return <FileJson className="w-4 h-4 text-amber-500" />
-    return <FileText className="w-4 h-4 text-slate-500" />
+    return <FileText className="w-4 h-4 text-indigo-500" />
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'ready':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">Ready</span>
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+            Ready
+          </span>
+        )
       case 'profiling':
       case 'uploading':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20">Processing</span>
+      case 'processing':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20">
+            <Loader2 className="w-3 h-3 animate-spin text-amber-500" />
+            Processing
+          </span>
+        )
       case 'error':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20">Error</span>
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+            Error
+          </span>
+        )
       default:
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-50 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400 border border-slate-200 dark:border-slate-500/20">{status}</span>
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400 border border-slate-200 dark:border-slate-500/20">
+            {status}
+          </span>
+        )
     }
   }
 
-  const getQualityIcon = (score: number) => {
-    if (score >= 90) return <ShieldCheck className="w-4 h-4 text-emerald-500" />
-    if (score >= 70) return <ShieldCheck className="w-4 h-4 text-amber-500" />
-    return <AlertTriangle className="w-4 h-4 text-rose-500" />
+  const getQualityBadge = (score: number | null) => {
+    if (score === null || score === undefined) {
+      return <span className="text-xs text-slate-400 font-mono">-</span>
+    }
+
+    let color = "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"
+    if (score < 70) color = "text-rose-500 bg-rose-500/10 border-rose-500/20"
+    else if (score < 85) color = "text-amber-500 bg-amber-500/10 border-amber-500/20"
+
+    return (
+      <div className="flex items-center gap-2">
+        <div className={`px-2 py-0.5 rounded-md border text-xs font-bold font-mono ${color}`}>
+          {score}%
+        </div>
+      </div>
+    )
   }
 
   const [currentPage, setCurrentPage] = React.useState(1)
-  const itemsPerPage = 5
+  const itemsPerPage = 6
 
   const filteredDatasets = React.useMemo(() => {
     if (!datasets) return [];
@@ -62,14 +106,14 @@ export function DatasetExplorerTable({ datasets, loading, onAction, statusFilter
   }, [totalPages, currentPage])
 
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+    <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm flex flex-col">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-white/5">
+            <tr className="border-b border-slate-200/80 dark:border-white/10 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 dark:bg-white/[0.02]">
               <th className="px-6 py-4">Dataset Name</th>
               <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Rows / Cols</th>
+              <th className="px-6 py-4">Dimensions</th>
               <th className="px-6 py-4">Size</th>
               <th className="px-6 py-4">Quality Score</th>
               <th className="px-6 py-4">Owner</th>
@@ -77,73 +121,115 @@ export function DatasetExplorerTable({ datasets, loading, onAction, statusFilter
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200 dark:divide-white/10 text-sm">
+          <tbody className="divide-y divide-slate-200/60 dark:divide-white/5 text-sm">
             {loading ? (
-              <tr><td colSpan={8} className="text-center py-12 text-slate-500">Loading datasets...</td></tr>
+              <tr>
+                <td colSpan={8} className="text-center py-16 text-slate-500">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+                    <p className="text-xs font-medium">Fetching dataset records...</p>
+                  </div>
+                </td>
+              </tr>
             ) : paginatedDatasets.length === 0 ? (
               <tr>
                 <td colSpan={8} className="text-center py-16">
                   <div className="flex flex-col items-center justify-center">
-                    <Database className="w-12 h-12 text-slate-300 mb-4" />
-                    <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">No Datasets Found</h3>
-                    <p className="text-slate-500 mb-4 max-w-sm">Upload your first dataset or connect cloud storage to start building your AI data foundation.</p>
+                    <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-2xl mb-4">
+                      <Database className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">No Datasets Found</h3>
+                    <p className="text-xs text-slate-500 mb-4 max-w-sm">Upload your first dataset or adjust search filters to explore your catalog.</p>
                   </div>
                 </td>
               </tr>
             ) : (
               paginatedDatasets.map(dataset => (
-                <tr key={dataset.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                <tr key={dataset.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-slate-100 dark:bg-white/5 rounded-lg">
+                      <div className="p-2.5 bg-slate-100/80 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/10 shrink-0">
                         {getFileIcon(dataset.file_type)}
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{dataset.name}</p>
-                        <p className="text-xs text-slate-500 truncate max-w-[200px]">{dataset.description || dataset.file_type.toUpperCase()}</p>
+                        <p className="font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                          {dataset.name}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
+                          {dataset.description || dataset.file_type.toUpperCase()}
+                        </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">{getStatusBadge(dataset.status)}</td>
-                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-mono text-xs">
-                    {dataset.row_count != null ? dataset.row_count.toLocaleString() : '-'} / {dataset.column_count != null ? dataset.column_count.toLocaleString() : '-'}
+                  <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-mono text-xs">
+                    {dataset.row_count != null ? `${dataset.row_count.toLocaleString()} rows` : '-'} 
+                    <span className="text-slate-400 mx-1">×</span>
+                    {dataset.column_count != null ? `${dataset.column_count.toLocaleString()} cols` : '-'}
                   </td>
-                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{formatBytes(dataset.file_size_bytes)}</td>
+                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-mono text-xs">{formatBytes(dataset.file_size_bytes)}</td>
                   <td className="px-6 py-4">
-                    {dataset.data_quality_score != null ? (
-                      <div className="flex items-center gap-2">
-                        {getQualityIcon(dataset.data_quality_score)}
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{dataset.data_quality_score}</span>
+                    {getQualityBadge(dataset.data_quality_score)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center text-[10px] font-bold uppercase shrink-0">
+                        {dataset.owner?.name?.charAt(0) || "U"}
                       </div>
-                    ) : (
-                      <span className="text-slate-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-slate-900 dark:text-white">{dataset.owner?.name || "System"}</p>
-                      <p className="text-xs text-slate-500">{dataset.owner?.email || "N/A"}</p>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{dataset.owner?.name || "System"}</p>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-500 text-xs">{new Date(dataset.created_at).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-slate-500 text-xs font-mono">{new Date(dataset.created_at).toLocaleDateString()}</td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => onAction('analyze', dataset.id)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded" title="Analyze Dataset">
-                        <ShieldCheck className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => onAction('ai-excel', dataset.id)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded" title="Generate AI Excel">
-                        <FileSpreadsheet className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => onAction('dashboard', dataset.id)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded" title="Create Dashboard">
-                        <Database className="w-4 h-4" />
-                      </button>
-                      <div className="w-px h-4 bg-slate-200 dark:bg-white/10 my-auto mx-1"></div>
-                      <button onClick={() => onAction('preview', dataset.id)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded" title="View Schema & Details">
+                    <div className="flex justify-end items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                      {currentUser && (
+                        <>
+                          <button 
+                            onClick={() => onAction('analyze', dataset.id)} 
+                            className="p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition-colors" 
+                            title="Analyze Dataset"
+                          >
+                            <Sparkles className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => onAction('ai-excel', dataset.id)} 
+                            className="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors" 
+                            title="Generate AI Excel"
+                          >
+                            <FileSpreadsheet className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => onAction('dashboard', dataset.id)} 
+                            className="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-500/10 rounded-lg transition-colors" 
+                            title="Create Dashboard"
+                          >
+                            <Database className="w-4 h-4" />
+                          </button>
+                          <div className="w-px h-4 bg-slate-200 dark:bg-white/10 mx-1"></div>
+                        </>
+                      )}
+                      
+                      <button 
+                        onClick={() => onAction('preview', dataset.id)} 
+                        className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors" 
+                        title="View Details"
+                      >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button onClick={() => onAction('delete', dataset.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded" title="Delete Dataset">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      
+                      {currentUser && (
+                        (currentUser.role === 'org_admin' || currentUser.role === 'manager' || (currentUser.role === 'analyst' && dataset.uploaded_by_id === currentUser.id)) && (
+                          <button 
+                            onClick={() => onAction('delete', dataset.id)} 
+                            className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors" 
+                            title="Delete Dataset"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -154,15 +240,17 @@ export function DatasetExplorerTable({ datasets, loading, onAction, statusFilter
       </div>
       
       {!loading && datasets.length > 0 && (
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={datasets.length}
-          pageSize={itemsPerPage}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={() => {}}
-          pageSizeOptions={[5, 10, 25, 50]}
-        />
+        <div className="p-4 border-t border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredDatasets.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={() => {}}
+            pageSizeOptions={[6, 12, 24]}
+          />
+        </div>
       )}
     </div>
   )

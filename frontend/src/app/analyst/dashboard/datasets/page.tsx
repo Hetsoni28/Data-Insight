@@ -17,7 +17,7 @@ import { DatasetActionModal } from "@/components/organisms/DatasetActionModal"
 import { DatasetAnalyticsDrawer } from "@/components/organisms/DatasetAnalyticsDrawer"
 import { DeleteConfirmModal } from "@/components/organisms/DeleteConfirmModal"
 
-export default function DatasetCenterPage() {
+export default function AnalystDatasetCenterPage() {
   const router = useRouter()
   const { data: user } = useAuth()
   const { activeWs, setIsUploadOpen } = useWorkspaceStore()
@@ -118,7 +118,7 @@ export default function DatasetCenterPage() {
 
   const handleQuickAction = async (action: string) => {
     if (action === 'upload') {
-      router.push('/organization-admin/dashboard/upload-dataset')
+      router.push('/analyst/dashboard/upload-dataset')
     } else {
       setCurrentAction(action)
       setActionModalOpen(true)
@@ -183,10 +183,10 @@ export default function DatasetCenterPage() {
             <div className="p-2.5 bg-gradient-to-tr from-emerald-500 to-teal-500 text-white rounded-xl shadow-md">
               <Database className="w-6 h-6" />
             </div>
-            Data Catalog & Enterprise Center
+            Data Catalog & Workspace
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Ingest, govern, and run AI processing workflows on your organization datasets.
+            Inspect schema, run data quality analysis, and generate AI insights for authorized workspace data.
           </p>
         </div>
 

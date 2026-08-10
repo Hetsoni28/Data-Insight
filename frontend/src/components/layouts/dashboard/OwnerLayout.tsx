@@ -1,10 +1,10 @@
-﻿"use client"
+"use client"
 import DashboardSidebar from "@/components/layouts/dashboard/DashboardSidebar"
 import DashboardNavbar from "@/components/layouts/dashboard/DashboardNavbar"
 import { useEffect } from "react"
 import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"
-import { UploadDatasetModal } from "@/components/organisms/UploadDatasetModal"
+import { useRouter } from "next/navigation"
 
 import { 
   LayoutDashboard, Users, Building, Database, Brain, FileSpreadsheet, Receipt, 
@@ -86,7 +86,8 @@ interface OwnerLayoutProps {
 }
 
 export function OwnerLayout({ children, user, handleLogout }: OwnerLayoutProps) {
-  const { workspaces, activeWs, loadingWs, isUploadOpen, setIsUploadOpen, setWorkspaces, setActiveWs, setLoadingWs } = useWorkspaceStore()
+  const router = useRouter()
+  const { workspaces, activeWs, loadingWs, setWorkspaces, setActiveWs, setLoadingWs } = useWorkspaceStore()
 
   useEffect(() => {
     if (user?.tenant_id) {
@@ -135,19 +136,11 @@ export function OwnerLayout({ children, user, handleLogout }: OwnerLayoutProps) 
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <DashboardNavbar onUploadClick={() => setIsUploadOpen(true)} />
+        <DashboardNavbar onUploadClick={() => router.push('/owner/dashboard/upload-dataset')} />
         <main className="flex-1 overflow-y-auto relative z-0 bg-slate-50/50 dark:bg-background transition-colors duration-200">
           {children}
         </main>
       </div>
-
-      {/* Always render modal so setIsUploadOpen works even before activeWs resolves */}
-      <UploadDatasetModal 
-        isOpen={isUploadOpen && !!activeWs} 
-        onClose={() => setIsUploadOpen(false)} 
-        workspaceId={activeWs?.id ?? ""}
-        onSuccess={handleUploadSuccess}
-      />
     </div>
   )
 }

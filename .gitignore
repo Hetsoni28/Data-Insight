@@ -74,3 +74,7 @@ backend/celerybeat-schedule*
 # Keep migrations but ignore generated caches
 backend/app/db/migrations/__pycache__/
 
+# ─── Agent Directory ──────────────────────────────────────────
+brain/
+
+

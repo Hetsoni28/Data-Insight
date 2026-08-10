@@ -1,11 +1,11 @@
-﻿"use client"
+"use client"
 import { Users, Database, LayoutDashboard, BarChart2, Brain, Settings, UploadCloud, LayoutTemplate, FileSpreadsheet, Activity, User, Receipt } from "lucide-react"
 import DashboardSidebar, { NavItem } from "@/components/layouts/dashboard/DashboardSidebar"
 import DashboardNavbar from "@/components/layouts/dashboard/DashboardNavbar"
 import { useEffect } from "react"
 import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"
-import { UploadDatasetModal } from "@/components/organisms/UploadDatasetModal"
+import { useRouter } from "next/navigation"
 
 const MEMBER_NAV = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", allowedRoles: ["organization-admin", "manager", "analyst", "viewer", "org_admin"] },
@@ -13,7 +13,7 @@ const MEMBER_NAV = [
   { icon: Users, label: "Team Management", href: "/dashboard/team", allowedRoles: ["organization-admin", "org_admin"] },
   
   { icon: Database, label: "Datasets", href: "/dashboard/datasets", allowedRoles: ["organization-admin", "org_admin", "manager", "analyst", "viewer"] },
-  { icon: UploadCloud, label: "Upload Dataset", href: "/dashboard/datasets/upload", allowedRoles: ["analyst"] },
+  { icon: UploadCloud, label: "Upload Dataset", href: "/dashboard/upload-dataset", allowedRoles: ["analyst"] },
   
   { icon: Brain, label: "AI Copilot", href: "/dashboard/ai", allowedRoles: ["organization-admin", "org_admin", "manager", "analyst"] },
   
@@ -38,7 +38,8 @@ interface MemberLayoutProps {
 }
 
 export function MemberLayout({ children, user, handleLogout }: MemberLayoutProps) {
-  const { workspaces, activeWs, loadingWs, isUploadOpen, setIsUploadOpen, setWorkspaces, setActiveWs, setLoadingWs } = useWorkspaceStore()
+  const router = useRouter()
+  const { workspaces, activeWs, loadingWs, setWorkspaces, setActiveWs, setLoadingWs } = useWorkspaceStore()
 
   useEffect(() => {
     if (user?.tenant_id) {
@@ -101,20 +102,11 @@ export function MemberLayout({ children, user, handleLogout }: MemberLayoutProps
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <DashboardNavbar onUploadClick={() => setIsUploadOpen(true)} />
+        <DashboardNavbar onUploadClick={() => router.push(`${getBasePath(user?.role)}/dashboard/upload-dataset`)} />
         <main className="flex-1 overflow-y-auto relative z-0">
           {children}
         </main>
       </div>
-
-      {activeWs && (
-        <UploadDatasetModal 
-          isOpen={isUploadOpen} 
-          onClose={() => setIsUploadOpen(false)} 
-          workspaceId={activeWs.id}
-          onSuccess={handleUploadSuccess}
-        />
-      )}
     </div>
   )
 }
