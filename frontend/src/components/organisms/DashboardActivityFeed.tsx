@@ -45,9 +45,9 @@ export function DashboardActivityFeed() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="bg-white dark:bg-white/5 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden flex flex-col h-full"
+      className="bg-white dark:bg-card rounded-3xl border border-slate-200/60 dark:border-border shadow-sm overflow-hidden flex flex-col h-full"
     >
-      <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+      <div className="p-6 border-b border-slate-100 dark:border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
             <Clock className="h-4 w-4 text-emerald-600" />
@@ -74,7 +74,7 @@ export function DashboardActivityFeed() {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Upload a dataset to see it here.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-slate-100 dark:divide-border">
             {datasets.map((item, index) => (
               <li 
                 key={item.id} 
@@ -86,7 +86,7 @@ export function DashboardActivityFeed() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-emerald-700 transition-colors">
-                    {item.filename}
+                    {item.filename || 'Untitled Dataset'}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     Uploaded {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
