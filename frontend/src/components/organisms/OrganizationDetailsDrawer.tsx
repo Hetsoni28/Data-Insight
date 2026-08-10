@@ -57,7 +57,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-xl p-0 border-l border-slate-200/60 dark:border-white/10 shadow-2xl flex flex-col bg-white dark:bg-[#0B0F17]/95 backdrop-blur-2xl gap-0">
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0 border-l border-slate-200/60 dark:border-white/10 shadow-2xl flex flex-col bg-white dark:bg-card/95 backdrop-blur-2xl gap-0">
         
         {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/5">
@@ -166,7 +166,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                 <div className="relative border-l-2 border-slate-100 dark:border-white/10 ml-3 space-y-6">
                   {activity.map((item: any, i: number) => (
                     <div key={item.id} className="relative pl-6">
-                      <div className="absolute w-3 h-3 bg-white dark:bg-[#0B0F17] border-2 border-emerald-500 rounded-full -left-[7.5px] top-1.5" />
+                      <div className="absolute w-3 h-3 bg-white dark:bg-card border-2 border-emerald-500 rounded-full -left-[7.5px] top-1.5" />
                       <div className="text-sm font-medium text-slate-900 dark:text-white">{item.type}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.description} by <span className="font-medium text-slate-700 dark:text-slate-300">{item.actor}</span></div>
                       <div className="text-xs text-slate-400 mt-1">{new Date(item.created_at).toLocaleString()}</div>
@@ -182,7 +182,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
         </div>
         
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-[#0B0F17]/95 flex justify-between gap-3 mt-auto">
+        <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-card/95 flex justify-between gap-3 mt-auto">
           {tenant?.is_active ? (
             <Button 
               variant="outline" 

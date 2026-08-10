@@ -45,7 +45,7 @@ export function ReportSchedulesTable({ schedules, isLoading, onRefresh }: Report
 
   if (schedules.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+      <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800 rounded-xl">
         <CalendarClock className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
         <h3 className="text-lg font-medium text-slate-900 dark:text-white">No active schedules</h3>
         <p className="text-slate-500 dark:text-slate-400 mt-1 max-w-sm text-center">
@@ -56,10 +56,10 @@ export function ReportSchedulesTable({ schedules, isLoading, onRefresh }: Report
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm whitespace-nowrap">
-          <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
+          <thead className="bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
             <tr>
               <th className="px-6 py-4 font-medium">Name & Template</th>
               <th className="px-6 py-4 font-medium">Schedule (CRON)</th>
@@ -93,7 +93,7 @@ export function ReportSchedulesTable({ schedules, isLoading, onRefresh }: Report
                       Active
                     </span>
                   ) : (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-white/5 dark:text-slate-400">
                       Paused
                     </span>
                   )}

@@ -50,7 +50,7 @@ export function FinancialActivityTimeline() {
           <div className="relative border-l-2 border-slate-100 dark:border-white/10 ml-4 space-y-8">
             {data?.data?.map((act: any) => (
               <div key={act.id} className="relative pl-6">
-                <div className="absolute w-8 h-8 bg-white dark:bg-[#0B0F17] border border-slate-200/60 dark:border-white/10 rounded-full flex items-center justify-center -left-[17px] -top-1">
+                <div className="absolute w-8 h-8 bg-white dark:bg-card border border-slate-200/60 dark:border-white/10 rounded-full flex items-center justify-center -left-[17px] -top-1">
                   {getIconForType(act.type)}
                 </div>
                 <div>

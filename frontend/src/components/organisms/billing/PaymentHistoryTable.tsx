@@ -47,10 +47,10 @@ export function PaymentHistoryTable({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+          <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
             <History className="h-5 w-5" />
           </div>
           <div>
@@ -66,7 +66,7 @@ export function PaymentHistoryTable({
 
       <CardContent>
         {(!payments || payments.items.length === 0) ? (
-          <div className="p-8 text-center rounded-xl bg-slate-50 dark:bg-slate-800/30 border border-dashed border-slate-200 dark:border-slate-800">
+          <div className="p-8 text-center rounded-xl bg-slate-50 dark:bg-white/5/30 border border-dashed border-slate-200 dark:border-slate-800">
             <History className="h-8 w-8 mx-auto text-slate-400 mb-2" />
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No billing activity logged</p>
             <p className="text-xs text-slate-500 mt-1">

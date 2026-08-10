@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { 
   User, ShieldAlert, KeyRound, Save, Loader2, Image as ImageIcon, Smartphone, 
@@ -15,6 +15,10 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { setupMFA, enableMFA, disableMFA, getLoginHistory, type LoginHistoryItem } from "@/lib/auth.service";
+
+import { PaginationControls } from "@/components/molecules/PaginationControls";
+import { ActiveSessionsCard } from "@/components/organisms/profile/ActiveSessionsCard";
+import { LoginHistoryTable } from "@/components/organisms/profile/LoginHistoryTable";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -47,6 +51,16 @@ export function ProfileContentTabs({
   // Login History State
   const [loginHistory, setLoginHistory] = useState<LoginHistoryItem[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  // Pagination States
+  const [sessionsPage, setSessionsPage] = useState(1);
+  const [sessionsPageSize, setSessionsPageSize] = useState(5);
+
+  const [loginPage, setLoginPage] = useState(1);
+  const [loginPageSize, setLoginPageSize] = useState(5);
+
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditPageSize, setAuditPageSize] = useState(5);
 
   // Load Login History when tab changes
   React.useEffect(() => {
@@ -311,64 +325,7 @@ export function ProfileContentTabs({
 
             {/* ACTIVE SESSIONS & DEVICE MANAGEMENT */}
             <motion.div variants={itemVariants}>
-              <SettingCard title="Active Sessions & Device Management" description="View and revoke authorized device sessions connected to your workspace." icon={Laptop2}>
-                <div className="mt-4 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 rounded-xl mb-4 gap-3">
-                    <div>
-                      <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Global Revocation & Session Wipe</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-[450px]">Immediately invalidate all refresh tokens, sessions, and active JWT versions across all devices.</p>
-                    </div>
-                    <Button variant="destructive" size="sm" onClick={handleTerminateAllOtherSessions} className="shrink-0 font-medium">
-                      Sign Out Everywhere Else
-                    </Button>
-                  </div>
-
-                  {sessions.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">No active sessions detected.</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {sessions.map((session: any) => (
-                        <div key={session.id} className={`flex items-start justify-between p-4 border rounded-xl transition-all ${session.is_current ? 'bg-emerald-50/30 border-emerald-200/80 dark:bg-emerald-950/10 dark:border-emerald-900/40' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10'}`}>
-                          <div className="flex gap-4">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${session.is_current ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400'}`}>
-                              {session.os?.toLowerCase().includes("mac") || session.os?.toLowerCase().includes("windows") || session.os?.toLowerCase().includes("linux") ? (
-                                <Laptop2 className="w-5 h-5" />
-                              ) : (
-                                <Smartphone className="w-5 h-5" />
-                              )}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <p className="text-sm font-bold text-slate-900 dark:text-white">
-                                  {session.device_name || session.os || "Desktop Device"} • {session.browser || "Browser"}
-                                </p>
-                                {session.is_current && (
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 uppercase tracking-wider">
-                                    Current Session
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
-                                <span className="font-mono">{session.ip_address}</span>
-                                <span>•</span>
-                                <span>{session.location || (session.city ? `${session.city}, ${session.country}` : "Location Secured")}</span>
-                              </p>
-                              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-                                First login: {new Date(session.created_at).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                          {!session.is_current && (
-                            <Button variant="ghost" size="sm" onClick={() => handleTerminateSession(session.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs">
-                              Revoke
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </SettingCard>
+              <ActiveSessionsCard sessions={sessions} onUpdate={reloadProfile} />
             </motion.div>
 
             {/* API KEYS & DEVELOPER ACCESS */}
@@ -418,50 +375,7 @@ export function ProfileContentTabs({
             
             {/* LOGIN HISTORY & GEOLOCATION AUDIT TRAIL */}
             <motion.div variants={itemVariants}>
-              <SettingCard title="Authentication & Login History" description="Comprehensive audit trail of recent sign-in attempts, devices, and geolocation." icon={History}>
-                <div className="mt-4 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden">
-                  <div className="bg-slate-50 dark:bg-white/5 grid grid-cols-12 gap-3 p-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-white/10">
-                    <div className="col-span-2">Status</div>
-                    <div className="col-span-3">Device / Client</div>
-                    <div className="col-span-3">IP & Location</div>
-                    <div className="col-span-4 text-right">Timestamp</div>
-                  </div>
-                  <div className="divide-y divide-slate-100 max-h-[450px] overflow-y-auto">
-                    {isLoadingHistory ? (
-                      <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-600 mx-auto" /></div>
-                    ) : loginHistory.length === 0 ? (
-                      <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">No login history recorded.</div>
-                    ) : (
-                      loginHistory.map((log) => (
-                        <div key={log.id} className="grid grid-cols-12 gap-3 p-3.5 text-sm items-center hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                          <div className="col-span-2">
-                            {log.success ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                                <CheckCircle2 className="w-3 h-3" /> Success
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300" title={log.failure_reason}>
-                                <AlertTriangle className="w-3 h-3" /> Failed
-                              </span>
-                            )}
-                          </div>
-                          <div className="col-span-3">
-                            <p className="font-semibold text-slate-900 dark:text-white text-xs">{log.browser || "Unknown"} on {log.os || "Unknown"}</p>
-                            <p className="text-[11px] text-slate-400 capitalize">{log.device || "Desktop"}</p>
-                          </div>
-                          <div className="col-span-3 font-mono text-xs text-slate-600 dark:text-slate-300">
-                            <p>{log.ip_address}</p>
-                            <p className="text-[11px] text-slate-400 font-sans">{log.city ? `${log.city}, ${log.country}` : log.country || "Secured"}</p>
-                          </div>
-                          <div className="col-span-4 text-right text-xs text-slate-500 dark:text-slate-400">
-                            {new Date(log.created_at).toLocaleString()}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </SettingCard>
+              <LoginHistoryTable history={loginHistory} />
             </motion.div>
 
             {/* AUDIT LOG */}
@@ -474,11 +388,13 @@ export function ProfileContentTabs({
                     <div className="col-span-3">IP Address</div>
                     <div className="col-span-3 text-right">Timestamp</div>
                   </div>
-                  <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
+                  <div className="divide-y divide-slate-100">
                     {auditLogs.length === 0 ? (
                       <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">No workspace audit logs available.</div>
                     ) : (
-                      auditLogs.map((log: any) => (
+                      auditLogs
+                        .slice((auditPage - 1) * auditPageSize, auditPage * auditPageSize)
+                        .map((log: any) => (
                         <div key={log.id} className="grid grid-cols-12 gap-4 p-3 text-sm items-center hover:bg-slate-50 dark:hover:bg-white/5">
                           <div className="col-span-3 font-medium text-slate-900 dark:text-white capitalize">{log.action?.replace(/_/g, ' ')}</div>
                           <div className="col-span-3 text-slate-500 dark:text-slate-400 font-mono text-xs truncate" title={log.resource_id}>{log.resource_type}</div>
@@ -488,6 +404,20 @@ export function ProfileContentTabs({
                       ))
                     )}
                   </div>
+                  {auditLogs.length > 0 && (
+                    <PaginationControls
+                      currentPage={auditPage}
+                      totalPages={Math.ceil(auditLogs.length / auditPageSize) || 1}
+                      totalItems={auditLogs.length}
+                      pageSize={auditPageSize}
+                      onPageChange={setAuditPage}
+                      onPageSizeChange={(newSize) => {
+                        setAuditPageSize(newSize);
+                        setAuditPage(1);
+                      }}
+                      pageSizeOptions={[5, 10, 25]}
+                    />
+                  )}
                 </div>
               </SettingCard>
             </motion.div>
@@ -497,7 +427,7 @@ export function ProfileContentTabs({
 
       </AnimatePresence>
 
-      {/* ── MFA SETUP MODAL ── */}
+      {/* -- MFA SETUP MODAL -- */}
       <Dialog open={isMfaSetupOpen} onOpenChange={setIsMfaSetupOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -584,7 +514,7 @@ export function ProfileContentTabs({
         </DialogContent>
       </Dialog>
 
-      {/* ── MFA DISABLE MODAL ── */}
+      {/* -- MFA DISABLE MODAL -- */}
       <Dialog open={isMfaDisableOpen} onOpenChange={setIsMfaDisableOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -603,7 +533,7 @@ export function ProfileContentTabs({
               </Label>
               <Input 
                 type="password" 
-                placeholder="••••••••••••" 
+                placeholder="������������" 
                 value={disablePassword} 
                 onChange={(e) => setDisablePassword(e.target.value)}
                 className="h-10"

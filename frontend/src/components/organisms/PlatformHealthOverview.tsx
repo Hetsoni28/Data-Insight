@@ -54,7 +54,7 @@ export function PlatformHealthOverview() {
   }, [])
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-6">
+    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">System Health</h3>
@@ -81,10 +81,10 @@ export function PlatformHealthOverview() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="flex flex-col p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80"
+            className="flex flex-col p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800/80"
           >
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm">
+              <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm">
                 <item.icon className="w-4 h-4 text-slate-600 dark:text-slate-300" />
               </div>
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.name}</span>

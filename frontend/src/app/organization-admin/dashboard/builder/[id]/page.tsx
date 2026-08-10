@@ -103,16 +103,16 @@ export default function DashboardBuilderWorkspace() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-[#0B0F17]">
         <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     )
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-slate-50 dark:bg-slate-900 overflow-hidden">
+    <div className="absolute inset-0 flex flex-col bg-slate-50 dark:bg-[#0B0F17] overflow-hidden">
       {/* Top Header */}
-      <div className="h-14 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 flex items-center justify-between px-4 shrink-0">
+      <div className="h-14 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B0F17] flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center space-x-4">
           <button 
             onClick={() => router.push('/organization-admin/dashboard/builder')}
@@ -124,8 +124,12 @@ export default function DashboardBuilderWorkspace() {
             <h1 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
               {dashboard?.name || 'Untitled Dashboard'}
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">
-              {isDirty ? 'Unsaved changes' : 'Saved'}
+            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight flex items-center mt-0.5">
+              {isDirty ? (
+                <><span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span> Unsaved changes</>
+              ) : (
+                <><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> All changes saved</>
+              )}
             </p>
           </div>
         </div>

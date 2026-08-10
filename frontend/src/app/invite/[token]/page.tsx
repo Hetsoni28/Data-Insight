@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -131,11 +131,11 @@ export default function InvitePage({ params }: { params: { token: string } }) {
   // 1. Loading State
   if (isValidating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B0F17] p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-200 dark:border-white/10 shadow-xl text-center space-y-4"
+          className="w-full max-w-md bg-white dark:bg-[#0B0F17] rounded-3xl p-10 border border-slate-200 dark:border-white/10 shadow-xl text-center space-y-4"
         >
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
             <Loader2 className="w-6 h-6 animate-spin" />
@@ -155,11 +155,11 @@ export default function InvitePage({ params }: { params: { token: string } }) {
   if (validationError || !inviteData) {
     const isAlreadyAccepted = validationError?.toLowerCase().includes("already been accepted")
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B0F17] p-4">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-10 border border-slate-200 dark:border-white/10 shadow-xl text-center space-y-6"
+          className="w-full max-w-md bg-white dark:bg-[#0B0F17] rounded-3xl p-8 sm:p-10 border border-slate-200 dark:border-white/10 shadow-xl text-center space-y-6"
         >
           <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
             <AlertCircle className="w-7 h-7" />
@@ -195,11 +195,11 @@ export default function InvitePage({ params }: { params: { token: string } }) {
 
   // 3. Valid Invitation Form
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B0F17] p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[480px] bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border border-slate-200/60 dark:border-white/10"
+        className="w-full max-w-[480px] bg-white dark:bg-[#0B0F17] rounded-3xl p-8 sm:p-10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border border-slate-200/60 dark:border-white/10"
       >
         {/* Header */}
         <div className="text-center mb-6">
@@ -258,7 +258,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
               onBlur={() => setFocusedField(null)}
               placeholder="e.g. Jane Doe"
               className={cn(
-                "h-11 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 transition-all duration-200",
+                "h-11 bg-white dark:bg-[#0B0F17] border-slate-200 dark:border-white/10 transition-all duration-200",
                 focusedField === "fullName" &&
                   "border-emerald-600 ring-2 ring-emerald-500/20 shadow-sm"
               )}
@@ -284,7 +284,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
                 onBlur={() => setFocusedField(null)}
                 placeholder="••••••••"
                 className={cn(
-                  "h-11 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 pr-10 transition-all duration-200",
+                  "h-11 bg-white dark:bg-[#0B0F17] border-slate-200 dark:border-white/10 pr-10 transition-all duration-200",
                   focusedField === "password" &&
                     "border-emerald-600 ring-2 ring-emerald-500/20 shadow-sm"
                 )}
@@ -350,7 +350,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
               onBlur={() => setFocusedField(null)}
               placeholder="••••••••"
               className={cn(
-                "h-11 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 transition-all duration-200",
+                "h-11 bg-white dark:bg-[#0B0F17] border-slate-200 dark:border-white/10 transition-all duration-200",
                 focusedField === "confirmPassword" &&
                   "border-emerald-600 ring-2 ring-emerald-500/20 shadow-sm"
               )}

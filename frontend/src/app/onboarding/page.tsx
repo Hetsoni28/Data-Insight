@@ -29,7 +29,7 @@ function OnboardingContent() {
   const [focusedField, setFocusedField] = useState<string | null>(null)
   
   const [org, setOrg] = useState({ name: "", industry: "SaaS / Technology", plan: "starter" })
-  const [workspace, setWorkspace] = useState({ name: "My First Workspace", icon: "📊" })
+  const [workspace, setWorkspace] = useState({ name: "My First Workspace", icon: "??" })
 
   // ── Auth Guards ──────────────────────────────────────────────────────────
   const { workspaces, loadingWs, setWorkspaces, setLoadingWs, setActiveWs } = useWorkspaceStore()
@@ -76,7 +76,7 @@ function OnboardingContent() {
     )
   }
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
+  // -- Handlers -------------------------------------------------------------
   const handleLogout = async () => {
     try {
       await logoutUser()
@@ -97,7 +97,7 @@ function OnboardingContent() {
       await api.post("/tenants", { name: org.name, plan: org.plan })
       const res = await api.post("/auth/refresh-token")
       await login(res.data.access_token) // store new JWT with org_admin + tenant_id
-      // ⚠️ CRITICAL: Bust the React Query user cache — staleTime is 5 min so
+      // ?? CRITICAL: Bust the React Query user cache � staleTime is 5 min so
       // without this, user.tenant_id remains null and workspace creation breaks.
       await fetchMe()
       setStep(2)

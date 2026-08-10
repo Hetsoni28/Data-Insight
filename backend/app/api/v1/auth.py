@@ -94,6 +94,10 @@ class MFAEnablePayload(BaseModel):
     recovery_codes: List[str]
 
 
+class DeactivateAccountPayload(BaseModel):
+    password: str
+
+
 class MessageResponse(BaseModel):
     message: str
 
@@ -445,6 +449,43 @@ async def logout(
         )
         await db.commit()
     return MessageResponse(message="Logged out successfully.")
+
+
+@router.post(
+    "/deactivate",
+    response_model=MessageResponse,
+    summary="Deactivate user account",
+)
+async def deactivate_account(
+    payload: DeactivateAccountPayload,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+):
+    auth_service = AuthService(db, redis)
+    from app.core.security import verify_password
+    from app.core.exceptions import AuthException
+    
+    if not verify_password(payload.password, current_user.hashed_password):
+        raise AuthException("Incorrect password.")
+        
+    current_user.is_active = False
+    await auth_service.revoke_all_sessions(current_user)
+    
+    from app.models.audit_log import AuditLog
+    audit = AuditLog(
+        tenant_id=current_user.tenant_id,
+        user_id=current_user.id,
+        actor_user_id=current_user.id,
+        action="account.deactivated",
+        module="auth",
+        severity="Critical",
+        status="Success"
+    )
+    db.add(audit)
+    await db.commit()
+    
+    return MessageResponse(message="Account successfully deactivated.")
 
 
 @router.post(

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect, useCallback, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
@@ -214,7 +214,7 @@ function BillingContent() {
 
       {/* Tabbed Navigation */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-slate-100 dark:bg-slate-800/60 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+        <TabsList className="bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-800">
           <TabsTrigger value="overview" className="rounded-xl text-xs md:text-sm font-semibold">
             <Database className="h-4 w-4 mr-2" />
             Rented Resources

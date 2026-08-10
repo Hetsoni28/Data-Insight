@@ -159,7 +159,7 @@ function SheetContent({
       <SheetOverlay />
       <div
         className={cn(
-          "fixed z-50 flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 text-sm shadow-xl",
+          "fixed z-50 flex flex-col gap-4 bg-white dark:bg-white/5 p-6 text-sm shadow-xl",
           sideClasses[side],
           className
         )}

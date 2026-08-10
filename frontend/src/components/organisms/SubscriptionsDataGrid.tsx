@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useEffect } from "react"
 import { 
   Search, MoreHorizontal, FileText, XCircle, Settings, CheckCircle2, AlertTriangle
@@ -144,7 +144,7 @@ export function SubscriptionsDataGrid() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52">
-                      <DropdownMenuHeader title={sub.tenant_name} subtitle={`${sub.plan} · ${sub.status}`} />
+                      <DropdownMenuHeader title={sub.tenant_name} subtitle={`${sub.plan} ? ${sub.status}`} />
                       <DropdownMenuItem onClick={() => window.open("https://dashboard.stripe.com/test/customers", "_blank")}>
                         <Settings className="mr-2 h-4 w-4 text-slate-500 dark:text-slate-400" />
                         <span>Change Plan</span>

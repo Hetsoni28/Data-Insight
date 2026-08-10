@@ -47,7 +47,7 @@ function OrgActionMenu({ org }: { org: OrgHealth }) {
           <MoreHorizontal className="h-4 w-4" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
+      <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-card/95 dark:backdrop-blur-2xl border-slate-200/60 dark:border-white/10 shadow-2xl">
         <DropdownMenuHeader title={org.org_name} subtitle={`${org.plan} · ${org.status}`} />
         <DropdownMenuItem onClick={() => handleAction("Email Admins", "success")}>
           <Mail className="h-4 w-4 mr-2.5 text-emerald-500" />

@@ -511,7 +511,8 @@ async def chat_with_command_center(
         tenant_id=current_user.tenant_id,
         message=message,
         history=history_dicts,
-        files=file_list
+        files=file_list,
+        is_owner=True
     )
 
     import uuid

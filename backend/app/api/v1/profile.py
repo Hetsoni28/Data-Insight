@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, desc, func
 import uuid
@@ -196,3 +196,37 @@ async def get_audit(
     stmt = select(AuditLog).where(AuditLog.user_id == current_user.id).order_by(desc(AuditLog.created_at)).limit(100)
     result = await db.execute(stmt)
     return result.scalars().all()
+
+@router.post("/avatar", summary="Upload profile avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+        
+    # In a real app, upload to S3/GCS. For this demo, we'll store a data URL if it's small enough,
+    # or just pretend we saved it and return a mock URL.
+    # Let's read the file and convert to base64 data URL for simplicity in the demo.
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 5MB)")
+        
+    import base64
+    b64_content = base64.b64encode(content).decode('utf-8')
+    data_url = f"data:{file.content_type};base64,{b64_content}"
+    
+    current_user.avatar_url = data_url
+    await db.commit()
+    
+    return {"avatar_url": data_url}
+
+@router.delete("/avatar", summary="Remove profile avatar")
+async def remove_avatar(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    current_user.avatar_url = None
+    await db.commit()
+    return {"message": "Avatar removed"}

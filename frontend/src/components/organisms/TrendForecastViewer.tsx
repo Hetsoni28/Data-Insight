@@ -20,9 +20,9 @@ export function TrendForecastViewer({ report }: TrendForecastViewerProps) {
   }))
 
   return (
-    <div className="w-full bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
+    <div className="w-full bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
       
-      {/* ── HEADER ── */}
+      {/* -- HEADER -- */}
       <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 flex items-center gap-3 border-b border-emerald-800/40">
         <TrendingUp className="w-6 h-6 text-white/80 shrink-0" />
         <div className="min-w-0">
@@ -35,18 +35,18 @@ export function TrendForecastViewer({ report }: TrendForecastViewerProps) {
         
         {/* Executive Summary strip */}
         {data.executiveSummary && (
-          <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div className="bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{data.executiveSummary}</p>
           </div>
         )}
 
         {/* Forecast Chart */}
-        <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+        <div className="bg-slate-50 dark:bg-card border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
           <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-4">Predictive Trendline</h3>
           <ResponsiveContainer width="100%" height={320}>
             <ComposedChart data={chartData} margin={{ top: 15, right: 15, bottom: 25, left: -10 }}>
               <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="period" interval={0} tick={{ fontSize: 10, fill: '#64748b' }} dy={5} axisLine={false} tickLine={false} />
+              <XAxis dataKey="period" tick={{ fontSize: 10, fill: '#64748b' }} dy={5} axisLine={false} tickLine={false} minTickGap={30} />
               <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} width={45} />
               <RechartsTooltip 
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 12 }}
@@ -66,7 +66,7 @@ export function TrendForecastViewer({ report }: TrendForecastViewerProps) {
           </ResponsiveContainer>
         </div>
 
-        {/* Drivers and Risks — 2 cols */}
+        {/* Drivers and Risks � 2 cols */}
         <div className="grid grid-cols-2 gap-5">
           <div className="bg-emerald-50/70 dark:bg-emerald-950/30 rounded-xl border border-emerald-200/80 dark:border-emerald-900/40 p-4">
             <h3 className="text-xs font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wide flex items-center gap-2 mb-3">

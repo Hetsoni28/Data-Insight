@@ -41,7 +41,7 @@ export function ReportViewerModal({ isOpen, onClose, reportId }: ReportViewerMod
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl w-[900px] max-h-[92vh] overflow-y-auto p-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl">
+      <DialogContent className="max-w-5xl w-[900px] max-h-[92vh] overflow-y-auto p-0 bg-white dark:bg-white/5 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl">
         {loading ? (
           <div className="flex flex-col items-center justify-center p-24 gap-3">
             <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />

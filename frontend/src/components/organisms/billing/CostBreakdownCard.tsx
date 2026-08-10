@@ -26,7 +26,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
   }
 
   const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return "â€”"
+    if (!dateStr) return "—"
     return new Date(dateStr).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -35,7 +35,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -82,7 +82,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
                 Storage Allocation ({costs.storage_allocation_gb} GB Contracted)
               </span>
               <p className="text-xs text-slate-500">
-                Current usage: {costs.storage_used_gb} GB Â· {costs.storage_overage_gb > 0 ? `${costs.storage_overage_gb} GB Overage` : "Included in Base Rental"}
+                Current usage: {costs.storage_used_gb} GB · {costs.storage_overage_gb > 0 ? `${costs.storage_overage_gb} GB Overage` : "Included in Base Rental"}
               </p>
             </div>
             <span className="font-mono font-bold text-slate-900 dark:text-white">
@@ -97,7 +97,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
                 AI Processing Tokens ({(costs.ai_token_allocation / 1_000_000).toFixed(0)}M Monthly Quota)
               </span>
               <p className="text-xs text-slate-500">
-                Current usage: {(costs.ai_tokens_used / 1_000_000).toFixed(2)}M Tokens Â· {costs.ai_overage_tokens > 0 ? "Overage Tier Active" : "Included in Base Rental"}
+                Current usage: {(costs.ai_tokens_used / 1_000_000).toFixed(2)}M Tokens · {costs.ai_overage_tokens > 0 ? "Overage Tier Active" : "Included in Base Rental"}
               </p>
             </div>
             <span className="font-mono font-bold text-slate-900 dark:text-white">
@@ -136,7 +136,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
           </div>
         </div>
 
-        <Separator className="bg-slate-200 dark:bg-slate-800" />
+        <Separator className="bg-slate-200 dark:bg-white/5" />
 
         {/* Totals Section */}
         <div className="space-y-2 pt-1 text-sm">
@@ -169,7 +169,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
                 Total Contracted Amount
               </span>
               <p className="text-xs text-slate-500">
-                Current period: {formatDate(costs.billing_period_start)} â€“ {formatDate(costs.billing_period_end)}
+                Current period: {formatDate(costs.billing_period_start)} – {formatDate(costs.billing_period_end)}
               </p>
             </div>
             <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
@@ -179,7 +179,7 @@ export function CostBreakdownCard({ costs, onOpenPortal }: CostBreakdownCardProp
         </div>
 
         {/* Action Footnote */}
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-300">
             <CreditCard className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>

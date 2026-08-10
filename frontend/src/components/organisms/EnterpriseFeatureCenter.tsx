@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -152,7 +152,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            className="relative w-full max-w-md bg-white dark:bg-[#0B0F17]/95 dark:backdrop-blur-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200/60 dark:border-white/10"
+                            className="relative w-full max-w-md bg-white dark:bg-card/95 dark:backdrop-blur-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200/60 dark:border-white/10"
                         >
                             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/10">
                                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Create Feature Flag</h3>
@@ -201,7 +201,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                                     <select
                                         value={newFlagData.environment}
                                         onChange={(e) => setNewFlagData({...newFlagData, environment: e.target.value})}
-                                        className="w-full px-4 py-2 bg-white dark:bg-[#0B0F17] border border-slate-300 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
+                                        className="w-full px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
                                     >
                                         <option value="production">Production</option>
                                         <option value="staging">Staging</option>

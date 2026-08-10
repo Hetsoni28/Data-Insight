@@ -15,7 +15,7 @@ interface ChartsProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-[#0B0F17] border border-slate-200 dark:border-white/10 p-3 rounded-xl shadow-xl">
+      <div className="bg-white dark:bg-card border border-slate-200 dark:border-white/10 p-3 rounded-xl shadow-xl">
         <p className="font-medium text-slate-900 dark:text-white mb-1">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2">

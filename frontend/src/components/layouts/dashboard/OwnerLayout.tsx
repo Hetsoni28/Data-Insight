@@ -136,7 +136,7 @@ export function OwnerLayout({ children, user, handleLogout }: OwnerLayoutProps) 
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <DashboardNavbar onUploadClick={() => setIsUploadOpen(true)} />
-        <main className="flex-1 overflow-y-auto relative z-0">
+        <main className="flex-1 overflow-y-auto relative z-0 bg-slate-50/50 dark:bg-background transition-colors duration-200">
           {children}
         </main>
       </div>

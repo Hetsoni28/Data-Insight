@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useMemo } from "react"
 import { 
@@ -53,7 +53,7 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
     onError: () => toast.error("Failed to update organization status.")
   })
 
-  // ─── All useMemo hooks MUST be above any conditional early return ────────────
+  // --- All useMemo hooks MUST be above any conditional early return ------------
   const filteredData = useMemo(() =>
     data?.filter(t => {
       const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase()) || 

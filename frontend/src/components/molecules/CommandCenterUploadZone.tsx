@@ -28,7 +28,7 @@ export function CommandCenterUploadZone({ onFilesSelected, selectedFiles, onRemo
       {selectedFiles.length > 0 && (
         <div className="flex gap-2 flex-wrap">
           {selectedFiles.map((f, i) => (
-            <div key={i} className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div key={i} className="flex items-center gap-2 bg-slate-100 dark:bg-white/5 text-xs text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
               <FileType className="w-3 h-3 text-emerald-500" />
               <span className="truncate max-w-[120px]">{f.name}</span>
               <button onClick={() => onRemoveFile(i)} className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors ml-1">
@@ -43,7 +43,7 @@ export function CommandCenterUploadZone({ onFilesSelected, selectedFiles, onRemo
         className={`w-full flex items-center justify-center p-3 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
           isDragActive 
             ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400" 
-            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50 dark:bg-slate-800/50 text-slate-500"
+            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50 dark:bg-white/5 text-slate-500"
         }`}
       >
         <input {...getInputProps()} />

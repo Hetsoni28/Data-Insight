@@ -97,7 +97,7 @@ export function CorrelationHeatmap({ data, height = 400 }: CorrelationHeatmapPro
   if (!data || Object.keys(data).length === 0) {
     return (
       <div 
-        className="w-full flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800"
+        className="w-full flex items-center justify-center bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-slate-800"
         style={{ height }}
       >
         <p className="text-sm text-slate-500">Not enough numerical data for correlation matrix.</p>

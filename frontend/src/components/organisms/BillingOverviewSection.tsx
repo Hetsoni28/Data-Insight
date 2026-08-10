@@ -30,7 +30,7 @@ export function BillingOverviewSection({ summary, onManageSubscription, isManagi
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
   return (
-    <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+    <Card className="bg-white dark:bg-white/5 border-slate-200 dark:border-slate-800">
       <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/50">
         <div className="space-y-1">
           <CardTitle className="text-xl flex items-center gap-2">

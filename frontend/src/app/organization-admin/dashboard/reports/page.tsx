@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import api from "@/lib/api"
@@ -116,7 +116,7 @@ export default function ReportsCenterPage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col p-8 bg-slate-50 dark:bg-slate-950 overflow-y-auto custom-scrollbar">
+    <div className="w-full h-full flex flex-col p-8 bg-slate-50 dark:bg-[#0B0F17] overflow-y-auto custom-scrollbar">
       
       <div className="flex justify-between items-start mb-8 shrink-0">
         <div>

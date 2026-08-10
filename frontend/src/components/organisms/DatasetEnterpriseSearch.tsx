@@ -20,14 +20,14 @@ export function DatasetEnterpriseSearch({
           placeholder="Search datasets by name, tags, or owner..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:border-emerald-500 transition-colors text-sm shadow-sm"
+          className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:border-emerald-500 transition-colors text-sm shadow-sm"
         />
       </div>
       {setStatusFilter && (
         <select 
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-slate-700 dark:text-slate-300 text-sm font-medium shadow-sm outline-none cursor-pointer appearance-none"
+          className="px-4 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors text-slate-700 dark:text-slate-300 text-sm font-medium shadow-sm outline-none cursor-pointer appearance-none"
         >
           <option value="all">All Status</option>
           <option value="ready">Ready</option>

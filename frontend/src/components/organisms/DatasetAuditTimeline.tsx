@@ -26,7 +26,7 @@ export function DatasetAuditTimeline({ activities, loading }: { activities: any[
   }, [totalPages, currentPage])
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm flex flex-col">
+    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm flex flex-col">
       <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-6 shrink-0">
         <History className="w-4 h-4 text-emerald-500" />
         Recent Activities & Logs
@@ -41,7 +41,7 @@ export function DatasetAuditTimeline({ activities, loading }: { activities: any[
           <div className="relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 dark:before:via-white/10 before:to-transparent">
             {paginatedActivities.map((act, index) => (
               <div key={act.id + index} className="relative flex items-start gap-4 mb-6 last:mb-0">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white dark:border-slate-900 bg-slate-50 dark:bg-slate-800 text-slate-500 shadow shrink-0 z-10">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-500 shadow shrink-0 z-10">
                   {getIcon(act.type, act.action)}
                 </div>
                 <div className="flex-1 min-w-0 p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm">

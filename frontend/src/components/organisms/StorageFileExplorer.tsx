@@ -305,7 +305,7 @@ export function StorageFileExplorer({
                     </button>
                     <button 
                       onClick={() => setSelectedFile(file)}
-                      className="p-1.5 text-slate-400 hover:text-emerald-500 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-colors cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-emerald-500 bg-white dark:bg-white/5 rounded-lg shadow-sm border border-slate-100 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-colors cursor-pointer"
                       title="View Details"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
@@ -314,7 +314,7 @@ export function StorageFileExplorer({
                 </div>
                 <div>
                   <p className="font-medium text-slate-800 dark:text-white truncate" title={file.file_name}>{file.file_name}</p>
-                  <p className="text-xs text-slate-500 mt-1">{formatBytes(file.size_bytes)} â€¢ {formatDate(file.created_at)}</p>
+                  <p className="text-xs text-slate-500 mt-1">{formatBytes(file.size_bytes)} • {formatDate(file.created_at)}</p>
                 </div>
               </div>
             ))}
@@ -344,7 +344,7 @@ export function StorageFileExplorer({
 
       {selectedFile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setSelectedFile(null)}>
-          <div className="bg-white dark:bg-[#0B0F17]/95 backdrop-blur-xl rounded-2xl p-6 max-w-md w-full m-4 shadow-2xl border border-slate-200/60 dark:border-white/10" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-card/95 backdrop-blur-xl rounded-2xl p-6 max-w-md w-full m-4 shadow-2xl border border-slate-200/60 dark:border-white/10" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-4 dark:text-white">File Details</h3>
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-3 gap-2 py-2 border-b border-slate-100 dark:border-white/10">

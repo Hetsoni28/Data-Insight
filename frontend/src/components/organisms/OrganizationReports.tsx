@@ -1,47 +1,55 @@
-import { Button } from "@/components/ui/button"
-import { MoreHorizontal, FileText, Share2 } from "lucide-react"
-import { format } from "date-fns"
+import Link from "next/link"
+import { FileText, Plus, ArrowRight } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/molecules/StatusBadge"
+import { formatDistanceToNow } from "date-fns"
 
-export function OrganizationReports({ reports }: { reports: any[] }) {
-  if (!reports || reports.length === 0) return null
+interface Report { id: string; title: string; type: string; status: string; created_at: string }
 
+export function OrganizationReports({ reports }: { reports: Report[] }) {
+  const items = reports || []
   return (
-    <div className="p-8 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Recent Reports</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Generated analysis and dashboards.</p>
+    <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/5">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+          <h3 className="font-bold text-slate-900 dark:text-white text-sm">Recent Reports</h3>
+          <Badge className="bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/30 text-[10px] font-semibold">{items.length}</Badge>
         </div>
-        <Button variant="outline" className="rounded-full">View All</Button>
+        <Link href="/organization-admin/dashboard/reports">
+          <button className="flex items-center gap-1.5 text-xs font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 hover:bg-violet-100 dark:hover:bg-violet-500/20 border border-violet-200 dark:border-violet-500/20 px-3 py-1.5 rounded-lg transition-all">
+            <Plus className="h-3 w-3" />New
+          </button>
+        </Link>
       </div>
-
-      <div className="space-y-4">
-        {reports.map((r, i) => (
-          <div key={r.id || i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-black/40 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 dark:text-emerald-400 rounded-xl">
-                <FileText className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-slate-900 dark:text-white">{r.title}</h4>
-                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  <span className="capitalize">{r.type || 'Standard'} Report</span>
-                  <span>•</span>
-                  <span>{r.created_at ? format(new Date(r.created_at), 'MMM d, h:mm a') : ''}</span>
-                </div>
-              </div>
+      <div className="divide-y divide-slate-100 dark:divide-white/5">
+        {items.length === 0 && (
+          <div className="py-12 text-center">
+            <FileText className="h-8 w-8 text-slate-400 dark:text-slate-600 mx-auto mb-2" />
+            <p className="text-xs text-slate-500 dark:text-slate-400">No reports yet.</p>
+          </div>
+        )}
+        {items.map(r => (
+          <div key={r.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+            <div className="p-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex-shrink-0">
+              <FileText className="h-4 w-4 text-violet-600 dark:text-violet-400" />
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{r.title}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
+                {r.type?.replace(/_/g, " ")} &bull; {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+              </p>
             </div>
+            <StatusBadge status={r.status} />
           </div>
         ))}
+      </div>
+      <div className="p-4 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+        <Link href="/organization-admin/dashboard/reports">
+          <button className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors py-1">
+            View all reports <ArrowRight className="h-3 w-3" />
+          </button>
+        </Link>
       </div>
     </div>
   )

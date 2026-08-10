@@ -1,11 +1,11 @@
-﻿import { motion } from "framer-motion"
+import { motion } from "framer-motion"
 import { Sparkles, Loader2, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
-export const EMOJIS = ["📊", "📈", "🚀", "💡", "🎯", "⚡", "🔥", "🌍", "✨", "📱", "💻", "🧠"]
+export const EMOJIS = ["??", "??", "??", "??", "??", "?", "??", "??", "?", "??", "??", "??"]
 
 interface OnboardingWorkspaceStepProps {
   workspace: { name: string; icon: string }

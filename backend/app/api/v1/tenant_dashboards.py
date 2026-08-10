@@ -203,7 +203,6 @@ async def ai_generate_dashboard(
 ) -> Any:
     """
     Generate a full dashboard layout using AI based on a dataset and a prompt.
-    This simulates the Copilot generation capability.
     """
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
@@ -224,50 +223,107 @@ async def ai_generate_dashboard(
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
 
-    # In a real enterprise app, we'd call an LLM (Claude/GPT-4) here passing the dataset schema
-    # For now, we will generate a robust "AI-crafted" JSON layout using real widget configurations
+    from app.core.config import settings
+    import json
+    from groq import AsyncGroq
     
-    generated_layout = {
-        "widgets": [
-            {
-                "id": str(uuid.uuid4()),
-                "type": "kpi",
-                "title": "Total Processed",
-                "x": 0, "y": 0, "w": 3, "h": 2,
-                "config": {"metric": "row_count", "dataset_id": str(dataset_id)}
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "type": "kpi",
-                "title": "Data Quality",
-                "x": 3, "y": 0, "w": 3, "h": 2,
-                "config": {"metric": "data_quality_score", "dataset_id": str(dataset_id)}
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "type": "chart_bar",
-                "title": "Distribution Overview",
-                "x": 0, "y": 2, "w": 6, "h": 4,
-                "config": {"xAxis": "category", "yAxis": "value", "dataset_id": str(dataset_id)}
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "type": "ai_insight",
-                "title": "AI Executive Summary",
-                "x": 6, "y": 0, "w": 6, "h": 6,
-                "config": {
-                    "text": f"Based on '{dataset.name}', our AI has detected 3 key insights:\n\n1. **High Quality**: Data quality score is exceptional.\n2. **Growth**: Row counts indicate a growing trend.\n3. **Recommendation**: Continue monitoring column distributions."
+    if not settings.GROQ_API_KEY:
+        raise HTTPException(status_code=500, detail="Groq API Key is not configured")
+
+    client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+    
+    # Extract schema info
+    schema_info = "No detailed schema available."
+    if dataset.profile:
+        # Pass a summarized profile to avoid exceeding context limits
+        if isinstance(dataset.profile, dict):
+            cols = dataset.profile.get("columns", {})
+            col_summary = {k: v.get("type", "Unknown") for k, v in cols.items()}
+            schema_info = json.dumps(col_summary)
+        else:
+            schema_info = str(dataset.profile)
+
+    system_prompt = f"""You are an expert dashboard designer AI.
+Your goal is to generate a structured JSON layout for a dashboard based on the user's prompt and the provided dataset schema.
+
+Dataset Name: {dataset.name}
+Row Count: {dataset.row_count}
+Schema (Column Types): {schema_info}
+User Request: {prompt}
+
+Generate a JSON object with exactly this structure:
+{{
+  "widgets": [
+    {{
+      "id": "uuid-string-here",
+      "type": "widget_type",
+      "title": "Widget Title",
+      "x": 0, "y": 0, "w": 4, "h": 4,
+      "config": {{ ... }}
+    }}
+  ]
+}}
+
+Widget types allowed:
+- "kpi": config must have {{"yAxis": "column_name"}} or just {{"yAxis": "Metric"}}
+- "chart_bar": config must have {{"xAxis": "category_col", "yAxis": "numeric_col"}}
+- "chart_line": config must have {{"xAxis": "time_col", "yAxis": "numeric_col"}}
+- "chart_pie": config must have {{"xAxis": "category_col", "yAxis": "numeric_col"}}
+- "chart_scatter": config must have {{"xAxis": "numeric_col", "yAxis": "numeric_col"}}
+- "ai_insight": config must have {{"text": "Detailed Markdown text analyzing the dataset"}}
+- "data_table": config must have {{"xAxis": "col1", "yAxis": "col2"}}
+
+Rules:
+1. Always set dataset_id in the config of EVERY widget to exactly "{dataset_id}".
+2. Make sure x, y, w, h are integers. Grid is 12 columns wide.
+3. Provide 3 to 6 widgets that best answer the user's request.
+4. If you use "ai_insight", YOU MUST WRITE A REAL, DETAILED 2-PARAGRAPH ANALYSIS inside `config.text`. Do not leave it empty.
+5. Output ONLY raw, valid JSON. No markdown backticks, no explanations.
+"""
+
+    try:
+        response = await client.chat.completions.create(
+            model=settings.GROQ_DEFAULT_MODEL,
+            messages=[{"role": "user", "content": system_prompt}],
+            response_format={"type": "json_object"},
+            temperature=0.2,
+        )
+        
+        response_text = response.choices[0].message.content
+        generated_layout = json.loads(response_text)
+        
+        # Ensure all widgets have valid IDs and the correct dataset_id
+        for widget in generated_layout.get("widgets", []):
+            if not widget.get("id"):
+                widget["id"] = str(uuid.uuid4())
+            if "config" not in widget:
+                widget["config"] = {}
+            widget["config"]["dataset_id"] = str(dataset_id)
+            
+    except Exception as e:
+        print(f"LLM Generation Failed: {e}")
+        # Fallback layout
+        generated_layout = {
+            "widgets": [
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "ai_insight",
+                    "title": "Generation Failed",
+                    "x": 0, "y": 0, "w": 12, "h": 4,
+                    "config": {
+                        "text": f"The AI failed to generate the layout: {str(e)}",
+                        "dataset_id": str(dataset_id)
+                    }
                 }
-            }
-        ]
-    }
+            ]
+        }
     
     dashboard = Dashboard(
         tenant_id=current_user.tenant_id,
         created_by_id=current_user.id,
         primary_dataset_id=dataset.id,
-        name=f"AI Generated: {prompt[:30]}...",
-        description=f"Generated via Copilot. Prompt: '{prompt}' on dataset {dataset.name}",
+        name=f"AI Generated Dashboard",
+        description=f"Generated via AI Copilot. Prompt: '{prompt}'",
         layout_json=generated_layout,
         workspace_id=workspace.id if workspace else None,
     )

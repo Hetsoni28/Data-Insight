@@ -328,7 +328,7 @@ export function UsersDataGrid() {
 
       {/* User Details Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:max-w-md border-l border-slate-200/60 dark:border-white/10 bg-white dark:bg-[#0B0F17]">
+        <SheetContent side="right" className="w-[400px] sm:max-w-md border-l border-slate-200/60 dark:border-white/10 bg-white dark:bg-card">
           {selectedUser && (
             <div className="flex flex-col h-full">
               <SheetHeader className="mb-6">

@@ -388,6 +388,7 @@ async def simulate_ai_workflow(tenant_id: uuid.UUID, dataset_id: uuid.UUID, work
                     status=DatasetStatus.ready,
                     row_count=d.row_count,
                     column_count=d.column_count,
+                    profile=d.profile,
                     data_quality_score=99
                 )
                 db.add(new_d)

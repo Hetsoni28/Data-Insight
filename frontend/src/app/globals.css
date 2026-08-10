@@ -101,41 +101,41 @@
 }
 
 .dark {
-  --background: oklch(0.10 0.01 265);
-  --foreground: oklch(0.97 0.005 265);
-  --card: oklch(0.14 0.012 265);
-  --card-foreground: oklch(0.97 0.005 265);
-  --popover: oklch(0.14 0.012 265);
-  --popover-foreground: oklch(0.97 0.005 265);
+  --background: #000000;
+  --foreground: #F8FAFC;
+  --card: #121212;
+  --card-foreground: #F8FAFC;
+  --popover: #121212;
+  --popover-foreground: #F8FAFC;
 
-  --primary: oklch(0.72 0.18 162);
-  --primary-foreground: oklch(0.08 0.01 265);
+  --primary: #10B981;
+  --primary-foreground: #000000;
 
-  --secondary: oklch(0.20 0.02 265);
-  --secondary-foreground: oklch(0.97 0.005 265);
-  --muted: oklch(0.20 0.01 265);
-  --muted-foreground: oklch(0.62 0.012 265);
-  --accent: oklch(0.22 0.04 162);
-  --accent-foreground: oklch(0.90 0.06 162);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.72 0.18 162);
+  --secondary: #1F2937;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1F2937;
+  --muted-foreground: #9CA3AF;
+  --accent: #111827;
+  --accent-foreground: #F8FAFC;
+  --destructive: #EF4444;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #10B981;
 
-  --chart-1: oklch(0.72 0.18 162);
-  --chart-2: oklch(0.62 0.17 162);
-  --chart-3: oklch(0.80 0.14 162);
-  --chart-4: oklch(0.88 0.10 162);
-  --chart-5: oklch(0.95 0.05 162);
+  --chart-1: #10B981;
+  --chart-2: #059669;
+  --chart-3: #34D399;
+  --chart-4: #6EE7B7;
+  --chart-5: #A7F3D0;
 
-  --sidebar: oklch(0.12 0.01 265);
-  --sidebar-foreground: oklch(0.97 0.005 265);
-  --sidebar-primary: oklch(0.72 0.18 162);
-  --sidebar-primary-foreground: oklch(0.08 0.01 265);
-  --sidebar-accent: oklch(0.22 0.04 162);
-  --sidebar-accent-foreground: oklch(0.90 0.06 162);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.72 0.18 162);
+  --sidebar: #000000;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #10B981;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #111827;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #10B981;
 }
 
 @layer base {
@@ -148,6 +148,12 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+  }
+
+  /* Native select dropdown options in dark mode */
+  .dark select option {
+    background-color: #0B0F17 !important;
+    color: #f8fafc !important;
   }
 
   /* ─── Global: Replace ALL blue accents with brand emerald #10B981 ────────── */

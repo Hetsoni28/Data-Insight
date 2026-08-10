@@ -23,7 +23,7 @@ export function InvoiceStatusBadge({ status }: InvoiceStatusBadgeProps) {
       )
     case "draft":
       return (
-        <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 flex w-fit items-center gap-1">
+        <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 dark:bg-white/5 dark:text-slate-300 dark:border-slate-700 flex w-fit items-center gap-1">
           <FileText className="h-3 w-3" />
           Draft
         </Badge>

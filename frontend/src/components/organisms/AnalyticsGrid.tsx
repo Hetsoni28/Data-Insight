@@ -11,7 +11,7 @@ interface AnalyticsGridProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 p-3 rounded-xl shadow-lg">
+      <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-700 p-3 rounded-xl shadow-lg">
         <p className="text-slate-900 dark:text-white font-medium mb-2">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm font-medium" style={{ color: entry.color || entry.fill || '#10B981' }}>
@@ -53,8 +53,8 @@ export function AnalyticsGrid({ analyticsData }: AnalyticsGridProps) {
   if (!mounted) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="h-96 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
-        <div className="h-96 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-96 rounded-2xl bg-slate-100 dark:bg-white/5 animate-pulse" />
+        <div className="h-96 rounded-2xl bg-slate-100 dark:bg-white/5 animate-pulse" />
       </div>
     )
   }
@@ -67,7 +67,7 @@ export function AnalyticsGrid({ analyticsData }: AnalyticsGridProps) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6"
+        className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6"
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -112,7 +112,7 @@ export function AnalyticsGrid({ analyticsData }: AnalyticsGridProps) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6"
+        className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6"
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">

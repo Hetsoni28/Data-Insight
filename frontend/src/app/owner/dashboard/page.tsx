@@ -51,11 +51,11 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="p-6 md:p-8 max-w-[1800px] mx-auto space-y-8 pb-20">
-        <div className="h-64 w-full rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
-        <div className="h-40 w-full rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-64 w-full rounded-2xl bg-slate-100 dark:bg-white/5 animate-pulse" />
+        <div className="h-40 w-full rounded-2xl bg-slate-100 dark:bg-white/5 animate-pulse" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-28 rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />
           ))}
         </div>
       </div>
@@ -63,7 +63,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-[1800px] mx-auto space-y-8 pb-20 bg-slate-50 dark:bg-[#030712] min-h-screen">
+    <div className="p-4 md:p-8 max-w-[1800px] mx-auto space-y-8 pb-20 bg-slate-50 dark:bg-background min-h-screen">
       
       {/* 1. Executive Welcome Banner */}
       <ExecutiveBanner user={user} kpis={analytics?.data} onOpenAiAssistant={() => {

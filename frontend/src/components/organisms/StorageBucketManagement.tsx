@@ -157,7 +157,7 @@ export function StorageBucketManagement({ buckets = [] }: StorageBucketManagemen
               initial={{ opacity: 0, scale: 0.95, y: 10 }} 
               animate={{ opacity: 1, scale: 1, y: 0 }} 
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-white dark:bg-[#0B0F17]/95 border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10"
+              className="relative bg-white dark:bg-card/95 border border-slate-200/60 dark:border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">

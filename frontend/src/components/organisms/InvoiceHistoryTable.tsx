@@ -45,7 +45,7 @@ export function InvoiceHistoryTable({
   }
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "â€”"
+    if (!dateStr) return "—"
     return new Date(dateStr).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -54,7 +54,7 @@ export function InvoiceHistoryTable({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm">
       <CardHeader className="pb-4">
         <CardTitle className="text-base font-bold text-slate-900 dark:text-white">Contract Invoices & Statements</CardTitle>
         <CardDescription className="text-xs">
@@ -63,8 +63,8 @@ export function InvoiceHistoryTable({
       </CardHeader>
       <CardContent>
         {invoices.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-            <div className="p-3 bg-white dark:bg-slate-900 rounded-full shadow-sm mb-3">
+          <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5/30">
+            <div className="p-3 bg-white dark:bg-white/5 rounded-full shadow-sm mb-3">
               <Download className="h-6 w-6 text-slate-400" />
             </div>
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">No invoices generated yet</h3>
@@ -75,7 +75,7 @@ export function InvoiceHistoryTable({
         ) : (
           <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
             <Table>
-              <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
+              <TableHeader className="bg-slate-50 dark:bg-white/5">
                 <TableRow>
                   <TableHead className="text-xs font-semibold">Invoice Date</TableHead>
                   <TableHead className="text-xs font-semibold">Amount</TableHead>
@@ -97,7 +97,7 @@ export function InvoiceHistoryTable({
                       <InvoiceStatusBadge status={invoice.status} />
                     </TableCell>
                     <TableCell className="text-slate-500">
-                      {formatDate(invoice.periodStart)} â€“ {formatDate(invoice.periodEnd)}
+                      {formatDate(invoice.periodStart)} – {formatDate(invoice.periodEnd)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">

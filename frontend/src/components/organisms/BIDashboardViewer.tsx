@@ -100,9 +100,9 @@ export function BIDashboardViewer({ report }: BIDashboardViewerProps) {
   }
 
   return (
-    <div className="w-full bg-slate-50 dark:bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
+    <div className="w-full bg-slate-50 dark:bg-white/5 rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
 
-      {/* ── HEADER ── */}
+      {/* -- HEADER -- */}
       <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 flex items-center justify-between gap-4 border-b border-emerald-800/40">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -122,10 +122,10 @@ export function BIDashboardViewer({ report }: BIDashboardViewerProps) {
         </button>
       </div>
 
-      {/* ── CHART GRID: 2 cols, fixed ── */}
+      {/* -- CHART GRID: 2 cols, fixed -- */}
       <div className="p-5 grid grid-cols-2 gap-5">
         {data.charts?.map((chart: any, i: number) => (
-          <div key={i} className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+          <div key={i} className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
             <div className="mb-3">
               <h3 className="font-bold text-slate-900 dark:text-white text-sm">{chart.title}</h3>
               <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{chart.description}</p>

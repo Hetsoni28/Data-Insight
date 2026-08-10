@@ -29,6 +29,8 @@ class ReportResponse(BaseModel):
     celery_task_id: str | None
     error_message: str | None
     ai_tokens_used: int
+    ai_blueprint: dict | None = None
+    generation_config: dict | None = None
     approved_at: datetime | None
     created_at: datetime
     updated_at: datetime

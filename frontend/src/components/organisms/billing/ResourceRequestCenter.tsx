@@ -105,7 +105,7 @@ export function ResourceRequestCenter({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm">
+    <Card className="rounded-2xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-card shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -147,12 +147,12 @@ export function ResourceRequestCenter({
                       onChange={(e) => setResourceType(e.target.value)}
                       className="w-full appearance-none rounded-xl border border-input bg-transparent px-3 py-2 text-sm text-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                     >
-                      <option value="storage" className="dark:bg-slate-900">Storage (+500 GB / +1 TB Cloud Storage)</option>
-                      <option value="database" className="dark:bg-slate-900">Database (IOPS & Dedicated Storage Tier)</option>
-                      <option value="ai_tokens" className="dark:bg-slate-900">AI Tokens (+5M / +10M Monthly Tokens)</option>
-                      <option value="compute" className="dark:bg-slate-900">Dedicated Compute / Worker Threads</option>
-                      <option value="backup" className="dark:bg-slate-900">Custom Backup & Extended Retention</option>
-                      <option value="custom" className="dark:bg-slate-900">Custom Architecture Specification</option>
+                      <option value="storage" className="dark:bg-white/5">Storage (+500 GB / +1 TB Cloud Storage)</option>
+                      <option value="database" className="dark:bg-white/5">Database (IOPS & Dedicated Storage Tier)</option>
+                      <option value="ai_tokens" className="dark:bg-white/5">AI Tokens (+5M / +10M Monthly Tokens)</option>
+                      <option value="compute" className="dark:bg-white/5">Dedicated Compute / Worker Threads</option>
+                      <option value="backup" className="dark:bg-white/5">Custom Backup & Extended Retention</option>
+                      <option value="custom" className="dark:bg-white/5">Custom Architecture Specification</option>
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   </div>
@@ -212,7 +212,7 @@ export function ResourceRequestCenter({
 
       <CardContent>
         {requests.length === 0 ? (
-          <div className="p-8 text-center rounded-xl bg-slate-50 dark:bg-slate-800/30 border border-dashed border-slate-200 dark:border-slate-800">
+          <div className="p-8 text-center rounded-xl bg-slate-50 dark:bg-white/5/30 border border-dashed border-slate-200 dark:border-slate-800">
             <Layers className="h-8 w-8 mx-auto text-slate-400 mb-2" />
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No active capacity requests</p>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">

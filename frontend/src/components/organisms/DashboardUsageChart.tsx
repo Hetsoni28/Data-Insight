@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
 import { Activity, Loader2 } from "lucide-react"
 import api from "@/lib/api"
+import { ChartTooltip } from "@/components/molecules/ChartTooltip"
 
 export function DashboardUsageChart() {
   const [data, setData] = useState<any[]>([])
@@ -90,16 +91,7 @@ export function DashboardUsageChart() {
                 tick={{ fontSize: 12, fill: "#64748B" }} 
                 width={50}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '12px', 
-                  border: 'none', 
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                  padding: '12px'
-                }}
-                labelStyle={{ fontWeight: 'bold', color: '#1E293B', marginBottom: '4px' }}
-                itemStyle={{ color: '#10B981', fontWeight: 500 }}
-              />
+              <Tooltip content={<ChartTooltip />} />
               <Area 
                 type="monotone" 
                 dataKey="rows" 

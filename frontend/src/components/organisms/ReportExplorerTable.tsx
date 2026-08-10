@@ -71,7 +71,7 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
   }, [searchQuery, statusFilter])
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col">
+    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col">
       <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Reports Explorer</h3>
         <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -82,13 +82,13 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
               placeholder="Search reports..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none text-slate-600 dark:text-slate-400"
+            className="p-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none text-slate-600 dark:text-slate-400"
           >
             <option value="all">All Status</option>
             <option value="ready">Ready</option>
@@ -100,7 +100,7 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 uppercase border-b border-slate-200 dark:border-slate-800">
+          <thead className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/5 uppercase border-b border-slate-200 dark:border-slate-800">
             <tr>
               <th className="px-6 py-4 font-medium w-10">
                 <input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />

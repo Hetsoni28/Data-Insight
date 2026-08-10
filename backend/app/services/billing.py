@@ -224,7 +224,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
     tenant_repo = TenantRepository(db)
     
     if event_type == "checkout.session.completed":
-        session = event.data.object
+        session = event["data"]["object"]
         if hasattr(session, "to_dict"): session = session.to_dict()
         tenant_id = session.get("metadata", {}).get("tenant_id")
         plan = session.get("metadata", {}).get("plan")
@@ -269,7 +269,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                 await tenant_repo.save(tenant)
 
     elif event_type == "customer.subscription.updated":
-        sub = event.data.object
+        sub = event["data"]["object"]
         if hasattr(sub, "to_dict"): sub = sub.to_dict()
         tenant_id = sub.get("metadata", {}).get("tenant_id")
         status = sub.get("status")
@@ -283,7 +283,6 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
             if tenant:
                 tenant.subscription_status = status or "active"
                 if current_period_end:
-                    from datetime import datetime, timezone
                     tenant.current_period_end = datetime.fromtimestamp(current_period_end, tz=timezone.utc)
                 if cancel_at:
                     tenant.cancel_at = datetime.fromtimestamp(cancel_at, tz=timezone.utc)
@@ -294,7 +293,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                 await tenant_repo.save(tenant)
 
     elif event_type == "customer.subscription.deleted":
-        sub = event.data.object
+        sub = event["data"]["object"]
         if hasattr(sub, "to_dict"): sub = sub.to_dict()
         tenant_id = sub.get("metadata", {}).get("tenant_id")
         logger.info(f"[Billing] ❌ Subscription cancelled | tenant_id={tenant_id}")
@@ -308,7 +307,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                 await tenant_repo.save(tenant)
 
     elif event_type.startswith("invoice."):
-        invoice = event.data.object
+        invoice = event["data"]["object"]
         if hasattr(invoice, "to_dict"): invoice = invoice.to_dict()
         customer_email = invoice.get("customer_email")
         stripe_invoice_id = invoice.get("id")
@@ -392,7 +391,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                 logger.warning(f"[Billing] ⚠️ Payment Failed | tenant={tenant.name} amount={amount}")
 
     elif event_type.startswith("payment_intent."):
-        pi = event.data.object
+        pi = event["data"]["object"]
         if hasattr(pi, "to_dict"): pi = pi.to_dict()
         amount = pi.get("amount", 0) / 100.0
         

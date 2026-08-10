@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { motion } from "framer-motion"
 import { Activity, Search, RefreshCw, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -123,7 +123,7 @@ export function GatewayLiveStream({ requests, refetch, isRefetching }: GatewayLi
                 <td className="px-6 py-3 text-right">
                   <div className="flex items-center justify-end gap-2">
                     <span className="text-xs text-slate-500">{req.ip_address}</span>
-                    <span className="text-sm" title={req.country}>{req.country === 'US' ? '🇺🇸' : req.country === 'GB' ? '🇬🇧' : req.country === 'IN' ? '🇮🇳' : req.country === 'DE' ? '🇩🇪' : req.country === 'JP' ? '🇯🇵' : req.country === 'CA' ? '🇨🇦' : req.country === 'AU' ? '🇦🇺' : '🌐'}</span>
+                    <span className="text-sm" title={req.country}>{req.country === 'US' ? '????' : req.country === 'GB' ? '????' : req.country === 'IN' ? '????' : req.country === 'DE' ? '????' : req.country === 'JP' ? '????' : req.country === 'CA' ? '????' : req.country === 'AU' ? '????' : '??'}</span>
                   </div>
                 </td>
               </motion.tr>
