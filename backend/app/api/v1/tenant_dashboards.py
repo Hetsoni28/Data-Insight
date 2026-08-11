@@ -155,7 +155,13 @@ async def update_dashboard(
     if "layout_json" in data:
         dashboard.layout_json = data["layout_json"]
     if "is_published" in data:
-        dashboard.is_published = data["is_published"]
+        # Permission check for publishing
+        publishing = data["is_published"]
+        if publishing and current_user.role not in ["owner", "org_admin", "manager"]:
+            # In a full RBAC system, we'd check `current_user.has_permission('DASHBOARD_PUBLISH')`
+            # For now, restrict analysts/viewers from publishing without explicit permission.
+            raise HTTPException(status_code=403, detail="You do not have the DASHBOARD_PUBLISH permission.")
+        dashboard.is_published = publishing
 
     await db.commit()
     await db.refresh(dashboard)
@@ -232,53 +238,111 @@ async def ai_generate_dashboard(
 
     client = AsyncGroq(api_key=settings.GROQ_API_KEY)
     
-    # Extract schema info
-    schema_info = "No detailed schema available."
-    if dataset.profile:
-        # Pass a summarized profile to avoid exceeding context limits
-        if isinstance(dataset.profile, dict):
-            cols = dataset.profile.get("columns", {})
-            col_summary = {k: v.get("type", "Unknown") for k, v in cols.items()}
-            schema_info = json.dumps(col_summary)
-        else:
-            schema_info = str(dataset.profile)
+    # ── Build rich schema: separate numeric from categorical, include sample values ──
+    numeric_cols: list[str] = []
+    categorical_cols: list[str] = []
+    schema_lines: list[str] = []
 
-    system_prompt = f"""You are an expert dashboard designer AI.
-Your goal is to generate a structured JSON layout for a dashboard based on the user's prompt and the provided dataset schema.
+    if dataset.profile and isinstance(dataset.profile, dict):
+        cols: dict = dataset.profile.get("columns", {})
+        for col_name, col_info in cols.items():
+            dtype = str(col_info.get("dtype", "")).lower()
+            numeric_keywords = ("int", "float", "double", "decimal", "numeric",
+                                "number", "real", "bigint", "smallint")
+            is_numeric = any(k in dtype for k in numeric_keywords)
+            if is_numeric:
+                numeric_cols.append(col_name)
+            else:
+                categorical_cols.append(col_name)
 
-Dataset Name: {dataset.name}
-Row Count: {dataset.row_count}
-Schema (Column Types): {schema_info}
-User Request: {prompt}
+            # Include sample values to help AI pick meaningful columns
+            top_vals = col_info.get("top_values", [])
+            sample_str = ""
+            if top_vals:
+                samples = [str(v.get("value", "")) for v in top_vals[:3] if v.get("value") is not None]
+                sample_str = f" (samples: {', '.join(samples)})" if samples else ""
+            schema_lines.append(f"  - \"{col_name}\" [{dtype}]{sample_str}")
 
-Generate a JSON object with exactly this structure:
+    schema_block = "\n".join(schema_lines) if schema_lines else "  No schema available."
+    numeric_list = json.dumps(numeric_cols)
+    categorical_list = json.dumps(categorical_cols)
+
+    # Auto-generate a meaningful dashboard title from the prompt
+    prompt_words = prompt.strip().split()
+    dashboard_title = " ".join(prompt_words[:6]) if len(prompt_words) > 3 else (prompt[:50] or "AI Dashboard")
+
+    system_prompt = f"""You are an expert data visualization and dashboard design AI.
+
+DATASET: "{dataset.name}" ({dataset.row_count:,} rows)
+
+COLUMNS (with data type and sample values):
+{schema_block}
+
+NUMERIC columns (use these for metric/aggregation): {numeric_list}
+CATEGORICAL columns (use these for dimension/grouping): {categorical_list}
+
+USER GOAL: {prompt}
+
+---
+OUTPUT a single valid JSON object with this exact structure:
 {{
   "widgets": [
     {{
-      "id": "uuid-string-here",
-      "type": "widget_type",
-      "title": "Widget Title",
-      "x": 0, "y": 0, "w": 4, "h": 4,
-      "config": {{ ... }}
+      "id": "w1",
+      "type": "<widget_type>",
+      "title": "<descriptive title>",
+      "x": 0, "y": 0, "w": 6, "h": 4,
+      "config": {{
+        "dataset_id": "{dataset_id}",
+        ... (widget-specific config below)
+      }}
     }}
   ]
 }}
 
-Widget types allowed:
-- "kpi": config must have {{"yAxis": "column_name"}} or just {{"yAxis": "Metric"}}
-- "chart_bar": config must have {{"xAxis": "category_col", "yAxis": "numeric_col"}}
-- "chart_line": config must have {{"xAxis": "time_col", "yAxis": "numeric_col"}}
-- "chart_pie": config must have {{"xAxis": "category_col", "yAxis": "numeric_col"}}
-- "chart_scatter": config must have {{"xAxis": "numeric_col", "yAxis": "numeric_col"}}
-- "ai_insight": config must have {{"text": "Detailed Markdown text analyzing the dataset"}}
-- "data_table": config must have {{"xAxis": "col1", "yAxis": "col2"}}
+WIDGET TYPES AND CONFIG RULES:
 
-Rules:
-1. Always set dataset_id in the config of EVERY widget to exactly "{dataset_id}".
-2. Make sure x, y, w, h are integers. Grid is 12 columns wide.
-3. Provide 3 to 6 widgets that best answer the user's request.
-4. If you use "ai_insight", YOU MUST WRITE A REAL, DETAILED 2-PARAGRAPH ANALYSIS inside `config.text`. Do not leave it empty.
-5. Output ONLY raw, valid JSON. No markdown backticks, no explanations.
+1. "kpi" — Single big number. config:
+   {{ "dataset_id": "...", "metric": "<NUMERIC_COL>", "aggregation": "SUM" }}
+   → Use only a NUMERIC column for "metric". Do NOT use a categorical column here.
+   → Choose the most meaningful numeric column (e.g., Revenue, Sales, Amount, not just any number).
+
+2. "chart_bar" — Bar chart grouped by a category. config:
+   {{ "dataset_id": "...", "dimension": "<CATEGORICAL_COL>", "metric": "<NUMERIC_COL>", "aggregation": "SUM" }}
+   → "dimension" MUST be a categorical column. "metric" MUST be a numeric column.
+
+3. "chart_line" — Line/trend chart. config:
+   {{ "dataset_id": "...", "dimension": "<DATE_OR_CATEGORICAL_COL>", "metric": "<NUMERIC_COL>", "aggregation": "SUM" }}
+   → Prefer a date/time column for dimension if one exists.
+
+4. "chart_pie" — Pie/donut breakdown. config:
+   {{ "dataset_id": "...", "dimension": "<CATEGORICAL_COL>", "metric": "<NUMERIC_COL>", "aggregation": "SUM" }}
+   → "dimension" MUST be a categorical column with low cardinality (e.g., Region, Category, Status).
+
+5. "data_table" — Tabular listing. config:
+   {{ "dataset_id": "...", "dimension": "<CATEGORICAL_COL>", "metric": "<NUMERIC_COL>", "aggregation": "SUM" }}
+   → Shows top rows sorted by the metric descending.
+
+6. "ai_insight" — Markdown text widget. config:
+   {{ "dataset_id": "...", "text": "<2-3 paragraph markdown analysis>" }}
+   → Write a real, data-informed analysis based on the schema and user goal.
+   → Use **bold**, bullet points, and mention specific column names.
+
+LAYOUT RULES:
+- Grid is 12 columns wide.
+- Use w=4, h=4 for KPI cards (up to 3 per row).
+- Use w=6, h=5 for charts (2 per row).
+- Use w=12, h=6 for data_table.
+- Use w=12, h=4 for ai_insight.
+- Arrange widgets so they tile neatly without gaps (use x, y, w, h thoughtfully).
+- Generate 4 to 6 widgets that directly answer the user's goal.
+- Always include at least one KPI and one chart.
+
+CRITICAL RULES:
+- ONLY use column names that appear EXACTLY in the schema above.
+- NEVER use a categorical column as a "metric". NEVER use a numeric column as a "dimension".
+- Set "dataset_id" to exactly "{dataset_id}" in EVERY widget config.
+- Output ONLY the JSON object. No explanation, no markdown code fences.
 """
 
     try:
@@ -286,44 +350,80 @@ Rules:
             model=settings.GROQ_DEFAULT_MODEL,
             messages=[{"role": "user", "content": system_prompt}],
             response_format={"type": "json_object"},
-            temperature=0.2,
+            temperature=0.1,
         )
         
         response_text = response.choices[0].message.content
         generated_layout = json.loads(response_text)
         
-        # Ensure all widgets have valid IDs and the correct dataset_id
+        # ── Post-process: ensure IDs, dataset_id, and normalize xAxis→dimension etc. ──
         for widget in generated_layout.get("widgets", []):
             if not widget.get("id"):
                 widget["id"] = str(uuid.uuid4())
             if "config" not in widget:
                 widget["config"] = {}
-            widget["config"]["dataset_id"] = str(dataset_id)
-            
+            cfg = widget["config"]
+            # Force correct dataset_id
+            cfg["dataset_id"] = str(dataset_id)
+            # Normalize old-style xAxis/yAxis → dimension/metric for consistency
+            if "xAxis" in cfg and "dimension" not in cfg:
+                cfg["dimension"] = cfg.pop("xAxis")
+            if "yAxis" in cfg and "metric" not in cfg:
+                cfg["metric"] = cfg.pop("yAxis")
+            # Ensure aggregation default
+            if widget["type"] in ("kpi", "chart_bar", "chart_line", "chart_pie", "data_table"):
+                if "metric" in cfg and "aggregation" not in cfg:
+                    cfg["aggregation"] = "SUM"
+
     except Exception as e:
         print(f"LLM Generation Failed: {e}")
-        # Fallback layout
-        generated_layout = {
-            "widgets": [
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "ai_insight",
-                    "title": "Generation Failed",
-                    "x": 0, "y": 0, "w": 12, "h": 4,
-                    "config": {
-                        "text": f"The AI failed to generate the layout: {str(e)}",
-                        "dataset_id": str(dataset_id)
-                    }
-                }
-            ]
-        }
-    
+        # Intelligent fallback: build a basic layout from detected columns
+        fallback_metric = numeric_cols[0] if numeric_cols else None
+        fallback_dim = categorical_cols[0] if categorical_cols else None
+        fallback_widgets = []
+
+        if fallback_metric:
+            fallback_widgets.append({
+                "id": str(uuid.uuid4()),
+                "type": "kpi",
+                "title": f"Total {fallback_metric}",
+                "x": 0, "y": 0, "w": 4, "h": 4,
+                "config": {"dataset_id": str(dataset_id), "metric": fallback_metric, "aggregation": "SUM"}
+            })
+        if fallback_dim and fallback_metric:
+            fallback_widgets.append({
+                "id": str(uuid.uuid4()),
+                "type": "chart_bar",
+                "title": f"{fallback_metric} by {fallback_dim}",
+                "x": 4, "y": 0, "w": 8, "h": 4,
+                "config": {"dataset_id": str(dataset_id), "dimension": fallback_dim, "metric": fallback_metric, "aggregation": "SUM"}
+            })
+        if fallback_dim and fallback_metric:
+            fallback_widgets.append({
+                "id": str(uuid.uuid4()),
+                "type": "data_table",
+                "title": f"Data Overview",
+                "x": 0, "y": 4, "w": 12, "h": 6,
+                "config": {"dataset_id": str(dataset_id), "dimension": fallback_dim, "metric": fallback_metric, "aggregation": "SUM"}
+            })
+
+        if not fallback_widgets:
+            fallback_widgets.append({
+                "id": str(uuid.uuid4()),
+                "type": "ai_insight",
+                "title": "Generation Note",
+                "x": 0, "y": 0, "w": 12, "h": 4,
+                "config": {"text": f"Dashboard generation encountered an issue: {str(e)}\n\nDataset **{dataset.name}** has been connected. Please configure widgets manually.", "dataset_id": str(dataset_id)}
+            })
+
+        generated_layout = {"widgets": fallback_widgets}
+
     dashboard = Dashboard(
         tenant_id=current_user.tenant_id,
         created_by_id=current_user.id,
         primary_dataset_id=dataset.id,
-        name=f"AI Generated Dashboard",
-        description=f"Generated via AI Copilot. Prompt: '{prompt}'",
+        name=dashboard_title,
+        description=f"AI-generated dashboard for: {prompt}",
         layout_json=generated_layout,
         workspace_id=workspace.id if workspace else None,
     )

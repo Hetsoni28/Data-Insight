@@ -280,3 +280,107 @@ class DatasetService:
             extra_metadata={"sql": sql, "execution_time_ms": result["execution_time_ms"]},
         )
         return result
+
+    async def execute_structured_query(
+        self,
+        dataset_id: uuid.UUID,
+        req: "StructuredQueryRequest",
+        actor: User,
+    ) -> dict:
+        """Execute a structured JSON query safely via DuckDB by building the SQL server-side."""
+        ds = await self.get_dataset(dataset_id, actor)
+
+        # Security: validate columns against the dataset profile
+        profile = ds.profile or {}
+        profile_columns: dict = profile.get("columns", {})
+        valid_columns = list(profile_columns.keys())
+
+        def safe_col(col_name: str) -> str:
+            if not valid_columns:
+                return f'"{col_name}"'  # Fallback if no profile
+            if col_name not in valid_columns:
+                raise ValidationException(f"Invalid column: {col_name}")
+            return f'"{col_name}"'
+
+        def is_numeric_col(col_name: str) -> bool:
+            """Check profile dtype to decide if a column is numeric."""
+            if not profile_columns or col_name not in profile_columns:
+                return True  # Assume numeric if we don't know
+            col_info = profile_columns[col_name]
+            dtype = str(col_info.get("dtype", "")).lower()
+            numeric_keywords = ("int", "float", "double", "decimal", "numeric",
+                                "number", "real", "bigint", "smallint")
+            return any(k in dtype for k in numeric_keywords)
+
+        def build_metric_expr(col_name: str, agg: str, alias: str) -> str:
+            """Build an aggregation expression with automatic type casting for safety."""
+            col_expr = safe_col(col_name)
+            numeric = is_numeric_col(col_name)
+
+            # SUM/AVG/MIN/MAX on a string column → cast to DOUBLE, or fall back to COUNT
+            if agg in ("SUM", "AVG") and not numeric:
+                # Try TRY_CAST — returns NULL for non-parseable values, avoids error
+                col_expr = f"TRY_CAST({col_expr} AS DOUBLE)"
+            elif agg in ("MIN", "MAX") and not numeric:
+                # MIN/MAX on strings is fine, no cast needed
+                pass
+
+            return f"{agg}({col_expr}) as \"{alias}\""
+
+        select_parts = []
+        group_by = []
+
+        if req.dimension:
+            dim_col = safe_col(req.dimension)
+            select_parts.append(dim_col)
+            group_by.append(dim_col)
+
+        if req.metric and req.aggregation:
+            agg = req.aggregation.upper()
+            if agg not in ["SUM", "AVG", "MIN", "MAX", "COUNT"]:
+                raise ValidationException(f"Invalid aggregation: {agg}")
+            select_parts.append(build_metric_expr(req.metric, agg, req.metric))
+        elif req.metric:
+            select_parts.append(safe_col(req.metric))
+
+        if not select_parts:
+            select_parts = ["*"]
+
+        sql = f"SELECT {', '.join(select_parts)} FROM dataset"
+
+        # Filters
+        if req.filters:
+            filter_clauses = []
+            for f in req.filters:
+                col = safe_col(f.column)
+                op_map = {
+                    "eq": "=", "neq": "!=", "gt": ">", "lt": "<",
+                    "gte": ">=", "lte": "<="
+                }
+                if f.operator in op_map:
+                    val = str(f.value).replace("'", "''")
+                    filter_clauses.append(f"{col} {op_map[f.operator]} '{val}'")
+            if filter_clauses:
+                sql += " WHERE " + " AND ".join(filter_clauses)
+
+        # Group by
+        if group_by:
+            sql += f" GROUP BY {', '.join(group_by)}"
+
+        # Order by
+        if req.sort:
+            sort_clauses = []
+            for s in req.sort:
+                col = safe_col(s.column)
+                direction = "DESC" if s.direction.lower() == "desc" else "ASC"
+                sort_clauses.append(f"{col} {direction}")
+            if sort_clauses:
+                sql += " ORDER BY " + ", ".join(sort_clauses)
+
+        return await self.execute_query(
+            dataset_id=dataset_id,
+            sql=sql,
+            actor=actor,
+            limit=req.limit,
+            offset=0,
+        )

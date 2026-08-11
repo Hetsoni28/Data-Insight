@@ -176,6 +176,7 @@ export default function AnalystDatasetCenterPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+      <title>Dataset Catalog | Data Insight</title>
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 p-6 rounded-2xl shadow-sm">
         <div>

@@ -56,6 +56,24 @@ class DatasetCorrelationsResponse(BaseModel):
     matrix: Dict[str, Dict[str, Optional[float]]]
 
 
+class StructuredQueryFilter(BaseModel):
+    column: str
+    operator: str  # eq, neq, gt, lt, gte, lte, in, not_in, contains
+    value: Any
+
+class StructuredQuerySort(BaseModel):
+    column: str
+    direction: str = "asc"
+
+class StructuredQueryRequest(BaseModel):
+    dataset_id: str
+    dimension: Optional[str] = None
+    metric: Optional[str] = None
+    aggregation: Optional[str] = None  # count, sum, avg, min, max
+    filters: Optional[List[StructuredQueryFilter]] = []
+    sort: Optional[List[StructuredQuerySort]] = []
+    limit: int = Field(default=1000, ge=1, le=10000, description="Max rows to return")
+
 class DatasetQueryRequest(BaseModel):
     sql: str = Field(..., description="SQL query to execute over the dataset view")
     limit: int = Field(default=1000, ge=1, le=10000, description="Max rows to return")

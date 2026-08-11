@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useEffect, useState, useCallback } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import api from "@/lib/api"
@@ -63,6 +63,7 @@ export default function OrganizationAdminDashboard() {
 
   return (
     <div className="flex-1 p-4 md:p-8 min-h-screen pb-24 bg-slate-50 dark:bg-[#09090b]">
+      <title>Organization Dashboard | Data Insight</title>
       <div className="max-w-[1800px] mx-auto space-y-6">
         <OrganizationHero
           overview={overview}

@@ -30,6 +30,7 @@ from app.api.v1.tenant_team import router as tenant_team_router
 from app.api.v1.tenant_datasets import router as tenant_datasets_router
 from app.api.v1.tenant_reports import router as tenant_reports_router
 from app.api.v1.tenant_dashboards import router as tenant_dashboards_router
+from app.api.v1.tenant_charts import router as tenant_charts_router
 from app.api.v1.tenant_settings import router as tenant_settings_router
 from app.api.v1.org_billing import router as org_billing_router
 
@@ -67,5 +68,6 @@ api_router.include_router(tenant_team_router, prefix="/tenant-team", tags=["Tena
 api_router.include_router(tenant_datasets_router, prefix="/tenant-datasets", tags=["Tenant Datasets"])
 api_router.include_router(tenant_reports_router, prefix="/tenant-reports", tags=["Tenant Reports"])
 api_router.include_router(tenant_dashboards_router, prefix="/tenant-dashboards", tags=["Tenant Dashboards"])
+api_router.include_router(tenant_charts_router, prefix="/tenant-charts", tags=["Tenant Charts"])
 api_router.include_router(tenant_settings_router, prefix="/tenant-settings", tags=["Tenant Settings"])
 api_router.include_router(org_billing_router, prefix="/org/billing", tags=["Org Billing"])

@@ -16,6 +16,7 @@ from app.schemas.dataset import (
     DatasetCorrelationsResponse,
     DatasetQueryRequest,
     DatasetQueryResponse,
+    StructuredQueryRequest,
 )
 from app.services.dataset import DatasetService
 
@@ -126,6 +127,26 @@ async def execute_dataset_query(
         actor=current_user,
         limit=req.limit,
         offset=req.offset,
+    )
+
+
+@router.post(
+    "/{dataset_id}/query/structured",
+    response_model=DatasetQueryResponse,
+    summary="Execute a safe structured JSON query via DuckDB",
+)
+async def execute_structured_dataset_query(
+    dataset_id: uuid.UUID,
+    req: StructuredQueryRequest,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Execute a validated, safe DuckDB query generated from structured parameters."""
+    svc = DatasetService(db)
+    return await svc.execute_structured_query(
+        dataset_id=dataset_id,
+        req=req,
+        actor=current_user,
     )
 
 

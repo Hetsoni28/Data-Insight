@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { CopilotChat } from "@/components/organisms/CopilotChat";
@@ -23,6 +23,7 @@ export default function AnalystAICopilotPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-4">
+      <title>AI Assistant | Data Insight</title>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">

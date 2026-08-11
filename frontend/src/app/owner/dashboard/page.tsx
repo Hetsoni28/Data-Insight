@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
@@ -64,6 +64,7 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-[1800px] mx-auto space-y-8 pb-20 bg-slate-50 dark:bg-background min-h-screen">
+      <title>Platform Owner Dashboard | Data Insight</title>
       
       {/* 1. Executive Welcome Banner */}
       <ExecutiveBanner user={user} kpis={analytics?.data} onOpenAiAssistant={() => {

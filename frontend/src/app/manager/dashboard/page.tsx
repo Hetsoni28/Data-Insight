@@ -1,4 +1,8 @@
-﻿import { Building2 } from "lucide-react"
+import { Building2 } from "lucide-react"
+
+export const metadata = {
+  title: "Manager Dashboard",
+}
 
 export default function ManagerDashboard() {
   return (
