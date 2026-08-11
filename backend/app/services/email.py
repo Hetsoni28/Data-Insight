@@ -293,13 +293,18 @@ async def _send(to: str, subject: str, html: str) -> None:
     Falls back to console log if SMTP_USER is not set.
     """
     if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
-        # Dev mode — print OTP to console so developers can see it
+        # Dev mode — print OTP or URLs to console so developers can see it
+        import re
+        urls = re.findall(r'href=[\'"]?([^\'" >]+)', html)
+        urls_str = "\n".join([f"Link:    {url}" for url in urls])
+        
         logger.warning(
             f"\n{'='*60}\n"
             f"DEV EMAIL (no SMTP credentials set)\n"
             f"To:      {to}\n"
             f"Subject: {subject}\n"
-            f"[HTML content omitted — logo embedded via data URI]\n"
+            f"{urls_str}\n"
+            f"[HTML content omitted]\n"
             f"{'='*60}"
         )
         return

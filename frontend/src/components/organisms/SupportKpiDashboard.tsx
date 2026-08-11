@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { LifeBuoy, CheckCircle2, Clock, Activity, Users, AlertCircle, Bot } from "lucide-react";

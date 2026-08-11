@@ -260,6 +260,36 @@ class RequireRole:
 get_current_org_admin = RequireRole(["org_admin"])
 get_current_editor = RequireRole(["org_admin", "editor"])
 
+# ─── Permission-Based RBAC ────────────────────────────────────────────────────
+ROLE_PERMISSIONS = {
+    "org_admin": ["DATASET_VIEW", "DATASET_ANALYZE", "DATASET_AI_EXCEL", "DATASET_CREATE_REPORT", "DATASET_CREATE_DASHBOARD", "DATASET_DELETE", "DATASET_EXPORT", "DATASET_UPLOAD"],
+    "manager":   ["DATASET_VIEW", "DATASET_ANALYZE", "DATASET_AI_EXCEL", "DATASET_CREATE_REPORT", "DATASET_CREATE_DASHBOARD", "DATASET_DELETE", "DATASET_EXPORT", "DATASET_UPLOAD"],
+    "analyst":   ["DATASET_VIEW", "DATASET_ANALYZE", "DATASET_AI_EXCEL", "DATASET_CREATE_REPORT", "DATASET_CREATE_DASHBOARD", "DATASET_DELETE_OWN", "DATASET_UPLOAD"],
+    "viewer":    ["DATASET_VIEW"]
+}
+
+class RequirePermission:
+    """
+    Dependency that enforces fine-grained permissions based on the user's role.
+    """
+    def __init__(self, permission: str):
+        self.permission = permission
+
+    async def __call__(
+        self, current_user: User = Depends(get_current_active_tenant_user)
+    ) -> User:
+        if current_user.is_owner:
+            return current_user
+            
+        user_perms = ROLE_PERMISSIONS.get(current_user.role, [])
+        if self.permission not in user_perms:
+            from app.core.exceptions import ForbiddenException
+            raise ForbiddenException(
+                f"You do not have the required permission ({self.permission}) to perform this action."
+            )
+        return current_user
+
+
 
 # ─── Workspace Dependencies ───────────────────────────────────────────────────
 async def get_workspace_id_header(

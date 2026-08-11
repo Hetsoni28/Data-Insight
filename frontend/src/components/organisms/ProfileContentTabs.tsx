@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { 
   User, ShieldAlert, KeyRound, Save, Loader2, Image as ImageIcon, Smartphone, 
@@ -533,7 +533,7 @@ export function ProfileContentTabs({
               </Label>
               <Input 
                 type="password" 
-                placeholder="������������" 
+                placeholder="••••••••••••" 
                 value={disablePassword} 
                 onChange={(e) => setDisablePassword(e.target.value)}
                 className="h-10"

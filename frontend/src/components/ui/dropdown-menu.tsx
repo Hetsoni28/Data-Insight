@@ -1,11 +1,11 @@
-"use client"
+ï»¿"use client"
 
 import * as React from "react"
 import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
-// Context — stores open state, a stable toggle, and refs to BOTH trigger & content
+// Context â€¢ stores open state, a stable toggle, and refs to BOTH trigger & content
 // ---------------------------------------------------------------------------
 interface DropdownContextValue {
   open: boolean
@@ -26,7 +26,7 @@ const DropdownContext = React.createContext<DropdownContextValue>({
 })
 
 // ---------------------------------------------------------------------------
-// Root — tracks trigger + content elements for outside-click detection
+// Root â€¢ tracks trigger + content elements for outside-click detection
 // ---------------------------------------------------------------------------
 export function DropdownMenu({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false)
@@ -69,7 +69,7 @@ export function DropdownMenu({ children }: { children: React.ReactNode }) {
 }
 
 // ---------------------------------------------------------------------------
-// Trigger — attaches ref callback so triggerEl is always correct DOM node
+// Trigger â€¢ attaches ref callback so triggerEl is always correct DOM node
 // ---------------------------------------------------------------------------
 export function DropdownMenuTrigger({
   children,
@@ -112,7 +112,7 @@ export function DropdownMenuTrigger({
 }
 
 // ---------------------------------------------------------------------------
-// Content — portal-rendered so overflow:hidden NEVER clips it
+// Content â€¢ portal-rendered so overflow:hidden NEVER clips it
 // ---------------------------------------------------------------------------
 export function DropdownMenuContent({
   className,
@@ -139,7 +139,7 @@ export function DropdownMenuContent({
 
   if (!mounted || !open || !rect) return null
 
-  // position: fixed uses viewport coords — getBoundingClientRect is already viewport-relative,
+  // position: fixed uses viewport coords â€¢ getBoundingClientRect is already viewport-relative,
   // so we must NOT add window.scrollY / window.scrollX here.
   const viewportHeight = window.innerHeight
   const spaceBelow = viewportHeight - rect.bottom - sideOffset
@@ -237,7 +237,7 @@ export function DropdownMenuSeparator({ className, ...props }: React.HTMLAttribu
 }
 
 // ---------------------------------------------------------------------------
-// Label  — used for section headings inside dropdown (e.g. "Actions")
+// Label  â€¢ used for section headings inside dropdown (e.g. "Actions")
 // ---------------------------------------------------------------------------
 export function DropdownMenuLabel({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
@@ -249,7 +249,7 @@ export function DropdownMenuLabel({ className, ...props }: React.HTMLAttributes<
 }
 
 // ---------------------------------------------------------------------------
-// Header — used for entity name headers (org name, user name, etc.)
+// Header â€¢ used for entity name headers (org name, user name, etc.)
 // Shows the entity name in normal case with a subtitle below it
 // ---------------------------------------------------------------------------
 export function DropdownMenuHeader({

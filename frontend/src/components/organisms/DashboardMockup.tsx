@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Play, ArrowRight, CheckCircle2, Zap, BarChart3, Database, FileSpreadsheet, BrainCircuit, TrendingUp, Download, Sparkles, RefreshCw, Search, Send, FileText } from "lucide-react"

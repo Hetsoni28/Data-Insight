@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import Link from "next/link"
 import { HardDrive, Star, Target, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"

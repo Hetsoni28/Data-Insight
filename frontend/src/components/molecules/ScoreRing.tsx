@@ -1,4 +1,4 @@
-export function ScoreRing({ score, label, color }: { score: number; label: string; color: string }) {
+﻿export function ScoreRing({ score, label, color }: { score: number; label: string; color: string }) {
   const radius = 30
   const circ = 2 * Math.PI * radius
   const offset = circ - (score / 100) * circ

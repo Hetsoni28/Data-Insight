@@ -1,4 +1,4 @@
-import { Sparkles, TrendingUp, AlertTriangle, ArrowRight, ShieldCheck } from "lucide-react"
+﻿import { Sparkles, TrendingUp, AlertTriangle, ArrowRight, ShieldCheck } from "lucide-react"
 
 interface StorageExecutiveSummaryProps {
   overview?: any

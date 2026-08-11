@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Card } from "@/components/ui/card"
 import { DollarSign, Users, Activity, TrendingUp, CreditCard, ActivityIcon } from "lucide-react"

@@ -1,0 +1,231 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import api from "@/lib/api"
+import { toast } from "sonner"
+
+import { ReportExecutiveKPIs } from "@/components/organisms/ReportExecutiveKPIs"
+import { ReportQuickActions } from "@/components/organisms/ReportQuickActions"
+import { ManagerReportTable } from "@/components/organisms/ManagerReportTable"
+import { ReportAuditTimeline } from "@/components/organisms/ReportAuditTimeline"
+import { ReportActionModal } from "@/components/organisms/ReportActionModal"
+import { ReportViewerModal } from "@/components/organisms/ReportViewerModal"
+import { ReportSchedulesTable } from "@/components/organisms/ReportSchedulesTable"
+import { ReportSchedulerModal } from "@/components/organisms/ReportSchedulerModal"
+import { ReportScheduleService, ReportSchedule, ReportService, Report } from "@/lib/report.service"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+
+export default function ManagerReportsCenterPage() {
+  const [stats, setStats] = useState(null)
+  const [reports, setReports] = useState<Report[]>([])
+  const [activities, setActivities] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  
+  // Pagination & Filtering state for ManagerReportTable
+  const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(8)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalItems, setTotalItems] = useState(0)
+  
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [currentAction, setCurrentAction] = useState("")
+  const [actionReportId, setActionReportId] = useState<string | null>(null)
+
+  const [isViewerOpen, setIsViewerOpen] = useState(false)
+  const [viewingReportId, setViewingReportId] = useState<string | null>(null)
+  
+  const [schedules, setSchedules] = useState<ReportSchedule[]>([])
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+
+  const fetchData = async () => {
+    try {
+      const [statsRes, reportsRes, actRes, schedRes] = await Promise.allSettled([
+        api.get('/tenant-reports/stats'),
+        ReportService.listTenantReports({
+          search: searchQuery,
+          status: statusFilter,
+          skip: (currentPage - 1) * pageSize,
+          limit: pageSize
+        }),
+        api.get('/tenant-reports/activities'),
+        ReportScheduleService.list()
+      ])
+
+      if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.data)
+      if (reportsRes.status === 'fulfilled') {
+        setReports(reportsRes.value.data)
+        setTotalPages(reportsRes.value.meta.total_pages)
+        setTotalItems(reportsRes.value.meta.total)
+      }
+      if (actRes.status === 'fulfilled') setActivities(actRes.value.data.data.audit_logs || [])
+      if (schedRes.status === 'fulfilled') setSchedules(schedRes.value)
+    } catch (e) {
+      console.error("Failed to fetch reports center data", e)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Reload when page, size, or filters change
+  useEffect(() => {
+    setIsLoading(true)
+    const timer = setTimeout(() => {
+      fetchData()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [currentPage, pageSize, searchQuery, statusFilter])
+
+  // Reset to page 1 on search or filter change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, statusFilter])
+
+  // Polling for generation progress
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Only poll implicitly so we don't flash loading states
+      fetchData()
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [currentPage, pageSize, searchQuery, statusFilter]) 
+
+  const handleQuickAction = (action: string) => {
+    if (action === 'schedule') {
+      setIsScheduleModalOpen(true)
+    } else {
+      setActionReportId(null)
+      setCurrentAction(action)
+      setIsModalOpen(true)
+    }
+  }
+
+  const handleRowAction = async (action: string, id: string) => {
+    if (action === 'preview') {
+      setViewingReportId(id)
+      setIsViewerOpen(true)
+    } else if (action === 'download') {
+      toast.loading("Preparing download...", { id: `dl-${id}` })
+      try {
+        const res = await api.get(`/tenant-reports/${id}/download`, { responseType: 'blob' })
+        const url = window.URL.createObjectURL(new Blob([res.data]))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', `Report_${id.substring(0,8)}.xlsx`)
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        toast.success("Download complete!", { id: `dl-${id}` })
+        fetchData()
+      } catch(e) {
+        toast.error("Failed to download report", { id: `dl-${id}` })
+      }
+    } else if (action === 'delete' || action === 'archive' || action === 'duplicate') {
+      const verb = action === 'delete' ? 'delete' : action === 'archive' ? 'archive' : 'duplicate'
+      if (!confirm(`Are you sure you want to ${verb} this report?`)) return
+      try {
+        await api.post(`/tenant-reports/${id}/action/${action}`)
+        toast.success(`Report ${verb}d successfully`)
+        fetchData()
+      } catch (e) {
+        toast.error(`Failed to ${verb} report`)
+      }
+    } else {
+      toast.info(`Action ${action} is mocked for this iteration.`)
+      // Mocked endpoint execution just to log the audit trail
+      try {
+        await api.post(`/tenant-reports/${id}/action/${action}`)
+        fetchData()
+      } catch(e) {}
+    }
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col p-8 bg-slate-50 dark:bg-[#0B0F17] overflow-y-auto custom-scrollbar">
+      
+      <div className="flex justify-between items-start mb-8 shrink-0">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Reports Center</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-2xl text-base">
+            Enterprise Business Intelligence reporting hub. Generate, schedule, and analyze AI-powered business reports.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        
+        {/* Top Section: KPIs & Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <ReportExecutiveKPIs stats={stats} />
+            <ReportQuickActions onAction={handleQuickAction} />
+          </div>
+          
+          {/* Timeline in a smaller side panel at the top */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            <ReportAuditTimeline logs={activities} isLoading={isLoading} />
+          </div>
+        </div>
+
+        {/* Full Width Table Area */}
+        <div className="w-full">
+          <Tabs defaultValue="reports" className="w-full">
+            <div className="flex items-center justify-between mb-4">
+              <TabsList>
+                <TabsTrigger value="reports">Generated Reports</TabsTrigger>
+                <TabsTrigger value="schedules">Schedules & Templates</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="reports">
+              <ManagerReportTable 
+                reports={reports}
+                isLoading={isLoading}
+                onAction={handleRowAction}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                pageSize={pageSize}
+                setPageSize={setPageSize}
+                totalPages={totalPages}
+                totalItems={totalItems}
+              />
+            </TabsContent>
+            
+            <TabsContent value="schedules">
+              <ReportSchedulesTable 
+                schedules={schedules}
+                isLoading={isLoading}
+                onRefresh={fetchData}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+      </div>
+
+      <ReportActionModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        actionType={currentAction}
+        onSuccess={fetchData}
+      />
+      
+      <ReportViewerModal
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        reportId={viewingReportId}
+      />
+      
+      <ReportSchedulerModal 
+        open={isScheduleModalOpen}
+        onOpenChange={setIsScheduleModalOpen}
+        onScheduleCreated={fetchData}
+      />
+    </div>
+  )
+}

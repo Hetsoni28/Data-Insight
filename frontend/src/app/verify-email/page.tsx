@@ -1,4 +1,4 @@
-import { AuthLayout } from "@/components/templates/AuthLayout"
+﻿import { AuthLayout } from "@/components/templates/AuthLayout"
 import { VerifyEmailForm } from "@/components/organisms/VerifyEmailForm"
 
 export default function VerifyEmailPage() {

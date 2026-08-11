@@ -1,0 +1,19 @@
+{
+  "sessions": [
+    {
+      "id": "session-1",
+      "title": "hi",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        },
+        {
+          "role": "assistant",
+          "content": "Gemini API client not initialized. Please verify your GEMINI_API_KEY in backend/.env."
+        }
+      ],
+      "createdAt": "2026-08-03T16:51:02.447Z"
+    }
+  ]
+}

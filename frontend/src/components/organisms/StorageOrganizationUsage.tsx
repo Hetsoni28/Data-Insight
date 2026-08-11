@@ -1,4 +1,4 @@
-import { Building, AlertTriangle } from "lucide-react"
+﻿import { Building, AlertTriangle } from "lucide-react"
 
 interface OrganizationUsage {
   id: string

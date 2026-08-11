@@ -32,13 +32,11 @@ export default function AICommandCenterPage() {
       
       {/* Top Navigation Bar */}
       <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-white/5 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-none bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-            <Brain className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Data Insight AI</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Powered by Google Gemini</p>
+        <div className="flex items-center gap-4">
+          <img src="/logo.svg" alt="Data Insight" className="h-7 w-32 shrink-0 dark:brightness-0 dark:invert" />
+          <div className="pl-4 border-l border-slate-200 dark:border-slate-700 flex flex-col justify-center">
+            <h1 className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight">AI Workspace</h1>
+            <p className="text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">Powered by Gemini</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -70,8 +68,8 @@ export default function AICommandCenterPage() {
               transition={{ duration: 0.3 }}
               className="w-full max-w-4xl mt-12 mx-auto flex flex-col items-center px-4 pb-24"
             >
-              <div className="w-16 h-16 rounded-none bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-8">
-                <Sparkles className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-xl shadow-emerald-500/20 mb-8 border border-emerald-400/30">
+                <img src="/icon.svg" alt="Data Insight" className="h-8 w-auto brightness-0 invert drop-shadow-md" />
               </div>
               <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-3">
                 Welcome back, {user?.full_name?.split(" ")[0] || "Owner"}

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { motion } from "framer-motion"
 import { Activity, Clock, Server, AlertTriangle, Key, Layers, Globe, Shield } from "lucide-react"
 

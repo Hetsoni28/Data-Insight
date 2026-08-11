@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { motion } from "framer-motion"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Bar, BarChart } from "recharts"
 import { BarChart3, TrendingUp } from "lucide-react"

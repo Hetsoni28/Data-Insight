@@ -1,4 +1,4 @@
-import { ShieldCheck, ShieldAlert, Lock, Unlock, Search, Activity } from "lucide-react"
+﻿import { ShieldCheck, ShieldAlert, Lock, Unlock, Search, Activity } from "lucide-react"
 
 interface StorageSecurity {
   public_files: number

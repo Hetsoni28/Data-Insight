@@ -1,4 +1,4 @@
-import { MetricCard } from "@/components/molecules/MetricCard"
+﻿import { MetricCard } from "@/components/molecules/MetricCard"
 import { Building2, Users, Database, FileSpreadsheet, Zap, DollarSign, Activity, Server, Clock, Code, AlertTriangle, Layers } from "lucide-react"
 
 interface LiveKpiGridProps {

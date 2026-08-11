@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown } from "lucide-react"
+﻿import { TrendingUp, TrendingDown } from "lucide-react"
 
 export function TrendBadge({ growth }: { growth?: number }) {
   if (growth === undefined || growth === null) return null

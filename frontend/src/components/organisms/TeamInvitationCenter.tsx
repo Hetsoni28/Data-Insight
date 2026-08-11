@@ -1,4 +1,4 @@
-"use client"
+ï»¿"use client"
 
 import { useState, useEffect, useMemo } from "react"
 import {
@@ -382,10 +382,10 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
                 disabled={isSending}
                 className="w-full h-10 px-3 bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                <option value="analyst">Analyst — Data modeling & exploration</option>
-                <option value="manager">Manager — Team & workflow oversight</option>
-                <option value="org_admin">Org Admin — Full organization settings & team</option>
-                <option value="viewer">Viewer — Read-only dashboards</option>
+                <option value="analyst">Analyst - Data modeling & exploration</option>
+                <option value="manager">Manager - Team & workflow oversight</option>
+                <option value="org_admin">Org Admin - Full organization settings & team</option>
+                <option value="viewer">Viewer - Read-only dashboards</option>
               </select>
             </div>
 

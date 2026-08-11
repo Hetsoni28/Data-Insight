@@ -1,4 +1,4 @@
-import Link from "next/link"
+﻿import Link from "next/link"
 import { Database, FileText, Users, Sparkles, ChevronRight } from "lucide-react"
 
 const LINKS = [

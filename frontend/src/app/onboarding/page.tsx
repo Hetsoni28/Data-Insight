@@ -97,7 +97,7 @@ function OnboardingContent() {
       await api.post("/tenants", { name: org.name, plan: org.plan })
       const res = await api.post("/auth/refresh-token")
       await login(res.data.access_token) // store new JWT with org_admin + tenant_id
-      // ?? CRITICAL: Bust the React Query user cache � staleTime is 5 min so
+      // ?? CRITICAL: Bust the React Query user cache • staleTime is 5 min so
       // without this, user.tenant_id remains null and workspace creation breaks.
       await fetchMe()
       setStep(2)

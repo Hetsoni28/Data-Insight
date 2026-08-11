@@ -1,4 +1,4 @@
-﻿"use client"
+﻿﻿"use client"
 import { useState, useEffect } from "react"
 import { Building2, Save, Loader2, Settings2 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"

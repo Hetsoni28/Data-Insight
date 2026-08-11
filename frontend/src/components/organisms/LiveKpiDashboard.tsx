@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+﻿import { motion } from "framer-motion"
 import { Building2, Users, Activity, TrendingUp, TrendingDown, DollarSign } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import api from "@/lib/api"

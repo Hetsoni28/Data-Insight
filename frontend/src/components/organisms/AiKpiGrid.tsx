@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { Cpu, DollarSign, Activity, AlertCircle, Zap, ShieldCheck } from "lucide-react";

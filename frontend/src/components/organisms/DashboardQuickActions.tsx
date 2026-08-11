@@ -2,11 +2,16 @@
 import { motion } from "framer-motion"
 import { UploadCloud, FileBarChart, UserPlus, Zap } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useWorkspaceStore } from "@/store/workspaceStore"
+import { useAuth } from "@/hooks/useAuth"
 
 export function DashboardQuickActions() {
   const router = useRouter()
-  const { setIsUploadOpen } = useWorkspaceStore()
+  const { data: user } = useAuth()
+  
+  const getBasePath = () => {
+    if (user?.role === "owner" || (user?.role as string) === "organization-admin" || (user?.role as string) === "org_admin") return "/organization-admin"
+    return `/${user?.role || "analyst"}`
+  }
 
   const actions = [
     {
@@ -16,7 +21,7 @@ export function DashboardQuickActions() {
       color: "bg-emerald-500",
       lightBg: "bg-emerald-50",
       textColor: "text-emerald-700",
-      onClick: () => setIsUploadOpen(true)
+      onClick: () => router.push(`${getBasePath()}/dashboard/upload-dataset`)
     },
     {
       title: "Generate Report",

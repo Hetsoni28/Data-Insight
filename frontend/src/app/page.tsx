@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/organisms/Navbar"
+﻿import { Navbar } from "@/components/organisms/Navbar"
 import { HeroSection } from "@/components/organisms/HeroSection"
 import { StopReportingSection } from "@/components/organisms/StopReportingSection"
 import { ArchitectureSection } from "@/components/organisms/ArchitectureSection"

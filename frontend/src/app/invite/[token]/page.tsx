@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
@@ -36,9 +36,10 @@ const PASSWORD_RULES = [
   { id: "special", text: "1 special character", test: (v: string) => /[^A-Za-z0-9]/.test(v) },
 ]
 
-export default function InvitePage({ params }: { params: { token: string } }) {
+export default function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const router = useRouter()
   const { login } = useAuthStore()
+  const { token } = use(params)
 
   const [isValidating, setIsValidating] = useState(true)
   const [inviteData, setInviteData] = useState<ValidateInviteResult | null>(null)
@@ -55,7 +56,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
     const checkToken = async () => {
       try {
         setIsValidating(true)
-        const res = await validateInvite(params.token)
+        const res = await validateInvite(token)
         if (res.valid) {
           setInviteData(res)
         } else {
@@ -72,13 +73,13 @@ export default function InvitePage({ params }: { params: { token: string } }) {
       }
     }
 
-    if (params?.token) {
+    if (token) {
       checkToken()
     } else {
       setValidationError("Missing invitation token.")
       setIsValidating(false)
     }
-  }, [params.token])
+  }, [token])
 
   const passwordMeetsAllRules = PASSWORD_RULES.every((r) => r.test(form.password))
   const passwordsMatch = form.password === form.confirmPassword && form.password.length > 0
@@ -110,7 +111,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
     setIsLoading(true)
     try {
       const { access_token } = await acceptInvite({
-        token: params.token,
+        token: token,
         full_name: form.fullName.trim(),
         password: form.password,
       })

@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import api from "@/lib/api"
-import { Database } from "lucide-react"
+import { Database, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 
 import { DatasetExecutiveKPIs } from "@/components/organisms/DatasetExecutiveKPIs"
@@ -14,10 +15,12 @@ import { DatasetExplorerTable } from "@/components/organisms/DatasetExplorerTabl
 import { DatasetAuditTimeline } from "@/components/organisms/DatasetAuditTimeline"
 import { DatasetActionModal } from "@/components/organisms/DatasetActionModal"
 import { DatasetAnalyticsDrawer } from "@/components/organisms/DatasetAnalyticsDrawer"
+import { DeleteConfirmModal } from "@/components/organisms/DeleteConfirmModal"
 
 export default function DatasetCenterPage() {
+  const router = useRouter()
   const { data: user } = useAuth()
-  const { setIsUploadOpen } = useWorkspaceStore()
+  const { activeWs, setIsUploadOpen } = useWorkspaceStore()
   const [stats, setStats] = useState<any>(null)
   const [datasets, setDatasets] = useState<any[]>([])
   const [activities, setActivities] = useState<any[]>([])
@@ -31,17 +34,30 @@ export default function DatasetCenterPage() {
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null)
   const [selectedDatasetName, setSelectedDatasetName] = useState("")
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [datasetToDelete, setDatasetToDelete] = useState<any>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const [loadingStats, setLoadingStats] = useState(true)
   const [loadingDatasets, setLoadingDatasets] = useState(true)
   const [loadingActivities, setLoadingActivities] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const refreshAll = async (silent = false) => {
+    if (!silent) setIsRefreshing(true)
+    await Promise.all([
+      fetchStats(silent),
+      fetchDatasets(silent),
+      fetchActivities(silent)
+    ])
+    if (!silent) setIsRefreshing(false)
+  }
 
   useEffect(() => {
-    fetchStats()
-    fetchActivities()
-  }, [])
+    refreshAll()
+  }, [activeWs?.id])
 
   useEffect(() => {
-    // Debounce search
     const timer = setTimeout(() => {
       fetchDatasets()
     }, 300)
@@ -49,13 +65,10 @@ export default function DatasetCenterPage() {
   }, [searchQuery])
 
   useEffect(() => {
-    // Auto-poll if any dataset is currently processing
     const hasProcessing = datasets.some(d => d.status === 'processing' || d.status === 'uploading' || d.status === 'profiling')
     if (hasProcessing) {
       const interval = setInterval(() => {
-        fetchDatasets(true)
-        fetchStats(true)
-        fetchActivities(true)
+        refreshAll(true)
       }, 3000)
       return () => clearInterval(interval)
     }
@@ -90,13 +103,12 @@ export default function DatasetCenterPage() {
     try {
       if (!silent) setLoadingActivities(true)
       const res = await api.get("/tenant-datasets/activities")
-      // Combine audit and AI activities and sort by date descending
       const combined = [
         ...(res.data.data.audit_logs || []),
         ...(res.data.data.ai_activities || [])
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       
-      setActivities(combined.slice(0, 15)) // Keep top 15
+      setActivities(combined.slice(0, 15))
     } catch (e) {
       console.error(e)
     } finally {
@@ -106,7 +118,7 @@ export default function DatasetCenterPage() {
 
   const handleQuickAction = async (action: string) => {
     if (action === 'upload') {
-      setIsUploadOpen(true)
+      router.push('/organization-admin/dashboard/upload-dataset')
     } else {
       setCurrentAction(action)
       setActionModalOpen(true)
@@ -117,33 +129,24 @@ export default function DatasetCenterPage() {
     try {
       const promise = api.post(`/tenant-datasets/${datasetId}/${action}`)
       toast.promise(promise, {
-        loading: `Starting ${action.replace('-', ' ')}...`,
-        success: `Successfully started ${action.replace('-', ' ')} workflow!`,
+        loading: `Initiating ${action.replace('-', ' ')} workflow...`,
+        success: `Successfully started ${action.replace('-', ' ')} processing!`,
         error: `Failed to start ${action.replace('-', ' ')}.`
       })
       
       await promise
-      fetchDatasets()
-      fetchStats()
-      fetchActivities()
-    } catch (e) {
+      refreshAll(true)
+    } catch (e: any) {
       console.error(`Failed to start ${action} workflow`, e)
+      toast.error(e.response?.data?.detail || `Failed to start ${action} workflow`)
     }
   }
 
   const handleRowAction = async (action: string, id: string) => {
     if (action === 'delete') {
-      if (!confirm("Are you sure you want to delete this dataset?")) return
-      try {
-        await api.delete(`/tenant-datasets/${id}`)
-        toast.success("Dataset deleted")
-        fetchDatasets()
-        fetchStats()
-        fetchActivities()
-      } catch (e) {
-        console.error("Failed to delete dataset", e)
-        toast.error("Failed to delete dataset")
-      }
+      const ds = datasets.find(d => d.id === id)
+      setDatasetToDelete(ds)
+      setDeleteModalOpen(true)
     } else if (action === 'preview' || action === 'analyze') {
       const ds = datasets.find(d => d.id === id)
       setSelectedDatasetId(id)
@@ -154,21 +157,47 @@ export default function DatasetCenterPage() {
     }
   }
 
+  const confirmDelete = async () => {
+    if (!datasetToDelete) return
+    try {
+      setIsDeleting(true)
+      await api.delete(`/tenant-datasets/${datasetToDelete.id}`)
+      toast.success("Dataset archived successfully")
+      setDeleteModalOpen(false)
+      setDatasetToDelete(null)
+      refreshAll(true)
+    } catch (e: any) {
+      console.error("Failed to delete dataset", e)
+      toast.error(e.response?.data?.detail || "Failed to delete dataset")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-end">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 p-6 rounded-2xl shadow-sm">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 rounded-xl">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-tr from-emerald-500 to-teal-500 text-white rounded-xl shadow-md">
               <Database className="w-6 h-6" />
             </div>
-            Dataset Center
+            Data Catalog & Enterprise Center
           </h1>
-          <p className="mt-2 text-slate-500">
-            Upload, organize, and analyze datasets for AI-powered business intelligence.
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Ingest, govern, and run AI processing workflows on your organization datasets.
           </p>
         </div>
+
+        <button
+          onClick={() => refreshAll()}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold border border-slate-200/60 dark:border-white/10 transition-colors shrink-0"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-emerald-500' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Sync Data'}
+        </button>
       </div>
 
       {/* KPI Cards */}
@@ -191,6 +220,7 @@ export default function DatasetCenterPage() {
             loading={loadingDatasets} 
             onAction={handleRowAction} 
             statusFilter={statusFilter}
+            currentUser={user}
           />
         </div>
 
@@ -216,6 +246,17 @@ export default function DatasetCenterPage() {
         onClose={() => setIsAnalyticsOpen(false)}
         datasetId={selectedDatasetId}
         datasetName={selectedDatasetName}
+      />
+
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setDatasetToDelete(null)
+        }}
+        onConfirm={confirmDelete}
+        datasetName={datasetToDelete?.name}
+        loading={isDeleting}
       />
     </div>
   )

@@ -7,7 +7,7 @@ import uuid
 import asyncio
 import random
 
-from app.api.deps import get_db, get_current_active_tenant_user, RequireRole, get_current_workspace
+from app.api.deps import get_db, get_current_active_tenant_user, RequireRole, get_current_workspace, RequirePermission, ROLE_PERMISSIONS
 from app.models.user import User
 from app.models.workspace import Workspace
 from app.models.dataset import Dataset, DatasetStatus
@@ -159,9 +159,11 @@ async def list_datasets(
             "created_at": d.created_at,
             "updated_at": d.updated_at,
             "owner": {
+                "id": str(u.id) if u else None,
                 "name": u.full_name if u else "Unknown",
                 "email": u.email if u else None
-            }
+            },
+            "uploaded_by_id": str(d.uploaded_by_id)
         })
         
     return {"status": "success", "data": datasets}
@@ -177,13 +179,19 @@ async def get_dataset_activities(
     try:
         tenant_id = current_user.tenant_id
     
-        # AuditLog has no workspace_id — filter by tenant + resource type only
+        # AuditLog has no workspace_id — join with Dataset to filter by tenant + workspace
         audit_conditions = [AuditLog.tenant_id == tenant_id, AuditLog.resource_type == 'dataset']
-
-        # Get last 20 audit logs for datasets
-        audit_stmt = select(AuditLog, User).outerjoin(User, AuditLog.user_id == User.id).where(
-            *audit_conditions
-        ).order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)
+        if workspace:
+            from sqlalchemy.dialects.postgresql import UUID as PGUUID
+            from sqlalchemy import cast
+            audit_stmt = select(AuditLog, User).outerjoin(User, AuditLog.user_id == User.id)\
+                .join(Dataset, cast(AuditLog.resource_id, PGUUID) == Dataset.id)\
+                .where(*audit_conditions, Dataset.workspace_id == workspace.id)\
+                .order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)
+        else:
+            audit_stmt = select(AuditLog, User).outerjoin(User, AuditLog.user_id == User.id).where(
+                *audit_conditions
+            ).order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)
     
         audit_res = await db.execute(audit_stmt)
         audit_logs = []
@@ -234,14 +242,19 @@ async def get_dataset_details(
     dataset_id: uuid.UUID,
     request: Request,
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
-    stmt = select(Dataset, User).outerjoin(User, Dataset.uploaded_by_id == User.id).where(
+    base_conditions = [
         Dataset.id == dataset_id,
         Dataset.tenant_id == tenant_id,
         Dataset.is_deleted == False
-    )
+    ]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+        
+    stmt = select(Dataset, User).outerjoin(User, Dataset.uploaded_by_id == User.id).where(*base_conditions)
     res = await db.execute(stmt)
     row = res.first()
     if not row:
@@ -267,9 +280,11 @@ async def get_dataset_details(
             "created_at": d.created_at,
             "updated_at": d.updated_at,
             "owner": {
+                "id": str(u.id) if u else None,
                 "name": u.full_name if u else "Unknown",
                 "email": u.email if u else None
-            }
+            },
+            "uploaded_by_id": str(d.uploaded_by_id)
         }
     }
 
@@ -329,20 +344,32 @@ async def upload_dataset(
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
-@router.delete("/{dataset_id}", summary="Delete Dataset", dependencies=[Depends(RequireRole(["org_admin"]))])
+@router.delete("/{dataset_id}", summary="Delete Dataset")
 async def delete_dataset(
     dataset_id: uuid.UUID,
     request: Request,
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
-    stmt = select(Dataset).where(Dataset.id == dataset_id, Dataset.tenant_id == tenant_id)
+    base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+        
+    stmt = select(Dataset).where(*base_conditions)
     res = await db.execute(stmt)
     d = res.scalars().first()
     
     if not d:
         raise HTTPException(status_code=404, detail="Dataset not found")
+        
+    user_perms = ROLE_PERMISSIONS.get(current_user.role, [])
+    if "DATASET_DELETE" not in user_perms:
+        if "DATASET_DELETE_OWN" in user_perms and d.uploaded_by_id == current_user.id:
+            pass # Allowed
+        else:
+            raise HTTPException(status_code=403, detail="You do not have permission to delete this dataset.")
         
     d.is_deleted = True
     d.deleted_at = datetime.now(timezone.utc)
@@ -404,17 +431,22 @@ async def simulate_ai_workflow(tenant_id: uuid.UUID, dataset_id: uuid.UUID, work
             db.add(audit)
             await db.commit()
 
-@router.post("/{dataset_id}/analyze", summary="Analyze Dataset", dependencies=[Depends(RequireRole(["org_admin"]))])
+@router.post("/{dataset_id}/analyze", summary="Analyze Dataset", dependencies=[Depends(RequirePermission("DATASET_ANALYZE"))])
 async def analyze_dataset(
     dataset_id: uuid.UUID,
     request: Request,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     try:
         tenant_id = current_user.tenant_id
-        stmt = select(Dataset).where(Dataset.id == dataset_id, Dataset.tenant_id == tenant_id)
+        base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+        if workspace:
+            base_conditions.append(Dataset.workspace_id == workspace.id)
+            
+        stmt = select(Dataset).where(*base_conditions)
         res = await db.execute(stmt)
         d = res.scalars().first()
         if not d:
@@ -446,12 +478,13 @@ async def analyze_dataset(
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
-@router.post("/{dataset_id}/ai-excel", summary="Generate AI Excel", dependencies=[Depends(RequireRole(["org_admin"]))])
+@router.post("/{dataset_id}/ai-excel", summary="Generate AI Excel", dependencies=[Depends(RequirePermission("DATASET_AI_EXCEL"))])
 async def generate_ai_excel(
     dataset_id: uuid.UUID,
     request: Request,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
@@ -464,7 +497,11 @@ async def generate_ai_excel(
     if not can_use_feature(tenant, BillingFeature.AI_EXCEL):
         raise HTTPException(status_code=403, detail="AI Excel generation is not included in your organization's plan.")
         
-    stmt = select(Dataset).where(Dataset.id == dataset_id, Dataset.tenant_id == tenant_id)
+    base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+        
+    stmt = select(Dataset).where(*base_conditions)
     res = await db.execute(stmt)
     d = res.scalars().first()
     if not d:
@@ -490,17 +527,22 @@ async def generate_ai_excel(
     background_tasks.add_task(simulate_ai_workflow, tenant_id, dataset_id, 'ai-excel', current_user.id)
     return {"status": "success", "message": "AI Excel generation started"}
 
-@router.post("/{dataset_id}/dashboard", summary="Create Dashboard", dependencies=[Depends(RequireRole(["org_admin"]))])
+@router.post("/{dataset_id}/dashboard", summary="Create Dashboard", dependencies=[Depends(RequirePermission("DATASET_CREATE_DASHBOARD"))])
 async def create_dashboard(
     dataset_id: uuid.UUID,
     request: Request,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     try:
         tenant_id = current_user.tenant_id
-        stmt = select(Dataset).where(Dataset.id == dataset_id, Dataset.tenant_id == tenant_id)
+        base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+        if workspace:
+            base_conditions.append(Dataset.workspace_id == workspace.id)
+            
+        stmt = select(Dataset).where(*base_conditions)
         res = await db.execute(stmt)
         d = res.scalars().first()
         if not d:

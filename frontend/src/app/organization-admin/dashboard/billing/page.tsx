@@ -1,6 +1,7 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback, Suspense } from "react"
+import { motion } from "framer-motion"
 import { useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import {
@@ -179,14 +180,18 @@ function BillingContent() {
   if (!summary) return null
 
   return (
-    <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto min-h-screen text-slate-900 dark:text-slate-100">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto min-h-screen text-slate-900 dark:text-slate-100 animate-in fade-in duration-300"
+    >
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
             Billing & Resource Rental Center
           </h1>
-          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
             Authoritative management of your dedicated single-tenant database, system rental contract, resource allocations, and invoices.
           </p>
         </div>
@@ -196,9 +201,9 @@ function BillingContent() {
           size="sm"
           onClick={() => fetchData(true)}
           disabled={isRefreshing}
-          className="rounded-xl border-slate-200 dark:border-slate-800 text-xs font-semibold shadow-sm w-fit"
+          className="rounded-xl border-slate-200/80 dark:border-white/10 text-xs font-bold shadow-sm w-fit hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
         >
-          <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isRefreshing ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isRefreshing ? "animate-spin text-emerald-500" : ""}`} />
           Refresh Status
         </Button>
       </div>
@@ -214,29 +219,29 @@ function BillingContent() {
 
       {/* Tabbed Navigation */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-800">
-          <TabsTrigger value="overview" className="rounded-xl text-xs md:text-sm font-semibold">
+        <TabsList className="bg-slate-100/80 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200/80 dark:border-white/10 backdrop-blur-xl flex flex-wrap h-auto gap-1">
+          <TabsTrigger value="overview" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
             <Database className="h-4 w-4 mr-2" />
             Rented Resources
           </TabsTrigger>
-          <TabsTrigger value="contract" className="rounded-xl text-xs md:text-sm font-semibold">
+          <TabsTrigger value="contract" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
             <ShieldCheck className="h-4 w-4 mr-2" />
             Contract & SLA
           </TabsTrigger>
-          <TabsTrigger value="requests" className="rounded-xl text-xs md:text-sm font-semibold">
+          <TabsTrigger value="requests" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
             <Layers className="h-4 w-4 mr-2" />
             Capacity Requests
             {resourceRequests.length > 0 && (
-              <span className="ml-2 rounded-full bg-emerald-500 text-white text-[10px] px-1.5 py-0.2 font-bold">
+              <span className="ml-2 rounded-full bg-emerald-500 text-white text-[10px] px-2 py-0.5 font-black">
                 {resourceRequests.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="invoices" className="rounded-xl text-xs md:text-sm font-semibold">
+          <TabsTrigger value="invoices" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
             <DollarSign className="h-4 w-4 mr-2" />
             Invoices & Statements
           </TabsTrigger>
-          <TabsTrigger value="activity" className="rounded-xl text-xs md:text-sm font-semibold">
+          <TabsTrigger value="activity" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
             <History className="h-4 w-4 mr-2" />
             Audit Ledger
           </TabsTrigger>
@@ -291,7 +296,7 @@ function BillingContent() {
           />
         </TabsContent>
       </Tabs>
-    </div>
+    </motion.div>
   )
 }
 

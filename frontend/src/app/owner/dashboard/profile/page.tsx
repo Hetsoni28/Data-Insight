@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Save, Loader2, ImageIcon, Terminal, Copy } from "lucide-react";

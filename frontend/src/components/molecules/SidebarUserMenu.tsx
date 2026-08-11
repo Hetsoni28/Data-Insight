@@ -1,4 +1,4 @@
-import { LogOut, Crown, Shield, Users, BarChart2, Eye } from "lucide-react"
+﻿import { LogOut, Crown, Shield, Users, BarChart2, Eye } from "lucide-react"
 
 const ROLE_CONFIG: Record<string, { label: string; bg: string; icon: React.ElementType }> = {
   owner:     { label: "Platform Owner", bg: "bg-amber-500/20 text-amber-400 border-amber-500/30",   icon: Crown    },

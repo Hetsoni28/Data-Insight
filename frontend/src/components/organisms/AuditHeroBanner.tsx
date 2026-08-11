@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { motion } from 'framer-motion';
 import { FileSearch, AlertTriangle, ShieldAlert, Activity, CheckCircle2, Zap } from 'lucide-react';

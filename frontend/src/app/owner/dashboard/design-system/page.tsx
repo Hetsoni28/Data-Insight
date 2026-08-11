@@ -1,4 +1,4 @@
-﻿"use client"
+﻿﻿"use client"
 import { motion } from "framer-motion"
 import {
   Home, Search, User, Edit3, Share2, Tag, Trash2, Bell, Settings,
@@ -91,7 +91,7 @@ export default function DesignSystemPage() {
               <h1 className="text-3xl font-bold text-white tracking-tight">Design System</h1>
             </div>
             <p className="text-emerald-100/70 text-sm max-w-xl">
-              The single source of truth for Data Insight&apos;s visual language � colours, typography, components, and interactions. All tokens use the brand palette: <span className="text-white font-semibold">Primary #10B981</span>.
+              The single source of truth for Data Insight&apos;s visual language • colours, typography, components, and interactions. All tokens use the brand palette: <span className="text-white font-semibold">Primary #10B981</span>.
             </p>
           </div>
           <div className="flex gap-3 shrink-0">
@@ -141,7 +141,7 @@ export default function DesignSystemPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* -- Typography ---------------------------------------------------- */}
-        <Section title="Typography � Inter">
+        <Section title="Typography • Inter">
           <div className="space-y-6">
             {[
               { label: "Headline / Bold", size: "text-4xl", weight: "font-bold", sample: "Aa" },
@@ -236,7 +236,7 @@ export default function DesignSystemPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   defaultValue=""
-                  placeholder="Search�"
+                  placeholder="Search•"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 transition"
                   style={{ "--tw-ring-color": brand.primary } as any}
                 />
@@ -323,19 +323,19 @@ export default function DesignSystemPage() {
               <p className="text-xs text-slate-400 mb-3">Alert Variants</p>
               <div className="flex items-start gap-2 p-3 rounded-xl" style={{ background: `${brand.primary}18`, border: `1px solid ${brand.primary}40` }}>
                 <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" style={{ color: brand.primary }} />
-                <p className="text-sm font-medium" style={{ color: brand.secondary }}>Success � Operation completed successfully.</p>
+                <p className="text-sm font-medium" style={{ color: brand.secondary }}>Success • Operation completed successfully.</p>
               </div>
               <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/30">
                 <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
-                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Warning � Please review before proceeding.</p>
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Warning • Please review before proceeding.</p>
               </div>
               <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30">
                 <XCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-500" />
-                <p className="text-sm font-medium text-red-700 dark:text-red-300">Error � Something went wrong.</p>
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">Error • Something went wrong.</p>
               </div>
               <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/30">
                 <Info className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />
-                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Info � Here&apos;s some helpful information.</p>
+                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Info • Here&apos;s some helpful information.</p>
               </div>
             </div>
           </div>

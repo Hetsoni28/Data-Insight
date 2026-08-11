@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, ImageIcon, Mail, Calendar } from "lucide-react";
 import { FullProfile } from "@/lib/profile.service";
