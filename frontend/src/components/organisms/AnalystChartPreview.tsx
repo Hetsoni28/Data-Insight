@@ -56,6 +56,31 @@ export function AnalystChartPreview({ config }: AnalystChartPreviewProps) {
     })
   }, [data])
 
+  // Calculate KPI summary stats from chartData
+  const stats = React.useMemo(() => {
+    if (!chartData || chartData.length === 0 || !metric) return null
+    let total = 0
+    let max = -Infinity
+    let count = 0
+
+    chartData.forEach((row: any) => {
+      const val = Number(row[metric])
+      if (!isNaN(val)) {
+        total += val
+        if (val > max) max = val
+        count++
+      }
+    })
+
+    const avg = count > 0 ? total / count : 0
+    return {
+      total,
+      avg,
+      max: max === -Infinity ? 0 : max,
+      count
+    }
+  }, [chartData, metric])
+
   // Vibrant modern palette for charts
   const COLORS = ['#10b981', '#0ea5e9', '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#14b8a6', '#3b82f6']
 
@@ -259,26 +284,54 @@ export function AnalystChartPreview({ config }: AnalystChartPreviewProps) {
   }
 
   return (
-    <div className="flex-1 w-full h-full p-6 flex flex-col justify-between relative">
-      {/* Top Chart Toolbar & Status Badges */}
-      <div className="flex items-start justify-between z-10 gap-4 mb-2">
+    <div className="flex-1 w-full h-full p-6 md:p-8 flex flex-col justify-between relative overflow-y-auto custom-scrollbar">
+      {/* Top Chart Toolbar & Info Header */}
+      <div className="flex items-start justify-between z-10 gap-4 mb-4">
         <div>
           <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            {config.name}
+            {config.name || 'Untitled Visualization'}
           </h2>
-          {config.description && <p className="text-xs font-medium text-slate-500 mt-0.5">{config.description}</p>}
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+            <span>Dimension: <strong className="text-slate-800 dark:text-slate-200">{dimension}</strong></span>
+            <span>•</span>
+            <span>Metric: <strong className="text-emerald-600 dark:text-emerald-400">{metric}</strong> ({aggregation?.toUpperCase()})</span>
+          </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            {chartData.length} Data Points
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            {chartData.length} Records
           </span>
         </div>
       </div>
 
+      {/* KPI Summary Cards */}
+      {stats && stats.count > 0 && (
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="p-3.5 bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 rounded-xl">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Total Aggregated</span>
+            <span className="text-base font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
+              {formatMetricValue(stats.total, metric)}
+            </span>
+          </div>
+          <div className="p-3.5 bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 rounded-xl">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Average per Group</span>
+            <span className="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
+              {formatMetricValue(stats.avg, metric)}
+            </span>
+          </div>
+          <div className="p-3.5 bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 rounded-xl">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Peak Group Value</span>
+            <span className="text-base font-black text-teal-600 dark:text-teal-400 font-mono mt-0.5 block">
+              {formatMetricValue(stats.max, metric)}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Chart Render Canvas */}
-      <div className="w-full flex-1 pt-4 pb-2 min-h-[300px]">
+      <div className="w-full flex-1 pt-2 pb-2 min-h-[340px]">
         <ResponsiveContainer width="100%" height="100%">
           {renderChart()}
         </ResponsiveContainer>
