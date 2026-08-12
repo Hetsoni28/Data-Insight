@@ -30,7 +30,7 @@ export class ReportService {
    * Fetch all reports in a workspace.
    */
   static async list(workspaceId: string): Promise<Report[]> {
-    const response = await api.get("/reports", {
+    const response = await api.get("/tenant-reports", {
       params: { workspace_id: workspaceId },
     });
     return response.data;
@@ -40,7 +40,7 @@ export class ReportService {
    * Fetch a single report by its ID.
    */
   static async get(reportId: string): Promise<Report> {
-    const response = await api.get(`/reports/${reportId}`);
+    const response = await api.get(`/tenant-reports/${reportId}`);
     return response.data;
   }
 
@@ -68,7 +68,7 @@ export class ReportService {
    * Delete a report by its ID.
    */
   static async delete(reportId: string): Promise<void> {
-    await api.delete(`/reports/${reportId}`);
+    await api.post(`/tenant-reports/${reportId}/action/delete`);
   }
 }
 

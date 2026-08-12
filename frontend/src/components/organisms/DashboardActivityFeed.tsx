@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { FileSpreadsheet, Loader2, Clock, Database, ChevronRight } from "lucide-react"
@@ -22,7 +22,10 @@ export function DashboardActivityFeed() {
 
   useEffect(() => {
     const fetchRecent = async () => {
-      if (!activeWs?.id) return
+      if (!activeWs?.id) {
+        setLoading(false)
+        return
+      }
       try {
         setLoading(true)
         // Fetch datasets
@@ -55,7 +58,7 @@ export function DashboardActivityFeed() {
           <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Recent Activity</h3>
         </div>
         <button 
-          onClick={() => router.push("/dashboard/datasets")}
+          onClick={() => router.push("/owner/dashboard/datasets")}
           className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
         >
           View all
@@ -79,7 +82,7 @@ export function DashboardActivityFeed() {
               <li 
                 key={item.id} 
                 className="p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group flex items-center gap-4"
-                onClick={() => router.push(`/dashboard/datasets/${item.id}`)}
+                onClick={() => router.push(`/owner/dashboard/datasets`)}
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                   <FileSpreadsheet className="h-5 w-5 text-emerald-600" />

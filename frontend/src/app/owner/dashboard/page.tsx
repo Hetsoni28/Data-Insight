@@ -68,9 +68,8 @@ export default function DashboardPage() {
       
       {/* 1. Executive Welcome Banner */}
       <ExecutiveBanner user={user} kpis={analytics?.data} onOpenAiAssistant={() => {
-        // AI Panel has its own state but we could trigger it via context/event if needed
-        const btn = document.querySelector('.bg-indigo-600.rounded-full') as HTMLButtonElement
-        if(btn) btn.click()
+        // Dispatch a custom event that ExecutiveAIPanel listens to
+        window.dispatchEvent(new CustomEvent('toggle-executive-ai'))
       }} />
 
       {/* 2. Platform Health Overview */}

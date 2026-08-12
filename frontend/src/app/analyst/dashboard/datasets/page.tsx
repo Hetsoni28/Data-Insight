@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import api from "@/lib/api"
 import { Database, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
+import { useWebSocket } from "@/hooks/useWebSocket"
 
 import { DatasetExecutiveKPIs } from "@/components/organisms/DatasetExecutiveKPIs"
 import { DatasetQuickActions } from "@/components/organisms/DatasetQuickActions"
@@ -52,6 +53,23 @@ export default function AnalystDatasetCenterPage() {
     ])
     if (!silent) setIsRefreshing(false)
   }
+  
+  const handleWebSocketMessage = useCallback((message: any) => {
+    console.log("[WebSocket] Received dataset event:", message);
+    if (!message || !message.type) return;
+    
+    if (message.type.startsWith("dataset_")) {
+      if (message.type === "dataset_uploaded" && message.payload?.name) {
+        toast.info(`New dataset uploaded: ${message.payload.name}`);
+      }
+      if (message.type === "dataset_processed" && message.payload?.workflow_type) {
+        toast.success(`Dataset ${message.payload.workflow_type} completed!`);
+      }
+      refreshAll(true);
+    }
+  }, [refreshAll]);
+  
+  const { isConnected } = useWebSocket({ onMessage: handleWebSocketMessage });
 
   useEffect(() => {
     refreshAll()
@@ -65,14 +83,11 @@ export default function AnalystDatasetCenterPage() {
   }, [searchQuery])
 
   useEffect(() => {
-    const hasProcessing = datasets.some(d => d.status === 'processing' || d.status === 'uploading' || d.status === 'profiling')
-    if (hasProcessing) {
-      const interval = setInterval(() => {
-        refreshAll(true)
-      }, 3000)
-      return () => clearInterval(interval)
-    }
-  }, [datasets])
+    const timer = setTimeout(() => {
+      fetchDatasets()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   const fetchStats = async (silent = false) => {
     try {
@@ -185,6 +200,12 @@ export default function AnalystDatasetCenterPage() {
               <Database className="w-6 h-6" />
             </div>
             Data Catalog & Workspace
+            {isConnected && (
+              <span className="flex h-2.5 w-2.5 ml-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" title="Live updates active"></span>
+              </span>
+            )}
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Inspect schema, run data quality analysis, and generate AI insights for authorized workspace data.

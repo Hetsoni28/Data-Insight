@@ -118,8 +118,8 @@ export function AnalystActivityChart({ charts, isLoading }: AnalystActivityChart
                         <p className="text-slate-400 font-semibold mb-1">{data.full_date || data.date}</p>
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                          <span className="font-bold text-emerald-400">Reports Generated:</span>
-                          <span className="font-extrabold text-white">{data.reports}</span>
+                          <span className="text-slate-300 font-medium">Reports Generated:</span>
+                          <span className="font-bold text-emerald-400">{data.reports}</span>
                         </div>
                       </div>
                     );

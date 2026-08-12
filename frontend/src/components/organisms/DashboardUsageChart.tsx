@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
@@ -19,9 +19,14 @@ export function DashboardUsageChart() {
   useEffect(() => {
     const fetchUsage = async () => {
       try {
-        const { data: res } = await api.get("/admin/usage-trends")
-        setData(res.trends)
-        setGrowth(res.growth_percentage)
+        const { data: res } = await api.get("/owner/analytics/users")
+        // Map daily_breakdown to the chart's expected `trends` shape
+        const trends = (res.daily_breakdown || res.trends || []).map((d: any) => ({
+          date: d.date,
+          rows: d.active ?? d.count ?? d.rows ?? 0,
+        }))
+        setData(trends)
+        setGrowth(res.growth_percentage ?? res.mau_growth ?? 0)
       } catch (error) {
         console.error("Failed to fetch usage trends", error)
       } finally {

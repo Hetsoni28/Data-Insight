@@ -31,9 +31,9 @@ async def get_dashboard_overview(
         if not tenant:
             raise HTTPException(status_code=404, detail="Organization not found")
         
-        # Check if an OpenAI integration exists to determine AI status dynamically
-        ai_integration = await db.scalar(select(IntegrationConnection).where(IntegrationConnection.provider == "openai", IntegrationConnection.is_active == True))
-        current_ai = "OpenAI (Custom)" if ai_integration else "OpenAI (Platform Default)"
+        # Check if an Gemini integration exists to determine AI status dynamically
+        ai_integration = await db.scalar(select(IntegrationConnection).where(IntegrationConnection.provider == "gemini", IntegrationConnection.is_active == True))
+        current_ai = "Gemini (Custom)" if ai_integration else "Gemini (Platform Default)"
         
         return {
             "status": "success",
