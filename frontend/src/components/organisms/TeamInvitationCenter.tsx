@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useMemo } from "react"
 import {
@@ -150,32 +150,36 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <Mail className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          <h3 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
+            <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20">
+              <Mail className="w-4 h-4" />
+            </div>
             Team Invitation Center
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
             Invite colleagues, manage pending access, and generate direct invitation links.
           </p>
         </div>
-        <Button
-          onClick={() => setIsInviteModalOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm"
-        >
-          <UserPlus className="w-4 h-4" />
-          Invite Team Member
-        </Button>
+        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+          <Button
+            onClick={() => setIsInviteModalOpen(true)}
+            className="bg-emerald-500 hover:bg-emerald-400 text-white gap-2 shadow-md shadow-emerald-500/20 font-bold text-xs rounded-xl"
+          >
+            <UserPlus className="w-4 h-4" />
+            Invite Team Member
+          </Button>
+        </motion.div>
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             placeholder="Search email, role..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-sm bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10"
+            className="pl-9 h-9 text-xs font-medium bg-white dark:bg-black/20 border-slate-200/80 dark:border-white/10 rounded-xl"
           />
         </div>
 
@@ -183,7 +187,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 px-3 text-sm bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="h-9 px-3 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -196,7 +200,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
             size="sm"
             onClick={fetchInvitations}
             disabled={loading}
-            className="h-9"
+            className="h-9 rounded-xl font-bold text-xs dark:border-white/10"
           >
             <RotateCw className={cn("w-3.5 h-3.5 mr-1.5", loading && "animate-spin")} />
             Refresh
@@ -205,7 +209,7 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
       </div>
 
       {/* Invitations Table */}
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
