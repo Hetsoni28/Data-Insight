@@ -33,7 +33,10 @@ export class ReportService {
     const response = await api.get("/tenant-reports", {
       params: { workspace_id: workspaceId },
     });
-    return response.data;
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    return response.data?.data || [];
   }
 
   /**
