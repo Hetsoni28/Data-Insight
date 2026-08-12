@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { toast } from "sonner"
 import { MoreVertical, Search, Filter, Mail, ShieldAlert, MonitorPlay, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,11 +31,11 @@ export function TeamMemberTable({ members, departments }: { members: any[], depa
           />
         </div>
         <div className="flex items-center gap-2.5 w-full md:w-auto">
-          <Button variant="outline" className="gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none">
+          <Button onClick={() => toast.info("Filter criteria active")} variant="outline" className="gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none">
             <Filter className="w-4 h-4 text-slate-400" />
             Filters
           </Button>
-          <Button variant="outline" className="gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none">
+          <Button onClick={() => toast.info("Bulk invite mode enabled. Use the Invitation Center for mass invites.")} variant="outline" className="gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none">
             <Mail className="w-4 h-4 text-emerald-500" />
             Bulk Invite
           </Button>

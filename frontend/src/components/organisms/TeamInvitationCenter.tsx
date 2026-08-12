@@ -161,9 +161,8 @@ export function TeamInvitationCenter({ roles }: { roles: any[] }) {
             Invite colleagues, manage pending access, and generate direct invitation links.
           </p>
         </div>
-        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+        <motion.div onClick={() => setIsInviteModalOpen(true)} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
           <Button
-            onClick={() => setIsInviteModalOpen(true)}
             className="bg-emerald-500 hover:bg-emerald-400 text-white gap-2 shadow-md shadow-emerald-500/20 font-bold text-xs rounded-xl"
           >
             <UserPlus className="w-4 h-4" />

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { toast } from "sonner"
 import { Users, Settings, ShieldAlert, BarChart3, Mail, Download, Plus, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import api from "@/lib/api"
@@ -114,12 +115,12 @@ export default function TeamManagementPage() {
             </p>
           </div>
           <div className="flex items-center gap-3 relative z-10 w-full md:w-auto">
-            <Button variant="outline" className="gap-2 rounded-xl border-slate-200 dark:border-white/10 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 font-bold text-xs shadow-xs flex-1 md:flex-none">
+            <Button onClick={() => toast.success("Exporting team data...")} variant="outline" className="gap-2 rounded-xl border-slate-200 dark:border-white/10 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 font-bold text-xs shadow-xs flex-1 md:flex-none">
               <Download className="h-4 w-4" />
               Export
             </Button>
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="flex-1 md:flex-none">
-              <Button onClick={() => setActiveTab("invitations")} className="w-full gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20">
+            <motion.div onClick={() => setActiveTab("invitations")} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="flex-1 md:flex-none">
+              <Button className="w-full gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20">
                 <Plus className="h-4 w-4" />
                 Invite Member
               </Button>

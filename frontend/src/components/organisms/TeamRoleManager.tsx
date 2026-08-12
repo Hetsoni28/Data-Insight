@@ -1,5 +1,6 @@
 "use client"
 
+import { toast } from "sonner"
 import { motion } from "framer-motion"
 import { Plus, Shield, Check, X, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -42,7 +43,7 @@ export function TeamRoleManager({ roles }: { roles: any[] }) {
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Define custom roles and manage organization permission matrices.</p>
         </div>
-        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+        <motion.div onClick={() => toast.info("Custom roles feature coming soon")} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
           <Button className="gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20">
             <Plus className="w-4 h-4" />
             Create Custom Role
