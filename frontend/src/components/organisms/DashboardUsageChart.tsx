@@ -21,10 +21,23 @@ export function DashboardUsageChart() {
       try {
         const { data: res } = await api.get("/owner/analytics/users")
         // Map daily_breakdown to the chart's expected `trends` shape
-        const trends = (res.daily_breakdown || res.trends || []).map((d: any) => ({
+        let trends = (res.daily_breakdown || res.trends || []).map((d: any) => ({
           date: d.date,
           rows: d.active ?? d.count ?? d.rows ?? 0,
         }))
+        
+        if (trends.length === 0) {
+          // Fill with last 30 days of zeros so chart always renders
+          trends = Array.from({ length: 30 }).map((_, i) => {
+            const d = new Date()
+            d.setDate(d.getDate() - (29 - i))
+            return {
+              date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+              rows: 0
+            }
+          })
+        }
+        
         setData(trends)
         setGrowth(res.growth_percentage ?? res.mau_growth ?? 0)
       } catch (error) {
