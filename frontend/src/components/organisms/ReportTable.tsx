@@ -152,10 +152,10 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
               </TableCell>
               <TableCell>{getStatusBadge(report.status, report.progress)}</TableCell>
               <TableCell className="text-muted-foreground text-sm">
-                {report.ai_tokens_used.toLocaleString()}
+                {(report.ai_tokens_used || 0).toLocaleString()}
               </TableCell>
               <TableCell className="text-muted-foreground text-sm">
-                {format(new Date(report.created_at), "MMM d, yyyy")}
+                {report.created_at ? format(new Date(report.created_at), "MMM d, yyyy") : "N/A"}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
