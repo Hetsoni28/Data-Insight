@@ -71,6 +71,7 @@ export default function AnalystDashboard() {
 
   return (
     <div className="flex-1 p-8 overflow-y-auto">
+      <title>Analyst Dashboard | Data Insight</title>
       <div className="max-w-7xl mx-auto space-y-8 pb-12">
         <AnalystDashboardHeader
           greetingName={greetingName}

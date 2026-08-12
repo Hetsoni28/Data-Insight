@@ -4,6 +4,6 @@ export const metadata = {
   title: "Edit Dashboard",
 }
 
-export default function AdminDashboardBuilderWorkspacePage() {
+export default function DashboardBuilderWorkspacePage() {
   return <AnalystBuilderShell />
 }

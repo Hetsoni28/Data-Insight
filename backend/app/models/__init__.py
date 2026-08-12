@@ -31,6 +31,7 @@ from app.models.tenant_role import TenantRole
 from app.models.tenant_department import TenantDepartment
 from app.models.report_schedule import ReportSchedule
 from app.models.dashboard import Dashboard
+from app.models.chart import Chart
 from app.models.stripe_event import StripeEvent
 from app.models.rental_contract import RentalContract, ContractType, ContractStatus
 from app.models.resource_request import ResourceRequest, ResourceRequestType, ResourceRequestStatus

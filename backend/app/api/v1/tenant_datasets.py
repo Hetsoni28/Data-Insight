@@ -237,6 +237,39 @@ async def get_dataset_activities(
         import traceback; traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/{dataset_id}/schema", summary="Get Dataset Schema")
+async def get_dataset_schema(
+    dataset_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db)
+):
+    tenant_id = current_user.tenant_id
+    base_conditions = [
+        Dataset.id == dataset_id,
+        Dataset.tenant_id == tenant_id,
+        Dataset.is_deleted == False
+    ]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+        
+    stmt = select(Dataset).where(*base_conditions)
+    res = await db.execute(stmt)
+    dataset = res.scalar_one_or_none()
+    
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+        
+    profile = dataset.profile or {}
+    columns = profile.get("columns", [])
+    
+    return {
+        "status": "success",
+        "data": {
+            "columns": columns
+        }
+    }
+
 @router.get("/{dataset_id}", summary="Get Dataset Details")
 async def get_dataset_details(
     dataset_id: uuid.UUID,

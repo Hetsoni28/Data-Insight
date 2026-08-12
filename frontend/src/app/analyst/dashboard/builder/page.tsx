@@ -4,6 +4,6 @@ export const metadata = {
   title: "Dashboard Builder",
 }
 
-export default function AdminDashboardBuilderHubPage() {
+export default function DashboardBuilderHubPage() {
   return <AnalystBuilderHub />
 }

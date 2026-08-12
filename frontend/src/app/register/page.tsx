@@ -1,8 +1,8 @@
-﻿import { AuthLayout } from "@/components/templates/AuthLayout"
+import { AuthLayout } from "@/components/templates/AuthLayout"
 import { LoginForm } from "@/components/organisms/LoginForm"
 
 export const metadata = {
-  title: "Register & Request Access",
+  title: "Register",
   description: "Join your organization on Data Insight",
 }
 

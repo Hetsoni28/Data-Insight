@@ -1,4 +1,4 @@
-﻿import { Navbar } from "@/components/organisms/Navbar"
+import { Navbar } from "@/components/organisms/Navbar"
 import { HeroSection } from "@/components/organisms/HeroSection"
 import { StopReportingSection } from "@/components/organisms/StopReportingSection"
 import { ArchitectureSection } from "@/components/organisms/ArchitectureSection"
@@ -13,7 +13,7 @@ import { CtaSection } from "@/components/organisms/CtaSection"
 import { Footer } from "@/components/organisms/Footer"
 
 export const metadata = {
-  title: "Data Insight — Enterprise AI Business Intelligence & Dedicated System Rental",
+  title: "Enterprise AI Business Intelligence",
   description:
     "Turn-key enterprise AI Business Intelligence platform available for dedicated VPC rental and custom global whitelabel licensing. Living multi-tab Excel workbooks, 6-stage autonomous data ingestion, and zero-retention security.",
 }
