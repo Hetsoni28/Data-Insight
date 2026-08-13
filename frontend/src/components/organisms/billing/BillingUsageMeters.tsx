@@ -204,7 +204,15 @@ export function BillingUsageMeters({ usage }: Props) {
       {/* Meter Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {meters.map((m, i) => (
-          <MeterCard key={m.key} delay={i * 0.06} {...m} />
+          <MeterCard
+            key={m.key}
+            label={m.label}
+            icon={m.icon}
+            meter={m.meter}
+            usedLabel={m.usedLabel}
+            limitLabel={m.limitLabel}
+            delay={i * 0.06}
+          />
         ))}
       </div>
     </div>
