@@ -109,10 +109,10 @@ export function WorkspacePicker({ workspaces, activeWs, loadingWs, isCollapsed =
         width: isCollapsed ? 224 : dropdownPos.width,
         zIndex: 9999,
       }}
-      className="bg-[#0d1618] border border-white/10 rounded-xl shadow-2xl overflow-hidden shadow-black/60 animate-in fade-in slide-in-from-top-2 duration-150"
+      className="bg-white dark:bg-[#0d1618] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
     >
       <div className="px-2 py-2">
-        <div className="px-2 pb-2 text-[10px] font-bold text-emerald-100/50 uppercase tracking-widest">
+        <div className="px-2 pb-2 text-[10px] font-bold text-slate-500 dark:text-emerald-100/50 uppercase tracking-widest">
           Switch Workspace
         </div>
         <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
@@ -122,27 +122,27 @@ export function WorkspacePicker({ workspaces, activeWs, loadingWs, isCollapsed =
               onClick={() => handleSelectWorkspace(ws)}
               className={`flex items-center justify-between w-full text-left px-2 py-2 text-sm rounded-lg transition-colors ${
                 activeWs?.id === ws.id
-                  ? 'bg-emerald-500/10 text-emerald-100'
-                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                  ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-100'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <div className="flex items-center gap-2 truncate">
-                <span className="w-5 h-5 flex items-center justify-center bg-white/5 rounded font-emoji text-xs">{ws.icon}</span>
+                <span className="w-5 h-5 flex items-center justify-center bg-slate-100 dark:bg-white/5 rounded font-emoji text-xs">{ws.icon}</span>
                 <span className="truncate">{ws.name}</span>
               </div>
-              {activeWs?.id === ws.id && <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
+              {activeWs?.id === ws.id && <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />}
             </button>
           ))}
         </div>
 
-        <div className="h-px bg-white/10 my-2" />
+        <div className="h-px bg-slate-200 dark:bg-white/10 my-2" />
 
         <button
           onClick={() => {
             setIsOpen(false)
             setShowCreateModal(true)
           }}
-          className="flex items-center gap-2 w-full text-left px-2 py-2 text-sm rounded-lg text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+          className="flex items-center gap-2 w-full text-left px-2 py-2 text-sm rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Create new workspace
