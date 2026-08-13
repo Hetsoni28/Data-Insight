@@ -85,6 +85,12 @@ class Tenant(Base):
     mrr: Mapped[float] = mapped_column(Float, default=0.0)  # cached Monthly Recurring Revenue
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Provisioning (enterprise dedicated DB/storage)
+    # Values: "none" | "pending" | "ready" | "failed"
+    # The dedicated_db_url field is ALWAYS stored AES-256 Fernet encrypted
+    provisioning_status: Mapped[str] = mapped_column(String(20), default="none", nullable=False)
+    provisioning_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     # Status and Lifecycle
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_suspended: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
