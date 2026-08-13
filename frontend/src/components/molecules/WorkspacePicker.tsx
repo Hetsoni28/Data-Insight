@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { Plus, ChevronsUpDown, Check, X, Loader2 } from "lucide-react"
 import type { Workspace } from "@/types"
 import { useState, useRef, useEffect } from "react"
@@ -196,10 +196,10 @@ export function WorkspacePicker({ workspaces, activeWs, loadingWs, isCollapsed =
       {/* Create Workspace Modal */}
       {showCreateModal && mounted && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-[#0f1b1e] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl shadow-black/50 overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-              <h3 className="text-lg font-semibold text-white">Create Workspace</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-white transition-colors">
+          <div className="bg-white dark:bg-[#0f1b1e] border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/5">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Create Workspace</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -207,7 +207,7 @@ export function WorkspacePicker({ workspaces, activeWs, loadingWs, isCollapsed =
             <form onSubmit={handleCreateWorkspace} className="p-6">
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="wsName" className="block text-sm font-medium text-slate-300 mb-1.5">
+                  <label htmlFor="wsName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                     Workspace Name
                   </label>
                   <input
@@ -216,7 +216,7 @@ export function WorkspacePicker({ workspaces, activeWs, loadingWs, isCollapsed =
                     value={newWsName}
                     onChange={(e) => setNewWsName(e.target.value)}
                     placeholder="e.g. Marketing Team"
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+                    className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
                     autoFocus
                   />
                 </div>
@@ -226,7 +226,7 @@ export function WorkspacePicker({ workspaces, activeWs, loadingWs, isCollapsed =
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-white/5 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
