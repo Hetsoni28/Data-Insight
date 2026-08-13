@@ -35,6 +35,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from prometheus_fastapi_instrumentator import Instrumentator
 from app.worker.celery_app import celery_app  # Initialize Celery app
+from app.core.websockets import manager as ws_manager
 
 # ─── Loguru Configuration ─────────────────────────────────────────────────────
 logger.remove()
@@ -69,8 +70,10 @@ async def lifespan(app: FastAPI):
     logger.info(
         f"Starting {settings.APP_NAME} v{settings.APP_VERSION} [{settings.APP_ENV}]"
     )
+    await ws_manager.start_listener()
     yield
     logger.info(f"Shutting down {settings.APP_NAME}...")
+    await ws_manager.stop_listener()
     await engine.dispose()
     await db_router.dispose_all()
     await close_redis_pool()
@@ -168,6 +171,9 @@ def create_app() -> FastAPI:
 
     # ─── Register API Routes ──────────────────────────────────────────────
     app.include_router(api_router, prefix="/api/v1")
+    
+    from app.api.v1.websockets import router as ws_router
+    app.include_router(ws_router, prefix="/api/v1", tags=["WebSockets"])
 
     # ─── Local Storage Fallback Mount ─────────────────────────────────────
     import os

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -38,8 +38,8 @@ export default function ReportsPage() {
 
   useEffect(() => {
     // Polling mechanism if any report is still generating
-    const hasPendingReports = reports.some(
-      (r) => r.status.toUpperCase() === "PENDING" || r.status.toUpperCase() === "GENERATING"
+    const hasPendingReports = Array.isArray(reports) && reports.some(
+      (r) => r.status?.toUpperCase() === "PENDING" || r.status?.toUpperCase() === "GENERATING"
     );
 
     let intervalId: NodeJS.Timeout;

@@ -1,5 +1,5 @@
-﻿import { MetricCard } from "@/components/molecules/MetricCard"
-import { Building2, Users, Database, FileSpreadsheet, Zap, DollarSign, Activity, Server, Clock, Code, AlertTriangle, Layers } from "lucide-react"
+import { MetricCard } from "@/components/molecules/MetricCard"
+import { Building2, Users, Database, FileSpreadsheet, Zap, DollarSign, Activity, Server, Clock, Code, AlertTriangle, Layers, RefreshCw } from "lucide-react"
 
 interface LiveKpiGridProps {
   analytics: any;
@@ -7,7 +7,25 @@ interface LiveKpiGridProps {
 }
 
 export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
-  if (!analytics || !aiOverview) return null;
+  if (!analytics || !aiOverview) return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div
+          key={i}
+          className="h-28 rounded-2xl border border-slate-200/60 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex items-center justify-center"
+        >
+          {i === 5 ? (
+            <div className="flex flex-col items-center gap-1 text-center px-4">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <p className="text-xs text-slate-500 dark:text-slate-400">Metrics unavailable</p>
+            </div>
+          ) : (
+            <div className="w-full h-full animate-pulse" />
+          )}
+        </div>
+      ))}
+    </div>
+  );
 
   const aiKpis = aiOverview.kpis;
   const aiSparklines = aiOverview.sparklines;

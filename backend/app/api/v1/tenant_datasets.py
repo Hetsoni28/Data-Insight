@@ -14,6 +14,7 @@ from app.models.dataset import Dataset, DatasetStatus
 from app.models.ai_token_usage import AITokenUsage
 from app.models.audit_log import AuditLog
 from pydantic import BaseModel
+from app.core.websockets import manager as ws_manager
 
 router = APIRouter()
 
@@ -369,6 +370,12 @@ async def upload_dataset(
     
         await db.commit()
         await db.refresh(d)
+        
+        await ws_manager.publish_tenant_event(
+            str(tenant_id),
+            "dataset_uploaded",
+            {"dataset_id": str(d.id), "name": d.name}
+        )
     
         return {"status": "success", "data": {"id": str(d.id)}}
 
@@ -418,6 +425,13 @@ async def delete_dataset(
     db.add(audit)
     
     await db.commit()
+    
+    await ws_manager.publish_tenant_event(
+        str(tenant_id),
+        "dataset_deleted",
+        {"dataset_id": str(d.id)}
+    )
+    
     return {"status": "success"}
 
 async def simulate_ai_workflow(tenant_id: uuid.UUID, dataset_id: uuid.UUID, workflow_type: str, user_id: uuid.UUID):
@@ -463,6 +477,12 @@ async def simulate_ai_workflow(tenant_id: uuid.UUID, dataset_id: uuid.UUID, work
             )
             db.add(audit)
             await db.commit()
+            
+            await ws_manager.publish_tenant_event(
+                str(tenant_id),
+                "dataset_processed",
+                {"dataset_id": str(d.id), "workflow_type": workflow_type}
+            )
 
 @router.post("/{dataset_id}/analyze", summary="Analyze Dataset", dependencies=[Depends(RequirePermission("DATASET_ANALYZE"))])
 async def analyze_dataset(

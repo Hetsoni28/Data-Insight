@@ -1,4 +1,4 @@
-﻿﻿"use client"
+﻿"use client"
 import { useState, useEffect } from "react"
 import { Building2, Save, Loader2, Settings2 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
@@ -40,7 +40,7 @@ export default function SettingsPage() {
   const [pendingMembers, setPendingMembers] = useState(0)
 
   useEffect(() => {
-    if (user && !user.is_owner && user.role !== "org_admin") return router.push("/dashboard")
+    if (user && !user.is_owner && user.role !== "org_admin") return router.push("/owner/dashboard")
     if (user) loadData()
   }, [user, router])
 
@@ -105,7 +105,7 @@ export default function SettingsPage() {
 
   if (!user || (!user.is_owner && user.role !== "org_admin")) return (
     <div className="p-8 max-w-3xl mx-auto min-h-[calc(100vh-100px)]">
-      <StateLayout illustration={<AccessRestrictedIllustration />} headline="Access Restricted" description="No permission." primaryAction={{ label: "Dashboard", icon: <Building2 className="w-4 h-4" />, onClick: () => router.push("/dashboard") }} />
+      <StateLayout illustration={<AccessRestrictedIllustration />} headline="Access Restricted" description="No permission." primaryAction={{ label: "Dashboard", icon: <Building2 className="w-4 h-4" />, onClick: () => router.push("/owner/dashboard") }} />
     </div>
   )
   if (isLoading) return (

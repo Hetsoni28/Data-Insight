@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState } from "react"
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts"
 import { ChartTooltip } from "@/components/molecules/ChartTooltip"
@@ -38,8 +38,8 @@ export function OrganizationAnalytics({ chartData }: { chartData: ChartPoint[] }
                 <stop offset="95%" stopColor="#06B6D4" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="gRep" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4} />
+                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="gStore" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.4} />
@@ -50,9 +50,9 @@ export function OrganizationAnalytics({ chartData }: { chartData: ChartPoint[] }
             <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} interval={4} />
             <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} />
             <Tooltip content={<ChartTooltip />} />
-            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, paddingTop: 12, color: "#64748b" }} />
+            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, paddingTop: 12 }} formatter={(value) => <span className="text-slate-600 dark:text-slate-400 font-medium ml-1 mr-2">{value}</span>} />
             <Area type="monotone" dataKey="ai_usage" name="AI Usage" stroke="#06B6D4" fill="url(#gAI)" strokeWidth={2} dot={false} />
-            <Area type="monotone" dataKey="reports" name="Reports" stroke="#10B981" fill="url(#gRep)" strokeWidth={2} dot={false} />
+            <Area type="monotone" dataKey="reports" name="Reports" stroke="#8B5CF6" fill="url(#gRep)" strokeWidth={2} dot={false} />
             <Area type="monotone" dataKey="storage_mb" name="Storage (MB)" stroke="#F59E0B" fill="url(#gStore)" strokeWidth={2} dot={false} />
           </AreaChart>
         ) : (
@@ -61,9 +61,9 @@ export function OrganizationAnalytics({ chartData }: { chartData: ChartPoint[] }
             <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} interval={4} />
             <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} />
             <Tooltip content={<ChartTooltip />} />
-            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, paddingTop: 12, color: "#64748b" }} />
+            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, paddingTop: 12 }} formatter={(value) => <span className="text-slate-600 dark:text-slate-400 font-medium ml-1 mr-2">{value}</span>} />
             <Bar dataKey="ai_usage" name="AI Usage" fill="#06B6D4" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="reports" name="Reports" fill="#10B981" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="reports" name="Reports" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
             <Bar dataKey="storage_mb" name="Storage (MB)" fill="#F59E0B" radius={[4, 4, 0, 0]} />
           </BarChart>
         )}

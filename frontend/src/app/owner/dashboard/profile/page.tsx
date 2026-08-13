@@ -1,13 +1,14 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
-import { Save, Loader2, ImageIcon, Terminal, Copy } from "lucide-react";
+import { Save, Loader2, ImageIcon, Terminal, Copy, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import api from "@/lib/api";
 
 import { useAuth } from "@/hooks/useAuth";
 import { updateMe } from "@/lib/users.service";
@@ -123,6 +124,35 @@ export default function PlatformOwnerProfilePage() {
           <DialogHeader><DialogTitle className="flex items-center gap-2"><ImageIcon className="h-5 w-5 text-emerald-600" /> Update Avatar</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4"><Label>Image URL</Label><Input type="url" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..." /></div>
           <DialogFooter><Button variant="outline" onClick={() => setIsAvatarModalOpen(false)}>Cancel</Button><Button onClick={handleSaveProfile} className="bg-emerald-600 hover:bg-emerald-700">Save</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-emerald-600" /> Change Password
+            </DialogTitle>
+            <DialogDescription>
+              We will send a secure password reset link to your registered email address.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Label>Email Address</Label>
+            <Input type="email" value={user?.email || ""} disabled className="bg-slate-50 dark:bg-slate-900" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPasswordModalOpen(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              try {
+                await api.post("/auth/forgot-password", { email: user?.email });
+                toast.success("Password reset requested", { description: "Check your email for the secure link." });
+                setIsPasswordModalOpen(false);
+              } catch (err) {
+                toast.error("Failed to request password reset.");
+              }
+            }} className="bg-emerald-600 hover:bg-emerald-700">Send Reset Link</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

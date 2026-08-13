@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -25,6 +25,12 @@ export function ExecutiveAIPanel() {
   useEffect(() => {
     scrollToBottom()
   }, [messages, isTyping])
+
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true)
+    window.addEventListener('toggle-executive-ai', handleOpen)
+    return () => window.removeEventListener('toggle-executive-ai', handleOpen)
+  }, [])
 
   const handleSend = async () => {
     if (!input.trim()) return

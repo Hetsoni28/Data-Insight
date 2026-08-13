@@ -20,12 +20,12 @@ async def auth_client(client: AsyncClient, test_db: AsyncSession):
     app.dependency_overrides.clear()
 
 @pytest.mark.asyncio
-async def test_data_connection_postgres_success(auth_client: AsyncClient):
+async def test_data_connection_snowflake_success(auth_client: AsyncClient):
     res = await auth_client.post(
         '/api/v1/tenant-settings/data-connections/test',
         json={
-            'provider': 'postgres',
-            'host': 'db.example.com',
+            'provider': 'snowflake',
+            'host': 'account_locator.snowflakecomputing.com',
             'username': 'admin',
             'password': 'secretpassword'
         }
@@ -48,7 +48,7 @@ async def test_data_connection_postgres_failure(auth_client: AsyncClient):
 async def test_verify_domain_success(auth_client: AsyncClient):
     res = await auth_client.post(
         '/api/v1/tenant-settings/advanced/verify-domain',
-        json={'domain': 'analytics.success.com'}
+        json={'domain': 'example.com'}
     )
     assert res.status_code == 200
     assert res.json()['status'] == 'verified'

@@ -1,7 +1,8 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
-import { Clock, Download, Share2, FileText, CheckCircle2 } from "lucide-react"
+import { Clock, Download, Share2, FileText, CheckCircle2, AlertCircle } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
 
 interface AuditLog {
@@ -17,19 +18,21 @@ interface ReportAuditTimelineProps {
 
 export function ReportAuditTimeline({ logs, isLoading }: ReportAuditTimelineProps) {
   const getActionIcon = (action: string) => {
-    if (action.includes('generated') || action.includes('started')) return <FileText className="w-4 h-4 text-emerald-600" />
-    if (action.includes('download')) return <Download className="w-4 h-4 text-emerald-600" />
-    if (action.includes('share')) return <Share2 className="w-4 h-4 text-emerald-600" />
-    if (action.includes('ready')) return <CheckCircle2 className="w-4 h-4 text-green-600" />
-    return <Clock className="w-4 h-4 text-slate-600" />
+    if (action.includes('generated') || action.includes('started')) return <FileText className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+    if (action.includes('download')) return <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+    if (action.includes('share')) return <Share2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+    if (action.includes('ready')) return <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+    if (action.includes('failed') || action.includes('error')) return <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+    return <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
   }
 
   const getActionColor = (action: string) => {
-    if (action.includes('generated') || action.includes('started')) return "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20"
-    if (action.includes('download')) return "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20"
-    if (action.includes('share')) return "bg-emerald-50 border-emerald-200"
-    if (action.includes('ready')) return "bg-green-50 border-green-200"
-    return "bg-slate-50 border-slate-200"
+    if (action.includes('generated') || action.includes('started')) return "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30 ring-4 ring-emerald-50 dark:ring-emerald-500/5"
+    if (action.includes('download')) return "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30 ring-4 ring-emerald-50 dark:ring-emerald-500/5"
+    if (action.includes('share')) return "bg-blue-50 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/30 ring-4 ring-blue-50 dark:ring-blue-500/5"
+    if (action.includes('ready')) return "bg-teal-50 border-teal-200 dark:bg-teal-500/10 dark:border-teal-500/30 ring-4 ring-teal-50 dark:ring-teal-500/5"
+    if (action.includes('failed') || action.includes('error')) return "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30 ring-4 ring-rose-50 dark:ring-rose-500/5"
+    return "bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700 ring-4 ring-slate-50 dark:ring-slate-800/50"
   }
 
   const formatAction = (action: string) => {
@@ -51,50 +54,69 @@ export function ReportAuditTimeline({ logs, isLoading }: ReportAuditTimelineProp
   }, [totalPages, currentPage])
 
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-800 rounded-xl p-5 w-full flex flex-col">
-      <div className="flex items-center justify-between mb-6 shrink-0">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center">
-          <Clock className="w-5 h-5 mr-2 text-slate-400" />
+    <div className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-6 w-full flex flex-col h-full shadow-sm relative overflow-hidden">
+      
+      {/* Decorative gradient blur */}
+      <div className="absolute -bottom-20 -right-20 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="flex items-center justify-between mb-6 shrink-0 relative z-10">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center tracking-tight">
+          <Clock className="w-4 h-4 mr-2 text-emerald-500" />
           Recent Activity
         </h3>
       </div>
       
-      <div className="overflow-y-auto pr-2 custom-scrollbar">
+      <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 relative z-10">
         {isLoading ? (
-          <div className="flex flex-col gap-4 animate-pulse">
+          <div className="flex flex-col gap-6 animate-pulse mt-2">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/5 shrink-0"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-slate-200 dark:bg-white/5 rounded w-3/4"></div>
-                  <div className="h-3 bg-slate-200 dark:bg-white/5 rounded w-1/4"></div>
+              <div key={i} className="flex gap-4 items-start">
+                <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700/50 shrink-0"></div>
+                <div className="flex-1 space-y-2 mt-1">
+                  <div className="h-3.5 bg-slate-200 dark:bg-slate-700/50 rounded w-3/4"></div>
+                  <div className="h-2.5 bg-slate-200 dark:bg-slate-700/50 rounded w-1/4"></div>
                 </div>
               </div>
             ))}
           </div>
         ) : paginatedLogs.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-500 py-10">
-            <Clock className="w-8 h-8 mb-2 opacity-20" />
-            <p className="text-sm">No recent activity</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="h-full flex flex-col items-center justify-center text-slate-500 py-12"
+          >
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-full mb-3">
+              <Clock className="w-6 h-6 text-slate-400" />
+            </div>
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">No recent activity</p>
+          </motion.div>
         ) : (
-          <div className="relative border-l-2 border-slate-100 dark:border-slate-800 ml-4 space-y-6">
-            {paginatedLogs.map((log) => (
-              <div key={log.id} className="relative pl-6">
-                <span className={`absolute -left-[17px] top-1 flex items-center justify-center w-8 h-8 rounded-full border-2 bg-white dark:bg-white/5 ${getActionColor(log.action)}`}>
-                  {getActionIcon(log.action)}
-                </span>
-                
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-slate-900 dark:text-white">
-                    {formatAction(log.action)}
+          <div className="relative border-l border-dashed border-slate-200 dark:border-slate-700 ml-[15px] space-y-6 pb-2 pt-2">
+            <AnimatePresence mode="popLayout">
+              {paginatedLogs.map((log, index) => (
+                <motion.div 
+                  key={log.id} 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="relative pl-7 group"
+                >
+                  <span className={`absolute -left-[15px] top-0.5 flex items-center justify-center w-7 h-7 rounded-full border shadow-sm transition-transform duration-300 group-hover:scale-110 ${getActionColor(log.action)}`}>
+                    {getActionIcon(log.action)}
                   </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    {new Date(log.created_at).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            ))}
+                  
+                  <div className="flex flex-col group-hover:translate-x-1 transition-transform duration-300">
+                    <span className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 leading-tight">
+                      {formatAction(log.action)}
+                    </span>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
+                      {new Date(log.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>

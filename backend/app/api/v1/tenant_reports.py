@@ -23,6 +23,7 @@ from app.schemas.report import ReportScheduleCreate, ReportScheduleResponse
 from pydantic import BaseModel, Field
 import io
 import pandas as pd
+from app.core.websockets import manager as ws_manager
 from app.core.storage import download_file_bytes, upload_file, DATASETS_BUCKET, REPORTS_BUCKET, report_storage_path
 from app.worker.tasks.ai_report_tasks import (
     generate_executive_summary_task, 
@@ -97,7 +98,13 @@ async def list_reports(
     tenant_id = current_user.tenant_id
     
     base_conditions = [Report.tenant_id == tenant_id, Report.is_deleted == False]
-    if workspace:
+    
+    # Strict Workspace Enforcement
+    if current_user.role not in ["org_admin", "owner"]:
+        if not workspace:
+            raise HTTPException(status_code=403, detail="Workspace context required.")
+        base_conditions.append(Report.workspace_id == workspace.id)
+    elif workspace:
         base_conditions.append(Report.workspace_id == workspace.id)
         
     stmt = select(Report).where(*base_conditions).order_by(desc(Report.created_at))
@@ -196,6 +203,13 @@ async def create_schedule(
     db.add(schedule)
     await db.commit()
     await db.refresh(schedule)
+    
+    await ws_manager.publish_tenant_event(
+        str(tenant_id), 
+        "schedule_created", 
+        {"schedule_id": str(schedule.id), "name": schedule.name}
+    )
+    
     return schedule
 
 @router.get("/schedules", response_model=List[ReportScheduleResponse], summary="List Report Schedules")
@@ -224,6 +238,13 @@ async def toggle_schedule(
     schedule.is_active = not schedule.is_active
     await db.commit()
     await db.refresh(schedule)
+    
+    await ws_manager.publish_tenant_event(
+        str(tenant_id), 
+        "schedule_updated", 
+        {"schedule_id": str(schedule.id), "is_active": schedule.is_active}
+    )
+    
     return schedule
 
 @router.delete("/schedules/{schedule_id}", status_code=204, summary="Delete Schedule")
@@ -241,17 +262,38 @@ async def delete_schedule(
         
     await db.delete(schedule)
     await db.commit()
+    
+    await ws_manager.publish_tenant_event(
+        str(tenant_id), 
+        "schedule_deleted", 
+        {"schedule_id": str(schedule_id)}
+    )
+    
     return None
 
 
 @router.get("/{report_id}", summary="Get Report by ID")
 async def get_report(
     report_id: uuid.UUID,
+    request: Request,
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
-    stmt = select(Report).where(Report.id == report_id, Report.tenant_id == tenant_id, Report.is_deleted == False)
+    
+    base_conditions = [Report.id == report_id, Report.tenant_id == tenant_id, Report.is_deleted == False]
+    
+    # Strict Workspace Enforcement
+    # If the user is an analyst, they shouldn't be able to access cross-workspace reports by ID.
+    # We must enforce workspace_id if it's passed, or if the user is not an admin, we verify the report belongs to a workspace they are in.
+    # (Since we only pass workspace via header, we require it for non-admins)
+    if current_user.role not in ["org_admin", "owner"]:
+        workspace = await get_current_workspace(request.headers.get("x-workspace-id"), current_user, db)
+        if not workspace:
+            raise HTTPException(status_code=403, detail="Workspace context required to access this report.")
+        base_conditions.append(Report.workspace_id == workspace.id)
+        
+    stmt = select(Report).where(*base_conditions)
     res = await db.execute(stmt)
     report = res.scalars().first()
     
@@ -454,6 +496,12 @@ async def generate_report(
     await db.commit()
     await db.refresh(r)
     
+    await ws_manager.publish_tenant_event(
+        str(tenant_id), 
+        "report_created", 
+        {"report_id": str(r.id), "title": r.title, "status": r.status.value}
+    )
+    
     # Dispatch Celery tasks dynamically based on report_category
     if req.report_category == "executive":
         generate_executive_summary_task.delay(str(tenant_id), str(r.id), str(dataset.id))
@@ -471,7 +519,7 @@ async def generate_report(
         
     return {"status": "success", "message": "Report generation started", "report_id": str(r.id)}
 
-@router.post("/{report_id}/action/{action_type}", summary="Perform Action on Report", dependencies=[Depends(RequireRole(["org_admin"]))])
+@router.post("/{report_id}/action/{action_type}", summary="Perform Action on Report")
 async def report_action(
     report_id: uuid.UUID,
     action_type: str,
@@ -481,12 +529,29 @@ async def report_action(
 ):
     try:
         tenant_id = current_user.tenant_id
-        stmt = select(Report).where(Report.id == report_id, Report.tenant_id == tenant_id)
+        base_conditions = [Report.id == report_id, Report.tenant_id == tenant_id]
+        
+        # Workspace Enforcement for non-admins
+        if current_user.role not in ["org_admin", "owner"]:
+            workspace = await get_current_workspace(request.headers.get("x-workspace-id"), current_user, db)
+            if not workspace:
+                raise HTTPException(status_code=403, detail="Workspace context required.")
+            base_conditions.append(Report.workspace_id == workspace.id)
+
+        stmt = select(Report).where(*base_conditions)
         res = await db.execute(stmt)
         r = res.scalars().first()
     
         if not r:
-            raise HTTPException(status_code=404, detail="Report not found")
+            raise HTTPException(status_code=404, detail="Report not found or access denied")
+        
+        # RBAC and Ownership check
+        if action_type in ["delete", "archive"]:
+            if current_user.role not in ["org_admin", "owner", "manager"]:
+                # Analysts can only delete their own reports
+                if r.created_by_id != current_user.id:
+                    raise HTTPException(status_code=403, detail="You do not have permission to delete this report.")
+                    
         
         if action_type == "delete":
             r.is_deleted = True
@@ -497,6 +562,12 @@ async def report_action(
         )
         db.add(audit)
         await db.commit()
+        
+        await ws_manager.publish_tenant_event(
+            str(tenant_id), 
+            f"report_{action_type}", 
+            {"report_id": str(r.id)}
+        )
     
         return {"status": "success", "message": f"Action {action_type} completed"}
 
@@ -518,7 +589,15 @@ async def download_report(
 ):
     try:
         tenant_id = current_user.tenant_id
-        stmt = select(Report).where(Report.id == report_id, Report.tenant_id == tenant_id)
+        base_conditions = [Report.id == report_id, Report.tenant_id == tenant_id]
+        
+        if current_user.role not in ["org_admin", "owner"]:
+            workspace = await get_current_workspace(request.headers.get("x-workspace-id"), current_user, db)
+            if not workspace:
+                raise HTTPException(status_code=403, detail="Workspace context required for download.")
+            base_conditions.append(Report.workspace_id == workspace.id)
+            
+        stmt = select(Report).where(*base_conditions)
         res = await db.execute(stmt)
         report = res.scalars().first()
     

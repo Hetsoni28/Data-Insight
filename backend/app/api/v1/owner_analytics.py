@@ -136,10 +136,10 @@ async def get_ai_summary(
     """
     Returns an AI-generated executive briefing.
     In a real production environment, a background worker would query the DB daily,
-    pass the metrics to OpenAI, and store the resulting text to be served here.
+    pass the metrics to Gemini, and store the resulting text to be served here.
+    For this demo, we return a dynamic but structured mockup string.
     """
     
-    # Mocking the AI response for Phase 1 UI integration
     return {
         "status": "success",
         "briefing": {

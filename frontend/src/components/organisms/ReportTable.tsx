@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
@@ -32,9 +32,10 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const totalItems = reports.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedReports = reports.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const safeReports = Array.isArray(reports) ? reports : [];
+  const totalItems = safeReports.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const paginatedReports = safeReports.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const handleDelete = async (reportId: string) => {
     if (!window.confirm("Are you sure you want to delete this report?")) {
       return;
@@ -151,10 +152,10 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
               </TableCell>
               <TableCell>{getStatusBadge(report.status, report.progress)}</TableCell>
               <TableCell className="text-muted-foreground text-sm">
-                {report.ai_tokens_used.toLocaleString()}
+                {(report.ai_tokens_used || 0).toLocaleString()}
               </TableCell>
               <TableCell className="text-muted-foreground text-sm">
-                {format(new Date(report.created_at), "MMM d, yyyy")}
+                {report.created_at ? format(new Date(report.created_at), "MMM d, yyyy") : "N/A"}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
