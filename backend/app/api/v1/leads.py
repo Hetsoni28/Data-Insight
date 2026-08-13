@@ -33,8 +33,8 @@ router = APIRouter()
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 async def _require_owner(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role not in (UserRole.owner, UserRole.super_admin):
-        raise HTTPException(status_code=403, detail="Owner access required.")
+    if current_user.role != UserRole.owner:
+        raise HTTPException(status_code=403, detail="Not authorized.")
     return current_user
 
 

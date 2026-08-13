@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import { 
@@ -103,6 +103,10 @@ export function UsersDataGrid() {
     impersonateMutation.mutate({ tenantId: user.tenant_id, userId: user.id, reason: "Admin Support" })
   }
   
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [roleFilter, setRoleFilter] = useState("All")
+  const [statusFilter, setStatusFilter] = useState("All")
+
   const handleResetPassword = (user: any) => {
     if (!user.email) return
     resetPasswordMutation.mutate(user.email)
@@ -110,12 +114,20 @@ export function UsersDataGrid() {
 
   const filteredUsers = useMemo(() => {
     const list = Array.isArray(users) ? users : []
-    return list.filter(u => 
-      (u?.email || "").toLowerCase().includes(search.toLowerCase()) || 
-      (u?.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (u?.tenant_name || "").toLowerCase().includes(search.toLowerCase())
-    )
-  }, [users, search])
+    return list.filter(u => {
+      const matchesSearch = (u?.email || "").toLowerCase().includes(search.toLowerCase()) || 
+                            (u?.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
+                            (u?.tenant_name || "").toLowerCase().includes(search.toLowerCase())
+      
+      const matchesRole = roleFilter === "All" || (u?.role || "").toLowerCase() === roleFilter.toLowerCase();
+      
+      const matchesStatus = statusFilter === "All" 
+        ? true 
+        : statusFilter === "Active" ? u.is_active : !u.is_active;
+
+      return matchesSearch && matchesRole && matchesStatus;
+    })
+  }, [users, search, roleFilter, statusFilter])
 
   // Pagination Logic
   const totalItems = filteredUsers.length
@@ -165,7 +177,11 @@ export function UsersDataGrid() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 bg-white dark:bg-white/5 dark:border-white/10 shadow-sm rounded-md">
+            <Button 
+              onClick={() => setIsFilterOpen(!isFilterOpen)} 
+              variant={isFilterOpen ? "default" : "outline"} 
+              className={`h-10 shadow-sm rounded-md border-slate-200/60 dark:border-white/10 ${!isFilterOpen ? 'bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300' : ''}`}
+            >
               <Filter className="h-4 w-4 mr-2" />
               Filters
             </Button>
@@ -175,6 +191,39 @@ export function UsersDataGrid() {
             </Button>
           </div>
         </div>
+
+        {/* Advanced Filters Panel */}
+        {isFilterOpen && (
+          <div className="p-4 border-b border-slate-200/60 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex flex-wrap gap-4 text-sm">
+              <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Role</label>
+                  <select 
+                      value={roleFilter}
+                      onChange={(e) => setRoleFilter(e.target.value)}
+                      className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+                  >
+                      <option value="All">All Roles</option>
+                      <option value="owner">Owner</option>
+                      <option value="org_admin">Org Admin</option>
+                      <option value="manager">Manager</option>
+                      <option value="analyst">Analyst</option>
+                      <option value="viewer">Viewer</option>
+                  </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status</label>
+                  <select 
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+                  >
+                      <option value="All">All Statuses</option>
+                      <option value="Active">Active</option>
+                      <option value="Suspended">Suspended</option>
+                  </select>
+              </div>
+          </div>
+        )}
 
         {/* Data Table */}
         <div className="overflow-x-auto">

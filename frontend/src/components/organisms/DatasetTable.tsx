@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { format } from "date-fns";
-import { Loader2, FileText, Download, Trash2, Database, AlertCircle } from "lucide-react";
+import { Loader2, FileText, Download, Trash2, Database, AlertCircle, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Table,
@@ -23,6 +23,7 @@ import { Plus } from "lucide-react";
 import { LoadingPulse } from "@/components/molecules/LoadingPulse";
 import { useState, useMemo } from "react";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
+import { DatasetAnalyticsDrawer } from "@/components/organisms/DatasetAnalyticsDrawer";
 
 interface DatasetTableProps {
   datasets: Dataset[];
@@ -34,6 +35,9 @@ interface DatasetTableProps {
 export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: DatasetTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   
   const totalItems = datasets.length;
   const totalPages = Math.ceil(totalItems / pageSize);
@@ -158,8 +162,11 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
                     <DropdownMenuItem onClick={() => handleDownload(dataset.id)}>
                       <Download className="mr-2 h-4 w-4" /> Download Raw File
                     </DropdownMenuItem>
-                    <DropdownMenuItem disabled>
-                      <AlertCircle className="mr-2 h-4 w-4" /> View AI Profile (Soon)
+                    <DropdownMenuItem onClick={() => {
+                        setSelectedDataset(dataset);
+                        setIsDrawerOpen(true);
+                      }}>
+                      <BarChart2 className="mr-2 h-4 w-4" /> View AI Profile
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="dark:bg-white/10" />
                     <DropdownMenuItem 
@@ -185,6 +192,13 @@ export function DatasetTable({ datasets, isLoading, onRefresh, onUpload }: Datas
           onPageSizeChange={setPageSize}
         />
       )}
+      
+      <DatasetAnalyticsDrawer 
+        isOpen={isDrawerOpen} 
+        onClose={() => setIsDrawerOpen(false)} 
+        datasetId={selectedDataset?.id || null}
+        datasetName={selectedDataset?.name || ""}
+      />
     </div>
   );
 }

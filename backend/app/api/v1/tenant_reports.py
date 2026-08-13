@@ -449,7 +449,7 @@ async def generate_report(
     request: Request,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_active_tenant_user),
-    workspace: Workspace = Depends(get_current_workspace),
+    workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
     tenant_id = current_user.tenant_id
@@ -464,11 +464,15 @@ async def generate_report(
     if not quota.allowed:
         raise HTTPException(status_code=402, detail="Reports quota exceeded for your organization's plan.")
         
-    d_stmt = select(Dataset).where(
-        Dataset.id == req.dataset_id, 
-        Dataset.tenant_id == tenant_id,
-        Dataset.workspace_id == workspace.id
-    )
+    d_conditions = [Dataset.id == req.dataset_id, Dataset.tenant_id == tenant_id]
+    if current_user.role not in ["org_admin", "owner"]:
+        if not workspace:
+            raise HTTPException(status_code=403, detail="Workspace context required.")
+        d_conditions.append(Dataset.workspace_id == workspace.id)
+    elif workspace:
+        d_conditions.append(Dataset.workspace_id == workspace.id)
+        
+    d_stmt = select(Dataset).where(*d_conditions)
     d_res = await db.execute(d_stmt)
     dataset = d_res.scalars().first()
     if not dataset:
@@ -499,7 +503,7 @@ async def generate_report(
     await ws_manager.publish_tenant_event(
         str(tenant_id), 
         "report_created", 
-        {"report_id": str(r.id), "title": r.title, "status": r.status.value}
+        {"report_id": str(r.id), "title": r.title, "status": r.status}
     )
     
     # Dispatch Celery tasks dynamically based on report_category

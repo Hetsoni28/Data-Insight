@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -169,7 +169,7 @@ export function SupportHero({ activeIncidents = 0 }: SupportHeroProps) {
                 <Button 
                   onClick={() => createIncident.mutate(incidentData)} 
                   disabled={!incidentData.title || createIncident.isPending}
-                  className="bg-rose-600 hover:bg-rose-700 text-white"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white"
                 >
                   {createIncident.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Report Incident
@@ -206,7 +206,7 @@ export function SupportHero({ activeIncidents = 0 }: SupportHeroProps) {
                 <Button 
                   onClick={() => sendBroadcast.mutate(broadcastData)} 
                   disabled={!broadcastData.message || sendBroadcast.isPending}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white"
                 >
                   {sendBroadcast.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Send Broadcast

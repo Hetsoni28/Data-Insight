@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import api from "@/lib/api";
 import { AIService } from "@/lib/ai.service";
 import { ReportService } from "@/lib/report.service";
+import { DatasetService } from "@/lib/dataset.service";
 import { toast } from "sonner";
 import { TrendForecastViewer } from "@/components/organisms/TrendForecastViewer";
 
@@ -47,9 +48,9 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
     if (!datasetId) return;
     try {
       setLoadingProfile(true);
-      const res = await api.get(`/tenant-datasets/${datasetId}`);
-      if (res.data?.data?.profile) {
-        setProfile(res.data.data.profile);
+      const dataset = await DatasetService.get(datasetId);
+      if ((dataset as any).profile) {
+        setProfile((dataset as any).profile);
       } else {
         setProfile(null);
       }
@@ -118,7 +119,9 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
       // Poll report status
       const poll = setInterval(async () => {
         try {
-          const statusRes: any = await ReportService.get(reportId);
+          const resPayload: any = await ReportService.get(reportId);
+          const statusRes = resPayload.data || resPayload; // Fallback in case of unwrapped response
+          
           if (statusRes.status === "ready" || statusRes.status === "completed") {
             clearInterval(poll);
             setForecast({
@@ -146,9 +149,9 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
 
   // Convert profile histograms to format expected by DistributionChart
   const renderDistributions = () => {
-    if (!profile?.numeric_statistics) return null;
-    return Object.entries(profile.numeric_statistics).map(([col, stats]: [string, any]) => {
-      if (!stats.histogram) return null;
+    if (!profile?.columns) return null;
+    return Object.entries(profile.columns).map(([col, stats]: [string, any]) => {
+      if (stats.type !== "numeric" || !stats.histogram) return null;
       // Depending on how histogram is structured in backend:
       // Assuming stats.histogram.bins (labels) and stats.histogram.counts (values)
       const labels = stats.histogram.bins || [];
@@ -238,7 +241,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
                         Correlation Matrix
                       </h3>
                       <div className="border border-slate-100 dark:border-slate-800 rounded-2xl p-4 bg-white dark:bg-white/5 shadow-sm">
-                        <CorrelationHeatmap data={profile.correlation_matrix} height={400} />
+                        <CorrelationHeatmap data={profile.correlations?.matrix || null} height={400} />
                       </div>
                     </div>
                     

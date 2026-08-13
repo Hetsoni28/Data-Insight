@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import { Search, Filter, MoreHorizontal, MessageSquare, Clock, Eye, CheckCircle2, UserPlus, Trash2 } from "lucide-react";
@@ -56,11 +56,20 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
     }
   });
   
-  const filteredTickets = tickets?.filter(t => 
-    (t.subject || "").toLowerCase().includes(search.toLowerCase()) || 
-    (t.requester || "").toLowerCase().includes(search.toLowerCase()) ||
-    (t.organization || "").toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [priorityFilter, setPriorityFilter] = useState("All");
+
+  const filteredTickets = tickets?.filter(t => {
+    const matchesSearch = (t.subject || "").toLowerCase().includes(search.toLowerCase()) || 
+                          (t.requester || "").toLowerCase().includes(search.toLowerCase()) ||
+                          (t.organization || "").toLowerCase().includes(search.toLowerCase());
+    
+    const matchesStatus = statusFilter === "All" || (t.status || "").toLowerCase() === statusFilter.toLowerCase();
+    const matchesPriority = priorityFilter === "All" || (t.priority || "").toLowerCase() === priorityFilter.toLowerCase();
+
+    return matchesSearch && matchesStatus && matchesPriority;
+  }) || [];
 
   // Pagination Logic
   const totalItems = filteredTickets.length;
@@ -113,16 +122,49 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
         </div>
         <div className="flex items-center gap-2">
           <Button 
-            variant="outline" 
+            variant={isFilterOpen ? "default" : "outline"}
             size="sm" 
-            className="h-8 text-xs border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10"
-            onClick={() => toast.info("Filter modal will open here")}
+            className={`h-8 text-xs border-slate-200 dark:border-white/10 shadow-sm ${!isFilterOpen ? 'bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10' : ''}`}
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
           >
             <Filter className="w-3.5 h-3.5 mr-2" />
             Filter
           </Button>
         </div>
       </div>
+
+      {/* Advanced Filters Panel */}
+      {isFilterOpen && (
+        <div className="p-4 border-b border-slate-200/60 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex flex-wrap gap-4 text-sm">
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status</label>
+                <select 
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+                >
+                    <option value="All">All Statuses</option>
+                    <option value="open">Open</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Priority</label>
+                <select 
+                    value={priorityFilter}
+                    onChange={(e) => setPriorityFilter(e.target.value)}
+                    className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+                >
+                    <option value="All">All Priorities</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+        </div>
+      )}
 
       {/* Grid Header */}
       <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
