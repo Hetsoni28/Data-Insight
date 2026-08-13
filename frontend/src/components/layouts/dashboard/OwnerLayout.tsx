@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { 
   LayoutDashboard, Users, Building, Database, Brain, FileSpreadsheet, Receipt, 
   Settings, Activity, User, CreditCard, PieChart, Code, HardDrive, ShieldCheck, 
-  LifeBuoy, Bell, ToggleLeft, Cpu, ActivitySquare, Link, Zap, LayoutTemplate, Palette
+  LifeBuoy, Bell, ToggleLeft, Cpu, ActivitySquare, Link, Zap, LayoutTemplate, Palette, Filter
 } from "lucide-react"
 
 export interface NavItem {
@@ -38,6 +38,7 @@ const OWNER_NAV_GROUPS: NavGroup[] = [
     title: "Management",
     items: [
       { icon: Building, label: "Organizations", href: "/owner/dashboard/organizations" },
+      { icon: Filter, label: "Leads Pipeline", href: "/owner/dashboard/leads" },
       { icon: Users, label: "Users", href: "/owner/dashboard/users" },
       { icon: CreditCard, label: "Subscriptions", href: "/owner/dashboard/subscriptions" },
     ]

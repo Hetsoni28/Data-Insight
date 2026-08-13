@@ -35,6 +35,7 @@ from app.models.chart import Chart
 from app.models.stripe_event import StripeEvent
 from app.models.rental_contract import RentalContract, ContractType, ContractStatus
 from app.models.resource_request import ResourceRequest, ResourceRequestType, ResourceRequestStatus
+from app.models.lead import Lead, LeadStatus, LeadSource
 
 __all__ = [
     "User",
@@ -100,5 +101,8 @@ __all__ = [
     "ContractStatus",
     "ResourceRequest",
     "ResourceRequestType",
-    "ResourceRequestStatus"
+    "ResourceRequestStatus",
+    "Lead",
+    "LeadStatus",
+    "LeadSource",
 ]
