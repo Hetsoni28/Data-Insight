@@ -45,9 +45,34 @@ export function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // --- CUSTOM DOMAIN HANDLING ---
+  const hostname = request.headers.get('host')
+  const isBaseDomain = 
+    !hostname || 
+    hostname.includes('localhost') || 
+    hostname.includes('data-insight.com') ||
+    hostname.includes('127.0.0.1');
+
+  // We will build a response and append headers if necessary.
+  let response = NextResponse.next();
+
+  if (!isBaseDomain) {
+    // If it's a custom domain, we inject an x-tenant-domain header
+    // so the frontend knows to fetch custom branding for this domain.
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-tenant-domain', hostname)
+    
+    // Create a new response with the modified headers for downstream
+    response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  }
+
   // Allow public routes and invites
   if (PUBLIC_ROUTES.includes(pathname) || pathname.startsWith("/invite/")) {
-    return NextResponse.next()
+    return response;
   }
 
   // Get the token from cookies
@@ -60,7 +85,7 @@ export function proxy(request: NextRequest) {
         pathname.startsWith("/manager") || pathname.startsWith("/analyst") || pathname.startsWith("/viewer")) {
       return NextResponse.redirect(new URL("/login", request.url))
     }
-    return NextResponse.next()
+    return response
   }
 
   // Decode the token to find the role
@@ -68,9 +93,9 @@ export function proxy(request: NextRequest) {
   
   if (!payload || !payload.role) {
     // If the token is invalid or missing a role, force them to re-login
-    const response = NextResponse.redirect(new URL("/login", request.url))
-    response.cookies.delete("access_token")
-    return response
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url))
+    redirectResponse.cookies.delete("access_token")
+    return redirectResponse
   }
 
   let role = payload.role.toLowerCase()
@@ -83,9 +108,9 @@ export function proxy(request: NextRequest) {
   
   // If their role is completely unrecognized, kick them to login
   if (!validRoles.includes(role)) {
-    const response = NextResponse.redirect(new URL("/login", request.url))
-    response.cookies.delete("access_token")
-    return response
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url))
+    redirectResponse.cookies.delete("access_token")
+    return redirectResponse
   }
 
   // Ensure they don't manually access another role's dashboard directly
@@ -96,7 +121,7 @@ export function proxy(request: NextRequest) {
       if (`/${role}` !== rPath) {
         return NextResponse.redirect(new URL("/dashboard", request.url))
       }
-      return NextResponse.next()
+      return response
     }
   }
 
@@ -109,10 +134,15 @@ export function proxy(request: NextRequest) {
     // Replace "/dashboard" with `/${role}/dashboard`
     url.pathname = pathname.replace("/dashboard", `/${role}/dashboard`)
     
-    return NextResponse.rewrite(url)
+    // Create rewrite and merge headers
+    const rewriteResponse = NextResponse.rewrite(url)
+    if (request.headers.get('host') && !isBaseDomain) {
+       rewriteResponse.headers.set('x-tenant-domain', request.headers.get('host')!)
+    }
+    return rewriteResponse
   }
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
