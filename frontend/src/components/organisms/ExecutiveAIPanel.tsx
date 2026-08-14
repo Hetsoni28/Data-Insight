@@ -6,6 +6,7 @@ import { Send, User, Sparkles, Loader2, Maximize2, Minimize2 } from "lucide-reac
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/atoms/Logo"
 import api from "@/lib/api"
+import ReactMarkdown from 'react-markdown'
 
 export function ExecutiveAIPanel() {
   const [isOpen, setIsOpen] = useState(false)
@@ -72,7 +73,7 @@ export function ExecutiveAIPanel() {
   }
 
   return (
-    <div className={`fixed z-50 transition-all duration-300 ease-in-out ${isOpen ? (expanded ? 'inset-4 md:inset-10' : 'bottom-6 right-6 w-[400px] h-[600px]') : 'bottom-6 right-6 w-auto h-14'}`}>
+    <div className={`fixed z-[9999] transition-all duration-300 ease-in-out ${isOpen ? (expanded ? 'bottom-6 right-6 w-[800px] max-w-[calc(100vw-18rem)] h-[800px] max-h-[85vh]' : 'bottom-6 right-6 w-[400px] h-[600px] max-h-[80vh]') : 'bottom-6 right-6 w-auto h-14'}`}>
       
       {!isOpen && (
         <motion.button 
@@ -129,8 +130,16 @@ export function ExecutiveAIPanel() {
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-slate-200 dark:bg-white/5' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
                     {msg.role === 'user' ? <User className="w-4 h-4 text-slate-600 dark:text-slate-400" /> : <Logo size={16} showText={false} href={null} />}
                   </div>
-                  <div className={`max-w-[80%] rounded-2xl p-4 text-sm ${msg.role === 'user' ? 'bg-emerald-600 text-white rounded-tr-sm' : 'bg-white dark:bg-white/5 border border-slate-100 dark:border-slate-700 rounded-tl-sm text-slate-700 dark:text-slate-300 shadow-sm'}`}>
-                    {msg.text}
+                  <div className={`w-fit max-w-[85%] rounded-2xl p-4 text-sm shadow-sm ${msg.role === 'user' ? 'bg-emerald-600 text-white rounded-tr-sm' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-tl-sm text-slate-700 dark:text-slate-300'}`}>
+                    {msg.role === 'ai' ? (
+                      <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-hr:my-2 prose-pre:bg-slate-100 dark:prose-pre:bg-slate-900 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                        <ReactMarkdown>
+                          {msg.text}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      msg.text
+                    )}
                   </div>
                 </motion.div>
               ))}

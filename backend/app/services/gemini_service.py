@@ -41,8 +41,10 @@ class GeminiService:
     async def _get_owner_system_context(self, db: AsyncSession) -> str:
         """Fetches live DB data for the entire platform (Super Admin context)"""
         # Tenants
-        tenants_result = await db.execute(select(func.count(Tenant.id)))
-        total_tenants = tenants_result.scalar() or 0
+        tenants_result = await db.execute(select(func.count(Tenant.id), func.coalesce(func.sum(Tenant.mrr), 0.0)))
+        tenants_data = tenants_result.fetchone()
+        total_tenants = tenants_data[0] or 0
+        total_mrr = float(tenants_data[1] or 0.0)
         
         active_tenants_result = await db.execute(select(func.count(Tenant.id)).where(Tenant.is_active == True))
         active_tenants = active_tenants_result.scalar() or 0
@@ -66,14 +68,29 @@ class GeminiService:
         usage_stats = usage_result.fetchone()
         total_ai_requests = int(usage_stats[0] or 0)
         total_ai_cost = float(usage_stats[1] or 0.0)
+        
+        # Recent Audit Logs
+        from app.models.audit_log import AuditLog
+        from sqlalchemy import desc
+        logs_result = await db.execute(
+            select(AuditLog.action, AuditLog.status, AuditLog.severity, AuditLog.created_at, AuditLog.module)
+            .order_by(desc(AuditLog.created_at))
+            .limit(15)
+        )
+        logs_data = logs_result.all()
+        audit_logs_str = "\n        ".join([f"- [{log.created_at.strftime('%Y-%m-%d %H:%M:%S')}] {log.module.upper()}: {log.action} ({log.status}, {log.severity})" for log in logs_data]) if logs_data else "No recent audit logs."
 
         return f"""
         GLOBAL PLATFORM CONTEXT (OWNER):
         Total Organizations: {total_tenants} ({active_tenants} active)
         Total Users Across Platform: {total_users}
+        Platform Monthly Recurring Revenue (MRR): ${total_mrr:.2f}
         AI Providers: {online_providers}/{total_providers} online
         Total AI Requests: {total_ai_requests}
         Total AI API Cost: ${total_ai_cost:.2f}
+        
+        RECENT AUDIT LOGS (Last 15 events):
+        {audit_logs_str}
         """
 
     async def generate_chat_response(self, db: AsyncSession, tenant_id: str, message: str, history: list, files: list = None, is_owner: bool = False) -> str:
