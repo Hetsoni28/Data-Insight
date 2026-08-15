@@ -506,15 +506,6 @@ async def chat_with_command_center(
     
     file_list = files if files is not None else []
     
-    response_text = await gemini_service.generate_chat_response(
-        db=db,
-        tenant_id=current_user.tenant_id,
-        message=message,
-        history=history_dicts,
-        files=file_list,
-        is_owner=True
-    )
-
     import uuid
     # Handle DB Session
     if not session_id or session_id == "undefined":
@@ -541,21 +532,36 @@ async def chat_with_command_center(
     db.add(user_msg)
     await db.commit()
 
-    artifact = None
-    if "```json" in response_text and "artifact_type" in response_text:
-        # simple extraction
-        pass
+    from fastapi.responses import StreamingResponse
+    import json
+    
+    async def response_generator():
+        yield f"data: {json.dumps({'session_id': session_id_str, 'type': 'session'})}\n\n"
+        
+        full_response = ""
+        async for chunk in gemini_service.generate_chat_stream(
+            db=db,
+            tenant_id=current_user.tenant_id,
+            message=message,
+            history=history_dicts,
+            files=file_list,
+            is_owner=True
+        ):
+            full_response += chunk
+            yield f"data: {json.dumps({'chunk': chunk, 'type': 'chunk'})}\n\n"
+            
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        
+        # Save Assistant Message after stream completes
+        assistant_msg = ChatMessage(
+            session_id=session_uuid,
+            role="assistant",
+            content=full_response
+        )
+        db.add(assistant_msg)
+        await db.commit()
 
-    # Save Assistant Message
-    assistant_msg = ChatMessage(
-        session_id=session_uuid,
-        role="assistant",
-        content=response_text
-    )
-    db.add(assistant_msg)
-    await db.commit()
-
-    return ChatResponse(response=response_text, session_id=session_id_str, artifact=artifact)
+    return StreamingResponse(response_generator(), media_type="text/event-stream")
 
 @router.get("/chat/sessions")
 async def get_chat_sessions(
