@@ -79,8 +79,10 @@ export function TenantProvisioningModal({ tenantId, tenantName, isOpen, onClose 
       return res.data
     },
     enabled: isOpen && !!tenantId,
-    refetchInterval: (data) =>
-      data?.provisioning_status === "provisioning" ? 3000 : false,
+    refetchInterval: (query) => {
+      const data = query?.state?.data as any
+      return data?.provisioning_status === "provisioning" ? 3000 : false
+    },
   })
 
   // ── Provision mutation ─────────────────────────────────────────────────────

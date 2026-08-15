@@ -126,7 +126,7 @@ export function BookDemoModal({ isOpen, onClose }: Props) {
   const [form, setForm] = useState<FormData>(EMPTY_FORM)
   const [leadId, setLeadId] = useState<string | null>(null)
 
-  const set = (key: keyof FormData) => (val: string) => setForm(f => ({ ...f, [key]: val }))
+  const set = (key: keyof FormData) => (val: string | null) => setForm(f => ({ ...f, [key]: val || "" }))
 
   const mutation = useMutation({
     mutationFn: async () => {

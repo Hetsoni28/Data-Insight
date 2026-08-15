@@ -40,6 +40,7 @@ export interface User {
   is_superuser: boolean;
   is_owner: boolean;
   is_email_verified: boolean;
+  tenant?: any;
   created_at: string;
   updated_at: string;
 }
