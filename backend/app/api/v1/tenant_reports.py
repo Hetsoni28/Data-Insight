@@ -89,6 +89,7 @@ async def get_report_stats(
 @router.get("", summary="List Reports")
 async def list_reports(
     search: Optional[str] = None,
+    status: Optional[str] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
@@ -112,6 +113,20 @@ async def list_reports(
     if search:
         stmt = stmt.where(Report.title.ilike(f"%{search}%"))
         
+    if status and status != "all":
+        stmt = stmt.where(Report.status == status)
+
+    # For pagination metadata, construct a count query
+    count_stmt = select(func.count(Report.id)).where(*base_conditions)
+    if search:
+        count_stmt = count_stmt.where(Report.title.ilike(f"%{search}%"))
+    if status and status != "all":
+        count_stmt = count_stmt.where(Report.status == status)
+    
+    count_res = await db.execute(count_stmt)
+    total_count = count_res.scalar() or 0
+    total_pages = (total_count + limit - 1) // limit if limit > 0 else 1
+        
     stmt = stmt.offset(skip).limit(limit)
     res = await db.execute(stmt)
     reports = res.scalars().all()
@@ -129,7 +144,16 @@ async def list_reports(
             "dataset_id": str(r.dataset_id) if r.dataset_id else None
         })
         
-    return {"status": "success", "data": data}
+    return {
+        "status": "success",
+        "data": data,
+        "meta": {
+            "total": total_count,
+            "total_pages": total_pages,
+            "page": (skip // limit) + 1,
+            "limit": limit
+        }
+    }
 
 @router.get("/activities", summary="Get Reports Activity")
 async def get_report_activities(

@@ -40,6 +40,31 @@ export class ReportService {
   }
 
   /**
+   * Fetch paginated and filtered tenant reports.
+   */
+  static async listTenantReports(params: {
+    search?: string;
+    status?: string;
+    skip?: number;
+    limit?: number;
+  }): Promise<{ data: Report[]; meta: { total: number; total_pages: number } }> {
+    const response = await api.get("/tenant-reports", { params });
+    const rawData = response.data;
+    if (rawData && typeof rawData === "object") {
+      const data = rawData.data || [];
+      const meta = rawData.meta || {
+        total: data.length,
+        total_pages: Math.ceil(data.length / (params.limit || 10)),
+      };
+      return { data, meta };
+    }
+    return {
+      data: Array.isArray(rawData) ? rawData : [],
+      meta: { total: 0, total_pages: 0 },
+    };
+  }
+
+  /**
    * Fetch a single report by its ID.
    */
   static async get(reportId: string): Promise<Report> {

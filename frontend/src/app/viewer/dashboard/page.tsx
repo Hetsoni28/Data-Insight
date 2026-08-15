@@ -57,7 +57,7 @@ export default function ViewerDashboardPage() {
       ]);
 
       setOverview(overviewData);
-      setReports(reportsData);
+      setReports(reportsData.items || []);
       setDashboards(dashboardsData);
       setDatasets(datasetsData);
     } catch (error) {
