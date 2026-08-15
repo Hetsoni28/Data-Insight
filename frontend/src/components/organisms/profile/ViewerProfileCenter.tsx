@@ -40,7 +40,7 @@ export function ViewerProfileCenter() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [profileRes, securityRes, sessionsRes, historyRes, notifRes, prefsRes] = await Promise.all([
+      const [profileRes, securityRes, sessionsRes, historyRes, notifRes, prefsRes] = await Promise.allSettled([
         ViewerProfileService.getProfile(),
         ViewerProfileService.getSecurity(),
         ViewerProfileService.getSessions(),
@@ -49,13 +49,22 @@ export function ViewerProfileCenter() {
         ViewerProfileService.getPreferences(),
       ]);
 
-      setProfile(profileRes);
-      setSecurity(securityRes);
-      setSessions(sessionsRes);
-      setLoginHistory(historyRes.entries);
-      setLoginHistoryTotal(historyRes.total);
-      setNotifPrefs(notifRes);
-      setPreferences(prefsRes);
+      if (profileRes.status === "fulfilled") setProfile(profileRes.value);
+      if (securityRes.status === "fulfilled") setSecurity(securityRes.value);
+      if (sessionsRes.status === "fulfilled") setSessions(sessionsRes.value);
+      if (historyRes.status === "fulfilled") {
+        setLoginHistory(historyRes.value.entries);
+        setLoginHistoryTotal(historyRes.value.total);
+      }
+      if (notifRes.status === "fulfilled") setNotifPrefs(notifRes.value);
+      if (prefsRes.status === "fulfilled") setPreferences(prefsRes.value);
+
+      // Log any individual failures for debugging without crashing
+      [profileRes, securityRes, sessionsRes, historyRes, notifRes, prefsRes].forEach((r, i) => {
+        if (r.status === "rejected") {
+          console.warn(`Profile section ${i} failed to load:`, r.reason);
+        }
+      });
     } catch (err) {
       console.error("Failed to load profile:", err);
     } finally {

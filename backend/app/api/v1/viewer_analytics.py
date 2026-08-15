@@ -103,7 +103,6 @@ async def get_saved_views(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     prefs = current_user.preferences or {}
     views = prefs.get("saved_analytics_views", [])
     return {"views": views}
@@ -114,7 +113,6 @@ async def create_saved_view(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     prefs = current_user.preferences or {}
     views = prefs.get("saved_analytics_views", [])
     
@@ -140,7 +138,6 @@ async def delete_saved_view(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     prefs = current_user.preferences or {}
     views = prefs.get("saved_analytics_views", [])
     

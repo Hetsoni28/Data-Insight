@@ -165,7 +165,7 @@ async def update_notification_prefs(
 ):
     _ensure_viewer(current_user)
     svc = ViewerProfileService(db)
-    return await svc.update_notification_preferences(current_user, body.model_dump())
+    return await svc.update_notification_preferences(current_user, body.model_dump(exclude_unset=True))
 
 
 # ─── Preferences (Appearance, Language, AI) ────────────────────────────────────
