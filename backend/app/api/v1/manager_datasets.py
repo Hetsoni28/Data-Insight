@@ -171,11 +171,13 @@ async def get_manager_dataset_activity(
                 "action": l.action,
                 "status": l.status,
                 "created_at": l.created_at,
-                "actor_id": str(l.actor_id) if l.actor_id else None
+                "actor_id": str(l.actor_user_id) if l.actor_user_id else None
             } for l in logs]
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to fetch dataset activity")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to fetch dataset activity: {str(e)}")
 
 
 # ─── DELETE DATASET ─────────
