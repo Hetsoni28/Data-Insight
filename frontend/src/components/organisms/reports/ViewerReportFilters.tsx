@@ -31,7 +31,7 @@ export function ViewerReportFilters({
             className={cn(
               "px-4 py-1.5 rounded-full text-xs font-semibold transition-all border",
               (activeCategory === cat || (!activeCategory && cat === "All"))
-                ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-sm"
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
                 : "bg-white dark:bg-white/5 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:border-slate-400"
             )}
           >

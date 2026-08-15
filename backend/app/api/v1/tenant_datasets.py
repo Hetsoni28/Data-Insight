@@ -15,6 +15,8 @@ from app.models.ai_token_usage import AITokenUsage
 from app.models.audit_log import AuditLog
 from pydantic import BaseModel
 from app.core.websockets import manager as ws_manager
+from app.services.dataset_query_service import DatasetQueryService
+from app.permissions.dataset_permissions import ROLE_PERMISSIONS as DATASET_ROLE_PERMISSIONS
 
 router = APIRouter()
 
@@ -27,7 +29,7 @@ class UploadDatasetRequest(BaseModel):
     original_filename: str
     workspace_id: uuid.UUID
 
-@router.get("/stats", summary="Get Dataset Center Statistics")
+@router.get("/stats", summary="Get Dataset Center Statistics", dependencies=[Depends(RequirePermission("DATASET_VIEW"))])
 async def get_dataset_stats(
     current_user: User = Depends(get_current_active_tenant_user),
     workspace: Workspace | None = Depends(get_current_workspace),
@@ -123,7 +125,7 @@ async def get_dataset_stats(
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
-@router.get("/", summary="List Organization Datasets")
+@router.get("/", summary="List Organization Datasets", dependencies=[Depends(RequirePermission("DATASET_VIEW"))])
 async def list_datasets(
     search: Optional[str] = None,
     skip: int = Query(0, ge=0),
@@ -169,7 +171,7 @@ async def list_datasets(
         
     return {"status": "success", "data": datasets}
 
-@router.get("/activities", summary="Recent AI Activities & Audit Log")
+@router.get("/activities", summary="Recent AI Activities & Audit Log", dependencies=[Depends(RequirePermission("DATASET_VIEW"))])
 async def get_dataset_activities(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
@@ -238,7 +240,7 @@ async def get_dataset_activities(
         import traceback; traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{dataset_id}/schema", summary="Get Dataset Schema")
+@router.get("/{dataset_id}/schema", summary="Get Dataset Schema", dependencies=[Depends(RequirePermission("DATASET_VIEW"))])
 async def get_dataset_schema(
     dataset_id: uuid.UUID,
     current_user: User = Depends(get_current_active_tenant_user),
@@ -271,7 +273,7 @@ async def get_dataset_schema(
         }
     }
 
-@router.get("/{dataset_id}", summary="Get Dataset Details")
+@router.get("/{dataset_id}", summary="Get Dataset Details", dependencies=[Depends(RequirePermission("DATASET_VIEW"))])
 async def get_dataset_details(
     dataset_id: uuid.UUID,
     request: Request,
@@ -322,7 +324,7 @@ async def get_dataset_details(
         }
     }
 
-@router.post("/upload", summary="Register Uploaded Dataset")
+@router.post("/upload", summary="Register Uploaded Dataset", dependencies=[Depends(RequirePermission("DATASET_UPLOAD"))])
 async def upload_dataset(
     req: UploadDatasetRequest,
     request: Request,
@@ -384,7 +386,7 @@ async def upload_dataset(
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
-@router.delete("/{dataset_id}", summary="Delete Dataset")
+@router.delete("/{dataset_id}", summary="Delete Dataset", dependencies=[Depends(RequirePermission("DATASET_VIEW"))])
 async def delete_dataset(
     dataset_id: uuid.UUID,
     request: Request,
@@ -404,8 +406,8 @@ async def delete_dataset(
     if not d:
         raise HTTPException(status_code=404, detail="Dataset not found")
         
-    user_perms = ROLE_PERMISSIONS.get(current_user.role, [])
-    if "DATASET_DELETE" not in user_perms:
+    user_perms = DATASET_ROLE_PERMISSIONS.get(current_user.role, [])
+    if "DATASET_DELETE_ALL" not in user_perms:
         if "DATASET_DELETE_OWN" in user_perms and d.uploaded_by_id == current_user.id:
             pass # Allowed
         else:
@@ -625,3 +627,43 @@ async def create_dashboard(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+
+class QueryRequest(BaseModel):
+    dimensions: List[str] = []
+    metrics: List[str] = []
+
+@router.post("/{dataset_id}/query", summary="Query Dataset", dependencies=[Depends(RequirePermission("DATASET_QUERY"))])
+async def query_dataset(
+    dataset_id: uuid.UUID,
+    request: QueryRequest,
+    current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        tenant_id = current_user.tenant_id
+        base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+        if workspace:
+            base_conditions.append(Dataset.workspace_id == workspace.id)
+            
+        stmt = select(Dataset).where(*base_conditions)
+        res = await db.execute(stmt)
+        d = res.scalars().first()
+        if not d:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        results = await DatasetQueryService.execute_query(
+            dataset_id=dataset_id,
+            tenant_id=tenant_id,
+            workspace_id=workspace.id if workspace else None,
+            query_payload={"dimensions": request.dimensions, "metrics": request.metrics},
+            dataset_metadata=d.metadata_ if hasattr(d, "metadata_") else {},
+            storage_path=d.storage_path
+        )
+        return {"status": "success", "data": results}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+

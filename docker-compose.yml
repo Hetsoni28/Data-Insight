@@ -15,9 +15,11 @@ services:
       - ./frontend/.env.local
     environment:
       - WATCHPACK_POLLING=true
-      - WATCHPACK_POLLING_INTERVAL=1000
+      - WATCHPACK_POLLING_INTERVAL=2000
       - CHOKIDAR_USEPOLLING=true
-      - CHOKIDAR_INTERVAL=1000
+      - CHOKIDAR_INTERVAL=2000
+      - NODE_OPTIONS=--max-old-space-size=4096
+      - NEXT_TELEMETRY_DISABLED=1
     depends_on:
       - backend
     restart: unless-stopped

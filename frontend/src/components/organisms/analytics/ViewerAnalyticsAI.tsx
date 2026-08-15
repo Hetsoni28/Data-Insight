@@ -44,12 +44,12 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
   }
 
   return (
-    <div className="bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50 dark:from-indigo-950/20 dark:via-slate-900 dark:to-purple-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+    <div className="bg-gradient-to-br from-emerald-50/50 via-white to-teal-50/50 dark:from-emerald-950/20 dark:via-slate-900 dark:to-teal-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row">
       
       {/* Left side: Proactive Insights */}
-      <div className="w-full md:w-1/2 p-6 md:p-8 border-b md:border-b-0 md:border-r border-indigo-100 dark:border-indigo-900/30">
+      <div className="w-full md:w-1/2 p-6 md:p-8 border-b md:border-b-0 md:border-r border-emerald-100 dark:border-emerald-900/30">
         <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+          <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
             <Sparkles className="w-5 h-5" />
           </div>
           <h3 className="text-xl font-bold text-slate-900 dark:text-white">AI Executive Summary</h3>
@@ -72,7 +72,7 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
               <ArrowRight className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
                 insight.type === 'risk' ? 'text-rose-500' :
                 insight.type === 'opportunity' ? 'text-emerald-500' :
-                'text-indigo-500'
+                'text-emerald-500'
               }`} />
               <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug">{insight.content}</p>
             </motion.div>
@@ -105,13 +105,13 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
                   className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                    msg.role === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                   }`}>
                     {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                   </div>
                   <div className={`p-3 rounded-2xl max-w-[80%] text-sm ${
                     msg.role === 'user' 
-                      ? 'bg-indigo-600 text-white rounded-tr-sm' 
+                      ? 'bg-emerald-600 text-white rounded-tr-sm' 
                       : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-700 rounded-tl-sm shadow-sm'
                   }`}>
                     {msg.content}
@@ -139,13 +139,13 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
             value={chatMessage}
             onChange={(e) => setChatMessage(e.target.value)}
             placeholder="Ask a question about the data..."
-            className="pr-12 bg-white dark:bg-slate-900 border-indigo-100 dark:border-slate-700 focus-visible:ring-indigo-500"
+            className="pr-12 bg-white dark:bg-slate-900 border-emerald-100 dark:border-slate-700 focus-visible:ring-emerald-500"
             disabled={isChatting}
           />
           <Button 
             type="submit" 
             size="icon" 
-            className="absolute right-1 top-1 h-7 w-7 bg-indigo-600 hover:bg-indigo-700 text-white rounded"
+            className="absolute right-1 top-1 h-7 w-7 bg-emerald-600 hover:bg-emerald-700 text-white rounded"
             disabled={!chatMessage.trim() || isChatting}
           >
             {isChatting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}

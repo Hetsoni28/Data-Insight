@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import { createPortal } from "react-dom"
@@ -78,7 +78,7 @@ export function DropdownMenuTrigger({
   children: React.ReactNode
   asChild?: boolean
 }) {
-  const { open, setOpen, setTriggerEl } = React.useContext(DropdownContext)
+  const { setOpen, setTriggerEl } = React.useContext(DropdownContext)
 
   const refCallback = React.useCallback(
     (el: HTMLElement | null) => setTriggerEl(el),

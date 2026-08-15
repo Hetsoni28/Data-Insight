@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import api from "@/lib/api"
+import { BarChart, Bar, LineChart as RechartsLineChart, Line, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts'
 import {
   Database,
   ArrowLeft,
@@ -363,24 +364,35 @@ export default function DatasetDetailExplorer() {
                         <div className="text-sm text-slate-500 mt-2">Median: {chart.metrics?.median || 0}</div>
                      </div>
                   ) : (
-                    <div className="w-full flex-1 flex items-end justify-center gap-2 h-[200px] pb-4">
-                       {/* Mock visual bars for bar/line types */}
-                       {chart.data?.map((d: any, i: number) => (
-                          <motion.div 
-                            key={i}
-                            initial={{ height: 0 }}
-                            animate={{ height: `${Math.max(10, Math.min(100, (d.value || d.count || Math.random() * 100)))}%` }}
-                            className={`w-12 rounded-t-sm ${chart.type === 'pie' ? 'bg-rose-400' : 'bg-emerald-400'}`}
-                            title={`${d.name || d.date}: ${d.value}`}
-                          />
-                       ))}
-                    </div>
-                  )}
-                  
-                  {chart.type !== 'kpi' && (
-                    <div className="w-full flex justify-between text-xs text-slate-400 font-mono px-4 mt-2">
-                       <span>{chart.data?.[0]?.name || chart.data?.[0]?.date || 'Start'}</span>
-                       <span>{chart.data?.[chart.data.length - 1]?.name || chart.data?.[chart.data.length - 1]?.date || 'End'}</span>
+                    <div className="w-full flex-1 min-h-[200px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        {chart.type === 'bar' ? (
+                          <BarChart data={chart.data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis dataKey={chart.x_axis_key || "name"} tickLine={false} axisLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                            <YAxis tickLine={false} axisLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                            <RechartsTooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                            <Bar dataKey={chart.y_axis_key || "value"} fill="#34d399" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        ) : chart.type === 'line' ? (
+                          <RechartsLineChart data={chart.data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis dataKey={chart.x_axis_key || "name"} tickLine={false} axisLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                            <YAxis tickLine={false} axisLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                            <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                            <Line type="monotone" dataKey={chart.y_axis_key || "value"} stroke="#34d399" strokeWidth={3} dot={{r: 4, fill: '#34d399', strokeWidth: 0}} activeDot={{r: 6}} />
+                          </RechartsLineChart>
+                        ) : (
+                          <RechartsPieChart>
+                            <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                            <Pie data={chart.data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#fb7185" label={false}>
+                              {chart.data?.map((_: any, index: number) => (
+                                <Cell key={`cell-${index}`} fill={['#fb7185', '#f43f5e', '#e11d48', '#fda4af', '#be123c'][index % 5]} />
+                              ))}
+                            </Pie>
+                          </RechartsPieChart>
+                        )}
+                      </ResponsiveContainer>
                     </div>
                   )}
                 </div>

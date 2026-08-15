@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import { createPortal } from "react-dom"
@@ -33,10 +33,13 @@ function Sheet({
   const isControlled = open !== undefined
   const isOpen = isControlled ? open : internalOpen
   
-  const handleChange = (v: boolean) => {
-    if (!isControlled) setInternalOpen(v)
-    onOpenChange?.(v)
-  }
+  const handleChange = React.useCallback(
+    (v: boolean) => {
+      if (!isControlled) setInternalOpen(v)
+      onOpenChange?.(v)
+    },
+    [isControlled, onOpenChange]
+  )
 
   // close on Escape
   React.useEffect(() => {
@@ -46,7 +49,7 @@ function Sheet({
     }
     document.addEventListener("keydown", handler)
     return () => document.removeEventListener("keydown", handler)
-  }, [isOpen])
+  }, [isOpen, handleChange])
 
   // lock scroll
   React.useEffect(() => {
@@ -113,7 +116,6 @@ function SheetClose({
 
 function SheetPortal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false)
-  // eslint-disable-next-line
   React.useEffect(() => setMounted(true), [])
   if (!mounted) return null
   return createPortal(children, document.body)

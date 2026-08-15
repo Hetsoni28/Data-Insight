@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { Users, Database, FileText, Activity, TrendingUp, TrendingDown } from "lucide-react"
+import { Users, Database, FileText, Activity, TrendingUp, TrendingDown, Minus } from "lucide-react"
 
 function KpiCard({ title, value, change, icon: Icon, index }: any) {
   const isPositive = change > 0
@@ -9,28 +9,30 @@ function KpiCard({ title, value, change, icon: Icon, index }: any) {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="bg-white dark:bg-[#121214] p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-colors"
+      transition={{ delay: index * 0.1, duration: 0.5, ease: "easeOut" }}
+      className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-none border border-slate-200/50 dark:border-white/5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group"
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:scale-110 group-hover:text-emerald-500 transition-all">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      <div className="flex items-start justify-between mb-6 relative z-10">
+        <div className="w-14 h-14 rounded-none bg-white dark:bg-white/5 flex items-center justify-center text-slate-400 dark:text-slate-500 group-hover:scale-110 group-hover:text-emerald-500 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/20 shadow-sm transition-all duration-500">
           <Icon className="w-6 h-6" />
         </div>
         {change !== undefined && (
-          <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${
-            isPositive ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 
-            isNegative ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' : 
-            'bg-slate-50 text-slate-600 dark:bg-white/5 dark:text-slate-400'
+          <div className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-none transition-colors duration-300 ${
+            isPositive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 
+            isNegative ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400' : 
+            'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400'
           }`}>
-            {isPositive ? <TrendingUp className="w-3 h-3" /> : isNegative ? <TrendingDown className="w-3 h-3" /> : null}
-            {Math.abs(change)}%
+            {isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : isNegative ? <TrendingDown className="w-3.5 h-3.5" /> : <Minus className="w-3.5 h-3.5" />}
+            {isPositive ? '+' : ''}{change}%
           </div>
         )}
       </div>
       
-      <div>
-        <h3 className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">{title}</h3>
-        <p className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+      <div className="relative z-10">
+        <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">{title}</h3>
+        <p className="text-4xl font-black tracking-tight text-slate-900 dark:text-white drop-shadow-sm">
           {value !== undefined && value !== null ? value : '-'}
         </p>
       </div>

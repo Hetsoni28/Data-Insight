@@ -1,8 +1,8 @@
 import axios, { AxiosError, type AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 
-const isServer = typeof window === "undefined";
 const defaultServerUrl = process.env.INTERNAL_API_URL ?? "http://backend:8000/api/v1";
 const defaultClientUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -27,7 +27,6 @@ api.interceptors.request.use(
       }
       
       // Inject workspace ID
-      const { useWorkspaceStore } = require("@/store/workspaceStore");
       const activeWs = useWorkspaceStore.getState().activeWs;
       if (activeWs?.id) {
         config.headers["x-workspace-id"] = activeWs.id;
@@ -147,7 +146,10 @@ api.interceptors.response.use(
 
     switch (status) {
       case 403:
-        showToastOnce("error", message ?? "You do not have permission to perform this action.");
+        // Suppress 403 toasts for viewer-specific endpoints — non-viewer roles degrade silently
+        if (!originalRequest.url?.includes("/viewer/")) {
+          showToastOnce("error", message ?? "You do not have permission to perform this action.");
+        }
         break;
 
       case 402:
@@ -166,7 +168,7 @@ api.interceptors.response.use(
         break;
 
       default:
-        if (!error.response) {
+        if (!error.response && !originalRequest.url?.includes("/viewer/")) {
           showToastOnce("error", "Network error. Please check your internet connection.");
         }
         break;

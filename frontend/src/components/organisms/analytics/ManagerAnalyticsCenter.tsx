@@ -186,7 +186,12 @@ export function ManagerAnalyticsCenter() {
   const adaptedAnomalies = adaptAnomalies(anomalies);
 
   return (
-    <div className="flex flex-col h-full animate-in fade-in duration-500 space-y-8 pb-12">
+    <div className="relative flex flex-col animate-in fade-in duration-500 space-y-8 pb-12 min-h-screen">
+      {/* Mesh Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10 rounded-3xl">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3" />
+        <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] -translate-x-1/3" />
+      </div>
 
       {/* ── Header (mirrors ViewerAnalyticsHeader) ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
@@ -200,7 +205,7 @@ export function ManagerAnalyticsCenter() {
             <Badge variant="outline" className="text-[10px] bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
               {activeWs?.name || "Workspace"}
             </Badge>
-            <Badge variant="outline" className="text-[10px] bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/20">
+            <Badge variant="outline" className="text-[10px] bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20">
               Dataset Analytics
             </Badge>
           </div>
@@ -221,7 +226,7 @@ export function ManagerAnalyticsCenter() {
             size="sm"
             onClick={() => fetchAnalytics(true)}
             disabled={refreshing || !selectedDatasetId}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 shadow-md shadow-indigo-500/20"
+            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0 shadow-md shadow-emerald-500/20"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
             {refreshing ? "Refreshing…" : "Refresh"}
@@ -238,7 +243,7 @@ export function ManagerAnalyticsCenter() {
           </div>
           <div className="relative">
             <select
-              className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+              className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm"
               value={selectedDatasetId || ""}
               onChange={(e) => handleDatasetChange(e.target.value)}
               disabled={loadingDatasets || datasets.length === 0}

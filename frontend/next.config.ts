@@ -3,6 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Allow mobile devices on the same Wi-Fi to connect to HMR
   allowedDevOrigins: ["192.168.1.10"],
+
+  // Reduce memory pressure from Turbopack file watching
+  experimental: {
+    turbo: {
+      resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
+    },
+  },
+
   async rewrites() {
     return [
       { source: "/api/v1/:path*", destination: "http://localhost:8000/api/v1/:path*" },

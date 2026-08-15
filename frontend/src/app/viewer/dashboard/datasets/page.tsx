@@ -36,6 +36,7 @@ import {
 import { MetricCard } from "@/components/molecules/MetricCard"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PaginationControls } from "@/components/molecules/PaginationControls"
 
 export default function ViewerDatasetExplorer() {
   const { data: user } = useAuth()
@@ -43,6 +44,9 @@ export default function ViewerDatasetExplorer() {
   const [datasets, setDatasets] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(5)
 
   useEffect(() => {
     if (activeWs?.id) {
@@ -58,6 +62,13 @@ export default function ViewerDatasetExplorer() {
     ds.name.toLowerCase().includes(search.toLowerCase()) ||
     ds.department?.toLowerCase().includes(search.toLowerCase())
   )
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search])
+
+  const paginatedDatasets = filteredDatasets.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const totalPages = Math.ceil(filteredDatasets.length / pageSize)
 
   const avgQuality = datasets.length ? datasets.reduce((acc, curr) => acc + (curr.data_quality_score || 0), 0) / datasets.length : 0
 
@@ -202,7 +213,7 @@ export default function ViewerDatasetExplorer() {
                 </TableRow>
               ) : (
                 <AnimatePresence>
-                  {filteredDatasets.map((ds, idx) => (
+                  {paginatedDatasets.map((ds, idx) => (
                     <motion.tr
                       key={ds.id}
                       initial={{ opacity: 0, y: 10 }}
@@ -271,6 +282,18 @@ export default function ViewerDatasetExplorer() {
             </TableBody>
           </Table>
         </div>
+        
+        {!loading && totalPages > 1 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredDatasets.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[5, 10, 25, 50]}
+          />
+        )}
       </div>
     </div>
   )

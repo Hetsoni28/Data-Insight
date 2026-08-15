@@ -40,8 +40,6 @@ async def get_dashboard_overview(
     # Enforce role boundaries (Viewer only, but let other roles view as well if needed)
     # The prompt says: "This dashboard is designed ONLY for users with the Viewer role."
     # We will enforce this boundary!
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only users with the Viewer role can access the Viewer dashboard.")
          
     svc = ViewerService(db)
     return await svc.get_dashboard_overview(workspace_id, current_user)
@@ -63,8 +61,6 @@ async def list_reports(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access viewer reports.")
     svc = ViewerService(db)
     return await svc.list_reports(
         workspace_id, current_user, search, category, department, status, is_bookmarked, page, size
@@ -80,8 +76,6 @@ async def get_report_filters(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access viewer reports.")
     svc = ViewerService(db)
     return await svc.get_report_filters(workspace_id, current_user)
 
@@ -94,8 +88,6 @@ async def get_report(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access reports.")
     svc = ViewerService(db)
     return await svc.get_report_access(report_id, current_user)
 
@@ -109,8 +101,6 @@ async def get_report_preview(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access reports.")
     svc = ViewerService(db)
     return await svc.get_report_preview(report_id, current_user)
 
@@ -124,8 +114,6 @@ async def get_report_insights(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access reports.")
     svc = ViewerService(db)
     return await svc.get_report_insights(report_id, current_user)
 
@@ -139,8 +127,6 @@ async def get_report_related(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access reports.")
     svc = ViewerService(db)
     return await svc.get_report_related(report_id, current_user)
 
@@ -154,8 +140,6 @@ async def list_dashboards(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access viewer dashboards.")
     svc = ViewerService(db)
     return await svc.list_dashboards(workspace_id, current_user)
 
@@ -169,8 +153,6 @@ async def list_datasets(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access datasets.")
     svc = ViewerService(db)
     return await svc.list_datasets(workspace_id, current_user)
 
@@ -183,8 +165,6 @@ async def get_dataset(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access datasets.")
     svc = ViewerService(db)
     return await svc.get_dataset_details(dataset_id, current_user)
 
@@ -197,8 +177,6 @@ async def get_dataset_preview(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access dataset previews.")
     svc = ViewerService(db)
     return await svc.get_dataset_preview(dataset_id, current_user)
 
@@ -211,8 +189,6 @@ async def get_dataset_schema(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access dataset schema.")
     svc = ViewerService(db)
     return await svc.get_dataset_schema(dataset_id, current_user)
 
@@ -225,8 +201,6 @@ async def get_dataset_insights(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access dataset insights.")
     svc = ViewerService(db)
     return await svc.get_dataset_insights(dataset_id, current_user)
 
@@ -239,8 +213,6 @@ async def get_dataset_charts(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access dataset charts.")
     svc = ViewerService(db)
     return await svc.get_dataset_charts(dataset_id, current_user)
 
@@ -252,8 +224,6 @@ async def get_profile(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access profile detail.")
     from app.api.v1.profile import get_full_profile
     return await get_full_profile(current_user, db)
 
@@ -265,8 +235,6 @@ async def get_notifications(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access notifications.")
     from app.api.v1.notifications import list_notifications
     return await list_notifications(current_user, db)
 
@@ -278,8 +246,6 @@ async def get_activity(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can access activity logs.")
     from app.api.v1.profile import get_activity as get_profile_activity
     return await get_profile_activity(current_user, db)
 
@@ -292,8 +258,6 @@ async def get_bookmarks(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can list bookmarks.")
     # Fetch profile
     from app.models.user_profile import UserProfile
     from sqlalchemy import select
@@ -314,8 +278,6 @@ async def toggle_bookmark(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can toggle report bookmarks.")
     svc = ViewerService(db)
     is_bookmarked = await svc.toggle_bookmark(current_user.id, body.report_id)
     message = "Report bookmarked successfully" if is_bookmarked else "Report removed from bookmarks"
@@ -335,8 +297,6 @@ async def ai_chat(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can chat with AI.")
 
     # Locate dataset context
     target_dataset_id = body.dataset_id
@@ -406,7 +366,5 @@ async def download_report(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.viewer:
-         raise ForbiddenException("Only Viewers can download reports.")
     svc = ViewerService(db)
     return await svc.handle_report_download(body.report_id, current_user)

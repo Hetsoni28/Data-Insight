@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function ManagerAnalyticsPage() {
   return (
     <div className="flex-1 p-6 lg:p-8 h-full overflow-y-auto">
-      <div className="max-w-7xl mx-auto h-full">
+      <div className="max-w-7xl mx-auto">
         <ManagerAnalyticsCenter />
       </div>
     </div>

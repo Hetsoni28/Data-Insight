@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import { createPortal } from "react-dom"
@@ -32,10 +32,10 @@ function Dialog({
   const [internalOpen, setInternalOpen] = React.useState(false)
   const isControlled = open !== undefined
   const isOpen = isControlled ? open : internalOpen
-  const handleChange = (v: boolean) => {
+  const handleChange = React.useCallback((v: boolean) => {
     if (!isControlled) setInternalOpen(v)
     onOpenChange?.(v)
-  }
+  }, [isControlled, onOpenChange])
 
   // close on Escape
   React.useEffect(() => {
@@ -45,7 +45,7 @@ function Dialog({
     }
     document.addEventListener("keydown", handler)
     return () => document.removeEventListener("keydown", handler)
-  }, [isOpen])
+  }, [isOpen, handleChange])
 
   // lock scroll
   React.useEffect(() => {
@@ -95,7 +95,6 @@ function DialogTrigger({
 // ---------------------------------------------------------------------------
 function DialogPortal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false)
-  // eslint-disable-next-line
   React.useEffect(() => setMounted(true), [])
   if (!mounted) return null
   return createPortal(children, document.body)

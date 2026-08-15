@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
@@ -9,7 +9,7 @@ interface AuthLayoutProps {
   variant: "login" | "forgot-password" | "reset-password" | "verify-email" | "invite"
 }
 
-export function AuthLayout({ children, variant }: AuthLayoutProps) {
+export function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50 font-sans">
       {/* ── Left Panel: Clean Solid Enterprise Emerald Green (No extra boxes/badges) ── */}

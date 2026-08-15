@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
 import type { EChartsReactProps } from "echarts-for-react";
 
@@ -8,7 +8,6 @@ import type { EChartsReactProps } from "echarts-for-react";
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
 import { useTheme } from "next-themes";
-import * as echarts from "echarts";
 
 // Optional: Register a custom theme for ECharts if needed
 // echarts.registerTheme('myTheme', { ... })

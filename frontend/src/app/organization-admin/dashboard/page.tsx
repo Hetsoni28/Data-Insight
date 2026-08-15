@@ -8,7 +8,7 @@ import { OrganizationKpiGrid } from "@/components/organisms/OrganizationKpiGrid"
 import { OrganizationScoreCards } from "@/components/organisms/OrganizationScoreCards"
 import { OrganizationAnalytics } from "@/components/organisms/OrganizationAnalytics"
 import { OrganizationActivityFeed } from "@/components/organisms/OrganizationActivityFeed"
-import { OrganizationDatasets } from "@/components/organisms/OrganizationDatasets"
+import { RecentDatasetsWidget } from "@/components/organisms/RecentDatasetsWidget"
 import { OrganizationReports } from "@/components/organisms/OrganizationReports"
 import { OrganizationSecurity } from "@/components/organisms/OrganizationSecurity"
 import { OrganizationNavStrip } from "@/components/organisms/OrganizationNavStrip"
@@ -118,7 +118,7 @@ export default function OrganizationAdminDashboard() {
         </motion.div>
 
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <OrganizationDatasets datasets={datasets} />
+          <RecentDatasetsWidget datasets={datasets} basePath="/organization-admin/dashboard/datasets" />
           <OrganizationReports reports={reports} />
         </motion.div>
 

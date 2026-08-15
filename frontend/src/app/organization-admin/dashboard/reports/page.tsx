@@ -1,4 +1,4 @@
-﻿﻿"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import api from "@/lib/api"
@@ -12,6 +12,9 @@ import { ReportActionModal } from "@/components/organisms/ReportActionModal"
 import { ReportViewerModal } from "@/components/organisms/ReportViewerModal"
 import { ReportSchedulesTable } from "@/components/organisms/ReportSchedulesTable"
 import { ReportSchedulerModal } from "@/components/organisms/ReportSchedulerModal"
+import { ReportFilters } from "@/components/organisms/ReportFilters"
+import { ReportExportModal } from "@/components/organisms/ReportExportModal"
+import { ReportBuilder } from "@/components/organisms/ReportBuilder"
 import { ReportScheduleService, ReportSchedule } from "@/lib/report.service"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
@@ -31,6 +34,19 @@ export default function ReportsCenterPage() {
   
   const [schedules, setSchedules] = useState<ReportSchedule[]>([])
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [exportReportId, setExportReportId] = useState("")
+
+  const handleExportSubmit = async (format: string) => {
+    try {
+      const res = await api.post(`/tenant-reports/${exportReportId}/export`, { format_type: format })
+      console.log("Export triggered:", res.data)
+      // Ideally trigger a download here
+    } catch (e) {
+      throw e
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -89,6 +105,9 @@ export default function ReportsCenterPage() {
     } else if (action === 'preview') {
       setViewingReportId(id)
       setIsViewerOpen(true)
+    } else if (action === 'export') {
+      setExportReportId(id)
+      setIsExportModalOpen(true)
     } else if (action === 'download') {
       toast.loading("Preparing download...", { id: `dl-${id}` })
       try {
@@ -148,11 +167,13 @@ export default function ReportsCenterPage() {
             <div className="flex items-center justify-between mb-4">
               <TabsList>
                 <TabsTrigger value="reports">Generated Reports</TabsTrigger>
+                <TabsTrigger value="builder">Report Builder</TabsTrigger>
                 <TabsTrigger value="schedules">Schedules & Templates</TabsTrigger>
               </TabsList>
             </div>
             
-            <TabsContent value="reports">
+            <TabsContent value="reports" className="space-y-4">
+              <ReportFilters onFilterChange={(filters) => console.log("Filters changed:", filters)} />
               <ReportExplorerTable 
                 reports={reports}
                 isLoading={isLoading}
@@ -160,6 +181,18 @@ export default function ReportsCenterPage() {
                 setSearchQuery={setSearchQuery}
                 onAction={handleRowAction}
               />
+            </TabsContent>
+            
+            <TabsContent value="builder">
+              <ReportBuilder onSave={async (config) => {
+                try {
+                  toast.loading("Building query...", { id: "build" })
+                  const res = await api.post('/tenant-reports/query', config)
+                  toast.success("Query configured successfully!", { id: "build" })
+                } catch (e) {
+                  toast.error("Failed to build query", { id: "build" })
+                }
+              }} />
             </TabsContent>
             
             <TabsContent value="schedules">
@@ -185,6 +218,13 @@ export default function ReportsCenterPage() {
         isOpen={isViewerOpen}
         onClose={() => setIsViewerOpen(false)}
         reportId={viewingReportId}
+      />
+      
+      <ReportExportModal 
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        reportId={exportReportId}
+        onExport={handleExportSubmit}
       />
       
       <ReportSchedulerModal 

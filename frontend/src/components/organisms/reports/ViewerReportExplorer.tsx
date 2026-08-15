@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ViewerService } from "@/lib/viewer.service";
 import type { ViewerReport } from "@/lib/viewer.service";
+import { PaginationControls } from "@/components/molecules/PaginationControls";
 
 interface ViewerReportExplorerProps {
   reports: ViewerReport[];
@@ -27,6 +28,9 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function ViewerReportExplorer({ reports, isLoading, onRefresh, onPreview }: ViewerReportExplorerProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -52,18 +56,36 @@ export function ViewerReportExplorer({ reports, isLoading, onRefresh, onPreview 
     );
   }
 
+  const totalPages = Math.ceil(reports.length / pageSize);
+  const validCurrentPage = Math.min(currentPage, Math.max(1, totalPages));
+  const paginatedReports = reports.slice((validCurrentPage - 1) * pageSize, validCurrentPage * pageSize);
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <AnimatePresence mode="popLayout">
-        {reports.map((report) => (
-          <ReportCard
-            key={report.id}
-            report={report}
-            onRefresh={onRefresh}
-            onPreview={() => onPreview(report)}
-          />
-        ))}
-      </AnimatePresence>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <AnimatePresence mode="popLayout">
+          {paginatedReports.map((report) => (
+            <ReportCard
+              key={report.id}
+              report={report}
+              onRefresh={onRefresh}
+              onPreview={() => onPreview(report)}
+            />
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {totalPages > 1 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={reports.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[6, 12, 24, 48]}
+        />
+      )}
     </div>
   );
 }
@@ -98,7 +120,17 @@ function ReportCard({ report, onRefresh, onPreview }: {
     try {
       const res = await ViewerService.downloadReport(report.id);
       if (res.download_url) {
-        window.open(res.download_url, "_blank");
+        let url = res.download_url;
+        if (url.startsWith("/api/v1/")) {
+          const backendBase = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") ?? "http://localhost:8000";
+          url = `${backendBase}${url}`;
+        }
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = report.title || "report";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
         toast.success("Download started.");
       } else {
         toast.error("Download URL not available.");
@@ -117,23 +149,21 @@ function ReportCard({ report, onRefresh, onPreview }: {
       exit={{ opacity: 0, scale: 0.95 }}
       layout
       onClick={onPreview}
-      className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-500/30 transition-all group relative overflow-hidden cursor-pointer flex flex-col justify-between h-[160px]"
+      className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-white/20 transition-all group relative overflow-hidden cursor-pointer flex flex-col justify-between h-[160px]"
     >
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-400 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl" />
-
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 flex items-center justify-center group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 group-hover:border-emerald-100 dark:group-hover:border-emerald-500/20 transition-colors">
+        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 flex items-center justify-center group-hover:bg-slate-100 dark:group-hover:bg-slate-700 transition-colors">
           {report.report_type === "excel" ? (
-            <FileSpreadsheet className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
+            <FileSpreadsheet className="w-5 h-5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors" />
           ) : (
-            <FileText className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
+            <FileText className="w-5 h-5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors" />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-white text-[15px] leading-snug truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+              <h3 className="font-semibold text-slate-900 dark:text-white text-[15px] leading-snug truncate group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
                 {report.title}
               </h3>
               <div className="flex items-center flex-wrap gap-2 mt-2">
@@ -185,18 +215,20 @@ function ReportCard({ report, onRefresh, onPreview }: {
         </div>
         
         <div className="flex items-center gap-2">
+          {report.output_url && (
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={!canDownload || downloading}
+              className="h-7 px-2 text-xs text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 z-10"
+              onClick={handleDownload}
+            >
+              {downloading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+            </Button>
+          )}
           <Button
             size="sm"
-            variant="ghost"
-            disabled={!canDownload || downloading}
-            className="h-7 px-2 text-xs text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 z-10"
-            onClick={handleDownload}
-          >
-            {downloading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-          </Button>
-          <Button
-            size="sm"
-            className="h-7 px-3 text-xs bg-slate-900 text-white hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 z-10"
+            className="h-7 px-3 text-xs bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm z-10"
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
           >
             <Eye className="w-3.5 h-3.5 mr-1.5" />

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { toast } from 'sonner';
 
 interface UseWebSocketProps {
   onMessage: (message: any) => void;
@@ -13,7 +12,7 @@ export function useWebSocket({ onMessage }: UseWebSocketProps) {
   // Try to use HTTPS equivalent for WS (ws/wss) based on the API URL
   const getWsUrl = () => {
     const defaultClientUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-    let wsUrl = defaultClientUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+    const wsUrl = defaultClientUrl.replace('http://', 'ws://').replace('https://', 'wss://');
     const token = localStorage.getItem('access_token');
     return `${wsUrl}/ws/tenant-events?token=${token}`;
   };

@@ -229,7 +229,7 @@ export class AIService {
             if (data.token && onChunk) onChunk(data.token);
             if (data.artifact && onArtifact) onArtifact(data.artifact);
             if (data.error) throw new Error(data.error);
-          } catch (e) {
+          } catch {
             // Ignore JSON parse errors for partial chunks
           }
         }

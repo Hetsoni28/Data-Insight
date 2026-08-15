@@ -49,20 +49,19 @@ export default function ViewerDashboardPage() {
     else setLoading(true);
 
     try {
-      const [overviewData, reportsData, dashboardsData, datasetsData] = await Promise.all([
+      const [overviewResult, reportsResult, dashboardsResult, datasetsResult] = await Promise.allSettled([
         ViewerService.getDashboardOverview(activeWs.id),
         ViewerService.listReports(activeWs.id),
         ViewerService.listDashboards(activeWs.id),
         ViewerService.listDatasets(activeWs.id),
       ]);
 
-      setOverview(overviewData);
-      setReports(reportsData.items || []);
-      setDashboards(dashboardsData);
-      setDatasets(datasetsData);
+      if (overviewResult.status === "fulfilled") setOverview(overviewResult.value);
+      if (reportsResult.status === "fulfilled") setReports(reportsResult.value.items || []);
+      if (dashboardsResult.status === "fulfilled") setDashboards(dashboardsResult.value);
+      if (datasetsResult.status === "fulfilled") setDatasets(datasetsResult.value);
     } catch (error) {
       console.error("Failed to load viewer dashboard data", error);
-      toast.error("Error loading dashboard data. Please try again.");
     } finally {
       setLoading(false);
       setRefreshing(false);

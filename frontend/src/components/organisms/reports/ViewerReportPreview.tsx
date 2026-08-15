@@ -57,7 +57,21 @@ export function ViewerReportPreview({ report, onClose }: ViewerReportPreviewProp
     try {
       const res = await ViewerService.downloadReport(report.id);
       if (res.download_url) {
-        window.open(res.download_url, "_blank");
+        // Convert relative /api/v1/storage/... paths to absolute backend URLs.
+        // Next.js rewrites don't support binary file streaming so we must
+        // point the browser directly at the backend (port 8000).
+        let url = res.download_url;
+        if (url.startsWith("/api/v1/")) {
+          const backendBase = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") ?? "http://localhost:8000";
+          url = `${backendBase}${url}`;
+        }
+        // Use an anchor tag to trigger a true browser download
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = report.title || "report";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
         toast.success("Download started.");
       } else {
         toast.error("Download URL not available.");
@@ -75,17 +89,17 @@ export function ViewerReportPreview({ report, onClose }: ViewerReportPreviewProp
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex justify-end bg-slate-900/20 dark:bg-slate-900/60 backdrop-blur-sm"
+        className="fixed inset-0 z-[100] flex justify-end bg-slate-900/20 dark:bg-slate-900/60 backdrop-blur-sm"
       >
         <motion.div
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="w-full max-w-3xl bg-white dark:bg-slate-950 h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-white/10"
+          className="w-full max-w-3xl bg-white dark:bg-slate-950 h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-white/10 overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+          <div className="flex items-start justify-between p-6 pt-24 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="outline" className="bg-white dark:bg-slate-900 text-slate-500">{details?.category || report.category}</Badge>
@@ -103,10 +117,17 @@ export function ViewerReportPreview({ report, onClose }: ViewerReportPreviewProp
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button onClick={handleDownload} disabled={downloading || loading} size="sm" className="bg-slate-900 text-white hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500">
-                {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-                Download PDF
-              </Button>
+              {details?.output_url ? (
+                <Button onClick={handleDownload} disabled={downloading || loading} size="sm" className="bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm">
+                  {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                  Download PDF
+                </Button>
+              ) : (
+                <Button disabled size="sm" variant="outline" className="bg-slate-50 text-slate-400 border-slate-200 dark:bg-white/5 dark:border-white/10 dark:text-slate-500 cursor-not-allowed">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Interactive Only
+                </Button>
+              )}
               <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-white/10 text-slate-500 hover:text-slate-700 dark:hover:text-white">
                 <X className="w-5 h-5" />
               </Button>

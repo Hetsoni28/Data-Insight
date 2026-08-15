@@ -25,11 +25,12 @@ export function ViewerAnalyticsForecast({ forecasts, isLoading }: ViewerAnalytic
         const combinedData: any[] = [];
         
         // Add historical
-        forecast.historical_data.forEach(h => {
+        forecast.historical_data.forEach((h, idx) => {
+          const isLast = idx === forecast.historical_data.length - 1;
           combinedData.push({
             date: h.date,
             actual: h.value,
-            predicted: null,
+            predicted: isLast ? h.value : null,
             lower: null,
             upper: null
           });
@@ -55,16 +56,16 @@ export function ViewerAnalyticsForecast({ forecasts, isLoading }: ViewerAnalytic
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-950 rounded-xl p-5 shadow-lg border border-indigo-500/20 text-white"
+            className="bg-gradient-to-br from-emerald-900 via-slate-900 to-slate-950 rounded-xl p-5 shadow-lg border border-emerald-500/20 text-white"
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-500/20 rounded-lg border border-indigo-500/30">
-                  <Zap className="w-5 h-5 text-indigo-400" />
+                <div className="p-2 bg-emerald-500/20 rounded-lg border border-emerald-500/30">
+                  <Zap className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-white">{forecast.title}</h3>
-                  <p className="text-xs text-indigo-300">Model Accuracy: {forecast.model_accuracy}%</p>
+                  <p className="text-xs text-emerald-300">Model Accuracy: {forecast.model_accuracy}%</p>
                 </div>
               </div>
               <div className="text-xs px-2 py-1 bg-white/10 rounded-full border border-white/10">

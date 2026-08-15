@@ -14,6 +14,9 @@ import { ReportActionModal } from "@/components/organisms/ReportActionModal"
 import { ReportViewerModal } from "@/components/organisms/ReportViewerModal"
 import { ReportSchedulesTable } from "@/components/organisms/ReportSchedulesTable"
 import { ReportSchedulerModal } from "@/components/organisms/ReportSchedulerModal"
+import { ReportFilters } from "@/components/organisms/ReportFilters"
+import { ReportExportModal } from "@/components/organisms/ReportExportModal"
+import { ReportBuilder } from "@/components/organisms/ReportBuilder"
 import { ReportScheduleService, ReportSchedule } from "@/lib/report.service"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useWorkspaceStore } from "@/store/workspaceStore"
@@ -35,6 +38,19 @@ export default function AnalystReportsCenterPage() {
   
   const [schedules, setSchedules] = useState<ReportSchedule[]>([])
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [exportReportId, setExportReportId] = useState("")
+
+  const handleExportSubmit = async (format: string) => {
+    try {
+      const res = await api.post(`/tenant-reports/${exportReportId}/export`, { format_type: format })
+      console.log("Export triggered:", res.data)
+      // Ideally trigger a download here
+    } catch (e) {
+      throw e
+    }
+  }
 
   // Explicitly tie fetching to the current workspace
   const { activeWs } = useWorkspaceStore()
@@ -101,6 +117,19 @@ export default function AnalystReportsCenterPage() {
     }
   }
 
+  const handleActionIntercept = (action: string, report?: Report) => {
+    if (action === 'schedule' && report) {
+      setViewingReportId(report.id)
+      setIsScheduleModalOpen(true)
+    } else if (action === 'export' && report) {
+      setExportReportId(report.id)
+      setIsExportModalOpen(true)
+    } else {
+      if (report) setViewingReportId(report.id)
+      handleQuickAction(action)
+    }
+  }
+
   const handleRowAction = async (action: string, id: string) => {
     if (action === 'delete' || action === 'archive') {
       if (!confirm(`Are you sure you want to ${action} this report?`)) return
@@ -133,15 +162,6 @@ export default function AnalystReportsCenterPage() {
     } else {
       toast.info(`Action ${action} is in development.`)
     }
-  }
-
-  // Filter Quick Actions if needed (e.g. removing Template Upload if unsupported for Analysts)
-  const handleActionIntercept = (action: string) => {
-    if (action === "upload") {
-      toast.info("Templates feature is managed by Organization Admins.")
-      return
-    }
-    handleQuickAction(action)
   }
 
   if (!activeWs) {
@@ -214,7 +234,6 @@ export default function AnalystReportsCenterPage() {
             className="lg:col-span-2 flex flex-col gap-6"
           >
             <ReportExecutiveKPIs stats={stats} />
-            {/* Using a wrapper to intercept the upload action */}
             <ReportQuickActions onAction={handleActionIntercept} />
           </motion.div>
           
@@ -240,18 +259,32 @@ export default function AnalystReportsCenterPage() {
             <div className="flex items-center justify-between mb-4">
               <TabsList>
                 <TabsTrigger value="reports">Generated Reports</TabsTrigger>
+                <TabsTrigger value="builder">Report Builder</TabsTrigger>
                 <TabsTrigger value="schedules">Schedules</TabsTrigger>
               </TabsList>
             </div>
             
-            <TabsContent value="reports">
+            <TabsContent value="reports" className="space-y-4">
+              <ReportFilters onFilterChange={(filters) => console.log("Filters changed:", filters)} />
               <ReportExplorerTable 
                 reports={reports}
                 isLoading={isLoading}
+                onAction={handleActionIntercept}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
-                onAction={handleRowAction}
               />
+            </TabsContent>
+            
+            <TabsContent value="builder">
+              <ReportBuilder onSave={async (config) => {
+                try {
+                  toast.loading("Building query...", { id: "build" })
+                  const res = await api.post('/tenant-reports/query', config)
+                  toast.success("Query configured successfully!", { id: "build" })
+                } catch (e) {
+                  toast.error("Failed to build query", { id: "build" })
+                }
+              }} />
             </TabsContent>
             
             <TabsContent value="schedules">
@@ -277,6 +310,13 @@ export default function AnalystReportsCenterPage() {
         isOpen={isViewerOpen}
         onClose={() => setIsViewerOpen(false)}
         reportId={viewingReportId}
+      />
+      
+      <ReportExportModal 
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        reportId={exportReportId}
+        onExport={handleExportSubmit}
       />
       
       <ReportSchedulerModal 

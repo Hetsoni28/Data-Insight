@@ -49,11 +49,8 @@ export function ViewerAnalyticsCenter() {
     setError(null);
 
     try {
-      // Parallel fetch for speed
-      const [
-        kpiRes, trendRes, perfRes, compRes, 
-        forecastRes, anomalyRes, insightRes
-      ] = await Promise.all([
+      // Parallel fetch for speed - using allSettled to prevent full-page crashes
+      const results = await Promise.allSettled([
         ViewerAnalyticsService.getKpis(activeWs.id),
         ViewerAnalyticsService.getTrends(activeWs.id),
         ViewerAnalyticsService.getPerformance(activeWs.id),
@@ -63,15 +60,25 @@ export function ViewerAnalyticsCenter() {
         ViewerAnalyticsService.getAiInsights(activeWs.id)
       ]);
 
-      setDomain(kpiRes.domain);
-      setKpis(kpiRes.kpis);
-      setTrends(trendRes.trends);
-      setPerformances(perfRes.performances);
-      setComparisons(compRes.comparisons);
-      setForecasts(forecastRes.forecasts);
-      setAnomalies(anomalyRes.anomalies);
-      setAiInsights(insightRes.insights);
-      setAiSummary(insightRes.executive_summary);
+      if (results[0].status === 'fulfilled') {
+        setDomain(results[0].value.domain);
+        setKpis(results[0].value.kpis);
+      }
+      if (results[1].status === 'fulfilled') setTrends(results[1].value.trends);
+      if (results[2].status === 'fulfilled') setPerformances(results[2].value.performances);
+      if (results[3].status === 'fulfilled') setComparisons(results[3].value.comparisons);
+      if (results[4].status === 'fulfilled') setForecasts(results[4].value.forecasts);
+      if (results[5].status === 'fulfilled') setAnomalies(results[5].value.anomalies);
+      if (results[6].status === 'fulfilled') {
+        setAiInsights(results[6].value.insights);
+        setAiSummary(results[6].value.executive_summary);
+      }
+      
+      const allFailed = results.every(r => r.status === 'rejected');
+      if (allFailed) {
+        throw new Error("All analytics endpoints failed to load.");
+      }
+      
       setLastRefresh(new Date().toLocaleTimeString());
     } catch (err: any) {
       console.error(err);
@@ -80,7 +87,7 @@ export function ViewerAnalyticsCenter() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [activeWs]);
+  }, [activeWs?.id]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -155,41 +162,42 @@ export function ViewerAnalyticsCenter() {
             </div>
           ) : (
             <>
-              {/* Trends & Comparisons Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">Trend Analysis</h2>
-                  <ViewerAnalyticsTrends trends={trends} isLoading={loading} />
-                </div>
-                <div className="space-y-6">
+              {/* Trends — Full Width */}
+              <section className="space-y-4">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Trend Analysis</h2>
+                <ViewerAnalyticsTrends trends={trends} isLoading={loading} />
+              </section>
+
+              {/* 2-column: Period vs Period | Anomalies */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white">Period vs Period</h2>
                   <ViewerAnalyticsComparisons comparisons={comparisons} isLoading={loading} />
-                  
-                  <div className="mt-6">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Anomalies</h2>
-                    <ViewerAnalyticsAnomalies anomalies={anomalies} isLoading={loading} />
-                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">Anomalies</h2>
+                  <ViewerAnalyticsAnomalies anomalies={anomalies} isLoading={loading} />
                 </div>
               </div>
 
-              {/* Performance / Dimensions */}
-              <section className="space-y-6">
+              {/* Segment Performance — Full Width */}
+              <section className="space-y-4">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">Segment Performance</h2>
                 <ViewerAnalyticsPerformance performances={performances} isLoading={loading} />
               </section>
 
-              {/* Forecasting */}
-              {forecasts.length > 0 && (
-                <section className="space-y-6">
+              {/* Forecasting — Full Width */}
+              {(loading || forecasts.length > 0) && (
+                <section className="space-y-4">
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white">AI Forecasting</h2>
                   <ViewerAnalyticsForecast forecasts={forecasts} isLoading={loading} />
                 </section>
               )}
 
-              {/* AI Insights & Assistant */}
-              <section className="space-y-6 pt-6" ref={aiSectionRef}>
+              {/* AI Insights — Full Width */}
+              <section className="space-y-6 pt-4" ref={aiSectionRef}>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-indigo-500" /> Executive Business Insights
+                  <Sparkles className="w-5 h-5 text-emerald-500" /> Executive Business Insights
                 </h2>
                 <ViewerAnalyticsAI 
                   insights={aiInsights} 

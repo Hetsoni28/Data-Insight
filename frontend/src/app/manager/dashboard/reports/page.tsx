@@ -12,6 +12,9 @@ import { ReportActionModal } from "@/components/organisms/ReportActionModal"
 import { ReportViewerModal } from "@/components/organisms/ReportViewerModal"
 import { ReportSchedulesTable } from "@/components/organisms/ReportSchedulesTable"
 import { ReportSchedulerModal } from "@/components/organisms/ReportSchedulerModal"
+import { ReportFilters } from "@/components/organisms/ReportFilters"
+import { ReportExportModal } from "@/components/organisms/ReportExportModal"
+import { ReportBuilder } from "@/components/organisms/ReportBuilder"
 import { ReportScheduleService, ReportSchedule, ReportService, Report } from "@/lib/report.service"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
@@ -38,6 +41,19 @@ export default function ManagerReportsCenterPage() {
   
   const [schedules, setSchedules] = useState<ReportSchedule[]>([])
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [exportReportId, setExportReportId] = useState("")
+
+  const handleExportSubmit = async (format: string) => {
+    try {
+      const res = await api.post(`/tenant-reports/${exportReportId}/export`, { format_type: format })
+      console.log("Export triggered:", res.data)
+      toast.success(`Exporting as ${format.toUpperCase()}`)
+    } catch (e) {
+      toast.error("Export failed")
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -105,6 +121,9 @@ export default function ManagerReportsCenterPage() {
     if (action === 'preview') {
       setViewingReportId(id)
       setIsViewerOpen(true)
+    } else if (action === 'export') {
+      setExportReportId(id)
+      setIsExportModalOpen(true)
     } else if (action === 'download') {
       toast.loading("Preparing download...", { id: `dl-${id}` })
       try {
@@ -174,11 +193,19 @@ export default function ManagerReportsCenterPage() {
             <div className="flex items-center justify-between mb-4">
               <TabsList>
                 <TabsTrigger value="reports">Generated Reports</TabsTrigger>
+                <TabsTrigger value="builder">Report Builder</TabsTrigger>
                 <TabsTrigger value="schedules">Schedules & Templates</TabsTrigger>
               </TabsList>
             </div>
             
-            <TabsContent value="reports">
+            <TabsContent value="reports" className="space-y-4">
+              <ReportFilters onFilterChange={(filters) => {
+                if (filters.status && filters.status !== 'all') {
+                  setStatusFilter(filters.status)
+                } else {
+                  setStatusFilter('all')
+                }
+              }} />
               <ManagerReportTable 
                 reports={reports}
                 isLoading={isLoading}
@@ -194,6 +221,18 @@ export default function ManagerReportsCenterPage() {
                 totalPages={totalPages}
                 totalItems={totalItems}
               />
+            </TabsContent>
+            
+            <TabsContent value="builder">
+              <ReportBuilder onSave={async (config) => {
+                try {
+                  toast.loading("Building query...", { id: "build" })
+                  const res = await api.post('/tenant-reports/query', config)
+                  toast.success("Query configured successfully!", { id: "build" })
+                } catch (e) {
+                  toast.error("Failed to build query", { id: "build" })
+                }
+              }} />
             </TabsContent>
             
             <TabsContent value="schedules">
@@ -219,6 +258,13 @@ export default function ManagerReportsCenterPage() {
         isOpen={isViewerOpen}
         onClose={() => setIsViewerOpen(false)}
         reportId={viewingReportId}
+      />
+      
+      <ReportExportModal 
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        reportId={exportReportId}
+        onExport={handleExportSubmit}
       />
       
       <ReportSchedulerModal 

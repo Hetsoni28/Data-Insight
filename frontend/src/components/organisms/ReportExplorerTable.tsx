@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Filter, Download, Share2, MoreVertical, FileText, CheckCircle2, Clock, XCircle, FileSpreadsheet, Eye, Copy, Archive } from "lucide-react"
+import { Search, Filter, Download, Share2, MoreVertical, FileText, CheckCircle2, Clock, XCircle, FileSpreadsheet, Eye, Copy, Archive, Edit2, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
+import { useAuth } from "@/hooks/useAuth"
 
 export interface Report {
   id: string
@@ -25,6 +26,7 @@ interface ReportExplorerTableProps {
 }
 
 export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery, setSearchQuery }: ReportExplorerTableProps) {
+  const { data: currentUser } = useAuth()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const formatBytes = (bytes: number) => {
@@ -177,15 +179,33 @@ export function ReportExplorerTable({ reports, isLoading, onAction, searchQuery,
                         <button onClick={() => onAction('download', report.id)} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors" title="Download">
                           <Download className="w-4 h-4" />
                         </button>
-                        <button onClick={() => onAction('share', report.id)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors" title="Share">
-                          <Share2 className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => onAction('duplicate', report.id)} className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg transition-colors" title="Duplicate">
-                          <Copy className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => onAction('archive', report.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors" title="Archive">
-                          <Archive className="w-4 h-4" />
-                        </button>
+                        
+                        {currentUser && currentUser.role !== 'viewer' && (
+                          <>
+                            <button onClick={() => onAction('share', report.id)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors" title="Share">
+                              <Share2 className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => onAction('duplicate', report.id)} className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg transition-colors" title="Duplicate">
+                              <Copy className="w-4 h-4" />
+                            </button>
+                            {/* Edit requires Org Admin, Manager, or Analyst (Depends, assuming allowed if they have table access) */}
+                            <button onClick={() => onAction('edit', report.id)} className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-500/10 rounded-lg transition-colors" title="Edit Metadata">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+
+                        {currentUser && currentUser.role !== 'viewer' && (
+                          (currentUser.role === 'org_admin' || report.owner_id === currentUser.id) ? (
+                            <button onClick={() => onAction('archive', report.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors" title="Archive / Delete">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <button onClick={() => onAction('archive', report.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors" title="Archive">
+                              <Archive className="w-4 h-4" />
+                            </button>
+                          )
+                        )}
                       </div>
                     </td>
                   </motion.tr>

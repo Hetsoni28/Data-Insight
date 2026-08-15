@@ -1,5 +1,5 @@
 import React from "react"
-import { FileSpreadsheet, FileJson, FileText, Database, Eye, Trash2, ShieldCheck, AlertTriangle, Sparkles, Loader2 } from "lucide-react"
+import { FileSpreadsheet, FileJson, FileText, Database, Eye, Trash2, ShieldCheck, AlertTriangle, Sparkles, Loader2, Edit2 } from "lucide-react"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
 
 function formatBytes(bytes: number) {
@@ -24,9 +24,10 @@ export function DatasetExplorerTable({
   currentUser?: { id: string, role: string } | null 
 }) {
   
-  const getFileIcon = (type: string) => {
-    if (type.includes('csv') || type.includes('xlsx')) return <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
-    if (type.includes('json')) return <FileJson className="w-4 h-4 text-amber-500" />
+  const getFileIcon = (type: string | null | undefined) => {
+    const t = (type || '').toLowerCase()
+    if (t.includes('csv') || t.includes('xlsx')) return <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+    if (t.includes('json')) return <FileJson className="w-4 h-4 text-amber-500" />
     return <FileText className="w-4 h-4 text-indigo-500" />
   }
 
@@ -156,7 +157,7 @@ export function DatasetExplorerTable({
                           {dataset.name}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
-                          {dataset.description || dataset.file_type.toUpperCase()}
+                          {dataset.description || dataset.file_type?.toUpperCase() || 'Dataset'}
                         </p>
                       </div>
                     </div>
@@ -174,7 +175,7 @@ export function DatasetExplorerTable({
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center text-[10px] font-bold uppercase shrink-0">
-                        {dataset.owner?.name?.charAt(0) || "U"}
+                        {dataset.owner?.name?.charAt(0) || "S"}
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{dataset.owner?.name || "System"}</p>
@@ -184,7 +185,7 @@ export function DatasetExplorerTable({
                   <td className="px-6 py-4 text-slate-500 text-xs font-mono">{new Date(dataset.created_at).toLocaleDateString()}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                      {currentUser && (
+                      {currentUser && currentUser.role !== 'viewer' && (
                         <>
                           <button 
                             onClick={() => onAction('analyze', dataset.id)} 
@@ -218,9 +219,21 @@ export function DatasetExplorerTable({
                       >
                         <Eye className="w-4 h-4" />
                       </button>
+
+                      {currentUser && currentUser.role !== 'viewer' && (
+                        (currentUser.role === 'org_admin' || currentUser.role === 'manager' || dataset.uploaded_by_id === currentUser.id || dataset.owner?.id === currentUser.id) && (
+                          <button 
+                            onClick={() => onAction('edit', dataset.id)} 
+                            className="p-1.5 text-slate-400 hover:text-teal-500 hover:bg-teal-500/10 rounded-lg transition-colors" 
+                            title="Edit Metadata"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                        )
+                      )}
                       
                       {currentUser && (
-                        (currentUser.role === 'org_admin' || currentUser.role === 'manager' || (currentUser.role === 'analyst' && dataset.uploaded_by_id === currentUser.id)) && (
+                        (currentUser.role === 'org_admin' || dataset.uploaded_by_id === currentUser.id || dataset.owner?.id === currentUser.id) && (
                           <button 
                             onClick={() => onAction('delete', dataset.id)} 
                             className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors" 
