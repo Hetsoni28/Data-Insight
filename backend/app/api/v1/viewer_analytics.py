@@ -2,11 +2,9 @@ import uuid
 from fastapi import APIRouter, Depends, Query, Path, Body
 from typing import Dict, Any
 
-from app.api.deps import get_current_active_tenant_user
-from app.models.user import User, UserRole
-from app.api.deps import get_db
+from app.api.deps import get_current_active_tenant_user, get_current_viewer, get_db
+from app.models.user import User
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.exceptions import ForbiddenException
 from app.services.viewer_analytics import ViewerAnalyticsService
 from app.schemas.viewer_analytics import (
     ViewerAnalyticsKpisResponse, ViewerAnalyticsTrendsResponse,
@@ -18,18 +16,18 @@ from app.schemas.viewer_analytics import (
 )
 from datetime import datetime, timezone
 
-router = APIRouter(prefix="/viewer/analytics", tags=["Viewer Analytics"])
-
-def ensure_viewer(user: User):
-    if user.role != UserRole.viewer:
-        raise ForbiddenException("Only viewers can access the viewer analytics workspace.")
+# All routes require viewer role — enforced via get_current_viewer dependency
+router = APIRouter(
+    prefix="/viewer/analytics",
+    tags=["Viewer Analytics"],
+    dependencies=[Depends(get_current_viewer)]
+)
 
 @router.get("/kpis", response_model=ViewerAnalyticsKpisResponse)
 async def get_kpis(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     service = ViewerAnalyticsService(db)
     return await service.get_kpis(current_user)
 
@@ -38,7 +36,6 @@ async def get_trends(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     service = ViewerAnalyticsService(db)
     return await service.get_trends(current_user)
 
@@ -47,7 +44,6 @@ async def get_performance(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     service = ViewerAnalyticsService(db)
     return await service.get_performance(current_user)
 
@@ -56,7 +52,6 @@ async def get_comparisons(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     service = ViewerAnalyticsService(db)
     return await service.get_comparisons(current_user)
 
@@ -65,7 +60,6 @@ async def get_forecast(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     service = ViewerAnalyticsService(db)
     return await service.get_forecast(current_user)
 
@@ -74,7 +68,6 @@ async def get_anomalies(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     service = ViewerAnalyticsService(db)
     return await service.get_anomalies(current_user)
 
@@ -83,7 +76,6 @@ async def get_ai_insights(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     service = ViewerAnalyticsService(db)
     return await service.get_ai_insights(current_user)
 
@@ -92,7 +84,6 @@ async def get_data_quality(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     service = ViewerAnalyticsService(db)
     return await service.get_data_quality(current_user)
 
@@ -102,7 +93,6 @@ async def chat_ai(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_viewer(current_user)
     service = ViewerAnalyticsService(db)
     res = await service.chat_ai(current_user, req.message, req.context)
     return {"response": res}

@@ -2,9 +2,8 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_active_tenant_user, get_db
-from app.models.user import User, UserRole
-from app.core.exceptions import ForbiddenException
+from app.api.deps import get_current_active_tenant_user, get_current_manager, get_db
+from app.models.user import User
 from app.services.manager_analytics import ManagerAnalyticsService
 from app.schemas.manager_analytics import (
     ManagerAnalyticsKpisResponse,
@@ -14,11 +13,12 @@ from app.schemas.manager_analytics import (
     ManagerAnalyticsDataQualityResponse
 )
 
-router = APIRouter(prefix="/manager/analytics", tags=["Manager Analytics"])
-
-def ensure_manager(user: User):
-    if user.role != UserRole.manager and user.role != UserRole.owner and user.role != UserRole.org_admin:
-        raise ForbiddenException("Only Managers and above can access the manager analytics workspace.")
+# All routes require manager role or above — enforced via get_current_manager dependency
+router = APIRouter(
+    prefix="/manager/analytics",
+    tags=["Manager Analytics"],
+    dependencies=[Depends(get_current_manager)]
+)
 
 @router.get("/kpis", response_model=ManagerAnalyticsKpisResponse)
 async def get_manager_kpis(
@@ -26,7 +26,6 @@ async def get_manager_kpis(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_manager(current_user)
     svc = ManagerAnalyticsService(db)
     return await svc.get_kpis(dataset_id, current_user)
 
@@ -36,7 +35,6 @@ async def get_manager_trends(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_manager(current_user)
     svc = ManagerAnalyticsService(db)
     return await svc.get_trends(dataset_id, current_user)
 
@@ -46,7 +44,6 @@ async def get_manager_performance(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_manager(current_user)
     svc = ManagerAnalyticsService(db)
     return await svc.get_performance(dataset_id, current_user)
 
@@ -56,7 +53,6 @@ async def get_manager_anomalies(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_manager(current_user)
     svc = ManagerAnalyticsService(db)
     return await svc.get_anomalies(dataset_id, current_user)
 
@@ -66,6 +62,5 @@ async def get_manager_data_quality(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db)
 ):
-    ensure_manager(current_user)
     svc = ManagerAnalyticsService(db)
     return await svc.get_data_quality(dataset_id, current_user)

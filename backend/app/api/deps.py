@@ -259,6 +259,8 @@ class RequireRole:
 
 get_current_org_admin = RequireRole(["org_admin"])
 get_current_editor = RequireRole(["org_admin", "editor"])
+get_current_manager = RequireRole(["manager", "org_admin", "owner"])
+get_current_viewer = RequireRole(["viewer"])
 
 # ─── Permission-Based RBAC ────────────────────────────────────────────────────
 ROLE_PERMISSIONS = {
