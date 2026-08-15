@@ -1,7 +1,5 @@
-import axios from 'axios';
+import api from './api';
 import { useWorkspaceStore } from '@/store/workspaceStore';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export interface ViewerAnalyticsKpi {
   id: string;
@@ -139,75 +137,78 @@ export interface ViewerAnalyticsAIChatResponse {
 }
 
 export const ViewerAnalyticsService = {
-  _getHeaders(workspaceId?: string) {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {
-      'Authorization': `Bearer ${token}`
-    };
-    
-    const wsId = workspaceId || useWorkspaceStore.getState().activeWs?.id;
-    if (wsId) {
-      headers['X-Workspace-Id'] = wsId;
-    }
-    return headers;
+  _getWorkspaceId(workspaceId?: string) {
+    return workspaceId || useWorkspaceStore.getState().activeWs?.id;
   },
 
   async getKpis(workspaceId?: string): Promise<ViewerAnalyticsKpisResponse> {
-    const res = await axios.get(`${API_URL}/viewer/analytics/kpis`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.get('/viewer/analytics/kpis', { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async getTrends(workspaceId?: string): Promise<ViewerAnalyticsTrendsResponse> {
-    const res = await axios.get(`${API_URL}/viewer/analytics/trends`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.get('/viewer/analytics/trends', { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async getPerformance(workspaceId?: string): Promise<ViewerAnalyticsPerformanceResponse> {
-    const res = await axios.get(`${API_URL}/viewer/analytics/performance`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.get('/viewer/analytics/performance', { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async getComparisons(workspaceId?: string): Promise<ViewerAnalyticsComparisonsResponse> {
-    const res = await axios.get(`${API_URL}/viewer/analytics/comparisons`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.get('/viewer/analytics/comparisons', { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async getForecast(workspaceId?: string): Promise<ViewerAnalyticsForecastResponse> {
-    const res = await axios.get(`${API_URL}/viewer/analytics/forecast`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.get('/viewer/analytics/forecast', { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async getAnomalies(workspaceId?: string): Promise<ViewerAnalyticsAnomaliesResponse> {
-    const res = await axios.get(`${API_URL}/viewer/analytics/anomalies`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.get('/viewer/analytics/anomalies', { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async getAiInsights(workspaceId?: string): Promise<ViewerAnalyticsInsightsResponse> {
-    const res = await axios.get(`${API_URL}/viewer/analytics/ai-insights`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.get('/viewer/analytics/ai-insights', { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async getDataQuality(workspaceId?: string): Promise<ViewerAnalyticsDataQualityResponse> {
-    const res = await axios.get(`${API_URL}/viewer/analytics/data-quality`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.get('/viewer/analytics/data-quality', { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async getSavedViews(workspaceId?: string): Promise<ViewerAnalyticsSavedViewsResponse> {
-    const res = await axios.get(`${API_URL}/viewer/analytics/saved-views`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.get('/viewer/analytics/saved-views', { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async createSavedView(name: string, filters: Record<string, any>, workspaceId?: string): Promise<ViewerAnalyticsSavedView> {
-    const res = await axios.post(`${API_URL}/viewer/analytics/saved-views`, { name, filters }, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.post('/viewer/analytics/saved-views', { name, filters }, { params: { workspace_id: wsId } });
     return res.data;
   },
 
   async deleteSavedView(viewId: string, workspaceId?: string): Promise<void> {
-    await axios.delete(`${API_URL}/viewer/analytics/saved-views/${viewId}`, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    await api.delete(`/viewer/analytics/saved-views/${viewId}`, { params: { workspace_id: wsId } });
   },
 
   async chatAi(message: string, context: Record<string, any>, workspaceId?: string): Promise<ViewerAnalyticsAIChatResponse> {
-    const res = await axios.post(`${API_URL}/viewer/analytics/ai/chat`, { message, context }, { headers: this._getHeaders(workspaceId) });
+    const wsId = this._getWorkspaceId(workspaceId);
+    const res = await api.post('/viewer/analytics/ai/chat', { message, context }, { params: { workspace_id: wsId } });
     return res.data;
   }
 };

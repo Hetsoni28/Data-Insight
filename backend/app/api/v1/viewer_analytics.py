@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 router = APIRouter(prefix="/viewer/analytics", tags=["Viewer Analytics"])
 
 def ensure_viewer(user: User):
-    if user.role != UserRole.VIEWER:
+    if user.role != UserRole.viewer:
         raise ForbiddenException("Only viewers can access the viewer analytics workspace.")
 
 @router.get("/kpis", response_model=ViewerAnalyticsKpisResponse)
