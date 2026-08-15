@@ -2,7 +2,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_active_tenant_user, get_current_manager, get_db
+from app.api.deps import get_current_manager, get_db
 from app.models.user import User
 from app.services.manager_analytics import ManagerAnalyticsService
 from app.schemas.manager_analytics import (
@@ -13,17 +13,12 @@ from app.schemas.manager_analytics import (
     ManagerAnalyticsDataQualityResponse
 )
 
-# All routes require manager role or above — enforced via get_current_manager dependency
-router = APIRouter(
-    prefix="/manager/analytics",
-    tags=["Manager Analytics"],
-    dependencies=[Depends(get_current_manager)]
-)
+router = APIRouter(prefix="/manager/analytics", tags=["Manager Analytics"])
 
 @router.get("/kpis", response_model=ManagerAnalyticsKpisResponse)
 async def get_manager_kpis(
     dataset_id: uuid.UUID = Query(...),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(get_current_manager),
     db: AsyncSession = Depends(get_db)
 ):
     svc = ManagerAnalyticsService(db)
@@ -32,7 +27,7 @@ async def get_manager_kpis(
 @router.get("/trends", response_model=ManagerAnalyticsTrendsResponse)
 async def get_manager_trends(
     dataset_id: uuid.UUID = Query(...),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(get_current_manager),
     db: AsyncSession = Depends(get_db)
 ):
     svc = ManagerAnalyticsService(db)
@@ -41,7 +36,7 @@ async def get_manager_trends(
 @router.get("/performance", response_model=ManagerAnalyticsPerformanceResponse)
 async def get_manager_performance(
     dataset_id: uuid.UUID = Query(...),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(get_current_manager),
     db: AsyncSession = Depends(get_db)
 ):
     svc = ManagerAnalyticsService(db)
@@ -50,7 +45,7 @@ async def get_manager_performance(
 @router.get("/anomalies", response_model=ManagerAnalyticsAnomaliesResponse)
 async def get_manager_anomalies(
     dataset_id: uuid.UUID = Query(...),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(get_current_manager),
     db: AsyncSession = Depends(get_db)
 ):
     svc = ManagerAnalyticsService(db)
@@ -59,7 +54,7 @@ async def get_manager_anomalies(
 @router.get("/data-quality", response_model=ManagerAnalyticsDataQualityResponse)
 async def get_manager_data_quality(
     dataset_id: uuid.UUID = Query(...),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(get_current_manager),
     db: AsyncSession = Depends(get_db)
 ):
     svc = ManagerAnalyticsService(db)
