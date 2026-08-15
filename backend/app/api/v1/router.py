@@ -36,9 +36,12 @@ from app.api.v1.viewer import router as viewer_router
 from app.api.v1.viewer_analytics import router as viewer_analytics_router
 from app.api.v1.viewer_profile import router as viewer_profile_router
 from app.api.v1.org_billing import router as org_billing_router
+from app.api.v1.leads import router as leads_router
+from app.api.v1.public import router as public_router
 
 api_router = APIRouter()
 
+api_router.include_router(public_router, prefix="/public", tags=["Public"])
 api_router.include_router(auth_router)
 api_router.include_router(users_router)
 api_router.include_router(tenants_router)
@@ -77,3 +80,4 @@ api_router.include_router(viewer_router)
 api_router.include_router(viewer_analytics_router)
 api_router.include_router(viewer_profile_router)
 api_router.include_router(org_billing_router, prefix="/org/billing", tags=["Org Billing"])
+api_router.include_router(leads_router, prefix="/leads", tags=["Leads"])

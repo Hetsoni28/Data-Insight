@@ -320,12 +320,125 @@ async def cancel_subscription(
         tenant_id=tenant.id,
         event_type="subscription_canceled",
         description="Subscription canceled by Platform Owner",
-        metadata_json={"reason": "owner_forced_cancellation"}
+            metadata_json={"reason": "owner_forced_cancellation"}
     )
     db.add(activity)
     await db.commit()
     
     return {"status": "success"}
+
+
+# ─── SECURE PROVISIONING ENDPOINTS ───────────────────────────────────────────
+# The raw DB URL is NEVER returned to the client — only provisioning status.
+# All URLs are AES-256 Fernet encrypted before writing to the database.
+
+from pydantic import BaseModel as PydanticModel, field_validator
+import re
+
+class ProvisionRequest(PydanticModel):
+    db_url: str                    # Plain URL — encrypted on the server, never stored raw
+    bucket_name: str | None = None # Optional Supabase/S3 bucket name
+
+    @field_validator("db_url")
+    @classmethod
+    def validate_url_format(cls, v: str) -> str:
+        # Must look like a PostgreSQL connection string
+        pattern = r"^(postgresql|postgres)(\+asyncpg)?://.+:.+@.+/.+"
+        if not re.match(pattern, v):
+            raise ValueError(
+                "Invalid database URL format. "
+                "Expected: postgresql://user:pass@host:port/dbname"
+            )
+        return v
+
+
+@router.post("/{tenant_id}/provision")
+async def provision_dedicated_db(
+    tenant_id: str,
+    payload: ProvisionRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner),
+) -> Any:
+    """
+    Securely provision a dedicated database for an enterprise tenant.
+
+    Security:
+    - Validates connection BEFORE writing anything
+    - Encrypts the URL with AES-256 Fernet — never stored in plaintext
+    - Writes immutable audit log
+    - Returns status only — raw URL is NEVER returned to the client
+    - Only accessible by owner role
+    """
+    from app.services.provisioning import provision_tenant_dedicated_db
+    try:
+        result = await provision_tenant_dedicated_db(
+            db=db,
+            tenant_id=tenant_id,
+            raw_db_url=payload.db_url,
+            bucket_name=payload.bucket_name,
+            actor_id=str(current_user.id),
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Provisioning failed: {str(e)}")
+
+
+@router.get("/{tenant_id}/provisioning-status")
+async def get_provisioning_status(
+    tenant_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner),
+) -> Any:
+    """
+    Return only the provisioning status of a tenant.
+    The dedicated_db_url is NEVER included in the response — only metadata.
+    """
+    from uuid import UUID
+    try:
+        tenant = await db.get(Tenant, UUID(tenant_id))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid tenant ID format.")
+
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found.")
+
+    return {
+        "tenant_id": str(tenant.id),
+        "tenant_name": tenant.name,
+        "plan": tenant.plan,
+        "db_connection_type": tenant.db_connection_type,
+        "provisioning_status": tenant.provisioning_status,
+        "provisioning_error": tenant.provisioning_error,
+        # ❌ dedicated_db_url is intentionally EXCLUDED
+        "has_dedicated_db": bool(tenant.dedicated_db_url),
+        "has_dedicated_bucket": bool(
+            (tenant.advanced_config or {}).get("dedicated_storage_bucket")
+        ),
+    }
+
+
+@router.post("/{tenant_id}/deprovision")
+async def deprovision_tenant_db(
+    tenant_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: Any = Depends(require_owner),
+) -> Any:
+    """
+    Revert a tenant back to shared database mode.
+    Clears the encrypted dedicated_db_url from the record.
+    """
+    from app.services.provisioning import deprovision_tenant
+    try:
+        result = await deprovision_tenant(
+            db=db,
+            tenant_id=tenant_id,
+            actor_id=str(current_user.id),
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/analytics/ai-costs")

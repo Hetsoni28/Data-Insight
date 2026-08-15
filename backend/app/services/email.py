@@ -261,7 +261,119 @@ async def send_report_ready(
     await _send(to=to_email, subject=f'Your report "{report_name}" is ready', html=html)
 
 
+async def send_new_lead_notification(
+    owner_email: str,
+    lead_id: str,
+    company_name: str,
+    contact_person: str,
+    business_email: str,
+    company_size: str | None,
+    industry: str | None,
+    message: str | None,
+    dashboard_url: str,
+) -> None:
+    """Notify the platform owner that a new demo/inquiry lead has arrived."""
+    html = _base_html(
+        f"""
+      <h2 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#0F172A;letter-spacing:-0.4px;">
+        🔔 New Demo Request — {company_name}
+      </h2>
+      <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
+        A new company has submitted a request to access Data Insight.
+        Review their details and move them through the pipeline.
+      </p>
+
+      <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+        <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:1.5px;">Lead ID</p>
+        <p style="margin:0;font-size:20px;font-weight:800;color:#0F172A;font-family:monospace;">{lead_id}</p>
+      </div>
+
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+        <tr><td style="padding:8px 0;border-bottom:1px solid #F1F5F9;font-size:13px;color:#64748B;font-weight:600;width:40%;">Company</td>
+            <td style="padding:8px 0;border-bottom:1px solid #F1F5F9;font-size:13px;color:#0F172A;font-weight:700;">{company_name}</td></tr>
+        <tr><td style="padding:8px 0;border-bottom:1px solid #F1F5F9;font-size:13px;color:#64748B;font-weight:600;">Contact</td>
+            <td style="padding:8px 0;border-bottom:1px solid #F1F5F9;font-size:13px;color:#0F172A;font-weight:700;">{contact_person}</td></tr>
+        <tr><td style="padding:8px 0;border-bottom:1px solid #F1F5F9;font-size:13px;color:#64748B;font-weight:600;">Email</td>
+            <td style="padding:8px 0;border-bottom:1px solid #F1F5F9;font-size:13px;color:#10B981;font-weight:700;">{business_email}</td></tr>
+        <tr><td style="padding:8px 0;border-bottom:1px solid #F1F5F9;font-size:13px;color:#64748B;font-weight:600;">Company Size</td>
+            <td style="padding:8px 0;border-bottom:1px solid #F1F5F9;font-size:13px;color:#0F172A;font-weight:700;">{company_size or "—"}</td></tr>
+        <tr><td style="padding:8px 0;font-size:13px;color:#64748B;font-weight:600;">Industry</td>
+            <td style="padding:8px 0;font-size:13px;color:#0F172A;font-weight:700;">{industry or "—"}</td></tr>
+      </table>
+
+      {"<div style='background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:16px;margin-bottom:24px;'><p style='margin:0 0 6px;font-size:11px;font-weight:700;color:#C2410C;text-transform:uppercase;letter-spacing:1px;'>Message</p><p style='margin:0;font-size:14px;color:#431407;line-height:1.6;'>" + (message or "No message provided") + "</p></div>" if True else ""}
+
+      <div style="text-align:center;margin-bottom:24px;">
+        <a href="{dashboard_url}"
+           style="display:inline-block;background:#10B981;color:#ffffff;font-weight:700;
+                  font-size:15px;padding:14px 36px;border-radius:10px;text-decoration:none;
+                  box-shadow:0 4px 12px rgba(16,185,129,0.25);">
+          Review in Dashboard →
+        </a>
+      </div>
+      <p style="margin:0;font-size:12px;color:#94A3B8;text-align:center;line-height:1.5;">
+        Go to Leads Pipeline in the Owner Dashboard to update the status and contact them.
+      </p>
+    """
+    )
+    await _send(
+        to=owner_email,
+        subject=f"🔔 New Demo Request: {company_name} [{lead_id}]",
+        html=html,
+    )
+
+
+async def send_lead_inquiry_confirmation(
+    to_email: str,
+    contact_person: str,
+    company_name: str,
+    lead_id: str,
+) -> None:
+    """Send a professional acknowledgement to the person who submitted the inquiry."""
+    name = contact_person.split()[0] if contact_person else "there"
+    html = _base_html(
+        f"""
+      <h2 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#0F172A;letter-spacing:-0.4px;">
+        Thank you, {name}! 🎉
+      </h2>
+      <p style="margin:0 0 24px;font-size:15px;color:#475569;line-height:1.6;">
+        We've received your demo request for <strong style="color:#0F172A;">{company_name}</strong>.
+        Our team will review your requirements and reach out within <strong style="color:#0F172A;">1 business day</strong>
+        to schedule your personalised demo.
+      </p>
+
+      <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+        <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:1.5px;">Your Reference ID</p>
+        <p style="margin:0;font-size:28px;font-weight:800;color:#0F172A;font-family:monospace;letter-spacing:4px;">{lead_id}</p>
+        <p style="margin:8px 0 0;font-size:12px;color:#64748B;">Keep this ID for tracking your inquiry status.</p>
+      </div>
+
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:18px;margin-bottom:24px;">
+        <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#0F172A;">What happens next?</p>
+        <ol style="margin:0;padding-left:18px;font-size:13px;color:#475569;line-height:2;">
+          <li>Our team reviews your requirements (within 24 hours)</li>
+          <li>We contact you to schedule a personalised demo</li>
+          <li>You review the platform with a dedicated Solutions Architect</li>
+          <li>We prepare a tailored rental contract for your approval</li>
+          <li>Your dedicated infrastructure is provisioned and handed over</li>
+        </ol>
+      </div>
+
+      <p style="margin:0;font-size:13px;color:#64748B;text-align:center;line-height:1.5;">
+        Questions? Reply to this email or contact us at
+        <a href="mailto:sales@datainsight.ai" style="color:#10B981;font-weight:600;">sales@datainsight.ai</a>
+      </p>
+    """
+    )
+    await _send(
+        to=to_email,
+        subject=f"✅ Demo Request Received — {company_name} [{lead_id}]",
+        html=html,
+    )
+
+
 # ── Internal send ─────────────────────────────────────────────────────────────
+
 
 
 def _sync_send(to: str, subject: str, html: str) -> None:

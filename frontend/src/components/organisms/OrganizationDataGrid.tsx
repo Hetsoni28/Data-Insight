@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import { 
@@ -58,6 +58,10 @@ export function OrganizationDataGrid() {
     }
   }
 
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState("All")
+  const [industryFilter, setIndustryFilter] = useState("All")
+
   const handleToggleStatus = (tenantId: string, currentStatus: boolean, e: React.MouseEvent) => {
     e.stopPropagation()
     toggleStatusMutation.mutate({ tenantId, isActive: !currentStatus })
@@ -75,12 +79,20 @@ export function OrganizationDataGrid() {
 
   const filteredTenants = useMemo(() => {
     const list = Array.isArray(tenants) ? tenants : []
-    return list.filter(t => 
-      (t?.name || "").toLowerCase().includes(search.toLowerCase()) || 
-      (t?.slug && t.slug.toLowerCase().includes(search.toLowerCase())) ||
-      (t?.industry && t.industry.toLowerCase().includes(search.toLowerCase()))
-    )
-  }, [tenants, search])
+    return list.filter(t => {
+      const matchesSearch = (t?.name || "").toLowerCase().includes(search.toLowerCase()) || 
+                            (t?.slug && t.slug.toLowerCase().includes(search.toLowerCase())) ||
+                            (t?.industry && t.industry.toLowerCase().includes(search.toLowerCase()))
+      
+      const matchesStatus = statusFilter === "All" 
+        ? true 
+        : statusFilter === "Active" ? t.is_active : !t.is_active;
+
+      const matchesIndustry = industryFilter === "All" || (t?.industry || "None") === industryFilter;
+
+      return matchesSearch && matchesStatus && matchesIndustry;
+    })
+  }, [tenants, search, statusFilter, industryFilter])
 
   // Pagination Logic
   const totalItems = filteredTenants.length
@@ -114,7 +126,11 @@ export function OrganizationDataGrid() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => toast.info("Filter menu opening...")} variant="outline" className="h-10 shadow-sm rounded-md bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300">
+            <Button 
+              onClick={() => setIsFilterOpen(!isFilterOpen)} 
+              variant={isFilterOpen ? "default" : "outline"} 
+              className={`h-10 shadow-sm rounded-md border-slate-200/60 dark:border-white/10 ${!isFilterOpen ? 'bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300' : ''}`}
+            >
               <Filter className="h-4 w-4 mr-2" />
               Advanced Filters
             </Button>
@@ -124,6 +140,39 @@ export function OrganizationDataGrid() {
             </Button>
           </div>
         </div>
+
+        {/* Advanced Filters Panel */}
+        {isFilterOpen && (
+          <div className="p-4 border-b border-slate-200/60 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex flex-wrap gap-4 text-sm">
+              <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status</label>
+                  <select 
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+                  >
+                      <option value="All">All Statuses</option>
+                      <option value="Active">Active</option>
+                      <option value="Suspended">Suspended</option>
+                  </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Industry</label>
+                  <select 
+                      value={industryFilter}
+                      onChange={(e) => setIndustryFilter(e.target.value)}
+                      className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+                  >
+                      <option value="All">All Industries</option>
+                      <option value="Technology">Technology</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Retail">Retail</option>
+                      <option value="None">Not Specified</option>
+                  </select>
+              </div>
+          </div>
+        )}
 
         {/* Data Table */}
         <div className="overflow-x-auto">

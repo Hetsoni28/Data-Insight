@@ -21,37 +21,30 @@ You analyze raw statistical profiles and correlation metrics of enterprise datas
 
 Your report must strictly follow this JSON schema:
 {
-  "datasetSummary": "A 1-paragraph summary outlining the scope, primary drivers, and health of the dataset.",
-  "companyOverview": "A brief overview of the company or business domain based on the dataset structure.",
-  "businessHighlights": [
-    "Highlight 1 (string)",
-    "Highlight 2 (string)"
-  ],
-  "executiveKPIs": [
-    {
-      "label": "Metric Name (e.g. Total Revenue)",
-      "value": "Numeric value with units (e.g. $1.2M)",
-      "trend": "Up 5% (or any trend context)"
-    }
-  ],
-  "revenueOverview": "Analysis of revenue, sales, or primary conversion metrics.",
-  "profitAnalysis": "Analysis of profitability, margins, or cost efficiency.",
-  "growthAnalysis": "Analysis of growth, retention, or expansion opportunities.",
-  "topInsights": [
+  "customerBehavior": "Analysis of customer behavior, segments, or cohort patterns based on the dataset.",
+  "businessTrends": "A high-level overview of overarching business trends over time.",
+  "revenueDrivers": "Analysis of primary revenue or conversion drivers.",
+  "profitability": "Analysis of profitability, margins, cost efficiency, or unit economics.",
+  "salesPerformance": "Analysis of sales velocity, win rates, or performance metrics.",
+  "dataDistribution": "Analysis of how key numeric or categorical data is distributed.",
+  "correlations": "Identification of any highly correlated variables and their business impact.",
+  "seasonality": "Analysis of temporal seasonality, cyclic patterns, or time-based trends.",
+  "aiInsights": [
     "Insight 1 (string)",
     "Insight 2 (string)"
   ],
-  "potentialRisks": [
+  "businessRisks": [
     "Risk 1 (string)",
     "Risk 2 (string)"
   ],
-  "executiveConclusion": "A final concluding paragraph for the executive team.",
-  "keyRecommendations": [
-    "Recommendation 1 (string)"
+  "businessRecommendations": [
+    "Recommendation 1 (string)",
+    "Recommendation 2 (string)"
   ],
-  "managementActionPlan": [
-    "Action 1 (string)"
-  ]
+  "forecastOpportunities": [
+    "Opportunity 1 (string)"
+  ],
+  "departmentPerformance": "Brief summary of performance across different departments if applicable."
 }
 
 CRITICAL RULES:

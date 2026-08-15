@@ -1,10 +1,10 @@
-﻿"use client"
+"use client"
 
 import { useState, useMemo } from "react"
 import { 
   Search, Filter, ChevronDown, MoreHorizontal, ArrowUpDown, 
   CheckCircle2, XCircle, AlertCircle, Eye, Edit, ShieldAlert,
-  Download
+  Download, Server
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SubscriptionDetailsDrawer } from "./SubscriptionDetailsDrawer"
+import { TenantProvisioningModal } from "./TenantProvisioningModal"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import api from "@/lib/api"
@@ -28,6 +29,7 @@ interface DataGridProps {
 export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
   const [search, setSearch] = useState("")
   const [selectedTenant, setSelectedTenant] = useState<any | null>(null)
+  const [provisionTenant, setProvisionTenant] = useState<any | null>(null)
   
   // Advanced Filters State
   const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -230,6 +232,10 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
                         <Edit className="mr-2 h-4 w-4 text-slate-500" /> Edit Plan
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setProvisionTenant(tenant); }} className="text-emerald-600 focus:text-emerald-600">
+                        <Server className="mr-2 h-4 w-4" /> Provision DB
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       {tenant.status === 'Active' ? (
                         <DropdownMenuItem className="text-rose-600 focus:text-rose-600" onClick={(e) => { e.stopPropagation(); toggleStatusMutation.mutate(tenant.id); }}>
                           <ShieldAlert className="mr-2 h-4 w-4" /> Suspend Account
@@ -265,6 +271,12 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
         isOpen={!!selectedTenant} 
         onClose={() => { setSelectedTenant(null); toggleStatusMutation.reset(); }} 
         tenant={selectedTenant}
+      />
+      <TenantProvisioningModal
+        isOpen={!!provisionTenant}
+        onClose={() => setProvisionTenant(null)}
+        tenantId={provisionTenant?.id ?? ""}
+        tenantName={provisionTenant?.name ?? ""}
       />
     </div>
   )

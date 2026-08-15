@@ -9,12 +9,26 @@ import { Input } from "@/components/ui/input"
 
 export function TeamMemberTable({ members, departments }: { members: any[], departments: any[] }) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [roleFilter, setRoleFilter] = useState("All")
+  const [statusFilter, setStatusFilter] = useState("All")
+  const [deptFilter, setDeptFilter] = useState("All")
 
-  const filteredMembers = members.filter(m => 
-    m.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.employee_id?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredMembers = members.filter(m => {
+    const matchesSearch = m.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          m.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          m.employee_id?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesRole = roleFilter === "All" || (m.role || "").toLowerCase() === roleFilter.toLowerCase();
+    
+    // Some mock logic since team members usually have is_active or status
+    const matchesStatus = statusFilter === "All" || 
+      (statusFilter === "Active" ? (m.status === 'active' || m.is_active !== false) : (m.status === 'suspended' || m.is_active === false));
+      
+    const matchesDept = deptFilter === "All" || (m.department || "Unassigned").toLowerCase() === deptFilter.toLowerCase();
+
+    return matchesSearch && matchesRole && matchesStatus && matchesDept;
+  })
 
   return (
     <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden">
@@ -31,7 +45,11 @@ export function TeamMemberTable({ members, departments }: { members: any[], depa
           />
         </div>
         <div className="flex items-center gap-2.5 w-full md:w-auto">
-          <Button onClick={() => toast.info("Filter criteria active")} variant="outline" className="gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none">
+          <Button 
+            onClick={() => setIsFilterOpen(!isFilterOpen)} 
+            variant={isFilterOpen ? "default" : "outline"} 
+            className={`gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none shadow-sm ${!isFilterOpen ? 'text-slate-600 dark:text-slate-300' : ''}`}
+          >
             <Filter className="w-4 h-4 text-slate-400" />
             Filters
           </Button>
@@ -41,6 +59,53 @@ export function TeamMemberTable({ members, departments }: { members: any[], depa
           </Button>
         </div>
       </div>
+
+      {/* Advanced Filters Panel */}
+      {isFilterOpen && (
+        <div className="p-4 border-b border-slate-200/80 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex flex-wrap gap-4 text-sm">
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Role</label>
+                <select 
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                    className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+                >
+                    <option value="All">All Roles</option>
+                    <option value="owner">Owner</option>
+                    <option value="org_admin">Org Admin</option>
+                    <option value="manager">Manager</option>
+                    <option value="analyst">Analyst</option>
+                    <option value="viewer">Viewer</option>
+                </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Department</label>
+                <select 
+                    value={deptFilter}
+                    onChange={(e) => setDeptFilter(e.target.value)}
+                    className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+                >
+                    <option value="All">All Departments</option>
+                    {departments.map((dept: any, i) => (
+                      <option key={i} value={dept.name || dept}>{dept.name || dept}</option>
+                    ))}
+                    <option value="Unassigned">Unassigned</option>
+                </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status</label>
+                <select 
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+                >
+                    <option value="All">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Suspended">Suspended</option>
+                </select>
+            </div>
+        </div>
+      )}
 
       {/* Table Content */}
       <div className="overflow-x-auto">

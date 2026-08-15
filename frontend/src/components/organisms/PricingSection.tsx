@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import React, { useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -12,12 +12,15 @@ import {
   Lock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { BookDemoModal } from "./BookDemoModal"
 
 export function PricingSection() {
   const [annualBilling, setAnnualBilling] = useState<boolean>(true)
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false)
 
   return (
     <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-white text-slate-900 border-t border-slate-200 overflow-hidden">
+
       <div className="max-w-7xl mx-auto space-y-16">
         
         {/* ── SECTION HEADER WITH VIEWPORT ANIMATION ── */}
@@ -115,14 +118,14 @@ export function PricingSection() {
             </div>
 
             <Button
-              asChild
+              onClick={() => setIsDemoModalOpen(true)}
               size="lg"
               className="w-full bg-[#10B981] hover:bg-[#059669] text-white text-sm font-bold h-12 rounded-xl shadow-lg shadow-emerald-500/20 transition-transform active:scale-[0.98] cursor-pointer"
             >
-              <Link href="/login" className="inline-flex items-center justify-center gap-2">
+              <div className="inline-flex items-center justify-center gap-2">
                 <span>Request System Access</span>
                 <ArrowRight className="h-4 w-4 shrink-0" />
-              </Link>
+              </div>
             </Button>
           </motion.div>
 
@@ -179,21 +182,22 @@ export function PricingSection() {
             </div>
 
             <Button
-              asChild
+              onClick={() => setIsDemoModalOpen(true)}
               variant="outline"
               size="lg"
               className="w-full border-slate-300 hover:bg-slate-50 text-slate-900 text-sm font-bold h-12 rounded-xl cursor-pointer"
             >
-              <a href="mailto:licensing@datainsight.com" className="inline-flex items-center justify-center gap-2">
+              <div className="inline-flex items-center justify-center gap-2">
                 <Mail className="h-4 w-4 text-slate-600 shrink-0" />
                 <span>Contact Sales &amp; Licensing</span>
-              </a>
+              </div>
             </Button>
           </motion.div>
 
         </div>
 
       </div>
+      <BookDemoModal isOpen={isDemoModalOpen} onClose={() => setIsDemoModalOpen(false)} />
     </section>
   )
 }

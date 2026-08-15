@@ -1,298 +1,353 @@
 "use client"
 
-import { useState, useEffect, useCallback, Suspense } from "react"
+import { useState, Suspense } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { motion } from "framer-motion"
 import { useSearchParams } from "next/navigation"
+import { useEffect } from "react"
 import { toast } from "sonner"
 import {
-  Loader2,
-  RefreshCw,
-  Layers,
-  FileText,
-  DollarSign,
-  History,
-  ShieldCheck,
-  CheckCircle2,
-  Database
+  Loader2, RefreshCw, Database, ShieldCheck,
+  Layers, DollarSign, History, TrendingUp, LayoutGrid
 } from "lucide-react"
 
-import {
-  billingService,
-  BillingSummary,
-  RentalContractData,
-  RentedResourcesData,
-  CostBreakdownData,
-  ResourceRequestItem,
-  InvoicePage,
-  PaymentPage,
-} from "@/lib/billing.service"
-
+import { billingService } from "@/lib/billing.service"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-// Organism Components
+// ── Organisms ─────────────────────────────────────────────────────────────────
 import { BillingHero } from "@/components/organisms/billing/BillingHero"
 import { RentedSystemOverview } from "@/components/organisms/billing/RentedSystemOverview"
 import { CostBreakdownCard } from "@/components/organisms/billing/CostBreakdownCard"
-import { ResourceRequestCenter } from "@/components/organisms/billing/ResourceRequestCenter"
 import { ContractDetailsCard } from "@/components/organisms/billing/ContractDetailsCard"
+import { ResourceRequestCenter } from "@/components/organisms/billing/ResourceRequestCenter"
 import { PaymentHistoryTable } from "@/components/organisms/billing/PaymentHistoryTable"
+import { BillingUsageMeters } from "@/components/organisms/billing/BillingUsageMeters"
+import { BillingPlansTab } from "@/components/organisms/billing/BillingPlansTab"
 import { InvoiceHistoryTable } from "@/components/organisms/InvoiceHistoryTable"
 
+// ── Skeleton loader ───────────────────────────────────────────────────────────
+function BillingPageSkeleton() {
+  return (
+    <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-72 rounded-xl" />
+          <Skeleton className="h-4 w-96 rounded-lg" />
+        </div>
+        <Skeleton className="h-9 w-32 rounded-xl" />
+      </div>
+      <Skeleton className="h-56 w-full rounded-3xl" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-36 w-full rounded-2xl" />
+        ))}
+      </div>
+      <Skeleton className="h-12 w-full rounded-2xl" />
+      <Skeleton className="h-80 w-full rounded-2xl" />
+    </div>
+  )
+}
+
+// ── Tab Trigger Helper ────────────────────────────────────────────────────────
+function TabTrigger({ value, icon: Icon, label, badge }: {
+  value: string; icon: any; label: string; badge?: number
+}) {
+  return (
+    <TabsTrigger
+      value={value}
+      className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-3 md:px-4 py-2 flex items-center gap-1.5"
+    >
+      <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+      <span className="hidden sm:inline">{label}</span>
+      <span className="inline sm:hidden">{label.split(" ")[0]}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="ml-1 rounded-full bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 font-black leading-none">
+          {badge}
+        </span>
+      )}
+    </TabsTrigger>
+  )
+}
+
+// ── Main billing content (uses TanStack Query) ────────────────────────────────
 function BillingContent() {
   const searchParams = useSearchParams()
-
-  // State
-  const [summary, setSummary] = useState<BillingSummary | null>(null)
-  const [contract, setContract] = useState<RentalContractData | null>(null)
-  const [resources, setResources] = useState<RentedResourcesData | null>(null)
-  const [costs, setCosts] = useState<CostBreakdownData | null>(null)
-  const [resourceRequests, setResourceRequests] = useState<ResourceRequestItem[]>([])
-  const [invoices, setInvoices] = useState<InvoicePage | null>(null)
-  const [payments, setPayments] = useState<PaymentPage | null>(null)
-
-  // Loading flags
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [isPortalLoading, setIsPortalLoading] = useState(false)
-  const [isDownloading, setIsDownloading] = useState<string | null>(null)
-  const [isPaying, setIsPaying] = useState<string | null>(null)
+  const queryClient = useQueryClient()
   const [paymentsPage, setPaymentsPage] = useState(1)
-
-  // Modals
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
-  const [requestModalType, setRequestModalType] = useState<"storage" | "database" | "ai_tokens" | "compute" | "backup" | "custom">("storage")
+  const [requestModalType, setRequestModalType] = useState<
+    "storage" | "database" | "ai_tokens" | "compute" | "backup" | "custom"
+  >("storage")
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [payingId, setPayingId] = useState<string | null>(null)
 
-  // Handle URL query parameters from Stripe redirect
+  // Handle Stripe redirect params
   useEffect(() => {
-    const paymentStatus = searchParams?.get("payment")
-    const billingStatus = searchParams?.get("billing")
-
-    if (paymentStatus === "success" || billingStatus === "success") {
-      toast.success("Payment received! Your invoice status has been updated.")
-    } else if (paymentStatus === "cancelled" || billingStatus === "cancelled") {
+    const payment = searchParams?.get("payment")
+    const billing = searchParams?.get("billing")
+    if (payment === "success" || billing === "success")
+      toast.success("Payment received! Your invoice has been updated.")
+    else if (payment === "cancelled" || billing === "cancelled")
       toast.info("Payment session was cancelled.")
-    }
   }, [searchParams])
 
-  // Fetch all authoritative billing data
-  const fetchData = useCallback(async (quiet = false) => {
-    if (!quiet) setIsLoading(true)
-    else setIsRefreshing(true)
+  // ── TanStack Queries — each section loads independently ───────────────────
+  const summary = useQuery({
+    queryKey: ["org-billing-summary"],
+    queryFn: billingService.getSummary,
+    staleTime: 60_000,
+  })
 
-    try {
-      const [sumRes, contractRes, resourcesRes, costsRes, requestsRes, invRes, payRes] = await Promise.all([
-        billingService.getSummary(),
-        billingService.getContract(),
-        billingService.getResources(),
-        billingService.getCosts(),
-        billingService.getResourceRequests(),
-        billingService.getInvoices(1, 10),
-        billingService.getPayments(paymentsPage),
-      ])
+  const usage = useQuery({
+    queryKey: ["org-billing-usage"],
+    queryFn: billingService.getUsage,
+    staleTime: 30_000,
+    refetchInterval: 120_000, // auto-refresh every 2 min
+  })
 
-      setSummary(sumRes)
-      setContract(contractRes)
-      setResources(resourcesRes)
-      setCosts(costsRes)
-      setResourceRequests(requestsRes)
-      setInvoices(invRes)
-      setPayments(payRes)
-    } catch (err: any) {
-      toast.error(err?.response?.data?.detail || "Failed to load billing & rental data.")
-    } finally {
-      setIsLoading(false)
-      setIsRefreshing(false)
-    }
-  }, [paymentsPage])
+  const resources = useQuery({
+    queryKey: ["org-billing-resources"],
+    queryFn: billingService.getResources,
+    staleTime: 60_000,
+  })
 
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
+  const costs = useQuery({
+    queryKey: ["org-billing-costs"],
+    queryFn: billingService.getCosts,
+    staleTime: 60_000,
+  })
 
-  // Actions
-  const handleOpenPortal = async () => {
-    setIsPortalLoading(true)
-    try {
-      const { portal_url } = await billingService.openPortal()
-      if (portal_url) {
-        window.location.href = portal_url
-      }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.detail || "Could not open Stripe Customer Portal.")
-    } finally {
-      setIsPortalLoading(false)
-    }
+  const contract = useQuery({
+    queryKey: ["org-billing-contract"],
+    queryFn: billingService.getContract,
+    staleTime: 300_000,
+  })
+
+  const plans = useQuery({
+    queryKey: ["org-billing-plans"],
+    queryFn: billingService.getPlans,
+    staleTime: 300_000,
+  })
+
+  const requests = useQuery({
+    queryKey: ["org-billing-requests"],
+    queryFn: billingService.getResourceRequests,
+    staleTime: 30_000,
+  })
+
+  const invoices = useQuery({
+    queryKey: ["org-billing-invoices", 1],
+    queryFn: () => billingService.getInvoices(1, 10),
+    staleTime: 60_000,
+  })
+
+  const payments = useQuery({
+    queryKey: ["org-billing-payments", paymentsPage],
+    queryFn: () => billingService.getPayments(paymentsPage),
+    staleTime: 30_000,
+  })
+
+  // ── Portal mutation ────────────────────────────────────────────────────────
+  const portalMutation = useMutation({
+    mutationFn: billingService.openPortal,
+    onSuccess: ({ portal_url }) => {
+      if (portal_url) window.location.href = portal_url
+    },
+    onError: (err: any) =>
+      toast.error(err?.response?.data?.detail || "Could not open billing portal."),
+  })
+
+  // ── Actions ────────────────────────────────────────────────────────────────
+  const handleRefreshAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["org-billing-"] })
+    toast.success("Billing data refreshed.")
   }
 
-  const handleDownloadInvoice = async (invoiceId: string) => {
-    setIsDownloading(invoiceId)
+  const handleDownloadInvoice = async (id: string) => {
+    setDownloadingId(id)
     try {
-      const { pdfUrl } = await billingService.getInvoicePdf(invoiceId)
-      if (pdfUrl) {
-        window.open(pdfUrl, "_blank")
-      } else {
-        toast.info("Invoice receipt is being generated.")
-      }
-    } catch (err: any) {
-      toast.error("Failed to retrieve invoice PDF.")
-    } finally {
-      setIsDownloading(null)
-    }
+      const { pdfUrl } = await billingService.getInvoicePdf(id)
+      pdfUrl ? window.open(pdfUrl, "_blank") : toast.info("Invoice PDF is being generated.")
+    } catch { toast.error("Failed to retrieve invoice PDF.") }
+    finally { setDownloadingId(null) }
   }
 
-  const handlePayInvoice = async (invoiceId: string) => {
-    setIsPaying(invoiceId)
+  const handlePayInvoice = async (id: string) => {
+    setPayingId(id)
     try {
-      const { checkout_url } = await billingService.payInvoice(invoiceId)
-      if (checkout_url) {
-        window.location.href = checkout_url
-      }
+      const { checkout_url } = await billingService.payInvoice(id)
+      if (checkout_url) window.location.href = checkout_url
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || "Failed to initiate invoice payment.")
-    } finally {
-      setIsPaying(null)
-    }
+      toast.error(err?.response?.data?.detail || "Failed to initiate payment.")
+    } finally { setPayingId(null) }
   }
 
-  const handleOpenExpansionModal = (type: "storage" | "database" | "ai_tokens" | "compute" | "backup" | "custom" = "storage") => {
+  const handleOpenExpansionModal = (
+    type: "storage" | "database" | "ai_tokens" | "compute" | "backup" | "custom" = "storage"
+  ) => {
     setRequestModalType(type)
     setIsRequestModalOpen(true)
   }
 
-  if (isLoading) {
+  // Show skeleton only for the hero (summary)
+  if (summary.isLoading) return <BillingPageSkeleton />
+
+  if (summary.isError || !summary.data) {
     return (
-      <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-64 rounded-xl" />
-          <Skeleton className="h-9 w-28 rounded-xl" />
-        </div>
-        <Skeleton className="h-64 w-full rounded-3xl" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="h-80 w-full rounded-2xl" />
-          <Skeleton className="h-80 w-full rounded-2xl" />
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
+        <p className="text-slate-500 text-sm">Failed to load billing data.</p>
+        <Button variant="outline" onClick={() => summary.refetch()} className="rounded-xl">
+          <RefreshCw className="h-4 w-4 mr-2" /> Retry
+        </Button>
       </div>
     )
   }
 
-  if (!summary) return null
+  const isRefreshing =
+    summary.isFetching || usage.isFetching || resources.isFetching ||
+    costs.isFetching || contract.isFetching
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto min-h-screen text-slate-900 dark:text-slate-100 animate-in fade-in duration-300"
+      className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto min-h-screen"
     >
-      {/* Top Header */}
+      {/* ── Page Header ───────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
             Billing & Resource Rental Center
           </h1>
           <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            Authoritative management of your dedicated single-tenant database, system rental contract, resource allocations, and invoices.
+            Authoritative management of your dedicated system rental contract, resources, and invoices.
           </p>
         </div>
-
         <Button
           variant="outline"
           size="sm"
-          onClick={() => fetchData(true)}
+          onClick={handleRefreshAll}
           disabled={isRefreshing}
-          className="rounded-xl border-slate-200/80 dark:border-white/10 text-xs font-bold shadow-sm w-fit hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
+          className="rounded-xl border-slate-200/80 dark:border-white/10 text-xs font-bold w-fit hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
         >
           <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isRefreshing ? "animate-spin text-emerald-500" : ""}`} />
           Refresh Status
         </Button>
       </div>
 
-      {/* Hero Banner Component (Emerald #133E2E) */}
+      {/* ── Hero Banner ───────────────────────────────────────────────────── */}
       <BillingHero
-        summary={summary}
-        contract={contract}
-        onOpenPortal={handleOpenPortal}
+        summary={summary.data}
+        contract={contract.data ?? null}
+        onOpenPortal={() => portalMutation.mutate()}
         onRequestCapacity={() => handleOpenExpansionModal("storage")}
-        isPortalLoading={isPortalLoading}
+        isPortalLoading={portalMutation.isPending}
       />
 
-      {/* Tabbed Navigation */}
+      {/* ── Live Usage Meters (always visible, above tabs) ────────────────── */}
+      {usage.data ? (
+        <BillingUsageMeters usage={usage.data} />
+      ) : usage.isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-36 w-full rounded-2xl" />
+          ))}
+        </div>
+      ) : null}
+
+      {/* ── Tabbed Sections ───────────────────────────────────────────────── */}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="bg-slate-100/80 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200/80 dark:border-white/10 backdrop-blur-xl flex flex-wrap h-auto gap-1">
-          <TabsTrigger value="overview" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
-            <Database className="h-4 w-4 mr-2" />
-            Rented Resources
-          </TabsTrigger>
-          <TabsTrigger value="contract" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
-            <ShieldCheck className="h-4 w-4 mr-2" />
-            Contract & SLA
-          </TabsTrigger>
-          <TabsTrigger value="requests" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
-            <Layers className="h-4 w-4 mr-2" />
-            Capacity Requests
-            {resourceRequests.length > 0 && (
-              <span className="ml-2 rounded-full bg-emerald-500 text-white text-[10px] px-2 py-0.5 font-black">
-                {resourceRequests.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="invoices" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
-            <DollarSign className="h-4 w-4 mr-2" />
-            Invoices & Statements
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="rounded-xl text-xs md:text-sm font-extrabold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all px-4 py-2">
-            <History className="h-4 w-4 mr-2" />
-            Audit Ledger
-          </TabsTrigger>
+          <TabTrigger value="overview"  icon={Database}    label="Rented Resources" />
+          <TabTrigger value="contract"  icon={ShieldCheck} label="Contract & SLA" />
+          <TabTrigger value="plans"     icon={LayoutGrid}  label="Plans" />
+          <TabTrigger value="requests"  icon={Layers}      label="Capacity Requests" badge={requests.data?.length} />
+          <TabTrigger value="invoices"  icon={DollarSign}  label="Invoices" />
+          <TabTrigger value="activity"  icon={History}     label="Audit Ledger" />
         </TabsList>
 
-        {/* Tab 1: Overview & Resources */}
+        {/* Tab 1: Overview — Resources + Costs */}
         <TabsContent value="overview" className="space-y-6">
-          <RentedSystemOverview
-            resources={resources}
-            onRequestExpansion={handleOpenExpansionModal}
-          />
-          <CostBreakdownCard
-            costs={costs}
-            onOpenPortal={handleOpenPortal}
-          />
+          {resources.isLoading ? (
+            <Skeleton className="h-96 w-full rounded-2xl" />
+          ) : resources.data ? (
+            <RentedSystemOverview
+              resources={resources.data}
+              onRequestExpansion={handleOpenExpansionModal}
+            />
+          ) : (
+            <div className="text-center py-12 text-slate-400 text-sm">Failed to load resources.</div>
+          )}
+          {costs.isLoading ? (
+            <Skeleton className="h-64 w-full rounded-2xl" />
+          ) : costs.data ? (
+            <CostBreakdownCard
+              costs={costs.data}
+              onOpenPortal={() => portalMutation.mutate()}
+            />
+          ) : null}
         </TabsContent>
 
-        {/* Tab 2: Contract Details & SLA */}
+        {/* Tab 2: Contract & SLA */}
         <TabsContent value="contract" className="space-y-6">
-          <ContractDetailsCard contract={contract} />
+          {contract.isLoading ? (
+            <Skeleton className="h-80 w-full rounded-2xl" />
+          ) : contract.data ? (
+            <ContractDetailsCard contract={contract.data} />
+          ) : (
+            <div className="text-center py-12 text-slate-400 text-sm">No contract data found.</div>
+          )}
         </TabsContent>
 
-        {/* Tab 3: Resource Capacity Requests */}
+        {/* Tab 3: Plans */}
+        <TabsContent value="plans" className="space-y-6">
+          {plans.isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Skeleton className="h-[520px] w-full rounded-2xl" />
+              <Skeleton className="h-[520px] w-full rounded-2xl" />
+            </div>
+          ) : plans.data ? (
+            <BillingPlansTab catalog={plans.data} />
+          ) : (
+            <div className="text-center py-12 text-slate-400 text-sm">Failed to load plans.</div>
+          )}
+        </TabsContent>
+
+        {/* Tab 4: Capacity Requests */}
         <TabsContent value="requests" className="space-y-6">
           <ResourceRequestCenter
-            requests={resourceRequests}
-            onRefresh={() => fetchData(true)}
+            requests={requests.data ?? []}
+            onRefresh={() => queryClient.invalidateQueries({ queryKey: ["org-billing-requests"] })}
             isOpen={isRequestModalOpen}
             onOpenChange={setIsRequestModalOpen}
             initialType={requestModalType}
           />
         </TabsContent>
 
-        {/* Tab 4: Invoices */}
+        {/* Tab 5: Invoices */}
         <TabsContent value="invoices" className="space-y-6">
-          <InvoiceHistoryTable
-            invoices={invoices?.items || []}
-            onDownload={handleDownloadInvoice}
-            onPay={handlePayInvoice}
-            isDownloading={isDownloading}
-            isPaying={isPaying}
-          />
+          {invoices.isLoading ? (
+            <Skeleton className="h-96 w-full rounded-2xl" />
+          ) : (
+            <InvoiceHistoryTable
+              invoices={invoices.data?.items ?? []}
+              onDownload={handleDownloadInvoice}
+              onPay={handlePayInvoice}
+              isDownloading={downloadingId}
+              isPaying={payingId}
+            />
+          )}
         </TabsContent>
 
-        {/* Tab 5: Audit Activity Ledger */}
+        {/* Tab 6: Audit Ledger */}
         <TabsContent value="activity" className="space-y-6">
           <PaymentHistoryTable
-            payments={payments}
+            payments={payments.data ?? null}
             page={paymentsPage}
-            onPageChange={(p) => setPaymentsPage(p)}
-            isLoading={isRefreshing}
+            onPageChange={setPaymentsPage}
+            isLoading={payments.isLoading}
           />
         </TabsContent>
       </Tabs>
@@ -300,6 +355,7 @@ function BillingContent() {
   )
 }
 
+// ── Page Export ───────────────────────────────────────────────────────────────
 export default function OrgBillingPage() {
   return (
     <Suspense

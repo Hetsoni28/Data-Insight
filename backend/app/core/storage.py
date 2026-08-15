@@ -18,10 +18,15 @@ def is_local_storage() -> bool:
     )
 
 
+_supabase_client: Client | None = None
+
 def _client() -> Client:
+    global _supabase_client
     if is_local_storage():
         raise Exception("Using local storage, do not initialize Supabase client.")
-    return create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
+    if _supabase_client is None:
+        _supabase_client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
+    return _supabase_client
 
 
 DATASETS_BUCKET = "datasets"

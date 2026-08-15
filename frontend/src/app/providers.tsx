@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
@@ -6,9 +6,10 @@ import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { TenantBrandingProvider } from "@/components/providers/TenantBrandingProvider";
 import { usePathname } from "next/navigation";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children, tenantDomain }: { children: React.ReactNode, tenantDomain?: string | null }) {
   const pathname = usePathname();
   const isForcedLight = pathname === "/" || 
     pathname?.startsWith("/login") || 
@@ -38,7 +39,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <AuthProvider>
-            {children}
+            <TenantBrandingProvider tenantDomain={tenantDomain}>
+              {children}
+            </TenantBrandingProvider>
           </AuthProvider>
           <Toaster richColors position="top-right" />
         </TooltipProvider>

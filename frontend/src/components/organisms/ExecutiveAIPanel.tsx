@@ -6,6 +6,7 @@ import { Send, User, Sparkles, Loader2, Maximize2, Minimize2 } from "lucide-reac
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/atoms/Logo"
 import api from "@/lib/api"
+import ReactMarkdown from 'react-markdown'
 
 export function ExecutiveAIPanel() {
   const [isOpen, setIsOpen] = useState(false)
@@ -56,13 +57,56 @@ export function ExecutiveAIPanel() {
       }))
       formData.append("history", JSON.stringify(historyToPass))
 
-      const response = await api.post("/owner/ai/chat", formData)
+      const token = localStorage.getItem('access_token') || ''
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/owner/ai/chat`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
       
-      if (response.data?.session_id && !sessionId) {
-        setSessionId(response.data.session_id)
+      if (!response.ok) throw new Error("Network response was not ok")
+      if (!response.body) throw new Error("No response body")
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let aiMessage = ""
+      let buffer = ""
+      
+      setIsTyping(false)
+      setMessages(prev => [...prev, { role: 'ai', text: "" }])
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        
+        buffer += decoder.decode(value, { stream: true })
+        const parts = buffer.split("\n\n")
+        buffer = parts.pop() || "" // Keep incomplete part in buffer
+        
+        for (const part of parts) {
+          const line = part.trim()
+          if (line.startsWith("data: ")) {
+            const dataStr = line.substring(6)
+            try {
+              const data = JSON.parse(dataStr)
+              if (data.type === 'session' && !sessionId) {
+                setSessionId(data.session_id)
+              } else if (data.type === 'chunk') {
+                aiMessage += data.chunk
+                setMessages(prev => {
+                  const newMessages = [...prev]
+                  newMessages[newMessages.length - 1].text = aiMessage
+                  return newMessages
+                })
+              }
+            } catch (e) {
+              console.error("SSE parse error", e, dataStr)
+            }
+          }
+        }
       }
-      
-      setMessages(prev => [...prev, { role: 'ai', text: response.data.response }])
     } catch (error) {
       console.error("AI chat failed:", error)
       setMessages(prev => [...prev, { role: 'ai', text: "I encountered an error connecting to the platform services. Please check your network and API configurations." }])
@@ -72,100 +116,125 @@ export function ExecutiveAIPanel() {
   }
 
   return (
-    <div className={`fixed z-50 transition-all duration-300 ease-in-out ${isOpen ? (expanded ? 'inset-4 md:inset-10' : 'bottom-6 right-6 w-[400px] h-[600px]') : 'bottom-6 right-6 w-auto h-14'}`}>
+    <div className={`fixed z-[9999] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) ${isOpen ? (expanded ? 'bottom-6 right-6 w-[800px] max-w-[calc(100vw-18rem)] h-[800px] max-h-[85vh]' : 'bottom-6 right-6 w-[420px] h-[650px] max-h-[85vh]') : 'bottom-6 right-6 w-auto h-14'}`}>
       
       {!isOpen && (
         <motion.button 
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(16,185,129,0.6)" }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(true)}
-          className="w-14 h-14 bg-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.5)] border-2 border-emerald-400 text-white cursor-pointer hover:bg-emerald-500 transition-colors"
+          className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.4)] border-2 border-emerald-400/50 text-white cursor-pointer transition-all"
         >
-          <img src="/icon.svg" alt="Data Insight AI" className="h-7 w-auto brightness-0 invert" />
+          <img src="/icon.svg" alt="Data Insight AI" className="h-7 w-auto brightness-0 invert drop-shadow-md" />
         </motion.button>
       )}
 
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="w-full h-full bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            initial={{ opacity: 0, y: 30, scale: 0.95, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: 20, scale: 0.95, filter: "blur(5px)" }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="w-full h-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-3xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.2)] dark:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden ring-1 ring-slate-900/5 dark:ring-white/5"
           >
             {/* Header */}
-            <div className="p-4 bg-slate-50 dark:bg-card border-b border-slate-200 dark:border-border flex items-center justify-between shrink-0">
+            <div className="p-5 bg-gradient-to-b from-slate-50/80 to-transparent dark:from-slate-800/80 border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-4 overflow-hidden">
-                <img src="/logo.svg" alt="Data Insight" className="h-8 w-32 shrink-0 dark:brightness-0 dark:invert" />
-                <div className="pl-4 border-l border-slate-200 dark:border-slate-700 flex flex-col justify-center shrink-0">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight whitespace-nowrap">Executive AI</h3>
-                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 whitespace-nowrap">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+                  <Logo size={20} showText={false} href={null} className="brightness-0 invert drop-shadow-md" />
+                </div>
+                <div className="flex flex-col justify-center shrink-0">
+                  <h3 className="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-500 dark:from-white dark:to-slate-400 tracking-tight whitespace-nowrap">
+                    Executive Copilot
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 whitespace-nowrap">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    Live Data
+                    Live Context Connected
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setExpanded(!expanded)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+              <div className="flex items-center gap-1 bg-slate-100/50 dark:bg-slate-800/50 rounded-full p-1 border border-slate-200/50 dark:border-slate-700/50">
+                <button onClick={() => setExpanded(!expanded)} className="p-2 text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-700 rounded-full transition-all">
                   {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                 </button>
-                <button onClick={() => setIsOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors font-bold text-xl leading-none">
-                  &times;
+                <button onClick={() => setIsOpen(false)} className="p-2 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-white dark:hover:bg-slate-700 rounded-full transition-all">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-slate-50/50 dark:bg-background">
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar scroll-smooth">
               {messages.map((msg, i) => (
                 <motion.div 
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 15, scale: 0.98 }} 
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.3 }}
                   key={i} 
                   className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-slate-200 dark:bg-white/5' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
-                    {msg.role === 'user' ? <User className="w-4 h-4 text-slate-600 dark:text-slate-400" /> : <Logo size={16} showText={false} href={null} />}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm ${msg.role === 'user' ? 'bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 border border-white/20' : 'bg-gradient-to-br from-emerald-400 to-emerald-600 border border-emerald-300/30'}`}>
+                    {msg.role === 'user' ? <User className="w-4 h-4 text-slate-700 dark:text-slate-300" /> : <img src="/icon.svg" className="w-4 h-4 brightness-0 invert drop-shadow-sm" />}
                   </div>
-                  <div className={`max-w-[80%] rounded-2xl p-4 text-sm ${msg.role === 'user' ? 'bg-emerald-600 text-white rounded-tr-sm' : 'bg-white dark:bg-white/5 border border-slate-100 dark:border-slate-700 rounded-tl-sm text-slate-700 dark:text-slate-300 shadow-sm'}`}>
-                    {msg.text}
+                  <div className={`w-fit max-w-[85%] rounded-2xl p-4 text-[14px] leading-relaxed shadow-sm backdrop-blur-md ${msg.role === 'user' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-tr-sm shadow-emerald-500/20 border border-emerald-400/30' : 'bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 rounded-tl-sm text-slate-800 dark:text-slate-200'}`}>
+                    {msg.role === 'ai' ? (
+                      <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-hr:my-2 prose-pre:bg-slate-100 dark:prose-pre:bg-slate-900/50 dark:prose-pre:border dark:prose-pre:border-slate-700/50 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                        <ReactMarkdown>
+                          {msg.text}
+                        </ReactMarkdown>
+                        {isTyping && i === messages.length - 1 && (
+                          <span className="inline-block w-1.5 h-4 ml-1 bg-emerald-500 animate-pulse align-middle rounded-sm"></span>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
+                    )}
                   </div>
                 </motion.div>
               ))}
-              {isTyping && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                    <Logo size={16} showText={false} href={null} />
+              {isTyping && messages[messages.length - 1].role === 'user' && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm border border-emerald-300/30">
+                    <img src="/icon.svg" className="w-4 h-4 brightness-0 invert drop-shadow-sm" />
                   </div>
-                  <div className="bg-white dark:bg-white/5 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-tl-sm p-4 shadow-sm flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
-                    <span className="text-sm text-slate-500 dark:text-slate-400">Analyzing platform data...</span>
+                  <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm flex items-center gap-3">
+                    <div className="flex gap-1">
+                      <span className="block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </div>
                   </div>
                 </motion.div>
               )}
-              <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} className="h-2" />
             </div>
 
-            {/* Input */}
-            <div className="p-4 bg-white dark:bg-card border-t border-slate-200 dark:border-slate-800">
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Ask about revenue, health, users, or audit logs..."
-                  className="flex-1 bg-slate-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 dark:text-white"
-                />
-                <Button onClick={handleSend} disabled={!input.trim() || isTyping} className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl h-auto px-4">
-                  <Send className="w-4 h-4" />
-                </Button>
+            {/* Input Container */}
+            <div className="p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-700/50">
+              <div className="flex gap-2 items-end relative">
+                <div className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-emerald-500/50 focus-within:border-emerald-500 transition-all flex items-center px-4 py-1">
+                  <input 
+                    type="text" 
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    placeholder="Ask Copilot anything..."
+                    className="flex-1 bg-transparent border-none py-3 text-[14px] text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-0"
+                  />
+                </div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button onClick={handleSend} disabled={!input.trim() || isTyping} className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-2xl h-[46px] w-[46px] p-0 flex items-center justify-center shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed border border-emerald-400/30">
+                    <Send className="w-5 h-5 ml-0.5" />
+                  </Button>
+                </motion.div>
               </div>
-              <div className="flex gap-2 mt-3 overflow-x-auto pb-1 custom-scrollbar">
-                {["Summarize today's activity", "Review audit logs", "Predict next month's MRR"].map(prompt => (
-                  <button key={prompt} onClick={() => setInput(prompt)} className="flex-shrink-0 flex items-center gap-1.5 text-xs bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-full text-slate-600 dark:text-slate-400 transition-colors">
+              <div className="flex gap-2 mt-4 overflow-x-auto pb-1 custom-scrollbar hide-scrollbar">
+                {["Explain my MRR", "Show recent audits", "What features are underused?"].map(prompt => (
+                  <button key={prompt} onClick={() => setInput(prompt)} className="flex-shrink-0 flex items-center gap-1.5 text-[11px] font-medium bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800 px-3 py-1.5 rounded-full text-slate-600 dark:text-slate-300 transition-all shadow-sm">
                     <Sparkles className="w-3 h-3 text-emerald-500" />
                     {prompt}
                   </button>
