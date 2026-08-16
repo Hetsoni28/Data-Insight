@@ -195,12 +195,14 @@ async def update_preferences(
 
 @router.get("/activity", response_model=ViewerActivityResponse)
 async def get_activity(
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db),
 ):
     _ensure_viewer(current_user)
     svc = ViewerProfileService(db)
-    return await svc.get_activity(current_user)
+    return await svc.get_activity(current_user, page=page, size=size)
 
 
 # ─── Data & Privacy ───────────────────────────────────────────────────────────

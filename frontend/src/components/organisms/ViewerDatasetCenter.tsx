@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Database, Search, Eye, Download, ChevronRight, Table,
@@ -14,6 +14,7 @@ import type { ViewerDataset } from "@/lib/viewer.service";
 import { ViewerService } from "@/lib/viewer.service";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PaginationControls } from "@/components/molecules/PaginationControls";
 
 interface ViewerDatasetCenterProps {
   datasets: ViewerDataset[];
@@ -197,6 +198,12 @@ function DatasetCard({ dataset }: { dataset: ViewerDataset }) {
 
 export function ViewerDatasetCenter({ datasets, isLoading }: ViewerDatasetCenterProps) {
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   const filtered = datasets.filter((d) =>
     d.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -244,11 +251,28 @@ export function ViewerDatasetCenter({ datasets, isLoading }: ViewerDatasetCenter
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          {filtered.map((d) => (
-            <DatasetCard key={d.id} dataset={d} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {filtered
+              .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+              .map((d) => (
+                <DatasetCard key={d.id} dataset={d} />
+              ))}
+          </div>
+          {Math.ceil(filtered.length / pageSize) > 1 && (
+            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5">
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={Math.ceil(filtered.length / pageSize)}
+                totalItems={filtered.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                pageSizeOptions={[6, 12, 24, 48]}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

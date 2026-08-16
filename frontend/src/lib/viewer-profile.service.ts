@@ -127,6 +127,8 @@ export interface ViewerActivityEntry {
 export interface ViewerActivityResponse {
   entries: ViewerActivityEntry[];
   total: number;
+  page: number;
+  size: number;
 }
 
 // ═══════════════════════════════════════════════
@@ -192,8 +194,8 @@ export const ViewerProfileService = {
     return res.data;
   },
 
-  async getActivity(): Promise<ViewerActivityResponse> {
-    const res = await api.get("/viewer/profile/activity");
+  async getActivity(page = 1, size = 10): Promise<ViewerActivityResponse> {
+    const res = await api.get("/viewer/profile/activity", { params: { page, size } });
     return res.data;
   },
 

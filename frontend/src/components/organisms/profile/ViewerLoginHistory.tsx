@@ -6,6 +6,7 @@ import { History, ChevronLeft, ChevronRight, CheckCircle2, XCircle, Globe, Monit
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PaginationControls } from "@/components/molecules/PaginationControls";
 import type { ViewerLoginHistoryEntry as EntryType } from "@/lib/viewer-profile.service";
 
 interface Props {
@@ -92,19 +93,17 @@ export function ViewerLoginHistory({ entries, total, page, size, isLoading, onPa
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <span className="text-xs text-slate-500">Page {page} of {totalPages}</span>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <PaginationControls
+              currentPage={page}
+              totalPages={Math.max(1, totalPages)}
+              totalItems={total}
+              pageSize={size}
+              onPageChange={onPageChange}
+              onPageSizeChange={() => {}}
+              pageSizeOptions={[10]}
+            />
+          </div>
         </>
       )}
     </motion.div>

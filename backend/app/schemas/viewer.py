@@ -105,6 +105,12 @@ class ViewerReportFiltersResponse(BaseModel):
     owners: List[str] = []
     statuses: List[str] = []
 
+class ViewerActivityResponse(BaseModel):
+    entries: List[Any]
+    total: int
+    page: int
+    size: int
+
 class ViewerReportListResponse(BaseModel):
     items: List[Dict[str, Any]]
     total: int

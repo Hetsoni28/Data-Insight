@@ -79,9 +79,9 @@ export function ViewerSessionManager({ sessions, isLoading, onRefresh }: Props) 
           {sessions.map((s) => {
             const DeviceIcon = getDeviceIcon(s.device_name);
             return (
-              <div key={s.id} className={`flex items-center justify-between p-4 rounded-xl border ${s.is_current ? "border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/50 dark:bg-indigo-950/10" : "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30"}`}>
+              <div key={s.id} className={`flex items-center justify-between p-4 rounded-xl border ${s.is_current ? "border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/10" : "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30"}`}>
                 <div className="flex items-center gap-4">
-                  <div className={`p-2.5 rounded-lg ${s.is_current ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400" : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"}`}>
+                  <div className={`p-2.5 rounded-lg ${s.is_current ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400" : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"}`}>
                     <DeviceIcon className="w-5 h-5" />
                   </div>
                   <div>
@@ -89,7 +89,7 @@ export function ViewerSessionManager({ sessions, isLoading, onRefresh }: Props) 
                       <p className="text-sm font-medium text-slate-900 dark:text-white">
                         {s.browser || "Unknown"} on {s.os || "Unknown"}
                       </p>
-                      {s.is_current && <Badge className="text-[10px] bg-indigo-600 text-white">Current</Badge>}
+                      {s.is_current && <Badge className="text-[10px] bg-emerald-600 text-white">Current</Badge>}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
                       <span className="flex items-center gap-1"><Globe className="w-3 h-3" /> {s.location || "Unknown"}</span>

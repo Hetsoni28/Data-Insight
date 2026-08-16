@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function ViewerProfilePage() {
   return (
-    <div className="flex-1 p-6 lg:p-8 h-full overflow-y-auto">
-      <div className="max-w-7xl mx-auto h-full">
+    <div className="flex-1 p-6 lg:p-8 min-h-full overflow-y-auto">
+      <div className="max-w-7xl mx-auto min-h-full">
         <ViewerProfileCenter />
       </div>
     </div>

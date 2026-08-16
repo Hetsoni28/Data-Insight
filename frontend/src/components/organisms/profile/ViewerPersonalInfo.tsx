@@ -29,6 +29,7 @@ export function ViewerPersonalInfo({ profile, isLoading, onUpdated }: Props) {
   });
   const [initialized, setInitialized] = useState(false);
 
+  // Initialize from profile once data arrives
   if (profile && !initialized) {
     setForm({
       full_name: profile.full_name || "",
@@ -46,7 +47,7 @@ export function ViewerPersonalInfo({ profile, isLoading, onUpdated }: Props) {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 space-y-4">
         <Skeleton className="h-6 w-48" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
         </div>
       </div>
     );
@@ -82,7 +83,12 @@ export function ViewerPersonalInfo({ profile, isLoading, onUpdated }: Props) {
     >
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Personal Information</h2>
-        <Button size="sm" onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+        >
           {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
           {saving ? "Saving..." : "Save Changes"}
         </Button>
@@ -98,7 +104,7 @@ export function ViewerPersonalInfo({ profile, isLoading, onUpdated }: Props) {
               value={(form as any)[key]}
               onChange={(e) => setForm({ ...form, [key]: e.target.value })}
               placeholder={placeholder}
-              className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+              className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-emerald-500 focus:border-emerald-500"
             />
           </div>
         ))}
@@ -113,14 +119,14 @@ export function ViewerPersonalInfo({ profile, isLoading, onUpdated }: Props) {
             onChange={(e) => setForm({ ...form, short_bio: e.target.value })}
             placeholder="Tell us about yourself..."
             rows={3}
-            className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
           />
         </div>
       </div>
 
       {/* Organization-managed notice */}
       <div className="mt-4 flex items-center gap-2 text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/30 rounded-lg p-3">
-        <Lock className="w-3.5 h-3.5" />
+        <Lock className="w-3.5 h-3.5 flex-shrink-0" />
         Email and Role are managed by your organization and cannot be changed here.
       </div>
     </motion.div>

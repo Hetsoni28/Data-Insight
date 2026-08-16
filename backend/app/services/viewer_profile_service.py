@@ -25,7 +25,6 @@ from app.core.exceptions import ForbiddenException, ResourceNotFoundException, V
 class ViewerProfileService:
     def __init__(self, session: AsyncSession):
         self.session = session
-        self.audit = AuditService(session)
 
     # ─── Helpers ───────────────────────────────────────────────────────────
 
@@ -151,7 +150,8 @@ class ViewerProfileService:
         self.session.add(actor)
         await self.session.commit()
 
-        await self.audit.log(
+        await AuditService.log(
+            self.session,
             "viewer.profile.updated",
             tenant_id=actor.tenant_id,
             user_id=actor.id,
@@ -201,7 +201,8 @@ class ViewerProfileService:
         self.session.add(actor)
         await self.session.commit()
 
-        await self.audit.log(
+        await AuditService.log(
+            self.session,
             "viewer.password.changed",
             tenant_id=actor.tenant_id,
             user_id=actor.id,
@@ -257,7 +258,8 @@ class ViewerProfileService:
         session.is_active = False
         await self.session.commit()
 
-        await self.audit.log(
+        await AuditService.log(
+            self.session,
             "viewer.session.revoked",
             tenant_id=actor.tenant_id,
             user_id=actor.id,
@@ -282,7 +284,8 @@ class ViewerProfileService:
 
         await self.session.commit()
 
-        await self.audit.log(
+        await AuditService.log(
+            self.session,
             "viewer.sessions.revoked_all",
             tenant_id=actor.tenant_id,
             user_id=actor.id,
@@ -349,7 +352,8 @@ class ViewerProfileService:
         self.session.add(actor)
         await self.session.commit()
 
-        await self.audit.log(
+        await AuditService.log(
+            self.session,
             "viewer.notifications.updated",
             tenant_id=actor.tenant_id,
             user_id=actor.id,
@@ -400,7 +404,8 @@ class ViewerProfileService:
         self.session.add(profile)
         await self.session.commit()
 
-        await self.audit.log(
+        await AuditService.log(
+            self.session,
             "viewer.preferences.updated",
             tenant_id=actor.tenant_id,
             user_id=actor.id,
@@ -409,31 +414,37 @@ class ViewerProfileService:
 
     # ─── Activity ──────────────────────────────────────────────────────────
 
-    async def get_activity(self, actor: User, limit: int = 50) -> Dict[str, Any]:
+    async def get_activity(self, actor: User, page: int = 1, size: int = 20) -> Dict[str, Any]:
         self._ensure_viewer(actor)
 
         total = await self.session.scalar(
             select(func.count()).where(AuditLog.user_id == actor.id)
         ) or 0
 
+        offset = (page - 1) * size
         stmt = select(AuditLog).where(
             AuditLog.user_id == actor.id
-        ).order_by(desc(AuditLog.created_at)).limit(limit)
+        ).order_by(desc(AuditLog.created_at)).offset(offset).limit(size)
         res = await self.session.execute(stmt)
         logs = res.scalars().all()
 
         entries = []
         for log in logs:
             entries.append({
-                "id": log.id,
+                "id": str(log.id),
                 "action": log.action,
                 "resource_type": log.resource_type,
-                "resource_id": log.resource_id,
+                "resource_id": str(log.resource_id) if log.resource_id else None,
                 "details": None,
-                "created_at": log.created_at,
+                "created_at": log.created_at
             })
-
-        return {"entries": entries, "total": total}
+            
+        return {
+            "entries": entries,
+            "total": total,
+            "page": page,
+            "size": size,
+        }
 
     # ─── Data Export ───────────────────────────────────────────────────────
 
@@ -441,7 +452,8 @@ class ViewerProfileService:
         self._ensure_viewer(actor)
 
         request_id = str(uuid.uuid4())
-        await self.audit.log(
+        await AuditService.log(
+            self.session,
             "viewer.data_export.requested",
             tenant_id=actor.tenant_id,
             user_id=actor.id,
@@ -459,7 +471,8 @@ class ViewerProfileService:
     async def request_account_deletion(self, actor: User) -> Dict[str, Any]:
         self._ensure_viewer(actor)
 
-        await self.audit.log(
+        await AuditService.log(
+            self.session,
             "viewer.account_deletion.requested",
             tenant_id=actor.tenant_id,
             user_id=actor.id,

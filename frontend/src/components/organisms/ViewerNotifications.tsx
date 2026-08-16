@@ -1,12 +1,13 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, FileText, LayoutDashboard, Database, Brain, Shield, Info, CheckCircle2, X, Loader2 } from "lucide-react";
+import { Bell, FileText, LayoutDashboard, Database, Brain, Shield, Info, CheckCircle2, X, Loader2, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PaginationControls } from "@/components/molecules/PaginationControls";
 
 interface NotificationItem {
   id: string;
@@ -48,6 +49,8 @@ function formatDate(dateStr: string) {
 
 export function ViewerNotifications({ notifications, isLoading, onRefresh }: ViewerNotificationsProps) {
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const markAsRead = async (id: string) => {
     setMarkingId(id);
@@ -104,45 +107,83 @@ export function ViewerNotifications({ notifications, isLoading, onRefresh }: Vie
             <p className="text-slate-400 text-xs mt-1">No unread notifications at the moment.</p>
           </div>
         ) : (
-          <AnimatePresence>
+          <>
             <div className="divide-y divide-slate-100 dark:divide-white/5">
-              {notifications.map((n, idx) => {
-                const priorityStyle = PRIORITY_STYLES[n.priority] || PRIORITY_STYLES.Low;
-                const categoryIcon = CATEGORY_ICON[n.category] || <Info className="w-4 h-4" />;
-                return (
-                  <motion.div
-                    key={n.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ delay: idx * 0.04 }}
-                    className="flex items-start gap-4 px-5 py-4 hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
-                  >
-                    <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border", priorityStyle)}>
-                      {categoryIcon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-tight">{n.title}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{n.message}</p>
-                      <p className="text-[10px] text-slate-400 mt-1">{formatDate(n.created_at)}</p>
-                    </div>
-                    <button
-                      onClick={() => markAsRead(n.id)}
-                      disabled={markingId === n.id}
-                      className="flex-shrink-0 p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors disabled:opacity-40"
-                      title="Mark as read"
-                    >
-                      {markingId === n.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <X className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </motion.div>
-                );
-              })}
+              <AnimatePresence initial={false}>
+                {notifications
+                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                  .map((item, idx) => {
+                    const style = PRIORITY_STYLES[item.priority] || PRIORITY_STYLES["Low"];
+                    const icon = CATEGORY_ICON[item.category] || CATEGORY_ICON["System"];
+                    
+                    return (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="group relative flex gap-4 p-5 hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-all"
+                      >
+                        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border", style)}>
+                          {icon}
+                        </div>
+                        <div className="flex-1 min-w-0 pr-8">
+                          <h4 className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">{item.title}</h4>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                            {item.message}
+                          </p>
+                          <div className="flex items-center gap-3 mt-2 text-[11px] font-medium text-slate-400">
+                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {formatDate(item.created_at)}</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                            <span>{item.category}</span>
+                            {!item.is_read && (
+                              <>
+                                <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                <span className="text-emerald-500">New</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {!item.is_read && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => markAsRead(item.id)}
+                              disabled={markingId === item.id}
+                              className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-200 dark:hover:border-emerald-500/30 transition-all shadow-sm"
+                              title="Mark as read"
+                            >
+                              {markingId === item.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+                              ) : (
+                                <CheckCircle2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        )}
+                        {!item.is_read && (
+                          <div className="absolute right-6 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-500 group-hover:opacity-0 transition-opacity" />
+                        )}
+                      </motion.div>
+                    );
+                  })}
+              </AnimatePresence>
             </div>
-          </AnimatePresence>
+            {Math.ceil(notifications.length / pageSize) > 1 && (
+              <div className="p-4 border-t border-slate-100 dark:border-white/5">
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(notifications.length / pageSize)}
+                  totalItems={notifications.length}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={setPageSize}
+                  pageSizeOptions={[5, 10, 20]}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

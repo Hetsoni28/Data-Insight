@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Activity, FileText, LayoutDashboard, Download, Bookmark,
@@ -7,6 +8,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { PaginationControls } from "@/components/molecules/PaginationControls";
 
 interface ActivityItem {
   id: string;
@@ -47,6 +49,8 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 export function ViewerActivityFeed({ activities, isLoading }: ViewerActivityFeedProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -74,38 +78,55 @@ export function ViewerActivityFeed({ activities, isLoading }: ViewerActivityFeed
             <p className="text-slate-400 text-xs mt-1">Your activity will appear here as you explore reports and datasets.</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-white/5">
-            {activities.map((item, idx) => {
-              const meta = ACTION_META[item.action] || {
-                icon: <Activity className="w-4 h-4" />,
-                label: item.action.replace(/\./g, " "),
-                color: "text-slate-400 bg-slate-50 dark:bg-white/5",
-              };
-              return (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.03 }}
-                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
-                >
-                  <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0", meta.color)}>
-                    {meta.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-tight">{meta.label}</p>
-                    {item.resource_type && (
-                      <p className="text-xs text-slate-400 capitalize">{item.resource_type}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-slate-400 flex-shrink-0">
-                    <Clock className="w-3 h-3" />
-                    {formatRelativeTime(item.created_at)}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+          <>
+            <div className="divide-y divide-slate-100 dark:divide-white/5">
+              {activities
+                .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                .map((item, idx) => {
+                  const meta = ACTION_META[item.action] || {
+                    icon: <Activity className="w-4 h-4" />,
+                    label: item.action ? item.action.replace(/\./g, " ") : "Unknown Action",
+                    color: "text-slate-400 bg-slate-50 dark:bg-white/5",
+                  };
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                    >
+                      <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0", meta.color)}>
+                        {meta.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-tight">{meta.label}</p>
+                        {item.resource_type && (
+                          <p className="text-xs text-slate-400 capitalize">{item.resource_type}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-slate-400 flex-shrink-0">
+                        <Clock className="w-3 h-3" />
+                        {formatRelativeTime(item.created_at)}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+            </div>
+            {Math.ceil(activities.length / pageSize) > 1 && (
+              <div className="p-4 border-t border-slate-100 dark:border-white/5">
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(activities.length / pageSize)}
+                  totalItems={activities.length}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={setPageSize}
+                  pageSizeOptions={[5, 10, 20]}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

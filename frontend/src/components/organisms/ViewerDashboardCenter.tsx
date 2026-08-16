@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Maximize2, Download, Filter,
@@ -49,7 +49,7 @@ function BarWidget({ widget }: { widget: DashboardChartWidget }) {
           <Tooltip
             contentStyle={{ borderRadius: "10px", border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", fontSize: 12 }}
           />
-          <Bar dataKey={widget.y_axis_key || "value"} fill="#10B981" radius={[4, 4, 0, 0]} />
+          <Bar dataKey={widget.y_axis_key || "value"} fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -75,7 +75,7 @@ function LineWidget({ widget }: { widget: DashboardChartWidget }) {
           <XAxis dataKey={widget.x_axis_key || "date"} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={{ borderRadius: "10px", border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", fontSize: 12 }} />
-          <Line type="monotone" dataKey={widget.y_axis_key || "value"} stroke="#10B981" strokeWidth={2.5} dot={{ r: 4, fill: "#059669", strokeWidth: 0 }} activeDot={{ r: 6 }} />
+          <Line type="monotone" dataKey={widget.y_axis_key || "value"} stroke="#10B981" strokeWidth={2.5} dot={{ r: 4, fill: "#059669", strokeWidth: 0 }} activeDot={{ r: 6 }} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -91,7 +91,7 @@ function PieWidget({ widget }: { widget: DashboardChartWidget }) {
       </p>
       <ResponsiveContainer width="100%" height={200}>
         <RechartsPie>
-          <Pie data={widget.data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false}>
+          <Pie data={widget.data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false} isAnimationActive={false}>
             {widget.data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
             ))}
@@ -105,8 +105,9 @@ function PieWidget({ widget }: { widget: DashboardChartWidget }) {
 
 function DashboardCard({ dashboard }: { dashboard: ViewerDashboard }) {
   const [expanded, setExpanded] = useState(false);
-  const kpiWidgets = dashboard.widgets.filter((w) => w.type === "kpi");
-  const chartWidgets = dashboard.widgets.filter((w) => w.type !== "kpi");
+  
+  const kpiWidgets = useMemo(() => dashboard.widgets.filter((w) => w.type === "kpi"), [dashboard.widgets]);
+  const chartWidgets = useMemo(() => dashboard.widgets.filter((w) => w.type !== "kpi"), [dashboard.widgets]);
 
   return (
     <motion.div
@@ -177,12 +178,17 @@ function DashboardCard({ dashboard }: { dashboard: ViewerDashboard }) {
   );
 }
 
+import { PaginationControls } from "@/components/molecules/PaginationControls";
+
 interface ViewerDashboardCenterProps {
   dashboards: ViewerDashboard[];
   isLoading: boolean;
 }
 
 export function ViewerDashboardCenter({ dashboards, isLoading }: ViewerDashboardCenterProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -213,11 +219,28 @@ export function ViewerDashboardCenter({ dashboards, isLoading }: ViewerDashboard
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {dashboards.map((d) => (
-            <DashboardCard key={d.id} dashboard={d} />
-          ))}
-        </div>
+        <>
+          <div className="space-y-4">
+            {dashboards
+              .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+              .map((d) => (
+                <DashboardCard key={d.id} dashboard={d} />
+              ))}
+          </div>
+          {Math.ceil(dashboards.length / pageSize) > 1 && (
+            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5">
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={Math.ceil(dashboards.length / pageSize)}
+                totalItems={dashboards.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                pageSizeOptions={[5, 10, 20]}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
