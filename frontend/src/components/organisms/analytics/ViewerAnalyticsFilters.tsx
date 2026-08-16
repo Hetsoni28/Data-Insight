@@ -27,14 +27,14 @@ export function ViewerAnalyticsFilters({ onRefresh, isLoading }: ViewerAnalytics
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 px-4 bg-slate-50/60 dark:bg-slate-900/30 rounded-xl border border-slate-200 dark:border-slate-800">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 px-5 bg-white/70 dark:bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm mb-6">
       {/* Date presets */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap shrink-0">
-          <Calendar className="w-3.5 h-3.5" />
+      <div className="flex items-center gap-4 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap shrink-0">
+          <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           Period:
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-2">
           {DATE_PRESETS.map((preset) => {
             const isActive = activePreset === preset.value;
             return (
@@ -43,10 +43,10 @@ export function ViewerAnalyticsFilters({ onRefresh, isLoading }: ViewerAnalytics
                 onClick={() => handlePresetClick(preset.value)}
                 disabled={isLoading}
                 className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-150 border",
+                  "px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 border",
                   isActive
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-sm"
-                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    ? "bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-500/20 hover:bg-emerald-500 hover:-translate-y-0.5"
+                    : "bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-white dark:hover:bg-slate-800 hover:border-emerald-500/30 hover:shadow-sm"
                 )}
               >
                 {preset.label}
@@ -57,25 +57,25 @@ export function ViewerAnalyticsFilters({ onRefresh, isLoading }: ViewerAnalytics
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 shrink-0 border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-800 pt-2 sm:pt-0 sm:pl-4">
+      <div className="flex items-center gap-3 shrink-0 border-t sm:border-t-0 sm:border-l border-slate-200/80 dark:border-white/10 pt-3 sm:pt-0 sm:pl-5">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onRefresh(activePreset)}
           disabled={isLoading}
-          className="text-slate-500 hover:text-slate-900 dark:hover:text-white gap-1.5"
+          className="text-slate-500 hover:text-emerald-700 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 gap-2 font-semibold transition-all h-9 px-3 rounded-lg"
         >
-          <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
+          <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
           {isLoading ? "Loading…" : "Refresh"}
         </Button>
         <Button
           variant="outline"
           size="sm"
-          className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 gap-1.5"
+          className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200/80 dark:border-white/10 gap-2 font-semibold h-9 px-4 rounded-lg shadow-sm"
           disabled
         >
-          <Filter className="w-3.5 h-3.5" />
-          More Filters
+          <Filter className="w-4 h-4" />
+          Filters
         </Button>
       </div>
     </div>

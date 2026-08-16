@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import type { ViewerWelcomeInfo } from "@/lib/viewer.service";
+import { Logo } from "@/components/atoms/Logo";
 
 interface ViewerHeroProps {
   welcome: ViewerWelcomeInfo | undefined;
@@ -33,11 +34,11 @@ export function ViewerHero({ welcome, isLoading, onOpenCopilot }: ViewerHeroProp
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden bg-[#0c402d] rounded-lg p-8 md:p-10 shadow-xl border border-[#082f22]"
+      className="relative overflow-hidden bg-gradient-to-br from-[#083324] via-[#0c402d] to-[#041a12] rounded-3xl p-8 md:p-10 shadow-2xl border border-emerald-500/30"
     >
       {/* Ambient Glows */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-teal-500/15 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/25 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-teal-500/20 rounded-full blur-[90px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
       {/* Grid Pattern */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10 pointer-events-none mix-blend-overlay" />
 
@@ -50,11 +51,11 @@ export function ViewerHero({ welcome, isLoading, onOpenCopilot }: ViewerHeroProp
               <img
                 src={welcome.avatar_url}
                 alt="Avatar"
-                className="w-14 h-14 rounded-full border-2 border-emerald-400/40 object-cover"
+                className="w-16 h-16 rounded-2xl border-2 border-emerald-400/50 object-cover shadow-lg shadow-emerald-950/50"
               />
             ) : (
-              <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center">
-                <User className="w-7 h-7 text-emerald-400" />
+              <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center backdrop-blur-md shadow-lg shadow-emerald-950/50">
+                <User className="w-8 h-8 text-emerald-400" />
               </div>
             )}
             <div>
@@ -66,34 +67,36 @@ export function ViewerHero({ welcome, isLoading, onOpenCopilot }: ViewerHeroProp
               >
                 {welcome?.greeting} 👋
               </motion.h1>
-              <p className="text-emerald-200/70 text-sm mt-0.5">
-                {welcome?.role} · {welcome?.organization_name || "Your Organization"}
+              <p className="text-emerald-200/80 text-sm mt-1 font-medium flex items-center gap-2">
+                <span>{welcome?.role}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/60" />
+                <span>{welcome?.organization_name || "Your Organization"}</span>
               </p>
             </div>
           </div>
 
           {/* Meta Info Pills */}
-          <div className="flex flex-wrap gap-2 text-xs font-medium">
+          <div className="flex flex-wrap gap-2 text-xs font-medium pt-1">
             {welcome?.department && (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/15 rounded-full text-white/80 backdrop-blur-sm">
+              <span className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/10 border border-white/15 rounded-xl text-white/90 backdrop-blur-md shadow-sm">
                 <Briefcase className="w-3.5 h-3.5 text-emerald-400" />
                 {welcome.department}
               </span>
             )}
             {welcome?.workspace_name && (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/15 rounded-full text-white/80 backdrop-blur-sm">
+              <span className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/10 border border-white/15 rounded-xl text-white/90 backdrop-blur-md shadow-sm">
                 <Layers className="w-3.5 h-3.5 text-emerald-400" />
                 {welcome.workspace_name}
               </span>
             )}
             {welcome?.today_date && (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/15 rounded-full text-white/80 backdrop-blur-sm">
+              <span className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/10 border border-white/15 rounded-xl text-white/90 backdrop-blur-md shadow-sm">
                 <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                 {welcome.today_date}
               </span>
             )}
             {welcome?.recent_login && (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/15 rounded-full text-white/80 backdrop-blur-sm">
+              <span className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/10 border border-white/15 rounded-xl text-white/90 backdrop-blur-md shadow-sm">
                 <Clock className="w-3.5 h-3.5 text-emerald-400" />
                 Last login: {welcome.recent_login}
               </span>
@@ -110,21 +113,21 @@ export function ViewerHero({ welcome, isLoading, onOpenCopilot }: ViewerHeroProp
         >
           <Button
             onClick={onOpenCopilot}
-            className="bg-emerald-500 hover:bg-emerald-400 text-white h-11 px-5 rounded-md border-t border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all font-semibold"
+            className="bg-emerald-500 hover:bg-emerald-400 text-white h-11 px-6 rounded-xl border-t border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.5)] transition-all font-semibold hover:scale-105 active:scale-95"
           >
-            <Brain className="w-4 h-4 mr-2" />
+            <Logo size={18} showText={false} href={null} whiteMode className="mr-2.5 brightness-0 invert drop-shadow-sm" />
             Open AI Copilot
           </Button>
           <Button
             onClick={() => router.push("/dashboard/reports")}
-            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 h-11 px-5 rounded-md transition-all backdrop-blur-md"
+            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 h-11 px-5 rounded-xl transition-all backdrop-blur-md hover:scale-105 active:scale-95"
           >
             <FileText className="w-4 h-4 mr-2" />
             View Reports
           </Button>
           <Button
             onClick={() => router.push("/dashboard/datasets")}
-            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 h-11 px-5 rounded-md transition-all backdrop-blur-md"
+            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 h-11 px-5 rounded-xl transition-all backdrop-blur-md hover:scale-105 active:scale-95"
           >
             <Database className="w-4 h-4 mr-2" />
             Open Dataset

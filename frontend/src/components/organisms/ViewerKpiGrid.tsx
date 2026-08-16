@@ -117,8 +117,8 @@ export function ViewerKpiGrid({ kpis, isLoading }: ViewerKpiGridProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: idx * 0.05 }}
-            whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
-            className="relative overflow-hidden bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-4 shadow-sm cursor-pointer block no-underline group transition-all"
+            whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(16, 185, 129, 0.15)" }}
+            className="relative overflow-hidden bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/20 dark:border-emerald-500/20 rounded-xl p-4 shadow-xl shadow-emerald-500/5 cursor-pointer block no-underline group transition-all duration-300 hover:border-emerald-500/40"
           >
             {/* Glow on hover */}
             <div className={`absolute -right-4 -top-4 w-16 h-16 ${c.glow} rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity`} />

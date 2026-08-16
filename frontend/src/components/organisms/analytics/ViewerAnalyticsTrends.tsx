@@ -39,54 +39,54 @@ export function ViewerAnalyticsTrends({ trends, isLoading }: ViewerAnalyticsTren
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.15, duration: 0.5, ease: "easeOut" }}
-          className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-md border border-slate-200/60 dark:border-white/5 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300 relative overflow-hidden"
+          className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
         >
           {/* Decorative glow */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none group-hover:bg-emerald-500/20 transition-colors duration-1000" />
 
           <div className="flex items-center justify-between mb-8 relative z-10">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+              <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                 {trend.title}
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
                 Timeline visualization over the selected period
               </p>
             </div>
           </div>
           
-          <div className="h-72 w-full relative z-10">
+          <div className="h-80 w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trend.data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id={`gradient-${trend.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.35}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="rgba(148,163,184,0.15)" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148,163,184,0.15)" />
                 <XAxis 
                   dataKey={trend.x_axis_key} 
-                  tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 500 }} 
+                  tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }} 
                   tickLine={false} 
                   axisLine={false} 
                   dy={15}
                 />
                 <YAxis 
-                  tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 500 }} 
+                  tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }} 
                   tickLine={false} 
                   axisLine={false} 
                   tickFormatter={(val) => val > 1000 ? `${(val/1000).toFixed(1)}k` : val}
                 />
                 <Tooltip 
                   content={<CustomTooltip />}
-                  cursor={{ stroke: '#10b981', strokeWidth: 1.5, strokeDasharray: '4 4', opacity: 0.5 }}
+                  cursor={{ stroke: '#10b981', strokeWidth: 2, strokeDasharray: '4 4', opacity: 0.6 }}
                 />
                 <Area 
                   type="monotone" 
                   dataKey={trend.y_axis_key} 
                   stroke="#10b981" 
-                  strokeWidth={3.5} 
+                  strokeWidth={4} 
                   fill={`url(#gradient-${trend.id})`}
                   activeDot={{ r: 6, fill: "#ffffff", stroke: "#10b981", strokeWidth: 3 }}
                   isAnimationActive={true}

@@ -117,15 +117,15 @@ export default function AnalystReportsCenterPage() {
     }
   }
 
-  const handleActionIntercept = (action: string, report?: Report) => {
-    if (action === 'schedule' && report) {
-      setViewingReportId(report.id)
+  const handleActionIntercept = (action: string, id?: string) => {
+    if (action === 'schedule' && id) {
+      setViewingReportId(id)
       setIsScheduleModalOpen(true)
-    } else if (action === 'export' && report) {
-      setExportReportId(report.id)
+    } else if (action === 'export' && id) {
+      setExportReportId(id)
       setIsExportModalOpen(true)
     } else {
-      if (report) setViewingReportId(report.id)
+      if (id) setViewingReportId(id)
       handleQuickAction(action)
     }
   }

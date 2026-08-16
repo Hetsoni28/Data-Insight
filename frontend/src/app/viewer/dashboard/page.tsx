@@ -24,6 +24,7 @@ import { FileText, LayoutDashboard, Database, Brain, Activity, Bell, RefreshCw }
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/atoms/Logo";
 
 type ActiveTab = "reports" | "dashboards" | "datasets" | "activity";
 
@@ -89,9 +90,15 @@ export default function ViewerDashboardPage() {
   }
 
   return (
-    <div className="flex-1 p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 pb-24">
+    <div className="flex-1 p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 pb-24 relative min-h-screen">
+      {/* Premium Ambient Background Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] opacity-70" />
+        <div className="absolute top-[40%] -right-[5%] w-[30%] h-[30%] rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-[100px] opacity-50" />
+      </div>
+
       {/* Top Welcome / Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between relative z-10">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             AI Research Center
@@ -213,19 +220,13 @@ export default function ViewerDashboardPage() {
 
         {/* Right Side: Copilot Panel */}
         {isCopilotOpen && (
-          <div className="lg:col-span-4 relative">
-            <div className="sticky top-6 border border-slate-200/60 dark:border-white/10 rounded-2xl bg-slate-50/50 dark:bg-slate-900/40 p-5 space-y-4">
+          <div className="lg:col-span-4 relative z-20">
+            <div className="sticky top-6 border border-emerald-500/20 dark:border-emerald-500/20 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-2xl p-5 space-y-4 shadow-2xl shadow-emerald-500/10 transition-all duration-300">
               <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+                  <Logo size={14} showText={false} href={null} />
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Context Copilot</span>
                 </div>
-                <button
-                  onClick={() => setIsCopilotOpen(false)}
-                  className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                >
-                  Minimize
-                </button>
               </div>
 
               <ViewerAiAssistant
@@ -257,18 +258,18 @@ function TabButton({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 px-4 py-3 text-sm font-semibold relative transition-all border-b-2",
+        "flex items-center gap-2 px-4 py-2.5 text-sm font-semibold relative transition-all rounded-full overflow-hidden",
         active
-          ? "text-emerald-600 dark:text-emerald-400 border-emerald-500 font-bold"
-          : "text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300"
+          ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/50 dark:border-emerald-500/20"
+          : "text-slate-600 dark:text-slate-400 border border-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
       )}
     >
-      <span className={active ? "text-emerald-500" : "text-slate-400"}>{icon}</span>
-      {label}
+      <span className={cn("relative z-10", active ? "text-emerald-500" : "text-slate-400")}>{icon}</span>
+      <span className="relative z-10">{label}</span>
       {count !== undefined && (
         <span className={cn(
-          "text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1 transition-all",
-          active ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400"
+          "relative z-10 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 transition-all",
+          active ? "bg-emerald-200/50 text-emerald-700 dark:bg-emerald-500/30 dark:text-emerald-400" : "bg-slate-200/50 text-slate-500 dark:bg-white/10 dark:text-slate-400"
         )}>
           {count}
         </span>

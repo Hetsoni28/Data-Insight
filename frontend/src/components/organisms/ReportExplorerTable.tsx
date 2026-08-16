@@ -15,6 +15,7 @@ export interface Report {
   created_at: string
   output_size_bytes: number
   dataset_id: string | null
+  owner_id?: string
 }
 
 interface ReportExplorerTableProps {

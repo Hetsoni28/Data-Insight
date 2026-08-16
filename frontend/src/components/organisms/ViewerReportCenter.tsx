@@ -44,8 +44,8 @@ export function ViewerReportCenter({ reports, isLoading, onRefresh }: ViewerRepo
   const paginatedReports = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[500px]">
-      <div className="p-5 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-white/[0.02]">
+    <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/20 rounded-2xl shadow-xl shadow-emerald-500/5 overflow-hidden flex flex-col min-h-[500px] transition-all duration-300">
+      <div className="p-5 border-b border-emerald-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/40 dark:bg-slate-900/40">
         <div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <FileText className="w-5 h-5 text-emerald-500" />
@@ -99,7 +99,7 @@ export function ViewerReportCenter({ reports, isLoading, onRefresh }: ViewerRepo
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98 }}
                     key={report.id}
-                    className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 hover:shadow-md hover:shadow-emerald-500/5 transition-all cursor-pointer"
+                    className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-emerald-500/10 dark:border-emerald-500/10 bg-white/50 dark:bg-slate-900/50 hover:bg-white/80 dark:hover:bg-slate-800/80 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 cursor-pointer backdrop-blur-sm"
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-500/20">

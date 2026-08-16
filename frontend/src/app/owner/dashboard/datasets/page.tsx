@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -39,6 +39,18 @@ export default function DatasetsPage() {
     setShowUploader(false);
     fetchDatasets();
   };
+
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const filteredDatasets = datasets.filter((ds) =>
+    !search ||
+    ds.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredDatasets.length / pageSize));
+  const paginatedDatasets = filteredDatasets.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
@@ -97,10 +109,16 @@ export default function DatasetsPage() {
         transition={{ delay: 0.1 }}
       >
         <DatasetTable 
-          datasets={datasets} 
-          isLoading={isLoading} 
-          onRefresh={fetchDatasets}
-          onUpload={() => setShowUploader(true)}
+          loading={isLoading}
+          search={search}
+          setSearch={setSearch}
+          paginatedDatasets={paginatedDatasets}
+          filteredCount={filteredDatasets.length}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          setCurrentPage={setCurrentPage}
+          setPageSize={setPageSize}
         />
       </motion.div>
     </div>

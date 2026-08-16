@@ -58,19 +58,24 @@ export function ViewerReportKPIs({ kpis, isLoading, onFilterChange }: ViewerRepo
 function KpiCard({ title, value, icon, subtitle, onClick }: { title: string; value: number; icon: React.ReactNode; subtitle?: string; onClick?: () => void; }) {
   return (
     <motion.div
-      whileHover={onClick ? { y: -2 } : {}}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={onClick ? { y: -4, scale: 1.02 } : {}}
       onClick={onClick}
-      className={`bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all ${onClick ? 'cursor-pointer' : ''}`}
+      className={`relative overflow-hidden bg-white/70 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all group ${onClick ? 'cursor-pointer hover:border-emerald-500/50 hover:bg-white dark:hover:bg-slate-900/80' : ''}`}
     >
-      <div className="flex justify-between items-start mb-2">
-        <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center">
+      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500 pointer-events-none">
+        {icon}
+      </div>
+      <div className="flex justify-between items-start mb-4 relative z-10">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-white/5 dark:to-white/10 flex items-center justify-center shadow-inner group-hover:shadow-md transition-shadow">
           {icon}
         </div>
       </div>
-      <div>
-        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{value}</h3>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">{title}</p>
-        {subtitle && <p className="text-[10px] text-slate-400 mt-0.5">{subtitle}</p>}
+      <div className="relative z-10">
+        <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{value}</h3>
+        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">{title}</p>
+        {subtitle && <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-wider">{subtitle}</p>}
       </div>
     </motion.div>
   );

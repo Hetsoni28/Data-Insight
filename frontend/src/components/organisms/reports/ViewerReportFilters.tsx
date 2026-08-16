@@ -42,27 +42,37 @@ export function ViewerReportFilters({
 
       {/* Secondary Filters */}
       <div className="flex items-center gap-3">
-        <select
-          value={activeDepartment}
-          onChange={(e) => onChange("department", e.target.value)}
-          className="h-9 px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        >
-          <option value="">All Departments</option>
-          {filters.departments.map((dept) => (
-            <option key={dept} value={dept}>{dept}</option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={activeDepartment}
+            onChange={(e) => onChange("department", e.target.value)}
+            className="appearance-none h-10 pl-4 pr-10 py-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border border-slate-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all hover:bg-white dark:hover:bg-slate-900 cursor-pointer"
+          >
+            <option value="">All Departments</option>
+            {filters.departments.map((dept) => (
+              <option key={dept} value={dept}>{dept}</option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+        </div>
 
-        <select
-          value={activeStatus}
-          onChange={(e) => onChange("status", e.target.value)}
-          className="h-9 px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        >
-          <option value="">All Statuses</option>
-          {filters.statuses.map((s) => (
-            <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={activeStatus}
+            onChange={(e) => onChange("status", e.target.value)}
+            className="appearance-none h-10 pl-4 pr-10 py-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border border-slate-200/80 dark:border-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm transition-all hover:bg-white dark:hover:bg-slate-900 cursor-pointer"
+          >
+            <option value="">All Statuses</option>
+            {filters.statuses.map((s) => (
+              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -149,34 +149,37 @@ function ReportCard({ report, onRefresh, onPreview }: {
       exit={{ opacity: 0, scale: 0.95 }}
       layout
       onClick={onPreview}
-      className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-white/20 transition-all group relative overflow-hidden cursor-pointer flex flex-col justify-between h-[160px]"
+      className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group relative overflow-hidden cursor-pointer flex flex-col justify-between h-[170px] hover:-translate-y-1 hover:bg-white dark:hover:bg-slate-900/80"
     >
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 flex items-center justify-center group-hover:bg-slate-100 dark:group-hover:bg-slate-700 transition-colors">
+      {/* Decorative gradient blob on hover */}
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+      <div className="flex items-start gap-4 relative z-10">
+        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-white/5 dark:to-white/10 border border-slate-200/50 dark:border-white/5 flex items-center justify-center shadow-inner group-hover:shadow-md transition-all">
           {report.report_type === "excel" ? (
-            <FileSpreadsheet className="w-5 h-5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors" />
+            <FileSpreadsheet className="w-5 h-5 text-emerald-600/70 group-hover:text-emerald-600 transition-colors" />
           ) : (
-            <FileText className="w-5 h-5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors" />
+            <FileText className="w-5 h-5 text-emerald-600/70 group-hover:text-emerald-600 transition-colors" />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-white text-[15px] leading-snug truncate group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
+              <h3 className="font-bold text-slate-900 dark:text-white text-[16px] leading-snug truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
                 {report.title}
               </h3>
               <div className="flex items-center flex-wrap gap-2 mt-2">
-                <span className={cn("text-[11px] font-medium px-2 py-0.5 rounded-full border", STATUS_STYLES[report.status] || STATUS_STYLES.queued)}>
+                <span className={cn("text-[11px] font-bold px-2.5 py-0.5 rounded-full border shadow-sm uppercase tracking-wider", STATUS_STYLES[report.status] || STATUS_STYLES.queued)}>
                   {report.status === "generating" ? (
-                    <span className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Generating</span>
+                    <span className="flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> Generating</span>
                   ) : report.status}
                 </span>
-                <Badge variant="outline" className="text-[10px] h-5 px-2 font-medium text-slate-500 dark:text-slate-400 border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50">
+                <Badge variant="outline" className="text-[10px] h-[22px] px-2 font-semibold text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 shadow-sm">
                   {report.category}
                 </Badge>
                 {report.department && (
-                  <Badge variant="secondary" className="text-[10px] h-5 px-2 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border-transparent hover:bg-blue-100 dark:hover:bg-blue-500/20">
+                  <Badge variant="secondary" className="text-[10px] h-[22px] px-2 bg-blue-50/80 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 border border-blue-100 dark:border-blue-500/20 shadow-sm">
                     {report.department}
                   </Badge>
                 )}
@@ -186,12 +189,12 @@ function ReportCard({ report, onRefresh, onPreview }: {
             <button
               onClick={handleBookmark}
               disabled={togglingBookmark}
-              className="flex-shrink-0 p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors z-10"
+              className="flex-shrink-0 p-2 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:shadow-inner transition-all z-10 border border-transparent hover:border-amber-100 dark:hover:border-amber-500/20"
             >
               {togglingBookmark ? (
                 <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
               ) : report.is_bookmarked ? (
-                <BookmarkCheck className="w-4 h-4 text-amber-500 fill-amber-500/20" />
+                <BookmarkCheck className="w-4 h-4 text-amber-500 fill-amber-500/20 drop-shadow-sm" />
               ) : (
                 <Bookmark className="w-4 h-4 text-slate-300 hover:text-amber-500 transition-colors" />
               )}
@@ -200,14 +203,14 @@ function ReportCard({ report, onRefresh, onPreview }: {
         </div>
       </div>
 
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-        <div className="flex items-center gap-4 text-[11px] text-slate-400">
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-200/60 dark:border-white/10 relative z-10">
+        <div className="flex items-center gap-4 text-[11px] font-medium text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
             <span>Updated {new Date(report.updated_at).toLocaleDateString()}</span>
           </div>
           {report.category === "AI" && (
-            <div className="flex items-center gap-1.5 text-purple-500">
+            <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
               <Activity className="w-3.5 h-3.5" />
               <span>AI Generated</span>
             </div>
@@ -220,19 +223,19 @@ function ReportCard({ report, onRefresh, onPreview }: {
               size="sm"
               variant="ghost"
               disabled={!canDownload || downloading}
-              className="h-7 px-2 text-xs text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 z-10"
+              className="h-8 px-2.5 text-xs font-semibold text-slate-600 hover:text-blue-700 dark:text-slate-300 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-500/10 z-10 rounded-lg"
               onClick={handleDownload}
             >
-              {downloading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
             </Button>
           )}
           <Button
             size="sm"
-            className="h-7 px-3 text-xs bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm z-10"
+            className="h-8 px-4 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm hover:shadow z-10 transition-all"
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
           >
             <Eye className="w-3.5 h-3.5 mr-1.5" />
-            Open
+            Preview
           </Button>
         </div>
       </div>

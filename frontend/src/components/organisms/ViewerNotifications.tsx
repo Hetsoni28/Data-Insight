@@ -97,7 +97,7 @@ export function ViewerNotifications({ notifications, isLoading, onRefresh }: Vie
         )}
       </div>
 
-      <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/20 rounded-2xl overflow-hidden shadow-xl shadow-emerald-500/5">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center mx-auto mb-3">

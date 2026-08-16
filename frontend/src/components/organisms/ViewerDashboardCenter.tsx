@@ -113,10 +113,10 @@ function DashboardCard({ dashboard }: { dashboard: ViewerDashboard }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 rounded-2xl overflow-hidden"
+      className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/20 dark:border-emerald-500/20 rounded-2xl overflow-hidden shadow-xl shadow-emerald-500/5 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10"
     >
       {/* Dashboard Header */}
-      <div className="flex items-start justify-between p-5 bg-white dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10">
+      <div className="flex items-start justify-between p-5 bg-white/40 dark:bg-slate-900/40 border-b border-emerald-500/10">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center flex-shrink-0">
             <LayoutDashboard className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -140,9 +140,9 @@ function DashboardCard({ dashboard }: { dashboard: ViewerDashboard }) {
 
       {/* KPI Summary Row */}
       {kpiWidgets.length > 0 && (
-        <div className="grid grid-cols-3 gap-px bg-slate-200/60 dark:bg-white/10">
+        <div className="grid grid-cols-3 gap-px bg-emerald-500/10 dark:bg-emerald-500/10">
           {kpiWidgets.map((w) => (
-            <div key={w.id} className="bg-white dark:bg-slate-900/50 p-4 text-center">
+            <div key={w.id} className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-4 text-center">
               <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{w.title}</p>
               <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
                 {w.metrics?.value?.toLocaleString() ?? "—"}

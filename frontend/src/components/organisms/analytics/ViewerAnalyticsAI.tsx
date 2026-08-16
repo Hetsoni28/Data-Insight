@@ -44,56 +44,62 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
   }
 
   return (
-    <div className="bg-gradient-to-br from-emerald-50/50 via-white to-teal-50/50 dark:from-emerald-950/20 dark:via-slate-900 dark:to-teal-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row">
-      
+    <div className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-3xl overflow-hidden shadow-lg flex flex-col md:flex-row relative">
+      {/* Decorative Glow */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+
       {/* Left side: Proactive Insights */}
-      <div className="w-full md:w-1/2 p-6 md:p-8 border-b md:border-b-0 md:border-r border-emerald-100 dark:border-emerald-900/30">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
-            <Sparkles className="w-5 h-5" />
+      <div className="w-full md:w-1/2 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-200/80 dark:border-white/10 relative z-10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 shadow-sm">
+            <Sparkles className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">AI Executive Summary</h3>
+          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">AI Executive Summary</h3>
         </div>
         
-        <p className="text-slate-600 dark:text-slate-300 mb-8 leading-relaxed text-sm md:text-base">
+        <p className="text-slate-600 dark:text-slate-300 mb-8 leading-relaxed font-medium">
           {summary || "No executive summary available for the current context."}
         </p>
 
         <div className="space-y-4">
-          <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Key Discoveries</h4>
+          <h4 className="font-bold text-slate-900 dark:text-white mb-3 tracking-tight">Key Discoveries</h4>
           {insights.map((insight, i) => (
             <motion.div
               key={insight.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="flex items-start gap-3 p-3 rounded-lg bg-white/60 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800"
+              className="flex items-start gap-4 p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-shadow group"
             >
-              <ArrowRight className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-                insight.type === 'risk' ? 'text-rose-500' :
-                insight.type === 'opportunity' ? 'text-emerald-500' :
-                'text-emerald-500'
-              }`} />
-              <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug">{insight.content}</p>
+              <div className={`p-2 rounded-xl flex-shrink-0 mt-0.5 ${
+                insight.type === 'risk' ? 'bg-rose-50 text-rose-500 dark:bg-rose-500/10' :
+                insight.type === 'opportunity' ? 'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/10' :
+                'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/10'
+              }`}>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+              <p className="text-[15px] font-medium text-slate-700 dark:text-slate-300 leading-snug">{insight.content}</p>
             </motion.div>
           ))}
         </div>
       </div>
 
       {/* Right side: Interactive Chat */}
-      <div className="w-full md:w-1/2 p-6 flex flex-col h-[500px] md:h-auto">
-        <div className="mb-4">
-          <h4 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+      <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col h-[600px] md:h-auto bg-slate-50/50 dark:bg-slate-950/20 relative z-10">
+        <div className="mb-6">
+          <h4 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             Analytics Assistant
           </h4>
-          <p className="text-xs text-slate-500">Ask questions about these metrics.</p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Ask questions about these metrics in natural language.</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto space-y-5 mb-6 pr-4 custom-scrollbar">
           {chatHistory.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-              <Bot className="w-10 h-10 mb-3 text-slate-400" />
-              <p className="text-sm text-slate-500 max-w-[200px]">Ask me to compare metrics, explain anomalies, or summarize trends.</p>
+            <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
+              <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-sm border border-slate-100 dark:border-white/5">
+                <Bot className="w-8 h-8 text-emerald-500" />
+              </div>
+              <p className="text-sm font-medium text-slate-500 max-w-[250px]">Ask me to compare metrics, explain anomalies, or summarize trends.</p>
             </div>
           ) : (
             <AnimatePresence initial={false}>
@@ -104,15 +110,15 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
                   animate={{ opacity: 1, y: 0 }}
                   className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    msg.role === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${
+                    msg.role === 'user' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white' : 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-100 dark:border-white/5'
                   }`}>
-                    {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                    {msg.role === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                   </div>
-                  <div className={`p-3 rounded-2xl max-w-[80%] text-sm ${
+                  <div className={`p-4 max-w-[80%] text-[15px] font-medium leading-relaxed ${
                     msg.role === 'user' 
-                      ? 'bg-emerald-600 text-white rounded-tr-sm' 
-                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-700 rounded-tl-sm shadow-sm'
+                      ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-sm shadow-md shadow-emerald-500/20' 
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-white/5 rounded-2xl rounded-tl-sm shadow-sm'
                   }`}>
                     {msg.content}
                   </div>
@@ -122,33 +128,33 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
           )}
           {isChatting && (
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
-                <Bot className="w-4 h-4" />
+              <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm">
+                <Bot className="w-5 h-5" />
               </div>
-              <div className="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-tl-sm flex items-center gap-1 shadow-sm">
-                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" />
-                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-75" />
-                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-150" />
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-tl-sm flex items-center gap-1.5 shadow-sm">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce delay-75" />
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce delay-150" />
               </div>
             </div>
           )}
         </div>
 
-        <form onSubmit={handleAskAI} className="relative">
+        <form onSubmit={handleAskAI} className="relative mt-auto">
           <Input
             value={chatMessage}
             onChange={(e) => setChatMessage(e.target.value)}
             placeholder="Ask a question about the data..."
-            className="pr-12 bg-white dark:bg-slate-900 border-emerald-100 dark:border-slate-700 focus-visible:ring-emerald-500"
+            className="pr-14 pl-5 h-14 rounded-2xl bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 focus-visible:ring-emerald-500 shadow-sm font-medium"
             disabled={isChatting}
           />
           <Button 
             type="submit" 
             size="icon" 
-            className="absolute right-1 top-1 h-7 w-7 bg-emerald-600 hover:bg-emerald-700 text-white rounded"
+            className="absolute right-2 top-2 h-10 w-10 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md shadow-emerald-500/20 transition-all hover:scale-105"
             disabled={!chatMessage.trim() || isChatting}
           >
-            {isChatting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+            {isChatting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-0.5" />}
           </Button>
         </form>
       </div>

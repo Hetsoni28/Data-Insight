@@ -33,43 +33,46 @@ export function ViewerAnalyticsOverview({ kpis, isLoading }: ViewerAnalyticsOver
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.5, ease: "easeOut" }}
-          className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-md border border-slate-200/60 dark:border-white/5 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group"
+          className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden group"
         >
           {/* Subtle gradient overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-emerald-500/5 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
           
+          {/* Decorative glow */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/5 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/4 pointer-events-none group-hover:bg-emerald-400/10 transition-colors" />
+
           <div className="flex items-start justify-between relative z-10">
-            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">
               {kpi.title}
             </h3>
             <div className={cn(
-              "p-2 rounded-xl flex items-center justify-center transition-colors duration-300",
-              kpi.trend_direction === "up" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20" :
-              kpi.trend_direction === "down" ? "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 group-hover:bg-rose-100 dark:group-hover:bg-rose-500/20" :
-              "bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+              "p-2.5 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm",
+              kpi.trend_direction === "up" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white" :
+              kpi.trend_direction === "down" ? "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 group-hover:bg-rose-500 group-hover:text-white" :
+              "bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-400 group-hover:bg-slate-500 group-hover:text-white"
             )}>
-              {kpi.trend_direction === "up" ? <TrendingUp className="w-4 h-4" /> :
-               kpi.trend_direction === "down" ? <TrendingDown className="w-4 h-4" /> :
-               <Minus className="w-4 h-4" />}
+              {kpi.trend_direction === "up" ? <TrendingUp className="w-5 h-5" /> :
+               kpi.trend_direction === "down" ? <TrendingDown className="w-5 h-5" /> :
+               <Minus className="w-5 h-5" />}
             </div>
           </div>
           
           <div className="mt-4 relative z-10">
-            <p className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight drop-shadow-sm">
+            <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tight drop-shadow-sm group-hover:scale-105 transition-transform origin-left inline-block">
               {kpi.value}
             </p>
             {kpi.percentage_change !== undefined && kpi.percentage_change !== null && (
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-2 mt-3">
                 <span className={cn(
-                  "text-xs font-bold px-1.5 py-0.5 rounded-md",
-                  kpi.trend_direction === "up" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" :
-                  kpi.trend_direction === "down" ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400" :
-                  "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                  "text-xs font-black px-2 py-0.5 rounded-lg border",
+                  kpi.trend_direction === "up" ? "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
+                  kpi.trend_direction === "down" ? "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20" :
+                  "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
                 )}>
                   {kpi.trend_direction === "up" && "+"}
                   {kpi.percentage_change}%
                 </span>
-                <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                   vs last period
                 </span>
               </div>
