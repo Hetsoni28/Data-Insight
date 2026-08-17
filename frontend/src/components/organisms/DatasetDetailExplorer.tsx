@@ -14,7 +14,15 @@ import { DatasetHeaderBanner } from "@/components/molecules/DatasetHeaderBanner"
 import { DatasetMetricsGrid, DatasetMetric } from "@/components/organisms/DatasetMetricsGrid"
 import { DatasetDetailTabs } from "@/components/organisms/DatasetDetailTabs"
 
-export function DatasetDetailExplorer() {
+interface DatasetDetailExplorerProps {
+  backHref?: string
+  backLabel?: string
+}
+
+export function DatasetDetailExplorer({ 
+  backHref = "/viewer/dashboard/datasets",
+  backLabel = "Back to Datasets"
+}: DatasetDetailExplorerProps = {}) {
   const params = useParams()
   const router = useRouter()
   const { data: user } = useAuth()
@@ -83,7 +91,7 @@ export function DatasetDetailExplorer() {
           </div>
           <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Dataset Not Found</h2>
           <p className="text-slate-500 font-medium mb-8 max-w-sm text-center">We couldn't locate this dataset, or you may not have permission to view it.</p>
-          <Button onClick={() => router.push('/viewer/dashboard/datasets')} className="bg-emerald-600 hover:bg-emerald-500 h-12 px-8 rounded-xl font-bold shadow-lg shadow-emerald-500/20">
+          <Button onClick={() => router.push(backHref)} className="bg-emerald-600 hover:bg-emerald-500 h-12 px-8 rounded-xl font-bold shadow-lg shadow-emerald-500/20">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Return to Datasets
           </Button>
@@ -133,7 +141,7 @@ export function DatasetDetailExplorer() {
         description={dataset.description || "Enterprise dataset available for read-only analytical exploration and AI insights."}
         badges={headerBadges}
         showBack={true}
-        backLink="/viewer/dashboard/datasets"
+        backLink={backHref}
       />
 
       <DatasetMetricsGrid metrics={detailMetrics} />

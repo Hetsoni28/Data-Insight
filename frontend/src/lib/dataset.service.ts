@@ -8,7 +8,12 @@ export interface Dataset {
   file_size_bytes: number;
   status: string;
   row_count: number | null;
+  column_count: number | null;
+  data_quality_score: number | null;
+  department: string | null;
+  owner: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export class DatasetService {

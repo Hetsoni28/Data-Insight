@@ -9,7 +9,6 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
-      - /app/node_modules
       - /app/.next
     env_file:
       - ./frontend/.env.local
@@ -87,7 +86,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     ports:
-      - "5555:5555"
+      - "5650:5555"
     volumes:
       - ./backend:/app
     env_file:
