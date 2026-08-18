@@ -44,13 +44,30 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
   // Define all possible commands with allowed roles
   const allItems = [
     { icon: LayoutDashboard, label: "Dashboard Overview", desc: "Go to main dashboard", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard`) },
+    
     { icon: Database, label: "Datasets", desc: "View and manage datasets", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/datasets`) },
+    { icon: HardDrive, label: "Upload Dataset", desc: "Upload a new dataset", allowed: ["owner", "organization-admin", "org_admin", "analyst"], action: () => router.push(`${basePath}/dashboard/upload-dataset`) },
+    
     { icon: Brain, label: "AI Copilot", desc: "Chat with your data", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst"], action: () => router.push(`${basePath}/dashboard/ai`) },
+    
+    { icon: LayoutDashboard, label: "Dashboard Builder", desc: "Build interactive dashboards", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst"], action: () => router.push(`${basePath}/dashboard/builder`) },
+    
+    { icon: PieChart, label: "Charts", desc: "View chart configurations", allowed: ["owner", "analyst"], action: () => router.push(`${basePath}/dashboard/charts`) },
+    
     { icon: FileText, label: "Reports", desc: "View generated reports", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/reports`) },
+    
+    { icon: Activity, label: "Analytics", desc: "View platform usage", allowed: ["owner", "manager", "viewer"], action: () => router.push(`${basePath}/dashboard/analytics`) },
+    
+    { icon: Users, label: "Users & Team", desc: "Manage team members", allowed: ["owner", "organization-admin", "org_admin"], action: () => router.push(`${basePath}/dashboard/team`) },
+    
     { icon: Settings, label: "System Settings", desc: "Manage workspace settings", allowed: ["owner", "organization-admin", "org_admin"], action: () => router.push(`${basePath}/dashboard/settings`) },
-    { icon: Users, label: "Users & Team", desc: "Manage team members", allowed: ["owner", "organization-admin", "org_admin"], action: () => router.push(`${basePath}/dashboard/users`) }, // or 'team'
+    
+    { icon: CreditCard, label: "Billing", desc: "Manage billing", allowed: ["owner", "organization-admin", "org_admin"], action: () => router.push(`${basePath}/dashboard/billing`) },
+    
+    { icon: Users, label: "Profile", desc: "Manage your account", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/profile`) },
+
+    // Owner Only Global Settings
     { icon: Building, label: "Organizations", desc: "Manage tenants", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/organizations`) },
-    { icon: CreditCard, label: "Subscriptions", desc: "Manage billing", allowed: ["owner", "organization-admin", "org_admin"], action: () => router.push(`${basePath}/dashboard/subscriptions`) }, // or 'billing'
     { icon: Activity, label: "Audit Logs", desc: "View system events", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/audit-logs`) },
     { icon: HardDrive, label: "Storage", desc: "Manage storage quota", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/storage`) },
     { icon: Brain, label: "AI Providers", desc: "Configure LLMs", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/ai-providers`) },
@@ -59,8 +76,6 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
     { icon: Link, label: "Integrations", desc: "Connect data sources", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/integrations`) },
     { icon: Receipt, label: "Revenue Analytics", desc: "View financial data", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/revenue`) },
     { icon: Zap, label: "AI Usage", desc: "Monitor token consumption", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/ai-usage`) },
-    { icon: PieChart, label: "Analytics", desc: "View platform usage", allowed: ["owner", "manager", "viewer"], action: () => router.push(`${basePath}/dashboard/analytics`) },
-    { icon: Users, label: "Profile", desc: "Manage your account", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/profile`) },
   ];
 
   // Filter out items not allowed for this user role
