@@ -1,10 +1,10 @@
-﻿"use client"
+"use client"
 import React, { useState } from "react"
 import { CommandPalette } from "@/components/organisms/CommandPalette"
 import { NavbarBreadcrumbs } from "@/components/molecules/NavbarBreadcrumbs"
 import { NavbarActions } from "@/components/molecules/NavbarActions"
 
-export default function Navbar({ onUploadClick }: { onUploadClick?: () => void }) {
+export default function Navbar({ onUploadClick, showUploadButton = true }: { onUploadClick?: () => void, showUploadButton?: boolean }) {
   const [isCommandOpen, setIsCommandOpen] = useState(false)
 
   return (
@@ -14,6 +14,7 @@ export default function Navbar({ onUploadClick }: { onUploadClick?: () => void }
         <NavbarActions 
           onSearchClick={() => setIsCommandOpen(true)} 
           onUploadClick={onUploadClick} 
+          showUploadButton={showUploadButton}
         />
       </header>
       <CommandPalette isOpen={isCommandOpen} setIsOpen={setIsCommandOpen} />

@@ -102,7 +102,10 @@ export function MemberLayout({ children, user, handleLogout }: MemberLayoutProps
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <DashboardNavbar onUploadClick={() => router.push(`${getBasePath(user?.role)}/dashboard/upload-dataset`)} />
+        <DashboardNavbar 
+          onUploadClick={() => router.push(`${getBasePath(user?.role)}/dashboard/upload-dataset`)} 
+          showUploadButton={["analyst", "organization-admin", "org_admin"].includes(user?.role)}
+        />
         <main className="flex-1 overflow-y-auto relative z-0">
           {children}
         </main>

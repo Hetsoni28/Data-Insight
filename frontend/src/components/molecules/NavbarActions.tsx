@@ -1,4 +1,4 @@
-﻿import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Search, Bell, Upload, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWorkspaceStore } from "@/store/workspaceStore"
@@ -8,9 +8,10 @@ import { ThemeToggle } from "@/components/molecules/ThemeToggle"
 interface NavbarActionsProps {
   onSearchClick: () => void
   onUploadClick?: () => void
+  showUploadButton?: boolean
 }
 
-export function NavbarActions({ onSearchClick, onUploadClick }: NavbarActionsProps) {
+export function NavbarActions({ onSearchClick, onUploadClick, showUploadButton = true }: NavbarActionsProps) {
   const router = useRouter()
   const { activeWs, loadingWs } = useWorkspaceStore()
 
@@ -53,18 +54,20 @@ export function NavbarActions({ onSearchClick, onUploadClick }: NavbarActionsPro
       </button>
 
       {/* Quick Create / Upload */}
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500" />
-        <Button
-          suppressHydrationWarning
-          onClick={handleUploadClick}
-          disabled={loadingWs}
-          className="relative h-9 px-4 bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm border-t border-emerald-400 rounded-xl font-medium text-[13px] gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {loadingWs ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-          Upload Dataset
-        </Button>
-      </div>
+      {showUploadButton && (
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500" />
+          <Button
+            suppressHydrationWarning
+            onClick={handleUploadClick}
+            disabled={loadingWs}
+            className="relative h-9 px-4 bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm border-t border-emerald-400 rounded-xl font-medium text-[13px] gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loadingWs ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+            Upload Dataset
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

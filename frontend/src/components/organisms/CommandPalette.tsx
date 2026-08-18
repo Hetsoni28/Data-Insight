@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -6,8 +6,11 @@ import { Search, Command, FileText, Settings, Users, Database, Activity, HardDri
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+import { useAuth } from "@/hooks/useAuth";
+
 export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) {
   const router = useRouter();
+  const { data: user } = useAuth();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
@@ -29,25 +32,38 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
     return () => document.removeEventListener("keydown", down);
   }, [setIsOpen]);
 
-  const items = [
-    { icon: LayoutDashboard, label: "Dashboard Overview", desc: "Go to main dashboard", action: () => router.push("/owner/dashboard") },
-    { icon: Database, label: "Datasets", desc: "View and manage datasets", action: () => router.push("/owner/dashboard/datasets") },
-    { icon: Brain, label: "AI Copilot", desc: "Chat with your data", action: () => router.push("/owner/dashboard/ai") },
-    { icon: FileText, label: "Reports", desc: "View generated reports", action: () => router.push("/owner/dashboard/reports") },
-    { icon: Settings, label: "System Settings", desc: "Manage workspace settings", action: () => router.push("/owner/dashboard/settings") },
-    { icon: Users, label: "Users & Team", desc: "Manage team members", action: () => router.push("/owner/dashboard/users") },
-    { icon: Building, label: "Organizations", desc: "Manage tenants", action: () => router.push("/owner/dashboard/organizations") },
-    { icon: CreditCard, label: "Subscriptions", desc: "Manage billing", action: () => router.push("/owner/dashboard/subscriptions") },
-    { icon: Activity, label: "Audit Logs", desc: "View system events", action: () => router.push("/owner/dashboard/audit-logs") },
-    { icon: HardDrive, label: "Storage", desc: "Manage storage quota", action: () => router.push("/owner/dashboard/storage") },
-    { icon: Brain, label: "AI Providers", desc: "Configure LLMs", action: () => router.push("/owner/dashboard/ai-providers") },
-    { icon: Code, label: "API Management", desc: "Manage developer keys", action: () => router.push("/owner/dashboard/api") },
-    { icon: ShieldCheck, label: "Security", desc: "Access control and MFA", action: () => router.push("/owner/dashboard/security") },
-    { icon: Link, label: "Integrations", desc: "Connect data sources", action: () => router.push("/owner/dashboard/integrations") },
-    { icon: Receipt, label: "Revenue Analytics", desc: "View financial data", action: () => router.push("/owner/dashboard/revenue") },
-    { icon: Zap, label: "AI Usage", desc: "Monitor token consumption", action: () => router.push("/owner/dashboard/ai-usage") },
-    { icon: PieChart, label: "Platform Analytics", desc: "View platform usage", action: () => router.push("/owner/dashboard/analytics") },
+  const getBasePath = (role?: string) => {
+    if (!role || role === "owner") return "/owner";
+    if (role === "org_admin" || role === "organization-admin") return "/organization-admin";
+    return `/${role}`;
+  };
+
+  const basePath = getBasePath(user?.role);
+  const r = user?.role || "viewer";
+
+  // Define all possible commands with allowed roles
+  const allItems = [
+    { icon: LayoutDashboard, label: "Dashboard Overview", desc: "Go to main dashboard", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard`) },
+    { icon: Database, label: "Datasets", desc: "View and manage datasets", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/datasets`) },
+    { icon: Brain, label: "AI Copilot", desc: "Chat with your data", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst"], action: () => router.push(`${basePath}/dashboard/ai`) },
+    { icon: FileText, label: "Reports", desc: "View generated reports", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/reports`) },
+    { icon: Settings, label: "System Settings", desc: "Manage workspace settings", allowed: ["owner", "organization-admin", "org_admin"], action: () => router.push(`${basePath}/dashboard/settings`) },
+    { icon: Users, label: "Users & Team", desc: "Manage team members", allowed: ["owner", "organization-admin", "org_admin"], action: () => router.push(`${basePath}/dashboard/users`) }, // or 'team'
+    { icon: Building, label: "Organizations", desc: "Manage tenants", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/organizations`) },
+    { icon: CreditCard, label: "Subscriptions", desc: "Manage billing", allowed: ["owner", "organization-admin", "org_admin"], action: () => router.push(`${basePath}/dashboard/subscriptions`) }, // or 'billing'
+    { icon: Activity, label: "Audit Logs", desc: "View system events", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/audit-logs`) },
+    { icon: HardDrive, label: "Storage", desc: "Manage storage quota", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/storage`) },
+    { icon: Brain, label: "AI Providers", desc: "Configure LLMs", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/ai-providers`) },
+    { icon: Code, label: "API Management", desc: "Manage developer keys", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/api`) },
+    { icon: ShieldCheck, label: "Security", desc: "Access control and MFA", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/security`) },
+    { icon: Link, label: "Integrations", desc: "Connect data sources", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/integrations`) },
+    { icon: Receipt, label: "Revenue Analytics", desc: "View financial data", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/revenue`) },
+    { icon: Zap, label: "AI Usage", desc: "Monitor token consumption", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/ai-usage`) },
+    { icon: PieChart, label: "Analytics", desc: "View platform usage", allowed: ["owner", "manager", "viewer"], action: () => router.push(`${basePath}/dashboard/analytics`) },
   ];
+
+  // Filter out items not allowed for this user role
+  const items = allItems.filter(item => item.allowed.includes(r));
 
   const filteredItems = items.filter(item => 
     item.label.toLowerCase().includes(query.toLowerCase()) || 
