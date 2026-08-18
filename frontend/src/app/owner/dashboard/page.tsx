@@ -1,5 +1,6 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { useWorkspaceStore } from "@/store/workspaceStore"
@@ -9,7 +10,12 @@ import { Loader2 } from "lucide-react"
 import { ExecutiveBanner } from "@/components/organisms/ExecutiveBanner"
 import { LiveKpiGrid } from "@/components/organisms/LiveKpiGrid"
 import { PlatformHealthOverview } from "@/components/organisms/PlatformHealthOverview"
-import { AnalyticsGrid } from "@/components/organisms/AnalyticsGrid"
+import dynamic from "next/dynamic"
+
+const AnalyticsGrid = dynamic(
+  () => import("@/components/organisms/AnalyticsGrid").then((mod) => mod.AnalyticsGrid),
+  { ssr: false }
+)
 import { DashboardActivityFeed } from "@/components/organisms/DashboardActivityFeed"
 import { DashboardUsageChart } from "@/components/organisms/DashboardUsageChart"
 import { ExecutiveAIPanel } from "@/components/organisms/ExecutiveAIPanel"
@@ -18,35 +24,43 @@ export default function DashboardPage() {
   const router = useRouter()
   const { data: user } = useAuth()
   
-  const [analytics, setAnalytics] = useState<any>(null)
-  const [revenueTrend, setRevenueTrend] = useState<any>(null)
-  const [aiOverview, setAiOverview] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient();
 
-  const fetchData = async () => {
-    try {
-      const [analyticsRes, aiRes, revenueRes] = await Promise.all([
-        api.get(`/owner/analytics/overview`),
-        api.get(`/owner/ai/overview`),
-        api.get(`/owner/analytics/revenue`)
-      ])
-      setAnalytics(analyticsRes.data)
-      setAiOverview(aiRes.data)
-      setRevenueTrend(revenueRes.data)
-    } catch (error) {
-      console.error("Failed to fetch executive data", error)
-    } finally {
-      setLoading(false)
+  const { data: analytics, isLoading: loadingAnalytics } = useQuery({
+    queryKey: ['owner-analytics-overview'],
+    queryFn: async () => {
+      const res = await api.get(`/owner/analytics/overview`);
+      return res.data;
     }
-  }
+  });
+
+  const { data: aiOverview, isLoading: loadingAi } = useQuery({
+    queryKey: ['owner-ai-overview'],
+    queryFn: async () => {
+      const res = await api.get(`/owner/ai/overview`);
+      return res.data;
+    }
+  });
+
+  const { data: revenueTrend, isLoading: loadingRevenue } = useQuery({
+    queryKey: ['owner-revenue-overview'],
+    queryFn: async () => {
+      const res = await api.get(`/owner/analytics/revenue`);
+      return res.data;
+    }
+  });
+
+  const loading = loadingAnalytics || loadingAi || loadingRevenue;
 
   useEffect(() => {
-    fetchData()
-    
-    const handleRefresh = () => fetchData()
+    const handleRefresh = () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-analytics-overview'] });
+      queryClient.invalidateQueries({ queryKey: ['owner-ai-overview'] });
+      queryClient.invalidateQueries({ queryKey: ['owner-revenue-overview'] });
+    }
     window.addEventListener("dataset-uploaded", handleRefresh)
     return () => window.removeEventListener("dataset-uploaded", handleRefresh)
-  }, [])
+  }, [queryClient])
 
   if (loading) {
     return (

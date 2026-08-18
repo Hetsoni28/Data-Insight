@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import type { ViewerDataset } from "@/lib/viewer.service";
-import { ViewerService } from "@/lib/viewer.service";
+import type { ViewerDataset } from "@/lib/tenant-dashboard.service";
+import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
@@ -162,7 +162,7 @@ function DatasetCard({ dataset }: { dataset: ViewerDataset }) {
               </div>
               <div>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Owner</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate mt-0.5">{dataset.owner}</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate mt-0.5">{typeof dataset.owner === 'object' ? dataset.owner?.name || "Unknown" : dataset.owner}</p>
               </div>
             </div>
 

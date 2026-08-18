@@ -3,22 +3,28 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useWorkspaceStore } from "@/store/workspaceStore";
-import { ViewerAnalyticsService } from "@/lib/viewer-analytics.service";
+import { AnalyticsService } from "@/lib/analytics.service";
 import type { 
-  ViewerAnalyticsKpi as ViewerAnalyticsKpiType, ViewerAnalyticsTrend as ViewerAnalyticsTrendType, ViewerAnalyticsPerformance as ViewerAnalyticsPerformanceType,
-  ViewerAnalyticsComparison as ViewerAnalyticsComparisonType, ViewerAnalyticsForecast as ViewerAnalyticsForecastType, ViewerAnalyticsAnomaly as ViewerAnalyticsAnomalyType,
-  ViewerAnalyticsInsight as ViewerAnalyticsInsightType
-} from "@/lib/viewer-analytics.service";
+  AnalyticsKpi as ViewerAnalyticsKpiType, 
+  AnalyticsTrend as ViewerAnalyticsTrendType, 
+  AnalyticsPerformance as ViewerAnalyticsPerformanceType,
+  AnalyticsComparison as ViewerAnalyticsComparisonType, 
+  AnalyticsForecast as ViewerAnalyticsForecastType, 
+  AnalyticsAnomaly as ViewerAnalyticsAnomalyType,
+  AnalyticsInsight as ViewerAnalyticsInsightType
+} from "@/lib/analytics.service";
 
-import { ViewerAnalyticsHeader } from "./ViewerAnalyticsHeader";
-import { ViewerAnalyticsFilters } from "./ViewerAnalyticsFilters";
-import { ViewerAnalyticsOverview } from "./ViewerAnalyticsOverview";
-import { ViewerAnalyticsTrends } from "./ViewerAnalyticsTrends";
-import { ViewerAnalyticsPerformance } from "./ViewerAnalyticsPerformance";
-import { ViewerAnalyticsComparisons } from "./ViewerAnalyticsComparisons";
-import { ViewerAnalyticsForecast } from "./ViewerAnalyticsForecast";
-import { ViewerAnalyticsAnomalies } from "./ViewerAnalyticsAnomalies";
-import { ViewerAnalyticsAI } from "./ViewerAnalyticsAI";
+import dynamic from "next/dynamic";
+
+const ViewerAnalyticsHeader = dynamic<any>(() => import('./ViewerAnalyticsHeader').then(m => m.ViewerAnalyticsHeader), { ssr: false });
+const ViewerAnalyticsFilters = dynamic<any>(() => import('./ViewerAnalyticsFilters').then(m => m.ViewerAnalyticsFilters), { ssr: false });
+const ViewerAnalyticsOverview = dynamic<any>(() => import('./ViewerAnalyticsOverview').then(m => m.ViewerAnalyticsOverview), { ssr: false });
+const ViewerAnalyticsTrends = dynamic<any>(() => import('./ViewerAnalyticsTrends').then(m => m.ViewerAnalyticsTrends), { ssr: false });
+const ViewerAnalyticsPerformance = dynamic<any>(() => import('./ViewerAnalyticsPerformance').then(m => m.ViewerAnalyticsPerformance), { ssr: false });
+const ViewerAnalyticsComparisons = dynamic<any>(() => import('./ViewerAnalyticsComparisons').then(m => m.ViewerAnalyticsComparisons), { ssr: false });
+const ViewerAnalyticsForecast = dynamic<any>(() => import('./ViewerAnalyticsForecast').then(m => m.ViewerAnalyticsForecast), { ssr: false });
+const ViewerAnalyticsAnomalies = dynamic<any>(() => import('./ViewerAnalyticsAnomalies').then(m => m.ViewerAnalyticsAnomalies), { ssr: false });
+const ViewerAnalyticsAI = dynamic<any>(() => import('./ViewerAnalyticsAI').then(m => m.ViewerAnalyticsAI), { ssr: false });
 import { Sparkles } from "lucide-react";
 
 
@@ -29,17 +35,19 @@ export function ViewerAnalyticsCenter() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Data State
-  const [domain, setDomain] = useState("General Business");
-  const [kpis, setKpis] = useState<ViewerAnalyticsKpiType[]>([]);
-  const [trends, setTrends] = useState<ViewerAnalyticsTrendType[]>([]);
-  const [performances, setPerformances] = useState<ViewerAnalyticsPerformanceType[]>([]);
-  const [comparisons, setComparisons] = useState<ViewerAnalyticsComparisonType[]>([]);
-  const [forecasts, setForecasts] = useState<ViewerAnalyticsForecastType[]>([]);
-  const [anomalies, setAnomalies] = useState<ViewerAnalyticsAnomalyType[]>([]);
-  const [aiInsights, setAiInsights] = useState<ViewerAnalyticsInsightType[]>([]);
-  const [aiSummary, setAiSummary] = useState("");
-  const [lastRefresh, setLastRefresh] = useState("");
+  // Consolidated Data State to prevent multiple re-renders
+  const [dashboardData, setDashboardData] = useState({
+    domain: "General Business",
+    kpis: [] as ViewerAnalyticsKpiType[],
+    trends: [] as ViewerAnalyticsTrendType[],
+    performances: [] as ViewerAnalyticsPerformanceType[],
+    comparisons: [] as ViewerAnalyticsComparisonType[],
+    forecasts: [] as ViewerAnalyticsForecastType[],
+    anomalies: [] as ViewerAnalyticsAnomalyType[],
+    aiInsights: [] as ViewerAnalyticsInsightType[],
+    aiSummary: "",
+    lastRefresh: ""
+  });
 
   const fetchAnalytics = useCallback(async (isRefresh = false) => {
     if (!activeWs) return;
@@ -51,35 +59,33 @@ export function ViewerAnalyticsCenter() {
     try {
       // Parallel fetch for speed - using allSettled to prevent full-page crashes
       const results = await Promise.allSettled([
-        ViewerAnalyticsService.getKpis(activeWs.id),
-        ViewerAnalyticsService.getTrends(activeWs.id),
-        ViewerAnalyticsService.getPerformance(activeWs.id),
-        ViewerAnalyticsService.getComparisons(activeWs.id),
-        ViewerAnalyticsService.getForecast(activeWs.id),
-        ViewerAnalyticsService.getAnomalies(activeWs.id),
-        ViewerAnalyticsService.getAiInsights(activeWs.id)
+        AnalyticsService.getKpis(activeWs.id),
+        AnalyticsService.getTrends(activeWs.id),
+        AnalyticsService.getPerformance(activeWs.id),
+        AnalyticsService.getComparisons(activeWs.id),
+        AnalyticsService.getForecast(activeWs.id),
+        AnalyticsService.getAnomalies(activeWs.id),
+        AnalyticsService.getAiInsights(activeWs.id)
       ]);
 
-      if (results[0].status === 'fulfilled') {
-        setDomain(results[0].value.domain);
-        setKpis(results[0].value.kpis);
-      }
-      if (results[1].status === 'fulfilled') setTrends(results[1].value.trends);
-      if (results[2].status === 'fulfilled') setPerformances(results[2].value.performances);
-      if (results[3].status === 'fulfilled') setComparisons(results[3].value.comparisons);
-      if (results[4].status === 'fulfilled') setForecasts(results[4].value.forecasts);
-      if (results[5].status === 'fulfilled') setAnomalies(results[5].value.anomalies);
-      if (results[6].status === 'fulfilled') {
-        setAiInsights(results[6].value.insights);
-        setAiSummary(results[6].value.executive_summary);
-      }
-      
-      const allFailed = results.every(r => r.status === 'rejected');
-      if (allFailed) {
-        throw new Error("All analytics endpoints failed to load.");
-      }
-      
-      setLastRefresh(new Date().toLocaleTimeString());
+      setDashboardData(prev => {
+        const newData = { ...prev };
+        if (results[0].status === 'fulfilled') {
+          newData.domain = results[0].value.domain;
+          newData.kpis = results[0].value.kpis;
+        }
+        if (results[1].status === 'fulfilled') newData.trends = results[1].value.trends;
+        if (results[2].status === 'fulfilled') newData.performances = results[2].value.performances;
+        if (results[3].status === 'fulfilled') newData.comparisons = results[3].value.comparisons;
+        if (results[4].status === 'fulfilled') newData.forecasts = results[4].value.forecasts;
+        if (results[5].status === 'fulfilled') newData.anomalies = results[5].value.anomalies;
+        if (results[6].status === 'fulfilled') {
+          newData.aiInsights = results[6].value.insights;
+          newData.aiSummary = results[6].value.executive_summary;
+        }
+        newData.lastRefresh = new Date().toLocaleTimeString();
+        return newData;
+      });
     } catch (err: any) {
       console.error(err);
       setError("Failed to load analytics. You might not have access to the underlying datasets.");
@@ -89,27 +95,29 @@ export function ViewerAnalyticsCenter() {
     }
   }, [activeWs?.id]);
 
+  const { domain, kpis, trends, performances, comparisons, forecasts, anomalies, aiInsights, aiSummary, lastRefresh } = dashboardData;
+
   useEffect(() => {
     fetchAnalytics();
   }, [fetchAnalytics]);
 
-  const handleSaveView = async () => {
+  const handleSaveView = useCallback(async () => {
     if (!activeWs) return;
     setSaving(true);
     try {
-      await ViewerAnalyticsService.createSavedView(`${domain} Default View`, { dateRange: "This Month" }, activeWs.id);
+      await ViewerAnalyticsService.createSavedView(`${dashboardData.domain} Default View`, { dateRange: "This Month" }, activeWs.id);
       toast.success("View saved to your personal preferences.");
     } catch (err) {
       toast.error("Failed to save view.");
     } finally {
       setSaving(false);
     }
-  };
+  }, [activeWs, dashboardData.domain]);
 
   const aiSectionRef = useRef<HTMLDivElement>(null);
-  const handleOpenAi = () => {
+  const handleOpenAi = useCallback(() => {
     aiSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
   if (!activeWs) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">

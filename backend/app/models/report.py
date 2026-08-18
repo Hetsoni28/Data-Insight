@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, JSON, Integer
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, JSON, Integer, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.session import Base
@@ -26,6 +26,9 @@ class ReportType:
 
 class Report(Base):
     __tablename__ = "reports"
+    __table_args__ = (
+        Index("ix_tenant_workspace_report", "tenant_id", "workspace_id"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4

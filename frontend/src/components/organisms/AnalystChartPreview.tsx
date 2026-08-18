@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { DatasetService } from "@/lib/services/dataset.service"
+import { DatasetService } from "@/lib/dataset.service"
 import { ChartBase } from "@/lib/services/chart.service"
 import { BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from "recharts"
 import { AlertCircle, Loader2, BarChart2 } from "lucide-react"

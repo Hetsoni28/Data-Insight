@@ -1,9 +1,10 @@
 "use client";
+import React from "react";
 
-import { motion } from "framer-motion";
+import {  motion  } from "framer-motion";
 import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerAnalyticsForecast as ViewerAnalyticsForecastType } from "@/lib/viewer-analytics.service";
+import type { AnalyticsForecast as ViewerAnalyticsForecastType } from "@/lib/analytics.service";
 import { Zap } from "lucide-react";
 
 interface ViewerAnalyticsForecastProps {
@@ -11,7 +12,7 @@ interface ViewerAnalyticsForecastProps {
   isLoading: boolean;
 }
 
-export function ViewerAnalyticsForecast({ forecasts, isLoading }: ViewerAnalyticsForecastProps) {
+export const ViewerAnalyticsForecast = React.memo(function ViewerAnalyticsForecast({ forecasts, isLoading }: ViewerAnalyticsForecastProps) {
   if (isLoading) {
     return <Skeleton className="h-80 w-full rounded-xl" />;
   }
@@ -116,4 +117,4 @@ export function ViewerAnalyticsForecast({ forecasts, isLoading }: ViewerAnalytic
       })}
     </div>
   );
-}
+});

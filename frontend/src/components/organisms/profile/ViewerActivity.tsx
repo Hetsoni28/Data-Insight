@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Activity, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerActivityEntry } from "@/lib/viewer-profile.service";
+import type { ViewerActivityEntry } from "@/lib/tenant-profile.service";
 
 import { PaginationControls } from "@/components/molecules/PaginationControls";
 

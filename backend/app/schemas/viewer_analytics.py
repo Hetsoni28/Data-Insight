@@ -6,23 +6,33 @@ from datetime import datetime
 class ViewerAnalyticsKpi(BaseModel):
     id: str
     title: str
-    value: str
-    previous_value: Optional[str] = None
+    value: Union[str, float, int]
+    previous_value: Optional[Union[str, float, int]] = None
     percentage_change: Optional[float] = None
-    trend_direction: Optional[str] = None # "up", "down", "neutral"
+    change_pct: Optional[float] = None
+    trend_direction: Optional[str] = None
+    trend: Optional[str] = None
     sparkline: List[float] = []
+    is_currency: Optional[bool] = None
+
+    class Config:
+        extra = "allow"
 
 class ViewerAnalyticsKpisResponse(BaseModel):
-    domain: str
+    domain: str = "General Business"
     kpis: List[ViewerAnalyticsKpi]
 
 class ViewerAnalyticsTrend(BaseModel):
     id: str
     title: str
-    type: str # "line", "bar", "area"
-    x_axis_key: str
-    y_axis_key: str
-    data: List[Dict[str, Any]]
+    metric: Optional[str] = None
+    type: Optional[str] = "line"
+    x_axis_key: Optional[str] = "date"
+    y_axis_key: Optional[str] = "value"
+    data: List[Dict[str, Any]] = []
+
+    class Config:
+        extra = "allow"
 
 class ViewerAnalyticsTrendsResponse(BaseModel):
     trends: List[ViewerAnalyticsTrend]
@@ -31,12 +41,15 @@ class ViewerAnalyticsPerformanceItem(BaseModel):
     id: str
     name: str
     value: float
-    growth: float
-    contribution: float
-    trend: str
+    growth: Optional[float] = 0.0
+    contribution: Optional[float] = 0.0
+    trend: Optional[str] = "neutral"
+
+    class Config:
+        extra = "allow"
 
 class ViewerAnalyticsPerformance(BaseModel):
-    dimension: str # e.g. "Products", "Regions"
+    dimension: str
     items: List[ViewerAnalyticsPerformanceItem]
 
 class ViewerAnalyticsPerformanceResponse(BaseModel):
@@ -51,7 +64,10 @@ class ViewerAnalyticsComparison(BaseModel):
     value_b: float
     absolute_difference: float
     percentage_difference: float
-    trend: str # "up", "down"
+    trend: str
+
+    class Config:
+        extra = "allow"
 
 class ViewerAnalyticsComparisonsResponse(BaseModel):
     comparisons: List[ViewerAnalyticsComparison]
@@ -60,10 +76,13 @@ class ViewerAnalyticsForecast(BaseModel):
     id: str
     title: str
     metric: str
-    historical_data: List[Dict[str, Any]]
-    predicted_data: List[Dict[str, Any]]
-    confidence_interval: List[Dict[str, Any]] # e.g. {"date": "...", "upper": 120, "lower": 80}
-    model_accuracy: float
+    historical_data: List[Dict[str, Any]] = []
+    predicted_data: List[Dict[str, Any]] = []
+    confidence_interval: List[Dict[str, Any]] = []
+    model_accuracy: Optional[float] = None
+
+    class Config:
+        extra = "allow"
 
 class ViewerAnalyticsForecastResponse(BaseModel):
     forecasts: List[ViewerAnalyticsForecast]
@@ -75,7 +94,7 @@ class ViewerAnalyticsAnomaly(BaseModel):
     expected_value: float
     actual_value: float
     magnitude: float
-    severity: str # "high", "medium", "low"
+    severity: str
     possible_explanation: Optional[str] = None
 
 class ViewerAnalyticsAnomaliesResponse(BaseModel):
@@ -83,11 +102,14 @@ class ViewerAnalyticsAnomaliesResponse(BaseModel):
 
 class ViewerAnalyticsInsight(BaseModel):
     id: str
-    type: str # "trend", "risk", "opportunity", "recommendation"
+    type: str
     content: str
 
+    class Config:
+        extra = "allow"
+
 class ViewerAnalyticsInsightsResponse(BaseModel):
-    executive_summary: str
+    executive_summary: str = ""
     insights: List[ViewerAnalyticsInsight]
 
 class ViewerAnalyticsDataQuality(BaseModel):
@@ -116,7 +138,7 @@ class ViewerAnalyticsSavedViewCreate(BaseModel):
 
 class ViewerAnalyticsAIChatRequest(BaseModel):
     message: str
-    context: Dict[str, Any] # e.g. current filters, visible KPI metrics
+    context: Optional[Dict[str, Any]] = {}
 
 class ViewerAnalyticsAIChatResponse(BaseModel):
     response: str

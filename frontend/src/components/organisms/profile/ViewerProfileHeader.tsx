@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Shield, CheckCircle2, AlertTriangle, Clock, Building2, Briefcase, Mail, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerProfile } from "@/lib/viewer-profile.service";
+import type { ViewerProfile } from "@/lib/tenant-profile.service";
 
 interface Props {
   profile: ViewerProfile | null;

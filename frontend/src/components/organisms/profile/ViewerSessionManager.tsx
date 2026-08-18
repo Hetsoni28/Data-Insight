@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { ViewerProfileService } from "@/lib/viewer-profile.service";
-import type { ViewerSession as SessionType } from "@/lib/viewer-profile.service";
+import { TenantProfileService } from "@/lib/tenant-profile.service";
+import type { ViewerSession as SessionType } from "@/lib/tenant-profile.service";
 
 interface Props {
   sessions: SessionType[];
@@ -32,7 +32,7 @@ export function ViewerSessionManager({ sessions, isLoading, onRefresh }: Props) 
   const handleRevoke = async (id: string) => {
     setRevoking(id);
     try {
-      await ViewerProfileService.revokeSession(id);
+      await TenantProfileService.revokeSession(id);
       toast.success("Session revoked.");
       onRefresh();
     } catch { toast.error("Failed to revoke session."); }
@@ -42,7 +42,7 @@ export function ViewerSessionManager({ sessions, isLoading, onRefresh }: Props) 
   const handleRevokeAll = async () => {
     setRevokingAll(true);
     try {
-      await ViewerProfileService.revokeAllSessions();
+      await TenantProfileService.revokeAllSessions();
       toast.success("All other sessions revoked.");
       onRefresh();
     } catch { toast.error("Failed to revoke sessions."); }

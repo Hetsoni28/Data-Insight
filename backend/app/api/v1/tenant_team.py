@@ -30,19 +30,24 @@ async def get_team_members(
         if not tenant_id:
             raise HTTPException(status_code=403, detail="User does not belong to an organization")
 
-        # Fetch users with active session info
-        users_stmt = select(User).where(User.tenant_id == tenant_id, User.is_active == True).offset(skip).limit(limit)
+        # Use a scalar subquery for active session count to avoid N+1 query loop
+        session_count_subq = (
+            select(func.count(UserSession.id))
+            .where(UserSession.user_id == User.id, UserSession.is_active == True)
+            .scalar_subquery()
+            .correlate(User)
+        )
+
+        users_stmt = (
+            select(User, session_count_subq.label("active_sessions"))
+            .where(User.tenant_id == tenant_id, User.is_active == True)
+            .offset(skip).limit(limit)
+        )
         result = await db.execute(users_stmt)
-        users = result.scalars().all()
+        users = result.all() # returns a list of tuples: (User, active_sessions)
     
-        # We will enrich this data with active sessions or last login
         members = []
-        for u in users:
-            # Get active session count
-            session_stmt = select(func.count(UserSession.id)).where(UserSession.user_id == u.id, UserSession.is_active == True)
-            session_res = await db.execute(session_stmt)
-            active_sessions = session_res.scalar() or 0
-        
+        for u, active_sessions in users:
             members.append({
                 "id": str(u.id),
                 "full_name": u.full_name,
@@ -53,7 +58,7 @@ async def get_team_members(
                 "role": u.role,
                 "status": "Active" if u.is_active else "Suspended",
                 "created_at": u.created_at,
-                "active_sessions": active_sessions
+                "active_sessions": active_sessions or 0
             })
         
         return {

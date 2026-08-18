@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import type { ViewerDashboard, DashboardChartWidget } from "@/lib/viewer.service";
+import type { ViewerDashboard, DashboardChartWidget } from "@/lib/tenant-dashboard.service";
 import { cn } from "@/lib/utils";
 
 const CHART_COLORS = ["#10B981", "#059669", "#34D399", "#6EE7B7", "#A7F3D0", "#6366F1", "#8B5CF6", "#F59E0B"];
@@ -44,12 +44,12 @@ function BarWidget({ widget }: { widget: DashboardChartWidget }) {
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={widget.data} margin={{ top: 5, right: 10, left: -15, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148,163,184,0.15)" />
-          <XAxis dataKey={widget.x_axis_key || "name"} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" />
+          <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" />
           <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
           <Tooltip
             contentStyle={{ borderRadius: "10px", border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", fontSize: 12 }}
           />
-          <Bar dataKey={widget.y_axis_key || "value"} fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey="value" fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -72,10 +72,10 @@ function LineWidget({ widget }: { widget: DashboardChartWidget }) {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148,163,184,0.15)" />
-          <XAxis dataKey={widget.x_axis_key || "date"} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+          <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={{ borderRadius: "10px", border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", fontSize: 12 }} />
-          <Line type="monotone" dataKey={widget.y_axis_key || "value"} stroke="#10B981" strokeWidth={2.5} dot={{ r: 4, fill: "#059669", strokeWidth: 0 }} activeDot={{ r: 6 }} isAnimationActive={false} />
+          <Line type="monotone" dataKey="value" stroke="#10B981" strokeWidth={2.5} dot={{ r: 4, fill: "#059669", strokeWidth: 0 }} activeDot={{ r: 6 }} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -103,11 +103,25 @@ function PieWidget({ widget }: { widget: DashboardChartWidget }) {
   );
 }
 
+function TextWidget({ widget }: { widget: DashboardChartWidget }) {
+  return (
+    <div className="bg-white dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-xl p-5 flex flex-col">
+      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-2">
+        <Activity className="w-4 h-4 text-emerald-500" />
+        {widget.title}
+      </p>
+      <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+        {widget.metrics?.text || "No insights generated for this widget."}
+      </div>
+    </div>
+  );
+}
+
 function DashboardCard({ dashboard }: { dashboard: ViewerDashboard }) {
   const [expanded, setExpanded] = useState(false);
   
-  const kpiWidgets = useMemo(() => dashboard.widgets.filter((w) => w.type === "kpi"), [dashboard.widgets]);
-  const chartWidgets = useMemo(() => dashboard.widgets.filter((w) => w.type !== "kpi"), [dashboard.widgets]);
+  const kpiWidgets = useMemo(() => (dashboard.widgets || []).filter((w) => w.type === "kpi"), [dashboard.widgets]);
+  const chartWidgets = useMemo(() => (dashboard.widgets || []).filter((w) => w.type !== "kpi"), [dashboard.widgets]);
 
   return (
     <motion.div
@@ -124,7 +138,7 @@ function DashboardCard({ dashboard }: { dashboard: ViewerDashboard }) {
           <div>
             <h3 className="font-bold text-slate-900 dark:text-white text-sm">{dashboard.name}</h3>
             <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{dashboard.description}</p>
-            <p className="text-[10px] text-slate-400 mt-1">Dataset: <span className="font-medium text-slate-600 dark:text-slate-300">{dashboard.dataset_name}</span></p>
+            <p className="text-[10px] text-slate-400 mt-1">Dataset: <span className="font-medium text-slate-600 dark:text-slate-300">{dashboard.dataset_name || "Unknown"}</span></p>
           </div>
         </div>
         <Button
@@ -163,12 +177,13 @@ function DashboardCard({ dashboard }: { dashboard: ViewerDashboard }) {
             if (w.type === "bar") return <BarWidget key={w.id} widget={w} />;
             if (w.type === "line") return <LineWidget key={w.id} widget={w} />;
             if (w.type === "pie") return <PieWidget key={w.id} widget={w} />;
+            if (w.type === "text") return <TextWidget key={w.id} widget={w} />;
             return null;
           })}
         </motion.div>
       )}
 
-      {dashboard.widgets.length === 0 && (
+      {(dashboard.widgets || []).length === 0 && (
         <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
           <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
           No chart data available. The dataset may still be profiling.

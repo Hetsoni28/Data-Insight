@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { FileText, Bookmark, Clock, Eye, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerKpis } from "@/lib/viewer.service";
+import type { ViewerKpis } from "@/lib/tenant-dashboard.service";
 
 interface ViewerReportKPIsProps {
   kpis?: ViewerKpis;

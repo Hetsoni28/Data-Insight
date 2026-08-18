@@ -32,11 +32,7 @@ from app.api.v1.tenant_reports import router as tenant_reports_router
 from app.api.v1.tenant_dashboards import router as tenant_dashboards_router
 from app.api.v1.tenant_charts import router as tenant_charts_router
 from app.api.v1.tenant_settings import router as tenant_settings_router
-from app.api.v1.viewer import router as viewer_router
-from app.api.v1.viewer_analytics import router as viewer_analytics_router
-from app.api.v1.viewer_profile import router as viewer_profile_router
-from app.api.v1.manager_dashboard import router as manager_dashboard_router
-from app.api.v1.manager_analytics import router as manager_analytics_router
+from app.api.v1.tenant_analytics import router as tenant_analytics_router
 from app.api.v1.org_billing import router as org_billing_router
 from app.api.v1.leads import router as leads_router
 from app.api.v1.public import router as public_router
@@ -80,10 +76,6 @@ api_router.include_router(tenant_reports_router, prefix="/tenant-reports", tags=
 api_router.include_router(tenant_dashboards_router, prefix="/tenant-dashboards", tags=["Tenant Dashboards"])
 api_router.include_router(tenant_charts_router, prefix="/tenant-charts", tags=["Tenant Charts"])
 api_router.include_router(tenant_settings_router, prefix="/tenant-settings", tags=["Tenant Settings"])
-api_router.include_router(viewer_router)
-api_router.include_router(viewer_analytics_router)
-api_router.include_router(viewer_profile_router)
-api_router.include_router(manager_dashboard_router)
-api_router.include_router(manager_analytics_router)
+api_router.include_router(tenant_analytics_router)
 api_router.include_router(org_billing_router, prefix="/org/billing", tags=["Org Billing"])
 api_router.include_router(leads_router, prefix="/leads", tags=["Leads"])

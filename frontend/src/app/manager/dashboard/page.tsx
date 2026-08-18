@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceStore } from "@/store/workspaceStore";
-import { managerDashboardService } from "@/lib/manager-dashboard.service";
+import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
 import { motion } from "framer-motion";
 
 import { ManagerHero } from "@/components/organisms/ManagerHero";
@@ -21,49 +22,60 @@ export default function ManagerDashboardPage() {
   const { data: user } = useAuth();
   const { activeWs } = useWorkspaceStore();
 
-  const [overview, setOverview] = useState<any>(null);
-  const [kpis, setKpis] = useState<any>(null);
-  const [datasets, setDatasets] = useState<any[]>([]);
-  const [reports, setReports] = useState<any[]>([]);
-  const [activity, setActivity] = useState<any[]>([]);
-  
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
-  const loadData = useCallback(async (isRefresh = false) => {
-    if (!activeWs?.id) return;
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+  const { data: overview, isLoading: loadingOverview } = useQuery({
+    queryKey: ['manager-overview', activeWs?.id],
+    queryFn: async () => {
+      const res = await TenantDashboardService.getOverview();
+      return res?.data || res;
+    },
+    enabled: !!activeWs?.id,
+  });
 
-    try {
-      const [overviewData, kpisData, datasetsData, reportsData, activityData] = await Promise.all([
-        managerDashboardService.getOverview(),
-        managerDashboardService.getKpis(),
-        managerDashboardService.getDatasets(0, 5),
-        managerDashboardService.getReports(0, 5),
-        managerDashboardService.getActivityFeed(0, 10),
-      ]);
+  const { data: kpis, isLoading: loadingKpis } = useQuery({
+    queryKey: ['manager-kpis', activeWs?.id],
+    queryFn: async () => {
+      const res = await TenantDashboardService.getKpis();
+      return res?.data || res;
+    },
+    enabled: !!activeWs?.id,
+  });
 
-      setOverview(overviewData?.data || overviewData);
-      setKpis(kpisData?.data || kpisData);
-      setDatasets(datasetsData?.data || datasetsData?.items || (Array.isArray(datasetsData) ? datasetsData : []));
-      setReports(reportsData?.data || reportsData?.items || (Array.isArray(reportsData) ? reportsData : []));
-      setActivity(activityData?.data || activityData?.items || (Array.isArray(activityData) ? activityData : []));
-    } catch (error) {
-      console.error("Failed to load manager dashboard data", error);
-      toast.error("Error loading dashboard data. Please try again.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [activeWs?.id]);
+  const { data: datasetsRes, isLoading: loadingDatasets } = useQuery({
+    queryKey: ['manager-datasets-list', activeWs?.id],
+    queryFn: () => TenantDashboardService.getDatasets(0, 5),
+    enabled: !!activeWs?.id,
+  });
+  const datasets = datasetsRes?.data || datasetsRes?.items || (Array.isArray(datasetsRes) ? datasetsRes : []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const { data: reportsRes, isLoading: loadingReports } = useQuery({
+    queryKey: ['manager-reports-list', activeWs?.id],
+    queryFn: () => TenantDashboardService.getReports(0, 5),
+    enabled: !!activeWs?.id,
+  });
+  const reports = reportsRes?.data || reportsRes?.items || (Array.isArray(reportsRes) ? reportsRes : []);
+
+  const { data: activityRes, isLoading: loadingActivity } = useQuery({
+    queryKey: ['manager-activity-list', activeWs?.id],
+    queryFn: () => TenantDashboardService.getActivityFeed(0, 10),
+    enabled: !!activeWs?.id,
+  });
+  const activity = activityRes?.data || activityRes?.items || (Array.isArray(activityRes) ? activityRes : []);
+
+  const loading = loadingOverview || loadingKpis || loadingDatasets || loadingReports || loadingActivity;
+  const refreshing = false; // Background fetch handled by React Query
+
+  const loadData = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['manager-overview'] });
+    queryClient.invalidateQueries({ queryKey: ['manager-kpis'] });
+    queryClient.invalidateQueries({ queryKey: ['manager-datasets-list'] });
+    queryClient.invalidateQueries({ queryKey: ['manager-reports-list'] });
+    queryClient.invalidateQueries({ queryKey: ['manager-activity-list'] });
+  }, [queryClient]);
 
   const handleRefresh = () => {
-    loadData(true);
+    loadData();
   };
 
   if (!activeWs) {
@@ -100,12 +112,12 @@ export default function ManagerDashboardPage() {
             Overview and controls for your managed workspace
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={loading || refreshing}
-          className="h-10 px-4 gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-slate-200/60 dark:border-white/10 hover:bg-white dark:hover:bg-slate-800 transition-all rounded-none shadow-sm"
+        <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => loadData()}
+              disabled={refreshing}
+              className={cn("h-10 px-4 gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-slate-200/60 dark:border-white/10 hover:bg-white dark:hover:bg-slate-800 transition-all rounded-none shadow-sm")}
         >
           <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
           {refreshing ? "Refreshing..." : "Refresh"}

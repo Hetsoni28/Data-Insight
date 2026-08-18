@@ -36,7 +36,8 @@ from app.models.stripe_event import StripeEvent
 from app.models.rental_contract import RentalContract, ContractType, ContractStatus
 from app.models.resource_request import ResourceRequest, ResourceRequestType, ResourceRequestStatus
 from app.models.lead import Lead, LeadStatus, LeadSource
-
+from app.models.report_bookmark import ReportBookmark
+from app.models.report_activity import ReportActivity
 __all__ = [
     "User",
     "UserRole",
@@ -105,4 +106,7 @@ __all__ = [
     "Lead",
     "LeadStatus",
     "LeadSource",
+    "DBConnectionType",
+    "ReportBookmark",
+    "ReportActivity"
 ]

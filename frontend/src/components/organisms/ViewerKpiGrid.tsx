@@ -6,7 +6,7 @@ import {
   Bell, Brain, TrendingUp, ArrowRight
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerKpis } from "@/lib/viewer.service";
+import type { ViewerKpis } from "@/lib/tenant-dashboard.service";
 
 interface ViewerKpiGridProps {
   kpis: ViewerKpis | undefined;

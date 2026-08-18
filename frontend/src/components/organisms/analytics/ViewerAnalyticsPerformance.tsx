@@ -1,9 +1,10 @@
 "use client";
+import React from "react";
 
-import { motion } from "framer-motion";
+import {  motion  } from "framer-motion";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerAnalyticsPerformance as ViewerAnalyticsPerformanceType } from "@/lib/viewer-analytics.service";
+import type { AnalyticsPerformance as ViewerAnalyticsPerformanceType } from "@/lib/analytics.service";
 import { TrendingUp, TrendingDown, Star } from "lucide-react";
 
 interface ViewerAnalyticsPerformanceProps {
@@ -29,7 +30,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-export function ViewerAnalyticsPerformance({ performances, isLoading }: ViewerAnalyticsPerformanceProps) {
+export const ViewerAnalyticsPerformance = React.memo(function ViewerAnalyticsPerformance({ performances, isLoading }: ViewerAnalyticsPerformanceProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -121,4 +122,4 @@ export function ViewerAnalyticsPerformance({ performances, isLoading }: ViewerAn
       ))}
     </div>
   );
-}
+});

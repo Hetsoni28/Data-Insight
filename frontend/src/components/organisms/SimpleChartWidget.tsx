@@ -1,7 +1,7 @@
 "use client";
 
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import type { DashboardChartWidget } from "@/lib/viewer.service";
+import type { DashboardChartWidget } from "@/lib/tenant-dashboard.service";
 
 interface SimpleChartWidgetProps {
   widget: DashboardChartWidget;

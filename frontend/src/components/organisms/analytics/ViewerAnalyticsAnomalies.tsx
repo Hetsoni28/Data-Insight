@@ -1,16 +1,17 @@
 "use client";
+import React from "react";
 
-import { motion } from "framer-motion";
+import {  motion  } from "framer-motion";
 import { AlertTriangle, TrendingUp, TrendingDown, ArrowRight, Zap, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerAnalyticsAnomaly as ViewerAnalyticsAnomalyType } from "@/lib/viewer-analytics.service";
+import type { AnalyticsAnomaly as ViewerAnalyticsAnomalyType } from "@/lib/analytics.service";
 
 interface ViewerAnalyticsAnomaliesProps {
   anomalies: ViewerAnalyticsAnomalyType[];
   isLoading: boolean;
 }
 
-export function ViewerAnalyticsAnomalies({ anomalies, isLoading }: ViewerAnalyticsAnomaliesProps) {
+export const ViewerAnalyticsAnomalies = React.memo(function ViewerAnalyticsAnomalies({ anomalies, isLoading }: ViewerAnalyticsAnomaliesProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -118,4 +119,4 @@ export function ViewerAnalyticsAnomalies({ anomalies, isLoading }: ViewerAnalyti
       ))}
     </div>
   );
-}
+});

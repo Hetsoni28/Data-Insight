@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CopilotChat } from "@/components/organisms/CopilotChat";
@@ -34,6 +34,16 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
   const [isGeneratingForecast, setIsGeneratingForecast] = useState(false);
   
   const [activeTab, setActiveTab] = useState("copilot");
+  
+  const narrativePollRef = useRef<NodeJS.Timeout | null>(null);
+  const forecastPollRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (narrativePollRef.current) clearInterval(narrativePollRef.current);
+      if (forecastPollRef.current) clearInterval(forecastPollRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (isOpen && datasetId) {
@@ -71,11 +81,11 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
       toast.success("Started AI Narrative generation...");
 
       // Poll job status
-      const poll = setInterval(async () => {
+      narrativePollRef.current = setInterval(async () => {
         try {
           const statusRes = await AIService.getJobStatus(jobId);
           if (statusRes.status === "SUCCESS") {
-            clearInterval(poll);
+            if (narrativePollRef.current) clearInterval(narrativePollRef.current);
             // Format result to match ExecutiveReportViewer expected prop structure
             const aiData = statusRes.result?.report || statusRes.result;
             const reportData = {
@@ -87,7 +97,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
             setIsGeneratingNarrative(false);
             toast.success("AI Narrative generated successfully!");
           } else if (statusRes.status === "FAILED" || statusRes.status === "ERROR") {
-            clearInterval(poll);
+            if (narrativePollRef.current) clearInterval(narrativePollRef.current);
             setIsGeneratingNarrative(false);
             toast.error("Failed to generate AI Narrative.");
           }
@@ -117,13 +127,13 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
       toast.success("Started AI Trend Forecast generation...");
 
       // Poll report status
-      const poll = setInterval(async () => {
+      forecastPollRef.current = setInterval(async () => {
         try {
           const resPayload: any = await ReportService.get(reportId);
           const statusRes = resPayload.data || resPayload; // Fallback in case of unwrapped response
           
           if (statusRes.status === "ready" || statusRes.status === "completed") {
-            clearInterval(poll);
+            if (forecastPollRef.current) clearInterval(forecastPollRef.current);
             setForecast({
               id: datasetId,
               title: `${datasetName || "Dataset"} Trend Forecast`,
@@ -132,7 +142,7 @@ export function DatasetAnalyticsDrawer({ isOpen, onClose, datasetId, datasetName
             setIsGeneratingForecast(false);
             toast.success("AI Forecast generated successfully!");
           } else if (statusRes.status === "error" || statusRes.status === "failed") {
-            clearInterval(poll);
+            if (forecastPollRef.current) clearInterval(forecastPollRef.current);
             setIsGeneratingForecast(false);
             toast.error("Failed to generate AI Forecast.");
           }

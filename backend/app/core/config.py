@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GROQ_API_KEY: str = ""
     DEFAULT_AI_PROVIDER: str = "groq"  # "groq" | "gemini"
-    GROQ_DEFAULT_MODEL: str = "llama-3.3-70b-versatile"
-    GEMINI_DEFAULT_MODEL: str = "gemini-2.5-flash"
+    GROQ_DEFAULT_MODEL: str = "qwen/qwen3.6-27b"
+    GEMINI_DEFAULT_MODEL: str = "gemini-3.6-flash"
 
     # Email (SMTP)
     SMTP_HOST: str = "smtp.gmail.com"

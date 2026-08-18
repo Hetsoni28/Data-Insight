@@ -74,18 +74,24 @@ export function ViewerReportHeader({ workspaceName, search, setSearch, isLoading
         >
           <div className="absolute inset-0 bg-white/10 blur-xl rounded-full" />
           <div className="relative flex items-center">
-            <Search className="absolute left-4 w-5 h-5 text-emerald-100/50" />
+            <Search className="absolute left-4 w-5 h-5 text-emerald-100/50 z-10 pointer-events-none" />
             <Input
               placeholder="Search reports by name, category..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-12 h-14 w-full rounded-full border-white/20 bg-black/20 text-white placeholder:text-emerald-100/50 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:border-transparent backdrop-blur-md shadow-inner text-base transition-all hover:bg-black/30"
+              className="pl-12 pr-[100px] h-14 w-full rounded-full border-white/20 bg-black/20 text-white placeholder:text-emerald-100/50 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:border-transparent backdrop-blur-md shadow-inner text-base transition-all hover:bg-black/30"
             />
-            {isLoading && (
-              <div className="absolute right-4">
-                <Loader2 className="w-5 h-5 animate-spin text-emerald-400" />
-              </div>
-            )}
+            <div className="absolute right-2 flex items-center">
+              {isLoading ? (
+                <div className="h-10 w-10 flex items-center justify-center mr-1">
+                  <Loader2 className="w-5 h-5 animate-spin text-emerald-400" />
+                </div>
+              ) : (
+                <button className="h-10 px-5 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-bold rounded-full shadow-lg transition-colors flex items-center gap-2 z-10">
+                  Search
+                </button>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>

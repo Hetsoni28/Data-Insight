@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { ViewerService } from "@/lib/viewer.service";
-import type { ViewerReport } from "@/lib/viewer.service";
+import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
+import type { ViewerReport } from "@/lib/tenant-dashboard.service";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
 
 interface ViewerReportExplorerProps {
@@ -103,7 +103,7 @@ function ReportCard({ report, onRefresh, onPreview }: {
     e.stopPropagation();
     setTogglingBookmark(true);
     try {
-      const res = await ViewerService.toggleBookmark(report.id);
+      const res = await TenantDashboardService.toggleBookmark(report.id);
       toast.success(res.message);
       onRefresh(); // Trigger refresh to sync state
     } catch {
@@ -118,7 +118,7 @@ function ReportCard({ report, onRefresh, onPreview }: {
     if (!canDownload) return;
     setDownloading(true);
     try {
-      const res = await ViewerService.downloadReport(report.id);
+      const res = await TenantDashboardService.downloadReport(report.id);
       if (res.download_url) {
         let url = res.download_url;
         if (url.startsWith("/api/v1/")) {
@@ -164,9 +164,9 @@ function ReportCard({ report, onRefresh, onPreview }: {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-[16px] leading-snug truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+          <div className="flex items-start justify-between gap-3 w-full">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-slate-900 dark:text-white text-[16px] leading-snug truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors" title={report.title}>
                 {report.title}
               </h3>
               <div className="flex items-center flex-wrap gap-2 mt-2">
@@ -207,7 +207,7 @@ function ReportCard({ report, onRefresh, onPreview }: {
         <div className="flex items-center gap-4 text-[11px] font-medium text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
-            <span>Updated {new Date(report.updated_at).toLocaleDateString()}</span>
+            <span>Updated {report.updated_at ? new Date(report.updated_at).toLocaleDateString() : (report.created_at ? new Date(report.created_at).toLocaleDateString() : 'Just now')}</span>
           </div>
           {report.category === "AI" && (
             <div className="flex items-center gap-1.5 text-purple-600 dark:text-purple-400">

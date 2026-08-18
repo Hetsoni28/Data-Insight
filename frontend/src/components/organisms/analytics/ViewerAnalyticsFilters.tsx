@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Calendar, Filter, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ interface ViewerAnalyticsFiltersProps {
   isLoading: boolean;
 }
 
-export function ViewerAnalyticsFilters({ onRefresh, isLoading }: ViewerAnalyticsFiltersProps) {
+export const ViewerAnalyticsFilters = React.memo(function ViewerAnalyticsFilters({ onRefresh, isLoading }: ViewerAnalyticsFiltersProps) {
   const [activePreset, setActivePreset] = useState("quarter");
 
   const handlePresetClick = (value: string) => {
@@ -80,4 +80,4 @@ export function ViewerAnalyticsFilters({ onRefresh, isLoading }: ViewerAnalytics
       </div>
     </div>
   );
-}
+});

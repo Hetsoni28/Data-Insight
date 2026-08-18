@@ -1,9 +1,10 @@
 "use client";
+import React from "react";
 
-import { motion } from "framer-motion";
+import {  motion  } from "framer-motion";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerAnalyticsTrend as ViewerAnalyticsTrendType } from "@/lib/viewer-analytics.service";
+import type { AnalyticsTrend as ViewerAnalyticsTrendType } from "@/lib/analytics.service";
 
 interface ViewerAnalyticsTrendsProps {
   trends: ViewerAnalyticsTrendType[];
@@ -24,7 +25,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function ViewerAnalyticsTrends({ trends, isLoading }: ViewerAnalyticsTrendsProps) {
+export const ViewerAnalyticsTrends = React.memo(function ViewerAnalyticsTrends({ trends, isLoading }: ViewerAnalyticsTrendsProps) {
   if (isLoading) {
     return <Skeleton className="w-full h-80 rounded-2xl" />;
   }
@@ -99,4 +100,4 @@ export function ViewerAnalyticsTrends({ trends, isLoading }: ViewerAnalyticsTren
       ))}
     </div>
   );
-}
+});

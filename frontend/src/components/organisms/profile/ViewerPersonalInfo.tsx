@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { ViewerProfileService } from "@/lib/viewer-profile.service";
-import type { ViewerProfile } from "@/lib/viewer-profile.service";
+import { TenantProfileService } from "@/lib/tenant-profile.service";
+import type { ViewerProfile } from "@/lib/tenant-profile.service";
 
 interface Props {
   profile: ViewerProfile | null;
@@ -56,7 +56,7 @@ export function ViewerPersonalInfo({ profile, isLoading, onUpdated }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = await ViewerProfileService.updateProfile(form);
+      const updated = await TenantProfileService.updateProfile(form);
       onUpdated(updated);
       toast.success("Profile updated successfully.");
     } catch {

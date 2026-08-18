@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ViewerService } from "@/lib/viewer.service";
-import type { ViewerReport, ViewerReportPreviewResponse, ViewerReportInsights, ViewerReportRelatedAsset } from "@/lib/viewer.service";
+import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
+import type { ViewerReport, ViewerReportPreviewResponse, ViewerReportInsights, ViewerReportRelatedAsset } from "@/lib/tenant-dashboard.service";
 import { SimpleChartWidget } from "@/components/organisms/SimpleChartWidget"; // Reusable chart widget from existing system
 
 interface ViewerReportPreviewProps {
@@ -30,9 +30,9 @@ export function ViewerReportPreview({ report, onClose }: ViewerReportPreviewProp
       setLoading(true);
       try {
         const [pData, iData, rData] = await Promise.all([
-          ViewerService.getReportPreview(report.id),
-          ViewerService.getReportInsights(report.id),
-          ViewerService.getReportRelated(report.id),
+          TenantDashboardService.getReportPreview(report.id),
+          TenantDashboardService.getReportInsights(report.id),
+          TenantDashboardService.getReportRelated(report.id),
         ]);
         setDetails(pData);
         setInsights(iData);
@@ -55,7 +55,7 @@ export function ViewerReportPreview({ report, onClose }: ViewerReportPreviewProp
     }
     setDownloading(true);
     try {
-      const res = await ViewerService.downloadReport(report.id);
+      const res = await TenantDashboardService.downloadReport(report.id);
       if (res.download_url) {
         // Convert relative /api/v1/storage/... paths to absolute backend URLs.
         // Next.js rewrites don't support binary file streaming so we must

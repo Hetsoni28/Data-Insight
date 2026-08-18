@@ -23,6 +23,7 @@ class GroqProvider(BaseLLMProvider):
     # Pricing per 1M tokens in USD
     PRICING: Dict[str, Dict[str, float]] = {
         "llama-3.3-70b-versatile": {"prompt": 0.59, "completion": 0.79},
+        "llama3-70b-8192": {"prompt": 0.59, "completion": 0.79},
         "deepseek-r1-distill-llama-70b": {"prompt": 0.59, "completion": 0.79},
         "llama-3.1-8b-instant": {"prompt": 0.05, "completion": 0.08},
         "mixtral-8x7b-32768": {"prompt": 0.24, "completion": 0.24},

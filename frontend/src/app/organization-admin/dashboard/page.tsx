@@ -1,5 +1,6 @@
 "use client"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/useAuth"
 import api from "@/lib/api"
 import { motion } from "framer-motion"
@@ -15,39 +16,34 @@ import { OrganizationNavStrip } from "@/components/organisms/OrganizationNavStri
 
 export default function OrganizationAdminDashboard() {
   const { data: user } = useAuth()
-  const [overview, setOverview] = useState<any>(null)
-  const [kpis, setKpis] = useState<any>(null)
-  const [charts, setCharts] = useState<any[]>([])
-  const [datasets, setDatasets] = useState<any[]>([])
-  const [reports, setReports] = useState<any[]>([])
-  const [activity, setActivity] = useState<any[]>([])
-  const [security, setSecurity] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date())
+  const queryClient = useQueryClient();
 
-  const fetchData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true)
-    try {
-      const [oR, kR, cR, dR, rR, aR, sR] = await Promise.all([
-        api.get("/tenant-dashboard/overview"), api.get("/tenant-dashboard/kpis"),
-        api.get("/tenant-dashboard/charts"), api.get("/tenant-dashboard/datasets"),
-        api.get("/tenant-dashboard/reports"), api.get("/tenant-dashboard/activity"),
-        api.get("/tenant-dashboard/security"),
-      ])
-      setOverview(oR.data?.data); setKpis(kR.data?.data)
-      setCharts(cR.data?.data || []); setDatasets(dR.data?.data || [])
-      setReports(rR.data?.data || []); setActivity(aR.data?.data || [])
-      setSecurity(sR.data?.data || null); setLastRefreshed(new Date())
-    } catch (err) { console.error("Dashboard fetch failed", err) }
-    finally { setLoading(false); setRefreshing(false) }
-  }, [])
+  const { data: overview, isLoading: loadingOverview } = useQuery({ queryKey: ['admin-overview'], queryFn: async () => (await api.get("/tenant-dashboard/overview")).data?.data });
+  const { data: kpis, isLoading: loadingKpis } = useQuery({ queryKey: ['admin-kpis'], queryFn: async () => (await api.get("/tenant-dashboard/kpis")).data?.data });
+  const { data: charts = [], isLoading: loadingCharts } = useQuery({ queryKey: ['admin-charts'], queryFn: async () => (await api.get("/tenant-dashboard/charts")).data?.data || [] });
+  const { data: datasets = [], isLoading: loadingDatasets } = useQuery({ queryKey: ['admin-datasets'], queryFn: async () => (await api.get("/tenant-dashboard/datasets")).data?.data || [] });
+  const { data: reports = [], isLoading: loadingReports } = useQuery({ queryKey: ['admin-reports'], queryFn: async () => (await api.get("/tenant-dashboard/reports")).data?.data || [] });
+  const { data: activity = [], isLoading: loadingActivity } = useQuery({ queryKey: ['admin-activity'], queryFn: async () => (await api.get("/tenant-dashboard/activity")).data?.data || [] });
+  const { data: security, isLoading: loadingSecurity } = useQuery({ queryKey: ['admin-security'], queryFn: async () => (await api.get("/tenant-dashboard/security")).data?.data || null });
 
-  useEffect(() => { fetchData() }, [fetchData])
+  const loading = loadingOverview || loadingKpis || loadingCharts || loadingDatasets || loadingReports || loadingActivity || loadingSecurity;
+  const refreshing = false;
+  const lastRefreshed = new Date();
+
+  const fetchData = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-overview'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-kpis'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-charts'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-datasets'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-activity'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-security'] });
+  };
+
   useEffect(() => {
-    const t = setInterval(() => fetchData(true), 60000)
+    const t = setInterval(() => fetchData(), 60000)
     return () => clearInterval(t)
-  }, [fetchData])
+  }, [queryClient])
 
   if (loading) return (
     <div className="p-6 md:p-8 max-w-[1800px] mx-auto space-y-6 pb-20">
@@ -98,7 +94,7 @@ export default function OrganizationAdminDashboard() {
             kpis={kpis}
             lastRefreshed={lastRefreshed}
             refreshing={refreshing}
-            onRefresh={() => fetchData(true)}
+            onRefresh={() => fetchData()}
           />
         </motion.div>
 

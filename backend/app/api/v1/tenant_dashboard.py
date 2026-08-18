@@ -4,7 +4,7 @@ from sqlalchemy import select, func, desc, or_, text
 from datetime import datetime, timezone, timedelta
 from typing import List
 
-from app.api.deps import get_db, get_current_active_tenant_user, RequireRole
+from app.api.deps import get_db, get_current_active_tenant_user, RequireRole, RequirePermission
 from app.models.user import User
 from app.models.tenant import Tenant
 from app.models.ai_token_usage import AITokenUsage
@@ -13,6 +13,9 @@ from app.models.report import Report
 from app.models.user_session import UserSession
 from app.models.audit_log import AuditLog
 from app.models.integration import IntegrationConnection
+from app.models.dashboard import Dashboard
+from app.models.report_activity import ReportActivity
+from app.models.report_bookmark import ReportBookmark
 
 # Re-using dict return types to avoid breaking the frontend which expects {"status": "success", "data": ...}
 # but adding try/except and dynamic status logic.
@@ -23,7 +26,7 @@ router = APIRouter()
 @router.get("/overview", summary="High-level Context & Status")
 async def get_dashboard_overview(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(RequirePermission("DATASET_VIEW")),
 ):
     """Context for the top Welcome Banner."""
     try:
@@ -55,7 +58,7 @@ async def get_dashboard_overview(
 @router.get("/kpis", summary="Executive KPI Cards")
 async def get_dashboard_kpis(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(RequirePermission("DATASET_VIEW")),
 ):
     """Dynamic metrics for the tenant including growth comparisons."""
     try:
@@ -85,6 +88,13 @@ async def get_dashboard_kpis(
         ai_requests = await db.scalar(select(func.count(AITokenUsage.id)).where(AITokenUsage.tenant_id == tenant_id, AITokenUsage.created_at >= thirty_days_ago)) or 0
         prev_ai_requests = await db.scalar(select(func.count(AITokenUsage.id)).where(AITokenUsage.tenant_id == tenant_id, AITokenUsage.created_at >= sixty_days_ago, AITokenUsage.created_at < thirty_days_ago)) or 0
         ai_growth = ((ai_requests - prev_ai_requests) / max(prev_ai_requests, 1)) * 100
+
+        # 6. Additional Viewer Analytics
+        start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        total_dashboards = await db.scalar(select(func.count(Dashboard.id)).where(Dashboard.tenant_id == tenant_id, Dashboard.is_deleted == False)) or 0
+        reports_viewed = await db.scalar(select(func.count(ReportActivity.id)).where(ReportActivity.user_id == current_user.id, ReportActivity.action == 'viewed', ReportActivity.created_at >= start_of_day)) or 0
+        downloads_count = await db.scalar(select(func.count(ReportActivity.id)).where(ReportActivity.user_id == current_user.id, ReportActivity.action == 'exported')) or 0
+        bookmarks_count = await db.scalar(select(func.count(ReportBookmark.id)).where(ReportBookmark.user_id == current_user.id)) or 0
         
         # Dynamic productivity and data quality score based on actual usage
         productivity_score = min(100, max(0, int(70 + (ai_growth / 10) + (reports_growth / 10))))
@@ -102,6 +112,12 @@ async def get_dashboard_kpis(
                     "total": total_reports,
                     "growth": round(reports_growth, 1)
                 },
+                "dashboards": {
+                    "total": total_dashboards
+                },
+                "reports_viewed_today": reports_viewed,
+                "downloads_count": downloads_count,
+                "bookmarks_count": bookmarks_count,
                 "storage_mb": storage_mb,
                 "ai_requests": {
                     "total": ai_requests,
@@ -118,7 +134,7 @@ async def get_dashboard_kpis(
 @router.get("/charts", summary="Business Analytics Trends")
 async def get_dashboard_charts(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(RequirePermission("DATASET_VIEW")),
 ):
     """Returns 30-day aggregated chart data for charts with ZERO dummy data."""
     try:
@@ -191,7 +207,7 @@ async def get_recent_datasets(
     skip: int = Query(0, ge=0),
     limit: int = Query(5, ge=1, le=50),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(RequirePermission("DATASET_VIEW")),
 ):
     try:
         stmt = select(Dataset).where(Dataset.tenant_id == current_user.tenant_id, Dataset.is_deleted == False).order_by(desc(Dataset.created_at)).offset(skip).limit(limit)
@@ -217,7 +233,7 @@ async def get_recent_reports(
     skip: int = Query(0, ge=0),
     limit: int = Query(5, ge=1, le=50),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(RequirePermission("DATASET_VIEW")),
 ):
     try:
         stmt = select(Report).where(Report.tenant_id == current_user.tenant_id).order_by(desc(Report.created_at)).offset(skip).limit(limit)
@@ -242,7 +258,7 @@ async def get_activity_feed(
     skip: int = Query(0, ge=0),
     limit: int = Query(15, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_tenant_user),
+    current_user: User = Depends(RequirePermission("DATASET_VIEW")),
 ):
     try:
         stmt = select(AuditLog).where(AuditLog.tenant_id == current_user.tenant_id).order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)

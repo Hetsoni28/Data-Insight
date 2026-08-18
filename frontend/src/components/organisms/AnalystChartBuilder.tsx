@@ -4,9 +4,14 @@ import React, { useState, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { ArrowLeft, Save, Loader2, Sparkles, Database, BarChart2 } from "lucide-react"
 import { ChartService, ChartBase } from "@/lib/services/chart.service"
-import { DatasetService } from "@/lib/services/dataset.service"
+import { DatasetService } from "@/lib/dataset.service"
 import { toast } from "sonner"
-import { AnalystChartPreview } from "./AnalystChartPreview"
+import dynamic from "next/dynamic"
+
+const AnalystChartPreview = dynamic(
+  () => import("./AnalystChartPreview").then((mod) => mod.AnalystChartPreview),
+  { ssr: false }
+)
 import { AnalystChartConfiguration } from "./AnalystChartConfiguration"
 
 interface AnalystChartBuilderProps {

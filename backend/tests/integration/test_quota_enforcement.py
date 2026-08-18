@@ -30,7 +30,7 @@ async def test_dataset_upload_quota_exceeded(client: AsyncClient, test_db: Async
         test_db.add(d)
     await test_db.commit()
     
-    mock_user = User(id=uuid.uuid4(), email="user@quota.com", role=UserRole.viewer, tenant_id=tenant_id)
+    mock_user = User(id=uuid.uuid4(), email="user@quota.com", role=UserRole.org_admin, tenant_id=tenant_id)
     app.dependency_overrides[get_current_active_tenant_user] = lambda: mock_user
     
     # Attempt to upload 11th

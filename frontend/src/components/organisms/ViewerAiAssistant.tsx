@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ViewerService } from "@/lib/viewer.service";
-import type { ViewerDataset } from "@/lib/viewer.service";
+import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
+import type { ViewerDataset } from "@/lib/tenant-dashboard.service";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/atoms/Logo";
 import ReactMarkdown from "react-markdown";
@@ -70,7 +70,7 @@ export function ViewerAiAssistant({ datasets, isLoading }: ViewerAiAssistantProp
 
     try {
       const history = messages.slice(-8).map((m) => ({ role: m.role, content: m.content }));
-      const res = await ViewerService.chat({
+      const res = await TenantDashboardService.chat({
         question: question.trim(),
         dataset_id: selectedDatasetId || undefined,
         history,

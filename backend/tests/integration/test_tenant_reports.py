@@ -4,7 +4,7 @@ from httpx import AsyncClient
 from app.models.tenant import Tenant
 from app.models.workspace import Workspace
 from app.models.dataset import Dataset
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.tenant_role import TenantRole
 from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import patch
@@ -29,7 +29,7 @@ async def test_generate_excel_report_task_dispatch(client: AsyncClient, test_db:
     )
     test_db.add(dataset)
     
-    user = User(id=uuid.uuid4(), tenant_id=tenant.id, email="test@example.com", hashed_password="test", is_active=True)
+    user = User(id=uuid.uuid4(), tenant_id=tenant.id, email="test@example.com", hashed_password="test", is_active=True, role=UserRole.org_admin)
     test_db.add(user)
     
     role = TenantRole(id=uuid.uuid4(), tenant_id=tenant.id, name="org_admin")
@@ -37,7 +37,6 @@ async def test_generate_excel_report_task_dispatch(client: AsyncClient, test_db:
     
     await test_db.commit()
 
-    # We mock the get_current_active_tenant_user dependency
     from app.api.deps import get_current_active_tenant_user
     from app.main import app
     

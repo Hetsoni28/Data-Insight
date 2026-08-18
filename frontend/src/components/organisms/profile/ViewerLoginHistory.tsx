@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
-import type { ViewerLoginHistoryEntry as EntryType } from "@/lib/viewer-profile.service";
+import type { ViewerLoginHistoryEntry as EntryType } from "@/lib/tenant-profile.service";
 
 interface Props {
   entries: EntryType[];

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Send, Loader2, Bot, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerAnalyticsInsight as ViewerAnalyticsInsightType } from "@/lib/viewer-analytics.service";
-import { ViewerAnalyticsService } from "@/lib/viewer-analytics.service";
+import type { AnalyticsInsight as ViewerAnalyticsInsightType } from "@/lib/analytics.service";
+import { AnalyticsService } from "@/lib/analytics.service";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 
 interface ViewerAnalyticsAIProps {
   insights: ViewerAnalyticsInsightType[];
@@ -16,6 +17,7 @@ interface ViewerAnalyticsAIProps {
 }
 
 export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyticsAIProps) {
+  const { currentWorkspace } = useWorkspaceStore();
   const [chatMessage, setChatMessage] = useState("");
   const [isChatting, setIsChatting] = useState(false);
   const [chatHistory, setChatHistory] = useState<{role: 'user'|'ai', content: string}[]>([]);
@@ -30,7 +32,8 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
     setIsChatting(true);
 
     try {
-      const res = await ViewerAnalyticsService.chatAi(userMsg, { context: "viewer_analytics_page" });
+      const workspaceId = currentWorkspace?.id || "";
+      const res = await AnalyticsService.chatAi(workspaceId, userMsg, { context: "viewer_analytics_page" });
       setChatHistory(prev => [...prev, { role: 'ai', content: res.response }]);
     } catch (err) {
       setChatHistory(prev => [...prev, { role: 'ai', content: "I'm sorry, I couldn't process that request right now." }]);

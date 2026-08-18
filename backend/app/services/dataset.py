@@ -345,6 +345,8 @@ class DatasetService:
 
         if not select_parts:
             select_parts = ["*"]
+            # Enforce a strict limit for raw row queries to prevent memory exhaustion
+            req.limit = min(req.limit, 100)
 
         sql = f"SELECT {', '.join(select_parts)} FROM dataset"
 

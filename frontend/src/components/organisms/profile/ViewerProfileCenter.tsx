@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { User, Shield, Laptop, Bell, Settings } from "lucide-react";
-import { ViewerProfileService } from "@/lib/viewer-profile.service";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { TenantProfileService } from "@/lib/tenant-profile.service";
 import type {
   ViewerProfile,
   ViewerSecurityOverview,
@@ -16,7 +17,7 @@ import type {
   ViewerNotificationPreferences,
   ViewerPreferences,
   ViewerActivityEntry,
-} from "@/lib/viewer-profile.service";
+} from "@/lib/tenant-profile.service";
 
 import { ViewerProfileHeader } from "./ViewerProfileHeader";
 import { ViewerPersonalInfo } from "./ViewerPersonalInfo";
@@ -28,100 +29,63 @@ import { ViewerDangerZone } from "./ViewerDangerZone";
 import { ViewerActivity } from "./ViewerActivity";
 
 export function ViewerProfileCenter() {
-  const [loading, setLoading] = useState(true);
-
-  // State
-  const [profile, setProfile] = useState<ViewerProfile | null>(null);
-  const [security, setSecurity] = useState<ViewerSecurityOverview | null>(null);
-  const [sessions, setSessions] = useState<ViewerSession[]>([]);
-  const [loginHistory, setLoginHistory] = useState<ViewerLoginHistoryEntry[]>([]);
-  const [loginHistoryTotal, setLoginHistoryTotal] = useState(0);
+  const queryClient = useQueryClient();
   const [loginHistoryPage, setLoginHistoryPage] = useState(1);
-  const [notifPrefs, setNotifPrefs] = useState<ViewerNotificationPreferences | null>(null);
-  const [preferences, setPreferences] = useState<ViewerPreferences | null>(null);
-  const [activity, setActivity] = useState<ViewerActivityEntry[]>([]);
-  const [activityTotal, setActivityTotal] = useState(0);
   const [activityPage, setActivityPage] = useState(1);
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [profileRes, securityRes, sessionsRes, historyRes, notifRes, prefsRes, activityRes] = await Promise.allSettled([
-        ViewerProfileService.getProfile(),
-        ViewerProfileService.getSecurity(),
-        ViewerProfileService.getSessions(),
-        ViewerProfileService.getLoginHistory(1, 10),
-        ViewerProfileService.getNotificationPreferences(),
-        ViewerProfileService.getPreferences(),
-        ViewerProfileService.getActivity(activityPage, 10),
-      ]);
+  const { data: profile, isLoading: loadingProfile } = useQuery({
+    queryKey: ['viewer-profile'],
+    queryFn: () => TenantProfileService.getProfile(),
+  });
 
-      if (profileRes.status === "fulfilled") setProfile(profileRes.value);
-      if (securityRes.status === "fulfilled") setSecurity(securityRes.value);
-      if (sessionsRes.status === "fulfilled") setSessions(sessionsRes.value);
-      if (historyRes.status === "fulfilled") {
-        setLoginHistory(historyRes.value.entries);
-        setLoginHistoryTotal(historyRes.value.total);
-      }
-      if (notifRes.status === "fulfilled") setNotifPrefs(notifRes.value);
-      if (prefsRes.status === "fulfilled") setPreferences(prefsRes.value);
-      if (activityRes.status === "fulfilled") {
-        setActivity(activityRes.value.entries);
-        setActivityTotal(activityRes.value.total);
-      }
+  const { data: security, isLoading: loadingSecurity } = useQuery({
+    queryKey: ['viewer-security'],
+    queryFn: () => TenantProfileService.getSecurity(),
+  });
 
-      // Log any individual failures for debugging without crashing
-      [profileRes, securityRes, sessionsRes, historyRes, notifRes, prefsRes, activityRes].forEach((r, i) => {
-        if (r.status === "rejected") {
-          console.warn(`Profile section ${i} failed to load:`, r.reason);
-        }
-      });
-    } catch (err) {
-      console.error("Failed to load profile:", err);
-    } finally {
-      setLoading(false);
-    }
+  const { data: sessions = [], isLoading: loadingSessions } = useQuery({
+    queryKey: ['viewer-sessions'],
+    queryFn: () => TenantProfileService.getSessions(),
+  });
+
+  const { data: loginHistoryData, isLoading: loadingHistory } = useQuery({
+    queryKey: ['viewer-login-history', loginHistoryPage],
+    queryFn: () => TenantProfileService.getLoginHistory(loginHistoryPage, 10),
+  });
+  const loginHistory = loginHistoryData?.entries || [];
+  const loginHistoryTotal = loginHistoryData?.total || 0;
+
+  const { data: notifPrefs, isLoading: loadingNotifs } = useQuery({
+    queryKey: ['viewer-notification-prefs'],
+    queryFn: () => TenantProfileService.getNotificationPreferences(),
+  });
+
+  const { data: preferences, isLoading: loadingPrefs } = useQuery({
+    queryKey: ['viewer-preferences'],
+    queryFn: () => TenantProfileService.getPreferences(),
+  });
+
+  const { data: activityData, isLoading: loadingActivity } = useQuery({
+    queryKey: ['viewer-activity', activityPage],
+    queryFn: () => TenantProfileService.getActivity(activityPage, 10),
+  });
+  const activity = activityData?.entries || [];
+  const activityTotal = activityData?.total || 0;
+
+  const loading = loadingProfile || loadingSecurity || loadingSessions || loadingHistory || loadingNotifs || loadingPrefs || loadingActivity;
+
+  const handleLoginHistoryPage = useCallback((page: number) => {
+    setLoginHistoryPage(page);
   }, []);
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  const refreshSecurity = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['viewer-security'] });
+    await queryClient.invalidateQueries({ queryKey: ['viewer-sessions'] });
+  }, [queryClient]);
 
-  const handleLoginHistoryPage = async (page: number) => {
-    setLoginHistoryPage(page);
-    try {
-      const res = await ViewerProfileService.getLoginHistory(page, 10);
-      setLoginHistory(res.entries);
-      setLoginHistoryTotal(res.total);
-    } catch {
-      console.error("Failed to load login history");
-    }
-  };
-
-  const refreshSecurity = async () => {
-    try {
-      const [secRes, sessRes] = await Promise.all([
-        ViewerProfileService.getSecurity(),
-        ViewerProfileService.getSessions(),
-      ]);
-      setSecurity(secRes);
-      setSessions(sessRes);
-    } catch {}
-  };
-
-  const handleActivityPage = async (page: number) => {
+  const handleActivityPage = useCallback((page: number) => {
     setActivityPage(page);
-    setLoading(true);
-    try {
-      const res = await ViewerProfileService.getActivity(page, 10);
-      setActivity(res.entries);
-      setActivityTotal(res.total);
-    } catch {
-      toast.error("Failed to load activity.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, []);
 
   return (
     <div className="flex flex-col min-h-full animate-in fade-in duration-500 space-y-6 pb-12">
@@ -135,7 +99,7 @@ export function ViewerProfileCenter() {
       </div>
 
       {/* Profile Header */}
-      <ViewerProfileHeader profile={profile} isLoading={loading} />
+      <ViewerProfileHeader profile={profile || null} isLoading={loading} />
 
       {/* Main Content - Tabs Layout */}
       <Tabs defaultValue="profile" className="w-full space-y-6">
@@ -155,11 +119,11 @@ export function ViewerProfileCenter() {
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6 focus-visible:outline-none focus-visible:ring-0">
-          <ViewerPersonalInfo profile={profile} isLoading={loading} onUpdated={setProfile} />
+          <ViewerPersonalInfo profile={profile || null} isLoading={loading} onUpdated={(newProfile) => queryClient.setQueryData(['viewer-profile'], newProfile)} />
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6 focus-visible:outline-none focus-visible:ring-0">
-          <ViewerSecurityCenter security={security} isLoading={loading} onRefresh={refreshSecurity} />
+          <ViewerSecurityCenter security={security || null} isLoading={loading} onRefresh={refreshSecurity} />
           <ViewerSessionManager sessions={sessions} isLoading={loading} onRefresh={refreshSecurity} />
         </TabsContent>
 
@@ -183,7 +147,7 @@ export function ViewerProfileCenter() {
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6 focus-visible:outline-none focus-visible:ring-0">
-          <ViewerNotificationPrefs preferences={notifPrefs} isLoading={loading} onUpdated={setNotifPrefs} />
+          <ViewerNotificationPrefs preferences={notifPrefs || null} isLoading={loading} onUpdated={(newPrefs) => queryClient.setQueryData(['viewer-notification-prefs'], newPrefs)} />
           <ViewerDangerZone isLoading={loading} />
         </TabsContent>
       </Tabs>

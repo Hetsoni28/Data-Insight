@@ -143,10 +143,34 @@ export interface ViewerAiChatResponse {
   model: string;
 }
 
-export class ViewerService {
+export class TenantDashboardService {
   static async getDashboardOverview(workspaceId: string): Promise<ViewerDashboardOverview> {
-    const { data } = await api.get("/viewer/dashboard", { params: { workspace_id: workspaceId } });
-    return data;
+    try {
+      const [overviewRes, kpiRes] = await Promise.all([
+        api.get("/tenant-dashboard/overview", { params: { workspace_id: workspaceId } }),
+        api.get("/tenant-dashboard/kpis", { params: { workspace_id: workspaceId } })
+      ]);
+      
+      const overviewData = overviewRes.data?.data || {};
+      const kpiData = kpiRes.data?.data || {};
+
+      return {
+        welcome: overviewData,
+        kpis: {
+          reports_shared: kpiData.reports?.total || 0,
+          dashboards_available: kpiData.dashboards?.total || 0,
+          datasets_available: kpiData.datasets?.total || 0,
+          reports_viewed_today: kpiData.reports_viewed_today || 0,
+          downloads_count: kpiData.downloads_count || 0,
+          bookmarks_count: kpiData.bookmarks_count || 0,
+          unread_notifications: 0,
+          recent_ai_conversations: kpiData.ai_requests?.total || 0
+        }
+      };
+    } catch (error) {
+      console.error("Error fetching overview:", error);
+      return { welcome: {} as any, kpis: {} as any };
+    }
   }
 
   static async listReports(
@@ -161,64 +185,71 @@ export class ViewerService {
       size?: number;
     }
   ): Promise<ViewerReportListResponse> {
-    const { data } = await api.get("/viewer/reports", { 
+    const { data } = await api.get("/tenant-reports", { 
       params: { workspace_id: workspaceId, ...params } 
     });
-    return data;
+    // Backend returns { status, data: [...], meta: { total, page, limit } }
+    return {
+      items: data.data || [],
+      total: data.meta?.total || 0,
+      page: data.meta?.page || 1,
+      size: data.meta?.limit || 50,
+    };
   }
 
   static async getReportFilters(workspaceId: string): Promise<ViewerReportFiltersResponse> {
-    const { data } = await api.get("/viewer/report-filters", { params: { workspace_id: workspaceId } });
-    return data;
+    // Return empty mock, as it's not supported by standard tenant API yet
+    return { categories: [], departments: [], owners: [], statuses: [] };
   }
 
   static async getReport(reportId: string): Promise<any> {
-    const { data } = await api.get(`/viewer/reports/${reportId}`);
+    const { data } = await api.get(`/tenant-reports/${reportId}`);
     return data;
   }
 
   static async getReportPreview(reportId: string): Promise<ViewerReportPreviewResponse> {
-    const { data } = await api.get(`/viewer/reports/${reportId}/preview`);
-    return data;
+    const { data } = await api.get(`/tenant-reports/${reportId}/preview`);
+    return data.data;
   }
 
   static async getReportInsights(reportId: string): Promise<ViewerReportInsights> {
-    const { data } = await api.get(`/viewer/reports/${reportId}/insights`);
-    return data;
+    const { data } = await api.get(`/tenant-reports/${reportId}/insights`);
+    return data.data;
   }
 
   static async getReportRelated(reportId: string): Promise<ViewerReportRelatedAsset[]> {
-    const { data } = await api.get(`/viewer/reports/${reportId}/related`);
-    return data;
+    const { data } = await api.get(`/tenant-reports/${reportId}/related`);
+    return data.data;
   }
 
   static async listDashboards(workspaceId: string): Promise<ViewerDashboard[]> {
-    const { data } = await api.get("/viewer/dashboards", { params: { workspace_id: workspaceId } });
-    return data;
+    const { data } = await api.get("/tenant-dashboards", { params: { workspace_id: workspaceId } });
+    // Backend returns an array directly
+    return Array.isArray(data) ? data : [];
   }
 
   static async listDatasets(workspaceId: string): Promise<ViewerDataset[]> {
-    const { data } = await api.get("/viewer/datasets", { params: { workspace_id: workspaceId } });
-    return data;
+    const { data } = await api.get("/tenant-datasets", { params: { workspace_id: workspaceId } });
+    return data.data || [];
   }
 
   static async getBookmarks(): Promise<string[]> {
-    const { data } = await api.get("/viewer/bookmarks");
-    return data;
+    const { data } = await api.get("/tenant-reports/bookmarks");
+    return data.data || [];
   }
 
   static async toggleBookmark(reportId: string): Promise<{ report_id: string; is_bookmarked: boolean; message: string }> {
-    const { data } = await api.post("/viewer/bookmarks/toggle", { report_id: reportId });
-    return data;
+    const { data } = await api.post(`/tenant-reports/${reportId}/bookmark`);
+    return data.data;
   }
 
   static async chat(body: ViewerAiChatRequest): Promise<ViewerAiChatResponse> {
-    const { data } = await api.post("/viewer/ai/chat", body);
+    const { data } = await api.post("/ai/chat", body);
     return data;
   }
 
   static async downloadReport(reportId: string): Promise<{ report_id: string; download_url: string; expires_in_seconds: number }> {
-    const { data } = await api.post("/viewer/report/download", { report_id: reportId });
+    const { data } = await api.get(`/tenant-reports/${reportId}/download`);
     return data;
   }
 

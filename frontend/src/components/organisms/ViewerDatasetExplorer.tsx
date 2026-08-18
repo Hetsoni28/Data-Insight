@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"
+import { TenantDashboardService } from "@/lib/tenant-dashboard.service"
 import { ShieldCheck, Calendar, Database, Activity, Star, Download } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
@@ -24,8 +25,8 @@ export function ViewerDatasetExplorer() {
   useEffect(() => {
     if (activeWs?.id) {
       setLoading(true)
-      api.get(`/viewer/datasets?workspace_id=${activeWs.id}`)
-        .then((res) => setDatasets(res.data))
+      TenantDashboardService.listDatasets(activeWs.id)
+        .then((data) => setDatasets(data))
         .catch((err) => console.error(err))
         .finally(() => setLoading(false))
     }

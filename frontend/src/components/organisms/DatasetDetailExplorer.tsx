@@ -39,19 +39,23 @@ export function DatasetDetailExplorer({
       const fetchAll = async () => {
         try {
           setLoading(true)
-          const [dsRes, prevRes, schRes, insRes, chRes] = await Promise.all([
-            api.get(`/viewer/datasets/${params.id}`),
-            api.get(`/viewer/datasets/${params.id}/preview`),
-            api.get(`/viewer/datasets/${params.id}/schema`),
-            api.get(`/viewer/datasets/${params.id}/insights`),
-            api.get(`/viewer/datasets/${params.id}/charts`)
+          
+          // These endpoints exist on the backend
+          const dsPromise = api.get(`/tenant-datasets/${params.id}`);
+          const schPromise = api.get(`/tenant-datasets/${params.id}/schema`).catch(() => ({ data: [] }));
+          const prevPromise = api.get(`/tenant-datasets/${params.id}/preview`).catch(() => ({ data: { columns: [], rows: [] } }));
+          const insPromise = api.get(`/tenant-datasets/${params.id}/insights`).catch(() => ({ data: { summary: "No insights available.", metrics: [] } }));
+          const chPromise = api.get(`/tenant-datasets/${params.id}/charts`).catch(() => ({ data: [] }));
+
+          const [dsRes, schRes, prevRes, insRes, chRes] = await Promise.all([
+            dsPromise, schPromise, prevPromise, insPromise, chPromise
           ])
           
-          setDataset(dsRes.data)
-          setPreview(prevRes.data)
-          setSchema(schRes.data)
-          setInsights(insRes.data)
-          setCharts(chRes.data)
+          setDataset(dsRes.data?.data || dsRes.data)
+          setSchema(schRes.data?.data || schRes.data || [])
+          setPreview(prevRes.data?.data || prevRes.data)
+          setInsights(insRes.data?.data || insRes.data)
+          setCharts(chRes.data?.data || chRes.data || [])
         } catch (error) {
           console.error("Failed to load dataset details", error)
         } finally {

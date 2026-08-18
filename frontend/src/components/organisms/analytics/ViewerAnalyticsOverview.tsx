@@ -1,10 +1,11 @@
 "use client";
+import React from "react";
 
-import { motion } from "framer-motion";
+import {  motion  } from "framer-motion";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
-import type { ViewerAnalyticsKpi as ViewerAnalyticsKpiType } from "@/lib/viewer-analytics.service";
+import type { AnalyticsKpi as ViewerAnalyticsKpiType } from "@/lib/analytics.service";
 import { cn } from "@/lib/utils";
 
 interface ViewerAnalyticsOverviewProps {
@@ -12,7 +13,7 @@ interface ViewerAnalyticsOverviewProps {
   isLoading: boolean;
 }
 
-export function ViewerAnalyticsOverview({ kpis, isLoading }: ViewerAnalyticsOverviewProps) {
+export const ViewerAnalyticsOverview = React.memo(function ViewerAnalyticsOverview({ kpis, isLoading }: ViewerAnalyticsOverviewProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -102,4 +103,4 @@ export function ViewerAnalyticsOverview({ kpis, isLoading }: ViewerAnalyticsOver
       ))}
     </div>
   );
-}
+});

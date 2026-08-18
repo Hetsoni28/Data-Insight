@@ -150,12 +150,17 @@ export function DatasetTable({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-xs font-bold text-emerald-700 dark:text-emerald-300 shadow-sm">
-                          {ds.owner?.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{ds.owner}</span>
-                      </div>
+                      {(() => {
+                        const ownerName = typeof ds.owner === "string" ? ds.owner : ds.owner?.name || "Unknown";
+                        return (
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-xs font-bold text-emerald-700 dark:text-emerald-300 shadow-sm">
+                              {ownerName.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{ownerName}</span>
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-slate-700 dark:text-slate-300 text-sm font-bold">
                       {ds.row_count?.toLocaleString() || 0} <span className="text-slate-400 font-medium">/</span> {ds.column_count || 0}

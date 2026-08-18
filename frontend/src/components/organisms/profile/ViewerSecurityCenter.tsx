@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ViewerProfileService } from "@/lib/viewer-profile.service";
-import type { ViewerSecurityOverview as SecurityType } from "@/lib/viewer-profile.service";
+import { TenantProfileService } from "@/lib/tenant-profile.service";
+import type { ViewerSecurityOverview as SecurityType } from "@/lib/tenant-profile.service";
 
 const DEFAULT_SECURITY: SecurityType = {
   password_last_changed: "Not available",
@@ -60,7 +60,7 @@ export function ViewerSecurityCenter({ security, isLoading, onRefresh }: Props) 
     }
     setChangingPw(true);
     try {
-      const res = await ViewerProfileService.changePassword(pwForm);
+      const res = await TenantProfileService.changePassword(pwForm);
       toast.success(res.message);
       setShowPwForm(false);
       setPwForm({ current_password: "", new_password: "", confirm_password: "" });

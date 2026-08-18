@@ -3,7 +3,7 @@
 import React from "react"
 import { useBuilderStore } from "@/store/useBuilderStore"
 import { Settings2, Database, Sliders, Type as TypeIcon, BarChart, Hash, Layers, CheckCircle2, ChevronRight } from "lucide-react"
-import { DatasetService } from "@/lib/services/dataset.service"
+import { DatasetService } from "@/lib/dataset.service"
 import { useQuery } from "@tanstack/react-query"
 
 export function AnalystBuilderProperties() {

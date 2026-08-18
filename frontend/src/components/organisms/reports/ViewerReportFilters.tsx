@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { ViewerReportFiltersResponse } from "@/lib/viewer.service";
+import type { ViewerReportFiltersResponse } from "@/lib/tenant-dashboard.service";
 
 interface ViewerReportFiltersProps {
   filters: ViewerReportFiltersResponse | null;

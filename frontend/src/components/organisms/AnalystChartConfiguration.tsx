@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react"
 import { Database, Filter, Layers, Layout, Plus, Search, Settings2, Trash2, BarChart3, TrendingUp, AreaChart, PieChart } from "lucide-react"
 import { ChartBase } from "@/lib/services/chart.service"
 import { useQuery } from "@tanstack/react-query"
-import { DatasetService } from "@/lib/services/dataset.service"
+import { DatasetService } from "@/lib/dataset.service"
 
 interface AnalystChartConfigurationProps {
   config: Partial<ChartBase>

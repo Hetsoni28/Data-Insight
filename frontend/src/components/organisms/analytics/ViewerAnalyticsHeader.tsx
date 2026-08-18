@@ -1,12 +1,12 @@
 "use client";
 
-import { Download, BookmarkPlus, Sparkles, MoreHorizontal, ArrowLeft, Loader2, BarChart2 } from "lucide-react";
+import {  Download, BookmarkPlus, Sparkles, MoreHorizontal, ArrowLeft, Loader2, BarChart2  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { toast } from "sonner";
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 
 interface ViewerAnalyticsHeaderProps {
@@ -17,7 +17,7 @@ interface ViewerAnalyticsHeaderProps {
   isSaving: boolean;
 }
 
-export function ViewerAnalyticsHeader({ domain, lastRefresh, onOpenAi, onSaveView, isSaving }: ViewerAnalyticsHeaderProps) {
+export const ViewerAnalyticsHeader = React.memo(function ViewerAnalyticsHeader({ domain, lastRefresh, onOpenAi, onSaveView, isSaving }: ViewerAnalyticsHeaderProps) {
   const { activeWs } = useWorkspaceStore();
   const [isExporting, setIsExporting] = useState(false);
 
@@ -128,4 +128,4 @@ export function ViewerAnalyticsHeader({ domain, lastRefresh, onOpenAi, onSaveVie
       </div>
     </motion.div>
   );
-}
+});

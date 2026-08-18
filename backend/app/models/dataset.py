@@ -11,6 +11,7 @@ from sqlalchemy import (
     JSON,
     BigInteger,
     Integer,
+    Index,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -34,6 +35,9 @@ class DatasetFileType:
 
 class Dataset(Base):
     __tablename__ = "datasets"
+    __table_args__ = (
+        Index("ix_tenant_workspace_dataset", "tenant_id", "workspace_id"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4

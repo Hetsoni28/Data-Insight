@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ViewerReportHeader } from "./ViewerReportHeader";
 import { ViewerReportKPIs } from "./ViewerReportKPIs";
 import { ViewerReportFilters } from "./ViewerReportFilters";
 import { ViewerReportExplorer } from "./ViewerReportExplorer";
 import { ViewerReportPreview } from "./ViewerReportPreview";
-import { ViewerService } from "@/lib/viewer.service";
+import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
 import type { 
   ViewerReport, 
   ViewerDashboardOverview, 
   ViewerReportFiltersResponse 
-} from "@/lib/viewer.service";
+} from "@/lib/tenant-dashboard.service";
 import { useDebounce } from "@/hooks/useDebounce";
 
 interface ViewerReportCenterProps {
@@ -19,14 +20,6 @@ interface ViewerReportCenterProps {
 }
 
 export function ViewerReportCenter({ workspaceId }: ViewerReportCenterProps) {
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  
-  // Data
-  const [reports, setReports] = useState<ViewerReport[]>([]);
-  const [overview, setOverview] = useState<ViewerDashboardOverview | null>(null);
-  const [filtersData, setFiltersData] = useState<ViewerReportFiltersResponse | null>(null);
-  
   // Filters State
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
@@ -38,68 +31,50 @@ export function ViewerReportCenter({ workspaceId }: ViewerReportCenterProps) {
   // Preview State
   const [previewReport, setPreviewReport] = useState<ViewerReport | null>(null);
 
-  const fetchReports = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+  const { data: overview, isLoading: loadingOverview } = useQuery({
+    queryKey: ['viewer-dashboard-overview', workspaceId],
+    queryFn: () => TenantDashboardService.getDashboardOverview(workspaceId),
+  });
 
-    try {
-      const res = await ViewerService.listReports(workspaceId, {
-        search: debouncedSearch,
-        category: activeCategory,
-        department: activeDepartment,
-        status: activeStatus,
-        is_bookmarked: isBookmarked,
-      });
-      setReports(res.items);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [workspaceId, debouncedSearch, activeCategory, activeDepartment, activeStatus, isBookmarked]);
+  const { data: filtersData, isLoading: loadingFilters } = useQuery({
+    queryKey: ['viewer-report-filters', workspaceId],
+    queryFn: () => TenantDashboardService.getReportFilters(workspaceId),
+  });
 
-  const fetchStaticData = useCallback(async () => {
-    try {
-      const [o, f] = await Promise.all([
-        ViewerService.getDashboardOverview(workspaceId),
-        ViewerService.getReportFilters(workspaceId)
-      ]);
-      setOverview(o);
-      setFiltersData(f);
-    } catch (err) {
-      console.error(err);
-    }
-  }, [workspaceId]);
+  const { data: reportsData, isLoading: loadingReports, refetch: fetchReports } = useQuery({
+    queryKey: ['viewer-reports', workspaceId, debouncedSearch, activeCategory, activeDepartment, activeStatus, isBookmarked],
+    queryFn: () => TenantDashboardService.listReports(workspaceId, {
+      search: debouncedSearch,
+      category: activeCategory,
+      department: activeDepartment,
+      status: activeStatus,
+      is_bookmarked: isBookmarked,
+    }),
+  });
 
-  useEffect(() => {
-    fetchStaticData();
-  }, [fetchStaticData]);
+  const reports = reportsData?.items || [];
+  const loading = loadingOverview || loadingFilters || loadingReports;
+  const refreshing = false; // With React Query, we can use isFetching if needed, but we'll simplify this
 
-  useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
-
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = useCallback((key: string, value: any) => {
     if (key === "category") setActiveCategory(value);
     else if (key === "department") setActiveDepartment(value);
     else if (key === "status") setActiveStatus(value);
     else if (key === "is_bookmarked") setIsBookmarked(value);
-  };
+  }, []);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearch("");
     setActiveCategory("");
     setActiveDepartment("");
     setActiveStatus("");
     setIsBookmarked(undefined);
-    fetchReports(true);
-  };
+  }, []);
 
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-500">
       <ViewerReportHeader 
-        workspaceName={overview?.welcome.workspace_name || ""}
+        workspaceName={overview?.welcome?.workspace_name || ""}
         search={search}
         setSearch={setSearch}
         isLoading={loading || refreshing}
@@ -115,7 +90,7 @@ export function ViewerReportCenter({ workspaceId }: ViewerReportCenterProps) {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">Report Explorer</h2>
           <ViewerReportFilters 
-            filters={filtersData}
+            filters={filtersData || null}
             activeCategory={activeCategory}
             activeDepartment={activeDepartment}
             activeStatus={activeStatus}

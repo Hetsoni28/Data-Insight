@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useWorkspaceStore } from "@/store/workspaceStore";
-import { ManagerAnalyticsService } from "@/lib/manager-analytics.service";
+import { AnalyticsService } from "@/lib/analytics.service";
 import { DatasetService } from "@/lib/dataset.service";
 import type { Dataset } from "@/lib/dataset.service";
 import type {
-  ManagerAnalyticsKpi,
-  ManagerAnalyticsTrend,
-  ManagerAnalyticsPerformance,
-  ManagerAnalyticsAnomaly,
-} from "@/lib/manager-analytics.service";
+  AnalyticsKpi,
+  AnalyticsTrend,
+  AnalyticsPerformance,
+  AnalyticsAnomaly,
+} from "@/lib/analytics.service";
 
 import { ViewerAnalyticsOverview } from "./ViewerAnalyticsOverview";
 import { ViewerAnalyticsTrends } from "./ViewerAnalyticsTrends";
@@ -36,39 +37,39 @@ import Link from "next/link";
 
 // ─── Shape adapters — map manager types → viewer component shapes ───────────
 
-function adaptKpis(kpis: ManagerAnalyticsKpi[]) {
+function adaptKpis(kpis: AnalyticsKpi[]) {
   return kpis.map((k) => ({
     id: k.id,
     title: k.title,
     value: k.is_currency
-      ? `$${k.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-      : k.value.toLocaleString(undefined, { maximumFractionDigits: 1 }),
-    trend_direction: k.trend as "up" | "down" | "neutral",
-    percentage_change: k.change_pct,
-    sparkline: [],
+      ? `$${Number(k.value).toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+      : Number(k.value).toLocaleString(undefined, { maximumFractionDigits: 1 }),
+    trend_direction: (k.trend || k.trend_direction) as "up" | "down" | "neutral",
+    percentage_change: k.change_pct || k.percentage_change || 0,
+    sparkline: k.sparkline || [],
   }));
 }
 
-function adaptTrends(trends: ManagerAnalyticsTrend[]) {
+function adaptTrends(trends: AnalyticsTrend[]) {
   return trends.map((t) => ({
     ...t,
-    x_axis_key: "date",
-    y_axis_key: "value",
+    x_axis_key: t.x_axis_key || "date",
+    y_axis_key: t.y_axis_key || "value",
   }));
 }
 
-function adaptPerformances(performances: ManagerAnalyticsPerformance[]) {
+function adaptPerformances(performances: AnalyticsPerformance[]) {
   return performances.map((p) => ({
     ...p,
     items: p.items.map((item) => ({
       ...item,
       trend: "up" as const,
-      growth: 0,
+      growth: item.growth || 0,
     })),
   }));
 }
 
-function adaptAnomalies(anomalies: ManagerAnalyticsAnomaly[]) {
+function adaptAnomalies(anomalies: AnalyticsAnomaly[]) {
   return anomalies.map((a) => ({
     ...a,
     date: a.date || new Date().toISOString(),
@@ -81,89 +82,56 @@ export function ManagerAnalyticsCenter() {
   const { activeWs } = useWorkspaceStore();
 
   // Dataset selector
-  const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null);
-  const [selectedDatasetName, setSelectedDatasetName] = useState("Dataset");
-  const [loadingDatasets, setLoadingDatasets] = useState(true);
 
-  // Page state
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastRefresh, setLastRefresh] = useState("");
+  const { data: allDatasets, isLoading: loadingDatasets } = useQuery({
+    queryKey: ['manager-datasets', activeWs?.id],
+    queryFn: () => DatasetService.list(activeWs!.id),
+    enabled: !!activeWs?.id,
+  });
+  const datasets = allDatasets?.filter(d => d.status === "ready") || [];
+  const selectedDataset = datasets.find(d => d.id === selectedDatasetId) || datasets[0];
+  
+  // Auto-select first dataset if none selected
+  const activeDatasetId = selectedDatasetId || selectedDataset?.id;
+  const activeDatasetName = selectedDataset?.name || "Dataset";
 
-  // Analytics data
-  const [kpis, setKpis] = useState<ManagerAnalyticsKpi[]>([]);
-  const [trends, setTrends] = useState<ManagerAnalyticsTrend[]>([]);
-  const [performances, setPerformances] = useState<ManagerAnalyticsPerformance[]>([]);
-  const [anomalies, setAnomalies] = useState<ManagerAnalyticsAnomaly[]>([]);
+  const { data: kpiRes, isLoading: loadingKpis } = useQuery({
+    queryKey: ['analytics-kpis', activeWs?.id, activeDatasetId],
+    queryFn: () => AnalyticsService.getKpis(activeWs!.id, activeDatasetId),
+    enabled: !!activeWs?.id,
+  });
 
-  // Load datasets for this workspace
-  useEffect(() => {
-    if (!activeWs) return;
-    const load = async () => {
-      try {
-        setLoadingDatasets(true);
-        const ds = await DatasetService.list(activeWs.id);
-        const ready = ds.filter((d) => d.status === "ready");
-        setDatasets(ready);
-        if (ready.length > 0 && !selectedDatasetId) {
-          setSelectedDatasetId(ready[0].id);
-          setSelectedDatasetName(ready[0].name);
-        }
-      } catch {
-        toast.error("Failed to load datasets.");
-      } finally {
-        setLoadingDatasets(false);
-      }
-    };
-    load();
-  }, [activeWs]);
+  const { data: trendRes, isLoading: loadingTrends } = useQuery({
+    queryKey: ['analytics-trends', activeWs?.id, activeDatasetId],
+    queryFn: () => AnalyticsService.getTrends(activeWs!.id, activeDatasetId),
+    enabled: !!activeWs?.id,
+  });
 
-  const fetchAnalytics = useCallback(
-    async (isRefresh = false) => {
-      if (!selectedDatasetId) return;
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
-      setError(null);
+  const { data: perfRes, isLoading: loadingPerf } = useQuery({
+    queryKey: ['analytics-perf', activeWs?.id, activeDatasetId],
+    queryFn: () => AnalyticsService.getPerformance(activeWs!.id, activeDatasetId),
+    enabled: !!activeWs?.id,
+  });
 
-      try {
-        const [kpiRes, trendRes, perfRes, anomalyRes] = await Promise.all([
-          ManagerAnalyticsService.getKpis(selectedDatasetId),
-          ManagerAnalyticsService.getTrends(selectedDatasetId),
-          ManagerAnalyticsService.getPerformance(selectedDatasetId),
-          ManagerAnalyticsService.getAnomalies(selectedDatasetId),
-        ]);
+  const { data: anomalyRes, isLoading: loadingAnomalies, refetch } = useQuery({
+    queryKey: ['analytics-anomalies', activeWs?.id, activeDatasetId],
+    queryFn: () => AnalyticsService.getAnomalies(activeWs!.id, activeDatasetId),
+    enabled: !!activeWs?.id,
+  });
 
-        setKpis(kpiRes.kpis);
-        setTrends(trendRes.trends);
-        setPerformances(perfRes.performances);
-        setAnomalies(anomalyRes.anomalies);
-        setLastRefresh(new Date().toLocaleTimeString());
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load analytics for this dataset.");
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    [selectedDatasetId]
-  );
+  const loading = loadingKpis || loadingTrends || loadingPerf || loadingAnomalies;
+  const refreshing = false; // React Query handles background refresh seamlessly
+  const kpis = kpiRes?.kpis || [];
+  const trends = trendRes?.trends || [];
+  const performances = perfRes?.performances || [];
+  const anomalies = anomalyRes?.anomalies || [];
+  const error = null;
+  const lastRefresh = new Date().toLocaleTimeString();
 
-  useEffect(() => {
-    if (selectedDatasetId) fetchAnalytics();
-  }, [fetchAnalytics, selectedDatasetId]);
-
-  const handleDatasetChange = (id: string) => {
-    const ds = datasets.find((d) => d.id === id);
+  const handleDatasetChange = useCallback((id: string) => {
     setSelectedDatasetId(id);
-    setSelectedDatasetName(ds?.name ?? "Dataset");
-    setKpis([]);
-    setTrends([]);
-    setPerformances([]);
-    setAnomalies([]);
-  };
+  }, []);
 
   // ── No workspace ──
   if (!activeWs) {
@@ -224,8 +192,8 @@ export function ManagerAnalyticsCenter() {
           </Button>
           <Button
             size="sm"
-            onClick={() => fetchAnalytics(true)}
-            disabled={refreshing || !selectedDatasetId}
+            onClick={() => refetch()}
+            disabled={refreshing || !activeDatasetId}
             className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0 shadow-md shadow-emerald-500/20"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
@@ -276,8 +244,8 @@ export function ManagerAnalyticsCenter() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => fetchAnalytics(true)}
-            disabled={loading || refreshing || !selectedDatasetId}
+            onClick={() => refetch()}
+            disabled={loading || refreshing || !activeDatasetId}
             className="text-slate-500"
           >
             <X className="w-3.5 h-3.5 mr-2" /> Reset
@@ -297,7 +265,7 @@ export function ManagerAnalyticsCenter() {
           <p className="text-sm text-rose-600 dark:text-rose-400 max-w-md">{error}</p>
         </div>
 
-      ) : !selectedDatasetId ? (
+      ) : !activeDatasetId ? (
         /* ── No dataset selected ── */
         <div className="flex flex-col items-center justify-center py-20 text-center bg-slate-50 dark:bg-slate-900/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
           <Database className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-4" />
@@ -354,7 +322,7 @@ export function ManagerAnalyticsCenter() {
                 <p className="text-sm text-slate-500">
                   Analyzing dataset:{" "}
                   <span className="font-semibold text-slate-700 dark:text-slate-200">
-                    {selectedDatasetName}
+                    {activeDatasetName}
                   </span>
                   {lastRefresh && (
                     <span className="ml-2 text-slate-400">— last refreshed {lastRefresh}</span>

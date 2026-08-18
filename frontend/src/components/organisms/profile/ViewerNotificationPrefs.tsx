@@ -6,8 +6,8 @@ import { Bell, Loader2, Mail, Megaphone, Shield, BarChart3, Database, Layout, Sp
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { ViewerProfileService } from "@/lib/viewer-profile.service";
-import type { ViewerNotificationPreferences as PrefsType } from "@/lib/viewer-profile.service";
+import { TenantProfileService } from "@/lib/tenant-profile.service";
+import type { ViewerNotificationPreferences as PrefsType } from "@/lib/tenant-profile.service";
 
 const DEFAULT_PREFS: PrefsType = {
   email_notifications: true,
@@ -43,7 +43,7 @@ export function ViewerNotificationPrefs({ preferences, isLoading, onUpdated }: P
   const handleToggle = async (key: string, value: boolean) => {
     setSaving(true);
     try {
-      const updated = await ViewerProfileService.updateNotificationPreferences({ [key]: value });
+      const updated = await TenantProfileService.updateNotificationPreferences({ [key]: value });
       onUpdated(updated);
     } catch {
       toast.error("Failed to update preferences.");

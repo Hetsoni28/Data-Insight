@@ -135,7 +135,7 @@ export interface ViewerActivityResponse {
 // Service
 // ═══════════════════════════════════════════════
 
-export const ViewerProfileService = {
+export const TenantProfileService = {
   async getProfile(): Promise<ViewerProfile> {
     const res = await api.get("/viewer/profile");
     return res.data;

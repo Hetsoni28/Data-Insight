@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import type { ViewerWelcomeInfo } from "@/lib/viewer.service";
+import type { ViewerWelcomeInfo } from "@/lib/tenant-dashboard.service";
 import { Logo } from "@/components/atoms/Logo";
 
 interface ViewerHeroProps {

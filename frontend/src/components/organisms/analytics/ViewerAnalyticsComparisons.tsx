@@ -1,16 +1,17 @@
 "use client";
+import React from "react";
 
-import { motion } from "framer-motion";
+import {  motion  } from "framer-motion";
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ViewerAnalyticsComparison as ViewerAnalyticsComparisonType } from "@/lib/viewer-analytics.service";
+import type { AnalyticsComparison as ViewerAnalyticsComparisonType } from "@/lib/analytics.service";
 
 interface ViewerAnalyticsComparisonsProps {
   comparisons: ViewerAnalyticsComparisonType[];
   isLoading: boolean;
 }
 
-export function ViewerAnalyticsComparisons({ comparisons, isLoading }: ViewerAnalyticsComparisonsProps) {
+export const ViewerAnalyticsComparisons = React.memo(function ViewerAnalyticsComparisons({ comparisons, isLoading }: ViewerAnalyticsComparisonsProps) {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">
@@ -76,4 +77,4 @@ export function ViewerAnalyticsComparisons({ comparisons, isLoading }: ViewerAna
       })}
     </div>
   );
-}
+});

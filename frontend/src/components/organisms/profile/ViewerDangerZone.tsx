@@ -6,7 +6,7 @@ import { AlertTriangle, LogOut, Trash2, Loader2, Download, UserX } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { ViewerProfileService } from "@/lib/viewer-profile.service";
+import { TenantProfileService } from "@/lib/tenant-profile.service";
 import { useAuthStore } from "@/store/authStore";
 
 interface Props {
@@ -30,7 +30,7 @@ export function ViewerDangerZone({ isLoading }: Props) {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const res = await ViewerProfileService.requestDataExport();
+      const res = await TenantProfileService.requestDataExport();
       toast.success(res.message);
     } catch { toast.error("Failed to request export."); }
     finally { setExporting(false); }
@@ -39,7 +39,7 @@ export function ViewerDangerZone({ isLoading }: Props) {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await ViewerProfileService.requestAccountDeletion();
+      const res = await TenantProfileService.requestAccountDeletion();
       toast.success(res.message);
       setConfirmDelete(false);
     } catch { toast.error("Failed to request deletion."); }

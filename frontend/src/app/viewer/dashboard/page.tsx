@@ -3,17 +3,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceStore } from "@/store/workspaceStore";
-import { ViewerService } from "@/lib/viewer.service";
+import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
 import type {
   ViewerDashboardOverview,
   ViewerReport,
   ViewerDashboard,
   ViewerDataset
-} from "@/lib/viewer.service";
+} from "@/lib/tenant-dashboard.service";
 
 import { ViewerHero } from "@/components/organisms/ViewerHero";
 import { ViewerKpiGrid } from "@/components/organisms/ViewerKpiGrid";
-import { ViewerReportCenter } from "@/components/organisms/ViewerReportCenter";
+import { ViewerReportCenter } from "@/components/organisms/reports/ViewerReportCenter";
 import { ViewerDashboardCenter } from "@/components/organisms/ViewerDashboardCenter";
 import { ViewerDatasetCenter } from "@/components/organisms/ViewerDatasetCenter";
 import { ViewerAiAssistant } from "@/components/organisms/ViewerAiAssistant";
@@ -51,10 +51,10 @@ export default function ViewerDashboardPage() {
 
     try {
       const [overviewResult, reportsResult, dashboardsResult, datasetsResult] = await Promise.allSettled([
-        ViewerService.getDashboardOverview(activeWs.id),
-        ViewerService.listReports(activeWs.id),
-        ViewerService.listDashboards(activeWs.id),
-        ViewerService.listDatasets(activeWs.id),
+        TenantDashboardService.getDashboardOverview(activeWs.id),
+        TenantDashboardService.listReports(activeWs.id),
+        TenantDashboardService.listDashboards(activeWs.id),
+        TenantDashboardService.listDatasets(activeWs.id),
       ]);
 
       if (overviewResult.status === "fulfilled") setOverview(overviewResult.value);
