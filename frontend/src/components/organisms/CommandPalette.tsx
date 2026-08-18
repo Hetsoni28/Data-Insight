@@ -60,6 +60,7 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
     { icon: Receipt, label: "Revenue Analytics", desc: "View financial data", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/revenue`) },
     { icon: Zap, label: "AI Usage", desc: "Monitor token consumption", allowed: ["owner"], action: () => router.push(`${basePath}/dashboard/ai-usage`) },
     { icon: PieChart, label: "Analytics", desc: "View platform usage", allowed: ["owner", "manager", "viewer"], action: () => router.push(`${basePath}/dashboard/analytics`) },
+    { icon: Users, label: "Profile", desc: "Manage your account", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/profile`) },
   ];
 
   // Filter out items not allowed for this user role
