@@ -5,24 +5,27 @@ import { useBuilderStore } from "@/store/useBuilderStore"
 import { Settings2, Database, Sliders, Type as TypeIcon, BarChart, Hash, Layers, CheckCircle2, ChevronRight } from "lucide-react"
 import { DatasetService } from "@/lib/dataset.service"
 import { useQuery } from "@tanstack/react-query"
+import { useWorkspaceStore } from "@/store/workspaceStore"
 
 export function AnalystBuilderProperties() {
   const { layout, selectedWidgetId, updateWidget } = useBuilderStore()
+  const { activeWs } = useWorkspaceStore()
   
   const selectedWidget = layout.widgets.find(w => w.id === selectedWidgetId)
 
   // Fetch available datasets for the user
   const { data: datasets } = useQuery({
-    queryKey: ['available-datasets'],
-    queryFn: () => DatasetService.getDatasets()
+    queryKey: ['available-datasets', activeWs?.id],
+    queryFn: () => DatasetService.list(activeWs!.id),
+    enabled: !!activeWs?.id
   })
 
   // Fetch profile for the selected dataset to get columns
   const selectedDatasetId = selectedWidget?.config?.dataset_id
   const { data: datasetProfile } = useQuery({
     queryKey: ['dataset-profile', selectedDatasetId],
-    queryFn: () => DatasetService.getDatasetProfile(selectedDatasetId),
-    enabled: !!selectedDatasetId
+    queryFn: () => DatasetService.get(selectedDatasetId),
+    enabled: !!selectedDatasetId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selectedDatasetId)
   })
 
   if (!selectedWidget) {

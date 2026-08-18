@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { ArrowLeft, Save, Loader2, Sparkles, Database, BarChart2 } from "lucide-react"
 import { ChartService, ChartBase } from "@/lib/services/chart.service"
 import { DatasetService } from "@/lib/dataset.service"
+import { useWorkspaceStore } from "@/store/workspaceStore"
 import { toast } from "sonner"
 import dynamic from "next/dynamic"
 
@@ -59,10 +60,13 @@ export function AnalystChartBuilder({ chartId, onBack }: AnalystChartBuilderProp
     }
   }, [existingChart])
 
+  const { activeWs } = useWorkspaceStore()
+
   // Fetch authorized datasets for the selector
   const { data: datasetsRes } = useQuery({
-    queryKey: ['tenant-datasets'],
-    queryFn: () => DatasetService.getDatasets(),
+    queryKey: ['tenant-datasets', activeWs?.id],
+    queryFn: () => DatasetService.list(activeWs!.id),
+    enabled: !!activeWs?.id
   })
   const datasets = Array.isArray(datasetsRes) ? datasetsRes : ((datasetsRes as any)?.data || [])
 

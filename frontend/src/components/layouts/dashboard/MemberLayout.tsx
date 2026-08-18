@@ -13,17 +13,17 @@ const MEMBER_NAV = [
   { icon: Users, label: "Team Management", href: "/dashboard/team", allowedRoles: ["organization-admin", "org_admin"] },
   
   { icon: Database, label: "Datasets", href: "/dashboard/datasets", allowedRoles: ["organization-admin", "org_admin", "manager", "analyst", "viewer"] },
-  { icon: UploadCloud, label: "Upload Dataset", href: "/dashboard/upload-dataset", allowedRoles: ["analyst"] },
+  { icon: UploadCloud, label: "Upload Dataset", href: "/dashboard/upload-dataset", allowedRoles: ["organization-admin", "org_admin", "manager", "analyst"] },
   
   { icon: Brain, label: "AI Copilot", href: "/dashboard/ai", allowedRoles: ["organization-admin", "org_admin", "manager", "analyst"] },
   
   { icon: LayoutTemplate, label: "Dashboard Builder", href: "/dashboard/builder", allowedRoles: ["organization-admin", "org_admin", "manager", "analyst"] },
   
-  { icon: BarChart2, label: "Charts", href: "/dashboard/charts", allowedRoles: ["analyst"] },
+  { icon: BarChart2, label: "Charts", href: "/dashboard/charts", allowedRoles: ["organization-admin", "org_admin", "manager", "analyst"] },
   
   { icon: FileSpreadsheet, label: "Reports", href: "/dashboard/reports", allowedRoles: ["organization-admin", "org_admin", "manager", "analyst", "viewer"] },
   
-  { icon: Activity, label: "Analytics", href: "/dashboard/analytics", allowedRoles: ["manager", "viewer"] },
+  { icon: Activity, label: "Analytics", href: "/dashboard/analytics", allowedRoles: ["organization-admin", "org_admin", "manager", "analyst", "viewer"] },
   
   { icon: Settings, label: "Org Settings", href: "/dashboard/settings", allowedRoles: ["organization-admin", "org_admin"] },
   { icon: Receipt, label: "Billing", href: "/dashboard/billing", allowedRoles: ["organization-admin", "org_admin"] },
@@ -104,7 +104,7 @@ export function MemberLayout({ children, user, handleLogout }: MemberLayoutProps
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <DashboardNavbar 
           onUploadClick={() => router.push(`${getBasePath(user?.role)}/dashboard/upload-dataset`)} 
-          showUploadButton={["analyst", "organization-admin", "org_admin"].includes(user?.role)}
+          showUploadButton={["analyst", "organization-admin", "org_admin", "manager"].includes(user?.role)}
         />
         <main className="flex-1 overflow-y-auto relative z-0">
           {children}

@@ -30,42 +30,24 @@ const AGGREGATIONS = [
 export function AnalystChartConfiguration({ config, setConfig, datasets }: AnalystChartConfigurationProps) {
   
   // Fetch real schema when a dataset is selected
-  const { data: schema, isLoading: isLoadingSchema } = useQuery({
-    queryKey: ['dataset-schema', config.dataset_id],
-    queryFn: () => DatasetService.getDatasetSchema(config.dataset_id!),
-    enabled: !!config.dataset_id,
+  const { data: dataset, isLoading: isLoadingSchema } = useQuery({
+    queryKey: ['dataset-profile', config.dataset_id],
+    queryFn: () => DatasetService.get(config.dataset_id!),
+    enabled: !!config.dataset_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(config.dataset_id),
   })
 
   // Group columns by type
-  let columns: any[] = []
-  
-  const extractColumns = (data: any) => {
-    if (!data) return []
-    if (Array.isArray(data)) return data
-    if (typeof data === 'object' && !Array.isArray(data)) {
-      // If it's a dictionary of columns (like from dataset profile), extract values
-      // If the first key's value is an object with 'name' or 'type', it's the dict structure
-      const vals = Object.values(data)
-      if (vals.length > 0 && typeof vals[0] === 'object') {
-        // Ensure each column has a name property based on its key if missing
-        return Object.entries(data).map(([k, v]: [string, any]) => ({
-          name: k,
-          ...v
-        }))
-      }
-    }
-    return []
-  }
+  const columns = dataset?.profile?.columns 
+    ? Object.entries(dataset.profile.columns).map(([k, v]: [string, any]) => ({
+        name: k,
+        type: v.dtype || 'unknown'
+      }))
+    : []
 
-  if (Array.isArray(schema)) {
-    columns = schema
-  } else if (schema?.columns) {
-    columns = extractColumns(schema.columns)
-  } else if (schema?.data?.columns) {
-    columns = extractColumns(schema.data.columns)
-  }
-
-  const numericColumns = columns.filter((c: any) => ['integer', 'double', 'float', 'decimal', 'numeric', 'bigint', 'Int64'].includes((c.data_type || c.dtype || '').toLowerCase()) || (c.type || '').toLowerCase() === 'numeric')
+  const numericKeywords = ['int', 'float', 'double', 'decimal', 'numeric', 'number', 'real', 'bigint', 'smallint'];
+  const numericColumns = columns.filter((c: any) => 
+    numericKeywords.some(keyword => c.type.toLowerCase().includes(keyword))
+  )
   const allColumns = columns
 
   const handleConfigChange = (key: string, value: any) => {

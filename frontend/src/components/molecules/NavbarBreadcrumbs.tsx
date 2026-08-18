@@ -9,6 +9,8 @@ export function NavbarBreadcrumbs() {
   const { activeWs } = useWorkspaceStore()
 
   const paths = pathname.split("/").filter(Boolean)
+  const roleMatch = pathname?.match(/^\/(owner|organization-admin|manager|analyst|viewer)/)
+  const basePath = roleMatch ? roleMatch[0] : '/analyst'
   const isOwner = pathname.startsWith("/owner")
   
   const breadcrumbs = [
@@ -37,7 +39,7 @@ export function NavbarBreadcrumbs() {
           {crumb.isLast ? (
             <span className="text-slate-900 dark:text-white font-semibold">{crumb.label}</span>
           ) : (
-            <Link href="/owner/dashboard" className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+            <Link href={`${basePath}/dashboard`} className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
               {crumb.label}
             </Link>
           )}

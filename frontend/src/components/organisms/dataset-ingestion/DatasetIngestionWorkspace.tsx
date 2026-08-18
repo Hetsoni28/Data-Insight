@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import api from "@/lib/api"
 import { toast } from "sonner"
@@ -18,6 +18,9 @@ interface DatasetIngestionWorkspaceProps {
 }
 
 export function DatasetIngestionWorkspace({ role }: DatasetIngestionWorkspaceProps) {
+  const pathname = usePathname()
+  const roleMatch = pathname?.match(/^\/(owner|organization-admin|manager|analyst|viewer)/)
+  const dynamicBasePath = roleMatch ? `${roleMatch[0]}/dashboard` : "/analyst/dashboard"
   const router = useRouter()
   const { activeWs } = useWorkspaceStore()
 
@@ -135,14 +138,12 @@ export function DatasetIngestionWorkspace({ role }: DatasetIngestionWorkspacePro
     setFinalStats(null)
   }
 
-  const basePath = role === "analyst" ? "/analyst/dashboard" : "/organization-admin/dashboard"
-
   const handleExplore = () => {
-    router.push(`${basePath}/datasets?datasetId=${datasetId}`)
+    router.push(`${dynamicBasePath}/datasets?datasetId=${datasetId}`)
   }
 
   const handleAnalyze = () => {
-    router.push(`${basePath}/datasets?datasetId=${datasetId}&openAnalytics=true`)
+    router.push(`${dynamicBasePath}/datasets?datasetId=${datasetId}&openAnalytics=true`)
   }
 
   const isFormDisabled = status !== "idle" && status !== "error"

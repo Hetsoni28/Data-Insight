@@ -1,13 +1,20 @@
-﻿﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { PageLostIllustration } from "@/components/molecules/PageLostIllustration"
 import { ArrowLeft, LifeBuoy } from "lucide-react"
 
 export default function NotFound() {
   const router = useRouter()
+  const pathname = usePathname()
+  
+  const handleReturn = () => {
+    const roleMatch = pathname?.match(/^\/(owner|organization-admin|manager|analyst|viewer)/)
+    const basePath = roleMatch ? roleMatch[0] : '/analyst'
+    router.push(`${basePath}/dashboard`)
+  }
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -48,7 +55,7 @@ export default function NotFound() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => router.push("/owner/dashboard")}
+            onClick={handleReturn}
             className="flex items-center gap-2 px-6 py-3 bg-[#10B981] hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm shadow-emerald-500/20"
           >
             <ArrowLeft className="w-4 h-4" />

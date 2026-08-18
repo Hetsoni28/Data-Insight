@@ -21,10 +21,9 @@ export function AnalystBuilderHub() {
   const [searchQuery, setSearchQuery] = useState("")
 
   const getBuilderPath = (id: string) => {
-    if (pathname.includes("/organization-admin")) {
-      return `/organization-admin/dashboard/builder/${id}`
-    }
-    return `/analyst/dashboard/builder/${id}`
+    const roleMatch = pathname.match(/^\/(owner|organization-admin|manager|analyst)/);
+    const basePath = roleMatch ? roleMatch[0] : '/analyst';
+    return `${basePath}/dashboard/builder/${id}`
   }
 
   const activeWs = useWorkspaceStore((state: any) => state.activeWs)

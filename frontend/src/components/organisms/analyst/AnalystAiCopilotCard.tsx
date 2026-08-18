@@ -7,7 +7,13 @@ import { Sparkles, ArrowRight, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/atoms/Logo';
 
+import { usePathname } from 'next/navigation';
+
 export function AnalystAiCopilotCard() {
+  const pathname = usePathname();
+  const roleMatch = pathname?.match(/^\/(owner|organization-admin|manager|analyst|viewer)/);
+  const basePath = roleMatch ? roleMatch[0] : '/analyst';
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -45,7 +51,7 @@ export function AnalystAiCopilotCard() {
           </p>
 
           <div className="mt-auto space-y-3">
-            <Link href="/analyst/dashboard/ai" className="block w-full">
+            <Link href={`${basePath}/dashboard/ai`} className="block w-full">
               <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
                 <Button
                   variant="secondary"
@@ -60,7 +66,7 @@ export function AnalystAiCopilotCard() {
               </motion.div>
             </Link>
 
-            <Link href="/analyst/dashboard/ai" className="block w-full">
+            <Link href={`${basePath}/dashboard/ai`} className="block w-full">
               <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
                 <Button
                   variant="secondary"

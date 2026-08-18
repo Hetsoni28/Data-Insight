@@ -31,10 +31,10 @@ export function AnalystBuilderShell() {
   const handleBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back()
-    } else if (pathname.includes("/organization-admin")) {
-      router.push("/organization-admin/dashboard/builder")
     } else {
-      router.push("/analyst/dashboard/builder")
+      const roleMatch = pathname.match(/^\/(owner|organization-admin|manager|analyst)/);
+      const basePath = roleMatch ? roleMatch[0] : '/analyst';
+      router.push(`${basePath}/dashboard/builder`)
     }
   }
 

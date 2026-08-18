@@ -31,6 +31,10 @@ export function AnalystDatasetsTable({
   isLoading,
   onUploadClick,
 }: AnalystDatasetsTableProps) {
+  const pathname = usePathname();
+  const roleMatch = pathname?.match(/^\/(owner|organization-admin|manager|analyst|viewer)/);
+  const basePath = roleMatch ? roleMatch[0] : '/analyst';
+
   const [searchTerm, setSearchTerm] = useState('');
 
   if (isLoading) {
@@ -77,7 +81,7 @@ export function AnalystDatasetsTable({
               />
             </div>
             <Link
-              href="/analyst/dashboard/datasets"
+              href={`${basePath}/dashboard/datasets`}
               className="text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 flex items-center gap-1 transition-colors"
             >
               View All <ArrowUpRight className="w-3.5 h-3.5" />

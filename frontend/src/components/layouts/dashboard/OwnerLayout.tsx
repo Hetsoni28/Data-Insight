@@ -29,6 +29,9 @@ const OWNER_NAV_GROUPS: NavGroup[] = [
     items: [
       { icon: LayoutDashboard, label: "Dashboard", href: "/owner/dashboard" },
       { icon: Database, label: "Datasets", href: "/owner/dashboard/datasets" },
+      { icon: HardDrive, label: "Upload Dataset", href: "/owner/dashboard/upload-dataset" },
+      { icon: LayoutTemplate, label: "Dashboard Builder", href: "/owner/dashboard/builder" },
+      { icon: PieChart, label: "Charts", href: "/owner/dashboard/charts" },
       { icon: FileSpreadsheet, label: "Reports", href: "/owner/dashboard/reports" },
       { icon: ActivitySquare, label: "Monitoring", href: "/owner/dashboard/monitoring" },
       { icon: Brain, label: "AI Copilot", href: "/owner/dashboard/ai" },
@@ -137,7 +140,7 @@ export function OwnerLayout({ children, user, handleLogout }: OwnerLayoutProps) 
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <DashboardNavbar onUploadClick={() => router.push('/owner/dashboard/datasets')} />
+        <DashboardNavbar onUploadClick={() => router.push('/owner/dashboard/upload-dataset')} showUploadButton={true} />
         <main className="flex-1 overflow-y-auto relative z-0 bg-slate-50/50 dark:bg-background transition-colors duration-200">
           {children}
         </main>

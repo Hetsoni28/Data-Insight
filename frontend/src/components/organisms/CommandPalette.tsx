@@ -46,17 +46,17 @@ export function CommandPalette({ isOpen, setIsOpen }: { isOpen: boolean, setIsOp
     { icon: LayoutDashboard, label: "Dashboard Overview", desc: "Go to main dashboard", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard`) },
     
     { icon: Database, label: "Datasets", desc: "View and manage datasets", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/datasets`) },
-    { icon: HardDrive, label: "Upload Dataset", desc: "Upload a new dataset", allowed: ["owner", "organization-admin", "org_admin", "analyst"], action: () => router.push(`${basePath}/dashboard/upload-dataset`) },
+    { icon: HardDrive, label: "Upload Dataset", desc: "Upload a new dataset", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst"], action: () => router.push(`${basePath}/dashboard/upload-dataset`) },
     
     { icon: Brain, label: "AI Copilot", desc: "Chat with your data", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst"], action: () => router.push(`${basePath}/dashboard/ai`) },
     
     { icon: LayoutDashboard, label: "Dashboard Builder", desc: "Build interactive dashboards", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst"], action: () => router.push(`${basePath}/dashboard/builder`) },
     
-    { icon: PieChart, label: "Charts", desc: "View chart configurations", allowed: ["owner", "analyst"], action: () => router.push(`${basePath}/dashboard/charts`) },
+    { icon: PieChart, label: "Charts", desc: "View chart configurations", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst"], action: () => router.push(`${basePath}/dashboard/charts`) },
     
     { icon: FileText, label: "Reports", desc: "View generated reports", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/reports`) },
     
-    { icon: Activity, label: "Analytics", desc: "View platform usage", allowed: ["owner", "manager", "viewer"], action: () => router.push(`${basePath}/dashboard/analytics`) },
+    { icon: Activity, label: "Analytics", desc: "View platform usage", allowed: ["owner", "organization-admin", "org_admin", "manager", "analyst", "viewer"], action: () => router.push(`${basePath}/dashboard/analytics`) },
     
     { icon: Users, label: "Users & Team", desc: "Manage team members", allowed: ["owner", "organization-admin", "org_admin"], action: () => router.push(`${basePath}/dashboard/team`) },
     

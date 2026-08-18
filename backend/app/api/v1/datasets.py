@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from fastapi import APIRouter, Depends, UploadFile, File, Form, Query
+from fastapi import APIRouter, Depends, UploadFile, File, Form, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_current_active_tenant_user
@@ -34,6 +34,7 @@ async def upload_dataset(
     file: UploadFile = File(...),
     name: str | None = Form(None),
     description: str | None = Form(None),
+    background_tasks: BackgroundTasks = None,
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -47,6 +48,7 @@ async def upload_dataset(
         actor=current_user,
         name=name,
         description=description,
+        background_tasks=background_tasks,
     )
     return dataset
 

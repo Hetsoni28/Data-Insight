@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import api from "@/lib/api"
 import { ShieldCheck, Table as TableIcon, FileDigit, Info, Calendar, ArrowLeft } from "lucide-react"
@@ -25,6 +25,11 @@ export function DatasetDetailExplorer({
 }: DatasetDetailExplorerProps = {}) {
   const params = useParams()
   const router = useRouter()
+  const pathname = usePathname()
+  const roleMatch = pathname?.match(/^\/(owner|organization-admin|manager|analyst|viewer)/)
+  const defaultBackHref = roleMatch ? `${roleMatch[0]}/dashboard/datasets` : "/viewer/dashboard/datasets"
+  const finalBackHref = backHref === "/viewer/dashboard/datasets" ? defaultBackHref : backHref
+
   const { data: user } = useAuth()
   
   const [loading, setLoading] = useState(true)
@@ -145,7 +150,7 @@ export function DatasetDetailExplorer({
         description={dataset.description || "Enterprise dataset available for read-only analytical exploration and AI insights."}
         badges={headerBadges}
         showBack={true}
-        backLink={backHref}
+        backLink={finalBackHref}
       />
 
       <DatasetMetricsGrid metrics={detailMetrics} />

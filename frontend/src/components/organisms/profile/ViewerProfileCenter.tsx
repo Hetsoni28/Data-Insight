@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { User, Shield, Laptop, Bell, Settings } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,6 +31,9 @@ import { ViewerActivity } from "./ViewerActivity";
 
 export function ViewerProfileCenter() {
   const queryClient = useQueryClient();
+  const pathname = usePathname();
+  const roleMatch = pathname?.match(/^\/(owner|organization-admin|manager|analyst|viewer)/);
+  const basePath = roleMatch ? roleMatch[0] : '/viewer';
   const [loginHistoryPage, setLoginHistoryPage] = useState(1);
   const [activityPage, setActivityPage] = useState(1);
 
@@ -91,7 +95,7 @@ export function ViewerProfileCenter() {
     <div className="flex flex-col min-h-full animate-in fade-in duration-500 space-y-6 pb-12">
       {/* Back Navigation */}
       <div className="flex items-center gap-2">
-        <Link href="/viewer/dashboard">
+        <Link href={`${basePath}/dashboard`}>
           <Button variant="ghost" size="sm" className="h-7 px-2 text-slate-500 hover:text-slate-900 dark:hover:text-white -ml-2">
             <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to Dashboard
           </Button>

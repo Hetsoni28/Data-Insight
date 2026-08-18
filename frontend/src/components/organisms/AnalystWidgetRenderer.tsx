@@ -71,22 +71,32 @@ export function AnalystWidgetRenderer({ widget, isPreviewMode, onRemove, isSelec
   const met = widget.config?.metric || widget.config?.yAxis
 
   const isDataWidget = widget.type !== 'markdown' && widget.type !== 'ai_insight'
+  
+  const isValidConfigValue = (val: string | undefined) => val && val.trim() !== "" && !val.startsWith("Select");
+  const isValidUUID = (id: string | undefined) => id ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) : false;
+
   const isConfigured =
     widget.type === 'markdown' ||
     widget.type === 'ai_insight' ||
-    (widget.config?.dataset_id && (
-      (widget.type === 'kpi' && met) ||
-      (dim && met)
+    (isValidUUID(widget.config?.dataset_id) && isValidConfigValue(met) && (
+      (widget.type === 'kpi') ||
+      (isValidConfigValue(dim))
     ))
 
   const { data: queryResult, isLoading, error } = useQuery({
     queryKey: ['widget-data', widget.id, widget.config],
     queryFn: () => {
       if (!isDataWidget) return null
+      // Clean up the payload to avoid sending hallucinated placeholders
+      const cleanDimension = widget.type !== 'kpi' && isValidConfigValue(dim) ? dim : undefined;
+      const cleanMetric = isValidConfigValue(met) ? met : undefined;
+
       return DashboardQueryService.executeQuery(widget.config.dataset_id!, {
-        dimension: dim,
-        metric: met,
+        dimension: cleanDimension,
+        metric: cleanMetric,
         aggregation: widget.config.aggregation || 'SUM',
+        limit: widget.config.limit || 20,
+        sort: widget.config.sort || undefined
       })
     },
     enabled: !!isConfigured && isDataWidget,
@@ -133,6 +143,13 @@ export function AnalystWidgetRenderer({ widget, isPreviewMode, onRemove, isSelec
     )
 
     if (error) {
+      const status = (error as any)?.response?.status
+      
+      // If the AI hallucinated an invalid column (422) or dataset (404), gracefully fall back to the config placeholder
+      if (status === 422 || status === 404) {
+        return renderConfigPlaceholder()
+      }
+
       const errMsg = (error as any)?.response?.data?.detail || (error as any)?.message || 'Query failed'
       return (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-2">

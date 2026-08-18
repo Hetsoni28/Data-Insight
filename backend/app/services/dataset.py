@@ -1,6 +1,7 @@
 """DatasetService — file upload, profiling trigger, and management."""
 
 import uuid
+from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.dataset import Dataset, DatasetStatus, DatasetFileType
@@ -51,6 +52,7 @@ class DatasetService:
         actor: User,
         name: str | None = None,
         description: str | None = None,
+        background_tasks: Any = None,
     ) -> Dataset:
         from pathlib import Path
 
@@ -100,17 +102,14 @@ class DatasetService:
         # Atomically record storage usage
         await quota_svc.consume_storage(actor.tenant_id, len(file_bytes))
 
-        # Trigger Celery profiling task
-        from app.worker.tasks.dataset_tasks import profile_dataset_task
+        # Trigger profiling task via BackgroundTasks instead of Celery for native offline execution
+        from app.worker.tasks.dataset_tasks import _profile_dataset
 
-        try:
-            task = profile_dataset_task.delay(str(dataset.id))
-            dataset.celery_task_id = task.id
-            await self.dataset_repo.save(dataset)
-        except Exception as e:
-            print(f"Warning: Could not queue celery task. Is Redis running? Error: {e}")
-            dataset.status = DatasetStatus.ready
-            await self.dataset_repo.save(dataset)
+        if background_tasks:
+            background_tasks.add_task(_profile_dataset, None, str(dataset.id))
+        else:
+            import asyncio
+            asyncio.create_task(_profile_dataset(None, str(dataset.id)))
         # Notify
         await NotificationService.create_notification(
             session=self.session,

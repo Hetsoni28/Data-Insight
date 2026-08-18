@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useAuth } from '@/hooks/useAuth';
 import { tenantDashboardService } from '@/lib/tenantDashboard.service';
+import { DatasetService } from '@/lib/dataset.service';
 
 import { AnalystDashboardHeader } from '@/components/organisms/analyst/AnalystDashboardHeader';
 import { AnalystKpiGrid } from '@/components/organisms/analyst/AnalystKpiGrid';
@@ -45,7 +46,7 @@ export default function AnalystDashboard() {
 
   const { data: datasets, isLoading: loadingDatasets } = useQuery({
     queryKey: ['analystDatasets', wsId],
-    queryFn: () => tenantDashboardService.getDatasets(0, 5),
+    queryFn: () => DatasetService.list(activeWs!.id),
     enabled: !!activeWs,
   });
 

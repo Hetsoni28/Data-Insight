@@ -3,6 +3,7 @@
 import React, { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { DatasetService } from "@/lib/dataset.service"
+import { DashboardQueryService } from "@/lib/services/dashboard-query.service"
 import { ChartBase } from "@/lib/services/chart.service"
 import { BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from "recharts"
 import { AlertCircle, Loader2, BarChart2 } from "lucide-react"
@@ -23,23 +24,28 @@ export function AnalystChartPreview({ config }: AnalystChartPreviewProps) {
   const { dimension, metric, aggregation, limit } = cJSON
   const datasetId = debouncedConfig.dataset_id
 
-  // We only run query if we have both dimension and metric
-  const isValid = !!(datasetId && dimension && metric)
+  const isValidConfigValue = (val: string | undefined) => val && val.trim() !== "" && !val.toLowerCase().includes("select");
+  const isValidUUID = (id: string | undefined) => id ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) : false;
+
+  // We only run query if we have both dimension and metric and they are valid
+  const isValid = !!(isValidUUID(datasetId) && isValidConfigValue(dimension) && isValidConfigValue(metric))
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['structured-query', datasetId, dimension, metric, aggregation, limit],
     queryFn: async ({ signal }) => {
       if (!isValid) return { data: [] }
-      // Using queryStructured which accepts signal for cancellation
-      return DatasetService.queryStructured(datasetId, {
-        dataset_id: datasetId,
-        dimension,
-        metric,
+      
+      const cleanDimension = isValidConfigValue(dimension) ? dimension : undefined;
+      const cleanMetric = isValidConfigValue(metric) ? metric : undefined;
+
+      // Using DashboardQueryService.executeQuery which calls the actual endpoint
+      return DashboardQueryService.executeQuery(datasetId, {
+        dimension: cleanDimension,
+        metric: cleanMetric,
         aggregation: aggregation || 'sum',
         limit: limit || 100,
-        filters: cJSON.filters || [],
-        sort: cJSON.sort || []
-      }, signal)
+        sort: cJSON.sort || undefined
+      })
     },
     enabled: isValid,
     staleTime: 1000 * 60 * 5 // 5 minutes cache
@@ -145,18 +151,20 @@ export function AnalystChartPreview({ config }: AnalystChartPreviewProps) {
     tickLine: { stroke: '#cbd5e1' }
   }
 
-  if (!isValid) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center bg-slate-50/30 dark:bg-slate-950/30">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/20 dark:from-emerald-500/20 dark:to-teal-400/10 border border-emerald-500/20 flex items-center justify-center mb-5 shadow-inner">
-          <BarChart2 className="w-10 h-10 text-emerald-500 dark:text-emerald-400" />
-        </div>
-        <h3 className="text-lg font-black text-slate-800 dark:text-slate-200 mb-2 tracking-tight">Build & Preview Visualizations</h3>
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
-          Select a dataset on the left panel, choose your X-axis Dimension and Y-axis Metric to generate real-time charts powered by DuckDB.
-        </p>
+  const renderPlaceholder = () => (
+    <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center bg-slate-50/30 dark:bg-slate-950/30">
+      <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/20 dark:from-emerald-500/20 dark:to-teal-400/10 border border-emerald-500/20 flex items-center justify-center mb-5 shadow-inner">
+        <BarChart2 className="w-10 h-10 text-emerald-500 dark:text-emerald-400" />
       </div>
-    )
+      <h3 className="text-lg font-black text-slate-800 dark:text-slate-200 mb-2 tracking-tight">Build & Preview Visualizations</h3>
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
+        Select a dataset on the left panel, choose your X-axis Dimension and Y-axis Metric to generate real-time charts powered by DuckDB.
+      </p>
+    </div>
+  )
+
+  if (!isValid) {
+    return renderPlaceholder()
   }
 
   if (isLoading) {
@@ -175,13 +183,20 @@ export function AnalystChartPreview({ config }: AnalystChartPreviewProps) {
   }
 
   if (isError) {
+    const status = (error as any)?.response?.status
+    if (status === 422 || status === 404) {
+      return renderPlaceholder()
+    }
+
     return (
       <div className="flex flex-col items-center justify-center h-full text-red-500 p-8 text-center bg-red-50/10 dark:bg-red-950/10">
         <div className="w-16 h-16 rounded-2xl bg-red-100 dark:bg-red-950/60 border border-red-500/20 flex items-center justify-center mb-4">
           <AlertCircle className="w-8 h-8 text-red-500" />
         </div>
-        <h3 className="text-base font-black mb-1 text-slate-900 dark:text-white">Query Execution Failed</h3>
-        <p className="text-xs font-medium text-red-500/90 max-w-sm">{(error as Error).message || "Unable to execute chart query."}</p>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Preview Execution Failed</h3>
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 max-w-sm">
+          {((error as any)?.response?.data?.detail) || ((error as any)?.message) || 'Check your dataset and configuration.'}
+        </p>
       </div>
     )
   }

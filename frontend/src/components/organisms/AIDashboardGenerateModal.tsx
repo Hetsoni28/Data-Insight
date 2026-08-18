@@ -79,7 +79,8 @@ export function AIDashboardGenerateModal({ isOpen, onClose }: AIDashboardGenerat
       if (newDashboardId) {
         toast.success("Dashboard successfully generated!")
         onClose()
-        const targetBase = pathname.includes("/organization-admin") ? "/organization-admin" : "/analyst"
+        const roleMatch = pathname.match(/^\/(owner|organization-admin|manager|analyst|viewer)/);
+        const targetBase = roleMatch ? roleMatch[0] : "/analyst"
         router.push(`${targetBase}/dashboard/builder/${newDashboardId}`)
       } else {
         throw new Error("Invalid response from generator")

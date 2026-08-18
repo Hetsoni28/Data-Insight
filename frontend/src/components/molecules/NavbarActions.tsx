@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Search, Bell, Upload, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWorkspaceStore } from "@/store/workspaceStore"
@@ -13,7 +13,11 @@ interface NavbarActionsProps {
 
 export function NavbarActions({ onSearchClick, onUploadClick, showUploadButton = true }: NavbarActionsProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const { activeWs, loadingWs } = useWorkspaceStore()
+  
+  const roleMatch = pathname?.match(/^\/(owner|organization-admin|manager|analyst|viewer)/)
+  const basePath = roleMatch ? roleMatch[0] : '/analyst'
 
   const handleUploadClick = () => {
     if (loadingWs) {
@@ -28,7 +32,7 @@ export function NavbarActions({ onSearchClick, onUploadClick, showUploadButton =
     if (onUploadClick) {
       onUploadClick()
     } else {
-      router.push("/owner/dashboard/datasets")
+      router.push(`${basePath}/dashboard/datasets`)
     }
   }
 
@@ -48,7 +52,7 @@ export function NavbarActions({ onSearchClick, onUploadClick, showUploadButton =
       <ThemeToggle />
 
       {/* Notifications */}
-      <button suppressHydrationWarning onClick={() => router.push('/owner/dashboard/notifications')} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 border border-transparent hover:border-slate-200 dark:hover:border-white/20 text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white transition-all relative group">
+      <button suppressHydrationWarning onClick={() => router.push(`${basePath}/dashboard/notifications`)} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 border border-transparent hover:border-slate-200 dark:hover:border-white/20 text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white transition-all relative group">
         <Bell className="h-4 w-4 group-hover:animate-pulse" />
         <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-background" />
       </button>

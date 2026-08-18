@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Loader2 } from "lucide-react"
@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { token } = useAuthStore()
-  const { isLoading, isError, isSuccess } = useAuth()
+  const { data: user, isLoading, isError, isSuccess } = useAuth()
   const [mounted, setMounted] = useState(false)
 
   // Prevent hydration mismatch
@@ -41,10 +41,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!token && !isPublicRoute) {
       router.push("/login")
-    } else if (token && isSuccess && isPublicRoute) {
-      router.push("/dashboard")
+    } else if (token && isSuccess && isPublicRoute && user) {
+      const role = user.role === 'org_admin' ? 'organization-admin' : (user.role || 'owner')
+      router.push(`/${role}/dashboard/datasets`)
     }
-  }, [token, isPublicRoute, isSuccess, mounted, router])
+  }, [token, isPublicRoute, isSuccess, mounted, router, user])
 
   // If we haven't mounted yet, render nothing to prevent hydration mismatch
   if (!mounted) return null

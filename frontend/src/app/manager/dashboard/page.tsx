@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
+import { DatasetService } from "@/lib/dataset.service";
 import { motion } from "framer-motion";
 
 import { ManagerHero } from "@/components/organisms/ManagerHero";
@@ -44,7 +45,7 @@ export default function ManagerDashboardPage() {
 
   const { data: datasetsRes, isLoading: loadingDatasets } = useQuery({
     queryKey: ['manager-datasets-list', activeWs?.id],
-    queryFn: () => TenantDashboardService.getDatasets(0, 5),
+    queryFn: () => DatasetService.list(activeWs!.id),
     enabled: !!activeWs?.id,
   });
   const datasets = datasetsRes?.data || datasetsRes?.items || (Array.isArray(datasetsRes) ? datasetsRes : []);

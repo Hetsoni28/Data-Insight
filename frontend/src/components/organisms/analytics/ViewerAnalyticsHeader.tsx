@@ -4,6 +4,7 @@ import {  Download, BookmarkPlus, Sparkles, MoreHorizontal, ArrowLeft, Loader2, 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { toast } from "sonner";
 import React, { useState } from "react";
@@ -18,6 +19,10 @@ interface ViewerAnalyticsHeaderProps {
 }
 
 export const ViewerAnalyticsHeader = React.memo(function ViewerAnalyticsHeader({ domain, lastRefresh, onOpenAi, onSaveView, isSaving }: ViewerAnalyticsHeaderProps) {
+  const pathname = usePathname();
+  const roleMatch = pathname?.match(/^\/(owner|organization-admin|manager|analyst|viewer)/);
+  const basePath = roleMatch ? roleMatch[0] : '/viewer';
+
   const { activeWs } = useWorkspaceStore();
   const [isExporting, setIsExporting] = useState(false);
 
@@ -53,7 +58,7 @@ export const ViewerAnalyticsHeader = React.memo(function ViewerAnalyticsHeader({
             transition={{ delay: 0.1 }}
             className="flex flex-wrap items-center gap-3"
           >
-            <Link href="/viewer/dashboard">
+            <Link href={`${basePath}/dashboard`}>
               <Button variant="ghost" size="sm" className="h-8 px-3 rounded-full bg-white/10 hover:bg-white/20 text-emerald-50 backdrop-blur-md border border-white/20 shadow-sm transition-all">
                 <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
               </Button>

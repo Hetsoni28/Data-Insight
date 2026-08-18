@@ -6,8 +6,8 @@ from datetime import datetime
 class ViewerAnalyticsKpi(BaseModel):
     id: str
     title: str
-    value: Union[str, float, int]
-    previous_value: Optional[Union[str, float, int]] = None
+    value: Any
+    previous_value: Optional[Any] = None
     percentage_change: Optional[float] = None
     change_pct: Optional[float] = None
     trend_direction: Optional[str] = None
