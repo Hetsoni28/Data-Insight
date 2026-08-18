@@ -133,36 +133,36 @@ function DatasetCard({ dataset }: { dataset: ViewerDataset }) {
             <Database className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base line-clamp-2 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors pr-2">{dataset.name}</h3>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base line-clamp-2 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors break-words">{dataset.name}</h3>
                 {dataset.description && (
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{dataset.description}</p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-1">{dataset.description}</p>
                 )}
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 flex-shrink-0 bg-slate-100 dark:bg-white/10 px-2.5 py-1 rounded-full shadow-sm">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 flex-shrink-0 bg-slate-100 dark:bg-white/10 px-2.5 py-1 rounded-full shadow-sm whitespace-nowrap">
                 {STATUS_ICON[dataset.status]}
                 <span className="capitalize">{dataset.status}</span>
               </div>
             </div>
 
             {/* Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5 bg-slate-50/80 dark:bg-white/5 rounded-xl p-3.5 border border-slate-100 dark:border-white/5 shadow-inner">
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Rows</p>
-                <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{dataset.row_count?.toLocaleString() ?? "—"}</p>
+            <div className="grid grid-cols-4 gap-2 mt-5 bg-slate-50/80 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 shadow-inner">
+              <div className="min-w-0">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Rows</p>
+                <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5 truncate">{dataset.row_count?.toLocaleString() ?? "—"}</p>
               </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Columns</p>
-                <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{dataset.column_count ?? "—"}</p>
+              <div className="min-w-0">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Columns</p>
+                <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5 truncate">{dataset.column_count ?? "—"}</p>
               </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Size</p>
-                <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{sizeKb ? `${sizeKb} KB` : "—"}</p>
+              <div className="min-w-0">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Size</p>
+                <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5 truncate">{sizeKb ? `${sizeKb >= 1024 ? (sizeKb/1024).toFixed(1)+' MB' : sizeKb+' KB'}` : "—"}</p>
               </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Owner</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate mt-0.5">{typeof dataset.owner === 'object' ? dataset.owner?.name || "Unknown" : dataset.owner}</p>
+              <div className="min-w-0">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Owner</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate mt-0.5">{typeof dataset.owner === 'object' ? dataset.owner?.name || "—" : dataset.owner || "—"}</p>
               </div>
             </div>
 
@@ -175,27 +175,28 @@ function DatasetCard({ dataset }: { dataset: ViewerDataset }) {
             </div>
 
             {/* Meta + Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-5 pt-4 border-t border-slate-200 dark:border-white/10 gap-3">
-              <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" /> Updated {new Date(dataset.updated_at).toLocaleDateString()}
+            <div className="flex flex-wrap items-center justify-between mt-5 pt-4 border-t border-slate-200 dark:border-white/10 gap-2">
+              <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5 min-w-0 flex-shrink">
+                <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Updated {new Date(dataset.updated_at).toLocaleDateString()}</span>
               </span>
-              <div className="flex gap-2.5">
+              <div className="flex gap-2 flex-shrink-0">
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-9 px-3 text-xs font-bold gap-1.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors shadow-sm"
+                  className="h-8 px-3 text-xs font-bold gap-1.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors shadow-sm whitespace-nowrap"
                   onClick={() => setShowSchema(true)}
                 >
-                  <Table className="w-3.5 h-3.5" /> Schema
+                  <Table className="w-3.5 h-3.5 flex-shrink-0" /> Schema
                 </Button>
                 <Button
                   size="sm"
                   variant="default"
-                  className="h-9 px-4 text-xs font-bold gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-500/20 transition-all hover:shadow-md hover:shadow-emerald-500/30 active:scale-95"
+                  className="h-8 px-3 text-xs font-bold gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-500/20 transition-all hover:shadow-md hover:shadow-emerald-500/30 active:scale-95 whitespace-nowrap"
                   disabled={downloading}
                   onClick={handleDownload}
                 >
-                  {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" /> : <Download className="w-3.5 h-3.5 flex-shrink-0" />}
                   Download
                 </Button>
               </div>
