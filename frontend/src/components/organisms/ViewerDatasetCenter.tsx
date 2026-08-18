@@ -228,7 +228,7 @@ export function ViewerDatasetCenter({ datasets, isLoading }: ViewerDatasetCenter
            <Skeleton className="h-10 w-48 rounded-xl bg-white/40 dark:bg-slate-800/40" />
            <Skeleton className="h-10 w-72 rounded-xl bg-white/40 dark:bg-slate-800/40" />
         </div>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 2xl:grid-cols-2 gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-72 rounded-2xl bg-white/40 dark:bg-slate-800/40" />
           ))}
@@ -278,7 +278,7 @@ export function ViewerDatasetCenter({ datasets, isLoading }: ViewerDatasetCenter
         </motion.div>
       ) : (
         <>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 2xl:grid-cols-2 gap-5">
             <AnimatePresence mode="popLayout">
               {filtered
                 .slice((currentPage - 1) * pageSize, currentPage * pageSize)

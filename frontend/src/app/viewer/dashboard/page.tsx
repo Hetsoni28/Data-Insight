@@ -90,7 +90,7 @@ export default function ViewerDashboardPage() {
   }
 
   return (
-    <div className="flex-1 p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 pb-24 relative min-h-screen">
+    <div className="flex-1 p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 pb-24 relative min-h-screen overflow-x-hidden">
       {/* Premium Ambient Background Glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] opacity-70" />
@@ -135,7 +135,7 @@ export default function ViewerDashboardPage() {
       {/* Main Content Workspace Split */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Side: Viewer Browsers */}
-        <div className={cn("space-y-6 transition-all duration-300", isCopilotOpen ? "lg:col-span-8" : "lg:col-span-12")}>
+        <div className={cn("space-y-6 transition-all duration-300 min-w-0 overflow-hidden", isCopilotOpen ? "lg:col-span-8" : "lg:col-span-12")}>
           {/* Navigation Bar */}
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-1">
             <div className="flex gap-2">
@@ -220,7 +220,7 @@ export default function ViewerDashboardPage() {
 
         {/* Right Side: Copilot Panel */}
         {isCopilotOpen && (
-          <div className="lg:col-span-4 relative z-20">
+          <div className="lg:col-span-4">
             <div className="sticky top-6 border border-emerald-500/20 dark:border-emerald-500/20 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-2xl p-5 space-y-4 shadow-2xl shadow-emerald-500/10 transition-all duration-300">
               <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
                 <div className="flex items-center gap-2">
