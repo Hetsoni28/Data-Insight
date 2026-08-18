@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from "react"
+import React, { useMemo } from "react"
 import { motion } from "framer-motion"
 import { CheckCircle2, Check, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,11 +12,11 @@ export function OnboardingSuccessStep({ router }: OnboardingSuccessStepProps) {
   const confetti = useMemo(() =>
     Array.from({ length: 20 }, (_, i) => ({
       id: i,
-      xStart: `${Math.random() * 100}%`,
-      xEnd: `${Math.random() * 100}%`,
-      scale: Math.random() * 0.5 + 0.5,
-      duration: Math.random() * 2 + 1.5,
-      delay: Math.random() * 0.2,
+      xStart: `${(i * 13) % 100}%`,
+      xEnd: `${(i * 17) % 100}%`,
+      scale: (i % 5) * 0.1 + 0.5,
+      duration: (i % 3) * 0.5 + 1.5,
+      delay: (i % 4) * 0.05,
     })),
     []
   );

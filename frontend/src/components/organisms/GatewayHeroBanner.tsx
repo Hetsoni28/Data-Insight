@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -180,11 +180,14 @@ function CreateApiKeyModal({ open, onClose }: { open: boolean; onClose: () => vo
   const handleCreate = async () => {
     if (!name.trim()) { toast.error("Please enter a key name"); return }
     setCreating(true)
-    // Simulate key creation (in production, call a real API)
-    await new Promise(r => setTimeout(r, 1000))
-    const key = `sk_live_${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`
-    setCreatedKey(key)
-    setCreating(false)
+    try {
+      const res = await api.post("/developer/keys", { name, scopes })
+      setCreatedKey(res.data.key)
+    } catch {
+      toast.error("Failed to create API key")
+    } finally {
+      setCreating(false)
+    }
     queryClient.invalidateQueries({ queryKey: ['api-gateway', 'overview'] })
     toast.success(`API Key "${name}" created successfully`)
   }

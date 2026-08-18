@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Users, Building2, Banknote, BrainCircuit, Activity } from "lucide-react";
@@ -44,13 +44,7 @@ export function ExecutiveKpiGrid() {
     );
   }
 
-  // Generate some fake sparkline data just for visual effect in Phase 1
-  const generateSparkline = (base: number, volatility: number) => {
-    return Array.from({ length: 14 }).map((_, i) => ({
-      value: Math.max(0, base + (Math.random() - 0.5) * volatility * base),
-      day: i
-    }));
-  };
+  const generateSparkline = (base: number, _volatility: number) => Array.from({ length: 14 }).map((_, i) => ({ value: base, day: i }));
 
   return (
     <div className="space-y-8">

@@ -70,17 +70,8 @@ async def get_ai_overview(
     success_rate = 100.0 - error_rate
     
     # Generate Sparklines (mocked or aggregated daily for the last 30 days)
-    import random
     def generate_sparkline(base_value: float, variance: float = 0.1, days: int = 30, trend: str = "up") -> list:
-        data = []
-        current = base_value * 0.7 if trend == "up" else base_value * 1.3
-        for i in range(days):
-            change = current * variance * random.uniform(-1, 1.2 if trend == "up" else 0.8)
-            current += change
-            data.append({"day": i, "value": max(0, current)})
-        if data:
-            data[-1]["value"] = base_value
-        return data
+        return []
 
     return {
         "kpis": {

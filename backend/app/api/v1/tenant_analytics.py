@@ -18,14 +18,27 @@ from datetime import datetime, timezone
 
 router = APIRouter(prefix="/tenant-analytics", tags=["Tenant Analytics"])
 
+import json
+from app.db.redis import get_redis_pool
+from redis.asyncio import Redis
+
 @router.get("/kpis", response_model=ViewerAnalyticsKpisResponse)
 async def get_kpis(
     dataset_id: Optional[uuid.UUID] = Query(None),
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db)
 ):
+    pool = await get_redis_pool()
+    client = Redis(connection_pool=pool)
+    cache_key = f"tenant:{current_user.tenant_id}:analytics:kpis:{dataset_id or 'all'}"
+    cached = await client.get(cache_key)
+    if cached:
+        return json.loads(cached)
+        
     service = TenantAnalyticsService(db)
-    return await service.get_kpis(current_user, dataset_id)
+    result = await service.get_kpis(current_user, dataset_id)
+    await client.setex(cache_key, 300, json.dumps(result)) # 5 minutes cache
+    return result
 
 @router.get("/trends", response_model=ViewerAnalyticsTrendsResponse)
 async def get_trends(
@@ -33,8 +46,17 @@ async def get_trends(
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db)
 ):
+    pool = await get_redis_pool()
+    client = Redis(connection_pool=pool)
+    cache_key = f"tenant:{current_user.tenant_id}:analytics:trends:{dataset_id or 'all'}"
+    cached = await client.get(cache_key)
+    if cached:
+        return json.loads(cached)
+        
     service = TenantAnalyticsService(db)
-    return await service.get_trends(current_user, dataset_id)
+    result = await service.get_trends(current_user, dataset_id)
+    await client.setex(cache_key, 300, json.dumps(result))
+    return result
 
 @router.get("/performance", response_model=ViewerAnalyticsPerformanceResponse)
 async def get_performance(
@@ -42,8 +64,17 @@ async def get_performance(
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db)
 ):
+    pool = await get_redis_pool()
+    client = Redis(connection_pool=pool)
+    cache_key = f"tenant:{current_user.tenant_id}:analytics:performance:{dataset_id or 'all'}"
+    cached = await client.get(cache_key)
+    if cached:
+        return json.loads(cached)
+        
     service = TenantAnalyticsService(db)
-    return await service.get_performance(current_user, dataset_id)
+    result = await service.get_performance(current_user, dataset_id)
+    await client.setex(cache_key, 300, json.dumps(result))
+    return result
 
 @router.get("/anomalies", response_model=ViewerAnalyticsAnomaliesResponse)
 async def get_anomalies(
@@ -51,8 +82,17 @@ async def get_anomalies(
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db)
 ):
+    pool = await get_redis_pool()
+    client = Redis(connection_pool=pool)
+    cache_key = f"tenant:{current_user.tenant_id}:analytics:anomalies:{dataset_id or 'all'}"
+    cached = await client.get(cache_key)
+    if cached:
+        return json.loads(cached)
+        
     service = TenantAnalyticsService(db)
-    return await service.get_anomalies(current_user, dataset_id)
+    result = await service.get_anomalies(current_user, dataset_id)
+    await client.setex(cache_key, 300, json.dumps(result))
+    return result
 
 @router.get("/data-quality", response_model=ViewerAnalyticsDataQualityResponse)
 async def get_data_quality(

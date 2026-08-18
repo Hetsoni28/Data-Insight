@@ -14,6 +14,7 @@ from app.models.dataset import Dataset, DatasetStatus
 from app.models.ai_token_usage import AITokenUsage
 from app.models.audit_log import AuditLog
 from pydantic import BaseModel
+from app.core.rate_limit import limiter
 from app.core.websockets import manager as ws_manager
 from app.services.dataset_query_service import DatasetQueryService
 from app.permissions.dataset_permissions import ROLE_PERMISSIONS as DATASET_ROLE_PERMISSIONS
@@ -570,8 +571,6 @@ async def delete_dataset(
 async def simulate_ai_workflow(tenant_id: uuid.UUID, dataset_id: uuid.UUID, workflow_type: str, user_id: uuid.UUID):
     """Background task to mock processing delay and reset status."""
     from app.db.session import AsyncSessionLocal
-    await asyncio.sleep(5) # Simulate 5 seconds of AI processing
-    
     async with AsyncSessionLocal() as db:
         stmt = select(Dataset).where(Dataset.id == dataset_id, Dataset.tenant_id == tenant_id)
         res = await db.execute(stmt)
@@ -579,7 +578,7 @@ async def simulate_ai_workflow(tenant_id: uuid.UUID, dataset_id: uuid.UUID, work
         if d:
             d.status = DatasetStatus.ready
             if workflow_type == 'analyze':
-                d.data_quality_score = random.randint(85, 100)
+                d.data_quality_score = 95
             elif workflow_type == 'ai-excel':
                 # Generate a mock AI Excel dataset to show in the UI
                 new_d = Dataset(
@@ -618,6 +617,7 @@ async def simulate_ai_workflow(tenant_id: uuid.UUID, dataset_id: uuid.UUID, work
             )
 
 @router.post("/{dataset_id}/analyze", summary="Analyze Dataset", dependencies=[Depends(RequirePermission("DATASET_ANALYZE"))])
+@limiter.limit("5/minute")
 async def analyze_dataset(
     dataset_id: uuid.UUID,
     request: Request,
@@ -647,7 +647,7 @@ async def analyze_dataset(
         db.add(audit)
     
         # Mock AI usage log for cost tracking
-        tokens = random.randint(500, 2000)
+        tokens = 1000
         ai_log = AITokenUsage(
             tenant_id=tenant_id, feature="data_profiling", model="gemini-3.5-flash",
             prompt_tokens=tokens, completion_tokens=50,
@@ -665,6 +665,7 @@ async def analyze_dataset(
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 @router.post("/{dataset_id}/ai-excel", summary="Generate AI Excel", dependencies=[Depends(RequirePermission("DATASET_AI_EXCEL"))])
+@limiter.limit("3/minute")
 async def generate_ai_excel(
     dataset_id: uuid.UUID,
     request: Request,
@@ -701,7 +702,7 @@ async def generate_ai_excel(
     )
     db.add(audit)
     
-    tokens = random.randint(3000, 8000)
+    tokens = 4500
     ai_log = AITokenUsage(
         tenant_id=tenant_id, feature="excel_generation", model="gemini-3.5-flash",
         prompt_tokens=tokens, completion_tokens=1500,
@@ -714,6 +715,7 @@ async def generate_ai_excel(
     return {"status": "success", "message": "AI Excel generation started"}
 
 @router.post("/{dataset_id}/dashboard", summary="Create Dashboard", dependencies=[Depends(RequirePermission("DATASET_CREATE_DASHBOARD"))])
+@limiter.limit("5/minute")
 async def create_dashboard(
     dataset_id: uuid.UUID,
     request: Request,
@@ -742,7 +744,7 @@ async def create_dashboard(
         )
         db.add(audit)
     
-        tokens = random.randint(1500, 5000)
+        tokens = 2500
         ai_log = AITokenUsage(
             tenant_id=tenant_id, feature="dashboard_generation", model="gemini-3.5-flash",
             prompt_tokens=tokens, completion_tokens=800,

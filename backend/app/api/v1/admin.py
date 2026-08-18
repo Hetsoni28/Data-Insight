@@ -588,17 +588,15 @@ async def tenant_analytics(
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     
     growth = []
-    # Count total active orgs created before each of the last 6 months
+    dates_stmt = select(Tenant.created_at).where(Tenant.is_deleted == False)
+    all_dates = (await db.execute(dates_stmt)).scalars().all()
+    
     for i in range(6, -1, -1):
         target_date = now - timedelta(days=i*30)
         m_idx = target_date.month - 1
         
         # Total orgs created before this date
-        count_stmt = select(func.count(Tenant.id)).where(
-            Tenant.is_deleted == False,
-            Tenant.created_at <= target_date
-        )
-        total = (await db.execute(count_stmt)).scalar_one()
+        total = sum(1 for d in all_dates if d <= target_date)
         growth.append({"month": months[m_idx], "total": total, "new": 0})
 
     # 3. Top Organizations (by user count for now)
@@ -711,8 +709,8 @@ async def get_monitoring(
     cpu_percent = psutil.cpu_percent(interval=0.1)
     memory_percent = psutil.virtual_memory().percent
 
-    # For now, simulate API latency based on real CPU
-    api_latency = int(50 + (cpu_percent * 2) + random.randint(-10, 10))
+    # Calculate API latency based on real CPU
+    api_latency = int(50 + (cpu_percent * 2))
 
     # Count real active database connections
     # We use a raw query to check pg_stat_activity if using postgres
@@ -724,7 +722,7 @@ async def get_monitoring(
         )
         active_connections = result.scalar()
     except Exception:
-        active_connections = random.randint(10, 50)
+        active_connections = 0
 
     return {
         "uptime": uptime_percentage,
@@ -768,14 +766,24 @@ async def list_subscriptions(
     tenants = result.scalars().all()
     total = await db.scalar(select(func.count(Tenant.id)).where(Tenant.is_deleted == False)) or 0
     
+    tenant_ids = [t.id for t in tenants]
+    
+    # Efficiently fetch latest invoice per tenant
+    last_invoices_map = {}
+    if tenant_ids:
+        inv_stmt = (
+            select(Invoice)
+            .where(Invoice.tenant_id.in_(tenant_ids))
+            .order_by(Invoice.tenant_id, desc(Invoice.invoice_date))
+        )
+        inv_res = await db.execute(inv_stmt)
+        for inv in inv_res.scalars():
+            if inv.tenant_id not in last_invoices_map:
+                last_invoices_map[inv.tenant_id] = inv
+
     data = []
     for t in tenants:
-        # Get last invoice
-        last_inv = await db.scalar(
-            select(Invoice)
-            .where(Invoice.tenant_id == t.id)
-            .order_by(desc(Invoice.invoice_date))
-        )
+        last_inv = last_invoices_map.get(t.id)
         data.append({
             "id": str(t.id),
             "name": t.name,

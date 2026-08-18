@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import api from "@/lib/api"
@@ -71,9 +71,7 @@ export default function ReportsCenterPage() {
 
   useEffect(() => {
     fetchData()
-    const interval = setInterval(fetchData, 5000) // Poll every 5s for background tasks
-    return () => clearInterval(interval)
-  }, []) // Remove searchQuery dependency for the polling interval
+  }, [])
 
   // Debounce search query changes
   useEffect(() => {

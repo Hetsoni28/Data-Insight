@@ -3,8 +3,9 @@
 import uuid
 import json
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
+from app.core.rate_limit import limiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_current_active_tenant_user
@@ -65,9 +66,11 @@ async def list_ai_providers(
 @router.post(
     "/chat",
     response_model=AIChatResponse,
-    summary="AI Copilot — ask a question about your data",
+    summary="AI Copilot — interactive Q&A over specific datasets or general platform help",
 )
+@limiter.limit("10/minute")
 async def copilot_chat(
+    request: Request,
     body: AIChatRequest,
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db),
@@ -96,7 +99,9 @@ async def copilot_chat(
     "/chat/stream",
     summary="AI Copilot — stream responses in real-time via Server-Sent Events (SSE)",
 )
+@limiter.limit("10/minute")
 async def copilot_chat_stream(
+    request: Request,
     body: AIChatRequest,
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db),
@@ -132,7 +137,9 @@ async def copilot_chat_stream(
     response_model=AINLQueryResponse,
     summary="Natural Language to DuckDB SQL — direct query and tabular answer",
 )
+@limiter.limit("15/minute")
 async def natural_language_query(
+    request: Request,
     body: AINLQueryRequest,
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db),
@@ -159,7 +166,9 @@ async def natural_language_query(
     status_code=202,
     summary="Trigger deep AI dataset narrative analysis (async)",
 )
+@limiter.limit("5/minute")
 async def analyze_dataset(
+    request: Request,
     body: AIAnalyzeRequest,
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db),

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { 
@@ -35,11 +35,8 @@ export function SystemMonitoring() {
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    // Initial fetch
     fetchMonitoring()
-
-    // Poll every 2.5 seconds
-    const interval = setInterval(fetchMonitoring, 2500)
+    const interval = setInterval(fetchMonitoring, 15000)
     return () => clearInterval(interval)
   }, [])
 

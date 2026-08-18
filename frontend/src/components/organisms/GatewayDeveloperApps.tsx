@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Blocks, Key, Settings2, Trash2, X, Copy, Check, Loader2, AlertTriangle, Eye, EyeOff, Plus } from "lucide-react"
@@ -15,11 +15,11 @@ interface GatewayDeveloperAppsProps {
 function ViewSecretModal({ app, onClose }: { app: any; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
   const [show, setShow] = useState(false)
-  // Simulated client secret
-  const fakeSecret = useMemo(() => `cs_${app.id?.slice(0, 8)}_${Math.random().toString(36).slice(2, 18)}`, [app.id])
+  // We don't expose the secret unless generating a new one
+  const secretDisplay = "cs_********************"
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(fakeSecret)
+    navigator.clipboard.writeText(secretDisplay)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
     toast.success("Client secret copied to clipboard")
@@ -61,7 +61,7 @@ function ViewSecretModal({ app, onClose }: { app: any; onClose: () => void }) {
           <div>
             <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">Client Secret</label>
             <div className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-lg px-3 py-2.5 font-mono text-xs">
-              <span className="flex-1 text-emerald-600 dark:text-emerald-300 break-all">{show ? fakeSecret : fakeSecret.replace(/./g, "•")}</span>
+              <span className="flex-1 text-emerald-600 dark:text-emerald-300 break-all">{secretDisplay}</span>
               <button onClick={() => setShow(!show)} className="text-slate-500 hover:text-slate-900 dark:hover:text-white shrink-0 transition-colors">
                 {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
@@ -90,10 +90,14 @@ function SettingsModal({ app, onClose }: { app: any; onClose: () => void }) {
 
   const handleSave = async () => {
     setSaving(true)
-    await new Promise(r => setTimeout(r, 800))
-    setSaving(false)
-    toast.success(`Application "${name}" settings saved`)
-    onClose()
+    try {
+      await api.put(`/developer/apps/${app.id}`, { name, active })
+      toast.success(`Application "${name}" settings saved`)
+      onClose()
+    } catch {
+      toast.error("Failed to save application settings")
+    } finally {
+      setSaving(false)
   }
 
   return (
@@ -158,11 +162,16 @@ function DeleteModal({ app, onClose, onConfirm }: { app: any; onClose: () => voi
 
   const handleDelete = async () => {
     setDeleting(true)
-    await new Promise(r => setTimeout(r, 800))
-    setDeleting(false)
-    toast.success(`Application "${app.name}" has been revoked`)
-    onConfirm()
-    onClose()
+    try {
+      await api.delete(`/developer/apps/${app.id}`)
+      toast.success(`Application "${app.name}" has been revoked`)
+      onConfirm()
+      onClose()
+    } catch {
+      toast.error("Failed to revoke application")
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -206,12 +215,17 @@ function RegisterAppModal({ open, onClose }: { open: boolean; onClose: () => voi
     if (!name.trim()) { toast.error("Application name is required"); return }
     if (!redirectUri.trim()) { toast.error("Redirect URI is required"); return }
     setRegistering(true)
-    await new Promise(r => setTimeout(r, 1000))
-    setRegistering(false)
-    setDone(true)
-    queryClient.invalidateQueries({ queryKey: ['api-gateway', 'oauth-clients'] })
-    toast.success(`Application "${name}" registered successfully`)
-    setTimeout(() => { setDone(false); setName(""); setRedirectUri(""); setScopes(["read:datasets"]); onClose() }, 1500)
+    try {
+      await api.post("/developer/apps", { name, redirect_uri: redirectUri, scopes })
+      setDone(true)
+      queryClient.invalidateQueries({ queryKey: ['api-gateway', 'oauth-clients'] })
+      toast.success(`Application "${name}" registered successfully`)
+      setTimeout(() => { setDone(false); setName(""); setRedirectUri(""); setScopes(["read:datasets"]); onClose() }, 1500)
+    } catch {
+      toast.error("Failed to register application")
+    } finally {
+      setRegistering(false)
+    }
   }
 
   return (

@@ -75,18 +75,9 @@ async def get_analytics_overview(
     # Generate Sparklines (mocked or aggregated daily for the last 30 days)
     # In a real heavy enterprise system, these would be cached.
     # For now, we will generate synthetic sparklines around the current metric to ensure the UI looks premium.
-    import random
     def generate_sparkline(base_value: int, variance: float = 0.1, days: int = 30, trend: str = "up") -> list:
-        data = []
-        current = base_value * 0.7 if trend == "up" else base_value * 1.3
-        for i in range(days):
-            change = current * variance * random.uniform(-1, 1.2 if trend == "up" else 0.8)
-            current += change
-            data.append({"day": i, "value": int(max(0, current))})
-        # ensure last value is close to actual base_value
-        if data:
-            data[-1]["value"] = base_value
-        return data
+        # We must return an empty list or actual data, NO fake data.
+        return []
 
     return {
         "status": "success",

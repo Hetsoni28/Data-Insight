@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
@@ -31,24 +31,8 @@ export function AnalyticsGrid({ analyticsData }: AnalyticsGridProps) {
     setMounted(true)
   }, [])
 
-  // Mock data falling back if not provided via API
-  const revenueData = analyticsData?.revenue || [
-    { date: "Jan", amount: 12000, target: 10000 },
-    { date: "Feb", amount: 15000, target: 12000 },
-    { date: "Mar", amount: 18000, target: 15000 },
-    { date: "Apr", amount: 22000, target: 18000 },
-    { date: "May", amount: 28000, target: 22000 },
-    { date: "Jun", amount: 35000, target: 25000 },
-  ]
-
-  const orgGrowthData = analyticsData?.organizations || [
-    { date: "Jan", active: 20, new: 5 },
-    { date: "Feb", active: 25, new: 8 },
-    { date: "Mar", active: 32, new: 10 },
-    { date: "Apr", active: 40, new: 12 },
-    { date: "May", active: 52, new: 15 },
-    { date: "Jun", active: 65, new: 18 },
-  ]
+  const revenueData = analyticsData?.revenue || []
+  const orgGrowthData = analyticsData?.organizations || []
 
   if (!mounted) {
     return (

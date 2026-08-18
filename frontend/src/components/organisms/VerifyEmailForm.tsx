@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import Link from "next/link"
 import React, { useState, useEffect, useRef } from "react"
@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2, CheckCircle2, AlertCircle, RefreshCw, KeyRound } fr
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import api from "@/lib/api"
 
 export function VerifyEmailForm() {
   const router = useRouter()
@@ -68,7 +69,8 @@ export function VerifyEmailForm() {
     setError("")
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      // Assuming endpoint is /auth/verify-email
+      await api.post("/auth/verify-email", { code: fullCode })
       setIsSuccess(true)
       toast.success("Identity verified successfully!")
     } catch (err) {

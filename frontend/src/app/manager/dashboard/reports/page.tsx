@@ -98,14 +98,7 @@ export default function ManagerReportsCenterPage() {
     setCurrentPage(1)
   }, [searchQuery, statusFilter])
 
-  // Polling for generation progress
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Only poll implicitly so we don't flash loading states
-      fetchData()
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [currentPage, pageSize, searchQuery, statusFilter]) 
+
 
   const handleQuickAction = (action: string) => {
     if (action === 'schedule') {

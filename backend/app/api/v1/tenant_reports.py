@@ -14,6 +14,7 @@ from app.models.workspace import Workspace
 from app.models.report import Report, ReportStatus, ReportType
 from app.models.report_schedule import ReportSchedule
 from app.models.dataset import Dataset
+from app.core.rate_limit import limiter
 from app.models.ai_token_usage import AITokenUsage
 from app.models.audit_log import AuditLog
 from app.models.tenant import Tenant
@@ -68,7 +69,7 @@ async def get_report_stats(
         ai_reports = ai_res.scalar() or 0
     
         # Scheduled
-        scheduled = random.randint(2, 8)
+        scheduled = 0
     
         return {
             "status": "success",
@@ -191,7 +192,9 @@ async def get_report_preview(
     }
 
 @router.get("/{report_id}/insights", summary="Get Report Insights", dependencies=[Depends(RequirePermission("REPORT_VIEW"))])
+@limiter.limit("5/minute")
 async def get_report_insights(
+    request: Request,
     report_id: uuid.UUID,
     current_user: User = Depends(get_current_active_tenant_user),
     workspace: Workspace | None = Depends(get_current_workspace),
@@ -639,6 +642,7 @@ async def simulate_report_workflow(tenant_id: uuid.UUID, report_id: uuid.UUID, u
             await db.commit()
 
 @router.post("/generate", summary="Generate Report", dependencies=[Depends(RequirePermission("REPORT_CREATE"))])
+@limiter.limit("2/minute")
 async def generate_report(
     req: GenerateReportRequest,
     request: Request,

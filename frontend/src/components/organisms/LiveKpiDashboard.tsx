@@ -1,4 +1,4 @@
-﻿import { motion } from "framer-motion"
+import { motion } from "framer-motion"
 import { Building2, Users, Activity, TrendingUp, TrendingDown, DollarSign } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import api from "@/lib/api"
@@ -78,8 +78,7 @@ export function LiveKpiDashboard() {
     queryFn: async () => {
       const res = await api.get('/admin/kpis')
       return res.data
-    },
-    refetchInterval: 30000 // Refetch every 30s
+    }
   })
 
   const { data: trendData, isLoading: isTrendLoading } = useQuery({
@@ -87,8 +86,7 @@ export function LiveKpiDashboard() {
     queryFn: async () => {
       const res = await api.get('/admin/usage-trends')
       return res.data
-    },
-    refetchInterval: 30000
+    }
   })
 
   if (isKpiLoading || isTrendLoading) {
@@ -102,14 +100,9 @@ export function LiveKpiDashboard() {
   // Extract sparkline data from trends
   const aiSparkline = trendData?.trends?.map((t: any) => t.rows) || [0,0,0,0,0,0,0,0,0,0,0,0]
   
-  // For others that don't have historical DB tables, derive deterministic variations from the real current total
-  const generateTrend = (base: number, volatility: number) => {
-    return Array.from({length: 12}, (_, i) => Math.max(0, base - (11 - i) * volatility + (Math.random() * volatility * 2 - volatility)))
-  }
-  
-  const orgSparkline = generateTrend(kpiData?.organizations?.active || 1, 0.5)
-  const userSparkline = generateTrend(kpiData?.users?.total || 1, 2)
-  const mrrSparkline = generateTrend(kpiData?.billing?.mrr || 100, 50)
+  const orgSparkline = Array(12).fill(kpiData?.organizations?.active || 0)
+  const userSparkline = Array(12).fill(kpiData?.users?.total || 0)
+  const mrrSparkline = Array(12).fill(kpiData?.billing?.mrr || 0)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

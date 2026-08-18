@@ -40,10 +40,7 @@ export default function OrganizationAdminDashboard() {
     queryClient.invalidateQueries({ queryKey: ['admin-security'] });
   };
 
-  useEffect(() => {
-    const t = setInterval(() => fetchData(), 60000)
-    return () => clearInterval(t)
-  }, [queryClient])
+
 
   if (loading) return (
     <div className="p-6 md:p-8 max-w-[1800px] mx-auto space-y-6 pb-20">

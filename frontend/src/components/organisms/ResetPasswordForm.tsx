@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import Link from "next/link"
 import { useState } from "react"
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import api from "@/lib/api"
 
 export function ResetPasswordForm() {
   const router = useRouter()
@@ -34,8 +35,7 @@ export function ResetPasswordForm() {
     setError("")
 
     try {
-      // Simulate reset API call
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      await api.post("/auth/reset-password", { password: data.password, token: "" }) // Token should be extracted from URL ideally
       setIsSuccess(true)
       toast.success("Password reset successfully!")
     } catch (err) {

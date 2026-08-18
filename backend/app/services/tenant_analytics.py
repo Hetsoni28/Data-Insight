@@ -106,30 +106,39 @@ class TenantAnalyticsService:
 
     async def _get_dataset_kpis(self, actor: User, dataset_id: uuid.UUID) -> Dict[str, Any]:
         ds, numeric_cols, categorical_cols, date_cols = await self._get_auto_columns(dataset_id, actor)
+        if not numeric_cols:
+            return {"kpis": []}
+            
+        target_cols = numeric_cols[:4]
+        select_parts = [f'SUM(TRY_CAST("{col}" AS DOUBLE)) as "{col}"' for col in target_cols]
+        sql = f'SELECT {", ".join(select_parts)} FROM dataset'
+        
         kpis = []
-        for i, col in enumerate(numeric_cols[:4]):
-            sql = f'SELECT SUM(TRY_CAST("{col}" AS DOUBLE)) as total FROM dataset'
-            try:
-                result = await self.dataset_service.execute_query(dataset_id, sql, actor)
-                rows = _rows_to_dicts(result)
-                total = rows[0].get("total", 0) if rows else 0
-                total = total or 0
-                prev = total * 0.9 if total > 0 else 0
-                diff = total - prev
-                pct = (diff / prev * 100) if prev > 0 else 0
-                is_currency = any(k in col.lower() for k in ("revenue", "price", "cost", "monthly", "total", "charge"))
-                prefix = "$" if is_currency else ""
-                kpis.append({
-                    "id": f"kpi_{i}",
-                    "title": col.replace('_', ' ').title(),
-                    "value": f"{prefix}{round(total, 2):,}",
-                    "previous_value": f"{prefix}{round(prev, 2):,}",
-                    "percentage_change": round(pct, 1),
-                    "trend_direction": "up" if pct >= 0 else "down",
-                    "sparkline": [prev, prev*1.05, total*0.95, total]
-                })
-            except Exception as e:
-                print(f"Error calculating KPI for {col}: {e}")
+        try:
+            result = await self.dataset_service.execute_query(dataset_id, sql, actor)
+            rows = _rows_to_dicts(result)
+            
+            if rows:
+                row = rows[0]
+                for i, col in enumerate(target_cols):
+                    total = row.get(col, 0) or 0
+                    prev = total * 0.9 if total > 0 else 0
+                    diff = total - prev
+                    pct = (diff / prev * 100) if prev > 0 else 0
+                    is_currency = any(k in col.lower() for k in ("revenue", "price", "cost", "monthly", "total", "charge"))
+                    prefix = "$" if is_currency else ""
+                    kpis.append({
+                        "id": f"kpi_{i}",
+                        "title": col.replace('_', ' ').title(),
+                        "value": f"{prefix}{round(total, 2):,}",
+                        "previous_value": f"{prefix}{round(prev, 2):,}",
+                        "percentage_change": round(pct, 1),
+                        "trend_direction": "up" if pct >= 0 else "down",
+                        "sparkline": [prev, prev*1.05, total*0.95, total]
+                    })
+        except Exception as e:
+            print(f"Error calculating combined KPIs: {e}")
+            
         return {"kpis": kpis}
 
     async def _get_aggregate_kpis(self, actor: User) -> Dict[str, Any]:

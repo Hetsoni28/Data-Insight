@@ -32,13 +32,13 @@ async def get_platform_health(
 
     # 2. Simulate other infrastructure checks (since this is Phase 1 without external integrations)
     # Core API is operational if this endpoint responds
-    api_latency = random.randint(30, 60)
+    api_latency = 45 # A static baseline instead of random if we can't measure it accurately without middleware
     
     # Redis cache (simulated fast response)
-    redis_latency = random.randint(1, 4)
+    redis_latency = 2
     
     # S3 Storage (simulated network call)
-    s3_latency = random.randint(120, 180)
+    s3_latency = 150
     
     return {
         "status": "success",
@@ -49,7 +49,7 @@ async def get_platform_health(
             { "id": "storage", "name": "S3 Storage", "status": "operational", "value": f"{s3_latency}ms" },
             { "id": "ai", "name": "AI Providers", "status": "operational", "value": "Online" },
             { "id": "email", "name": "Email Service", "status": "operational", "value": "Online" },
-            { "id": "jobs", "name": "Background Workers", "status": "operational", "value": f"{random.randint(0, 3)} in queue" },
+            { "id": "jobs", "name": "Background Workers", "status": "operational", "value": "0 in queue" },
             { "id": "ws", "name": "WebSockets", "status": "operational", "value": "Connected" },
         ]
     }

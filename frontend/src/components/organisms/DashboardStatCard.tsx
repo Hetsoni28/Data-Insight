@@ -1,6 +1,5 @@
-﻿"use client"
+"use client"
 import { motion } from "framer-motion"
-import { useEffect, useState } from "react"
 
 interface DashboardStatCardProps {
   icon: React.ElementType
@@ -12,34 +11,7 @@ interface DashboardStatCardProps {
 }
 
 export function DashboardStatCard({ icon: Icon, label, value, sub, color, delay = 0 }: DashboardStatCardProps) {
-  const [displayValue, setDisplayValue] = useState(0)
-
-  useEffect(() => {
-    if (typeof value === "number" || !isNaN(Number(value))) {
-      const end = Number(value)
-      let start = 0
-      if (start === end) {
-        setDisplayValue(end)
-        return
-      }
-      
-      const totalDuration = 800
-      const incrementTime = Math.max(10, totalDuration / end)
-      
-      const timer = setInterval(() => {
-        start += 1
-        setDisplayValue(start)
-        if (start >= end) {
-          setDisplayValue(end)
-          clearInterval(timer)
-        }
-      }, incrementTime)
-      return () => clearInterval(timer)
-    } else {
-      // @ts-expect-error - value may be string or number, displayValue state accepts both
-      setDisplayValue(value)
-    }
-  }, [value])
+  const displayValue = value;
 
   return (
     <motion.div

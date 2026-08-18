@@ -179,9 +179,10 @@ class DatasetService:
         from app.core.storage import is_local_storage, LOCAL_UPLOADS_DIR
         from app.services.ingestion.polars_engine import PolarsEngine
 
+        import asyncio
         if is_local_storage():
             local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
-            file_bytes = local_path.read_bytes()
+            file_bytes = await asyncio.to_thread(local_path.read_bytes)
         else:
             signed_url = await get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=300)
             async with httpx.AsyncClient() as client:
@@ -194,15 +195,16 @@ class DatasetService:
             else str(dataset.file_type)
         )
         ext = ext.lower().strip().lstrip(".")
-        return PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
+        return await asyncio.to_thread(PolarsEngine.load_from_bytes, file_bytes, ext)
 
     async def get_preview_data(self, dataset_id: uuid.UUID, actor: User, limit: int = 50) -> dict:
         """Return dataset preview rows and column metadata."""
         from app.services.ingestion.polars_engine import PolarsEngine
 
+        import asyncio
         ds = await self.get_dataset(dataset_id, actor)
         df = await self.load_dataframe(ds)
-        preview_rows = PolarsEngine.preview_rows(df, n=limit)
+        preview_rows = await asyncio.to_thread(PolarsEngine.preview_rows, df, limit)
 
         columns = [
             {"name": col, "dtype": str(df.schema[col])}
@@ -246,8 +248,9 @@ class DatasetService:
         if ds.profile and "correlations" in ds.profile:
             return ds.profile["correlations"]
 
+        import asyncio
         df = await self.load_dataframe(ds)
-        return DuckDBEngine.compute_correlation_matrix(df)
+        return await asyncio.to_thread(DuckDBEngine.compute_correlation_matrix, df)
 
     async def execute_query(
         self,
@@ -262,12 +265,14 @@ class DatasetService:
 
         ds = await self.get_dataset(dataset_id, actor)
         df = await self.load_dataframe(ds)
-        result = DuckDBEngine.execute_query(
-            df=df,
-            sql=sql,
-            table_name="dataset",
-            limit=limit,
-            offset=offset,
+        import asyncio
+        result = await asyncio.to_thread(
+            DuckDBEngine.execute_query,
+            df,
+            sql,
+            "dataset",
+            limit,
+            offset,
         )
 
         await self.audit_repo.log(

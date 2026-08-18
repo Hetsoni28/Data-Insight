@@ -90,8 +90,6 @@ async def _profile_dataset(task, dataset_id: str):
                 )
                 await session.commit()
                 raise task.retry(exc=exc)
-    finally:
-        await engine.dispose()
 
 
 @shared_task(bind=True, name="dataset.analyze", max_retries=2, default_retry_delay=60)
