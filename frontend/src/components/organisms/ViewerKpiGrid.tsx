@@ -94,9 +94,9 @@ const colorMap: Record<string, { bg: string; border: string; icon: string; glow:
 export function ViewerKpiGrid({ kpis, isLoading }: ViewerKpiGridProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
         {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-32 rounded-xl" />
+          <Skeleton key={i} className="h-28 rounded-xl" />
         ))}
       </div>
     );
@@ -107,7 +107,7 @@ export function ViewerKpiGrid({ kpis, isLoading }: ViewerKpiGridProps) {
   const cards = buildKpiCards(kpis);
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
       {cards.map((card, idx) => {
         const c = colorMap[card.color];
         return (
@@ -118,12 +118,12 @@ export function ViewerKpiGrid({ kpis, isLoading }: ViewerKpiGridProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: idx * 0.05 }}
             whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(16, 185, 129, 0.15)" }}
-            className="relative overflow-hidden bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/20 dark:border-emerald-500/20 rounded-xl p-4 shadow-xl shadow-emerald-500/5 cursor-pointer block no-underline group transition-all duration-300 hover:border-emerald-500/40"
+            className="relative overflow-hidden bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/20 dark:border-emerald-500/20 rounded-xl p-3.5 shadow-xl shadow-emerald-500/5 cursor-pointer block no-underline group transition-all duration-300 hover:border-emerald-500/40"
           >
             {/* Glow on hover */}
             <div className={`absolute -right-4 -top-4 w-16 h-16 ${c.glow} rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity`} />
             <div className="relative z-10">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2.5">
                 <div className={`p-1.5 rounded-lg ${c.bg} border ${c.border}`}>
                   <span className={c.icon}>{card.icon}</span>
                 </div>
@@ -132,14 +132,14 @@ export function ViewerKpiGrid({ kpis, isLoading }: ViewerKpiGridProps) {
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.1 + idx * 0.04, type: "spring" }}
-                className="text-2xl font-bold text-slate-900 dark:text-white mb-0.5"
+                className="text-xl font-bold text-slate-900 dark:text-white mb-0.5 tabular-nums"
               >
                 {card.value.toLocaleString()}
               </motion.div>
-              <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-tight">
+              <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 leading-tight truncate">
                 {card.title}
               </div>
-              <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+              <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
                 {card.subtext}
               </div>
             </div>
