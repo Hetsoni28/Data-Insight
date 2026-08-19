@@ -1,14 +1,16 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { AnalyticsHeroBanner } from "@/components/organisms/AnalyticsHeroBanner";
 import { ExecutiveKpiGrid } from "@/components/organisms/ExecutiveKpiGrid";
-import { RevenueTrendChart } from "@/components/organisms/RevenueTrendChart";
-import { PlatformGrowthChart } from "@/components/organisms/PlatformGrowthChart";
-import { ForecastingChart } from "@/components/organisms/ForecastingChart";
 import { AnomalyDetectionFeed } from "@/components/organisms/AnomalyDetectionFeed";
 import { CustomerHealthMatrix } from "@/components/organisms/CustomerHealthMatrix";
 import { toast } from "sonner";
+import {
+  DynamicRevenueTrendChart as RevenueTrendChart,
+  DynamicPlatformGrowthChart as PlatformGrowthChart,
+  DynamicForecastingChart as ForecastingChart,
+} from "@/components/charts/dynamic";
 
 export default function AnalyticsPage() {
   const [refreshKey, setRefreshKey] = useState(0);

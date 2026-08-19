@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ManagerAnalyticsCenter } from "@/components/organisms/analytics/ManagerAnalyticsCenter";
+import { DynamicManagerAnalyticsCenter as ManagerAnalyticsCenter } from "@/components/charts/dynamic";
 
 export const metadata: Metadata = {
   title: "Analytics | Manager | Data Insight",

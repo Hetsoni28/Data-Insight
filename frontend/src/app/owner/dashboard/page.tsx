@@ -9,16 +9,18 @@ import { Loader2 } from "lucide-react"
 
 import { ExecutiveBanner } from "@/components/organisms/ExecutiveBanner"
 import { LiveKpiGrid } from "@/components/organisms/LiveKpiGrid"
-import { PlatformHealthOverview } from "@/components/organisms/PlatformHealthOverview"
+import { DashboardActivityFeed } from "@/components/organisms/DashboardActivityFeed"
+import { ExecutiveAIPanel } from "@/components/organisms/ExecutiveAIPanel"
 import dynamic from "next/dynamic"
+import {
+  DynamicPlatformHealthOverview,
+  DynamicDashboardUsageChart,
+} from "@/components/charts/dynamic"
 
 const AnalyticsGrid = dynamic(
   () => import("@/components/organisms/AnalyticsGrid").then((mod) => mod.AnalyticsGrid),
   { ssr: false }
 )
-import { DashboardActivityFeed } from "@/components/organisms/DashboardActivityFeed"
-import { DashboardUsageChart } from "@/components/organisms/DashboardUsageChart"
-import { ExecutiveAIPanel } from "@/components/organisms/ExecutiveAIPanel"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -50,27 +52,15 @@ export default function DashboardPage() {
     }
   });
 
-  const loading = loadingAnalytics || loadingAi || loadingRevenue;
-
-  useEffect(() => {
-    const handleRefresh = () => {
-      queryClient.invalidateQueries({ queryKey: ['owner-analytics-overview'] });
-      queryClient.invalidateQueries({ queryKey: ['owner-ai-overview'] });
-      queryClient.invalidateQueries({ queryKey: ['owner-revenue-overview'] });
-    }
-    window.addEventListener("dataset-uploaded", handleRefresh)
-    return () => window.removeEventListener("dataset-uploaded", handleRefresh)
-  }, [queryClient])
-
-  if (loading) {
+  if (loadingAnalytics || loadingAi) {
     return (
-      <div className="p-6 md:p-8 max-w-[1800px] mx-auto space-y-8 pb-20">
-        <div className="h-64 w-full rounded-2xl bg-slate-100 dark:bg-white/5 animate-pulse" />
-        <div className="h-40 w-full rounded-2xl bg-slate-100 dark:bg-white/5 animate-pulse" />
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />
-          ))}
+      <div className="flex items-center justify-center h-full min-h-screen bg-slate-50 dark:bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full blur-xl bg-slate-500/10 dark:bg-slate-500/20 animate-pulse" />
+            <Loader2 className="h-10 w-10 animate-spin text-slate-800 dark:text-slate-200 relative z-10" />
+          </div>
+          <p className="text-sm font-medium text-slate-500 animate-pulse">Loading Executive Dashboard...</p>
         </div>
       </div>
     )
@@ -87,7 +77,7 @@ export default function DashboardPage() {
       }} />
 
       {/* 2. Platform Health Overview */}
-      <PlatformHealthOverview />
+      <DynamicPlatformHealthOverview />
 
       {/* 3. Executive KPI Cards */}
       <div className="mt-8">
@@ -98,27 +88,23 @@ export default function DashboardPage() {
         <LiveKpiGrid analytics={analytics?.data} aiOverview={aiOverview} />
       </div>
 
-      {/* 4. Deep Analytics */}
-      <AnalyticsGrid 
-        analyticsData={{
-          revenue: revenueTrend?.data,
-          organizations: revenueTrend?.data
-        }} 
-      />
-
-      {/* 5. Usage & Activity Feeds */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mt-8">
-        <div className="lg:col-span-2 space-y-6">
-          <DashboardUsageChart />
+      {/* 4. Main Analytics Content Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-8">
+        <div className="xl:col-span-2 space-y-8">
+          <AnalyticsGrid 
+            analyticsData={{
+              revenue: revenueTrend?.data,
+              organizations: revenueTrend?.data
+            }} 
+          />
+          <DynamicDashboardUsageChart />
         </div>
-        <div className="flex flex-col h-[500px]">
+        
+        <div className="space-y-8">
           <DashboardActivityFeed />
+          <ExecutiveAIPanel />
         </div>
       </div>
-
-      {/* AI Assistant Floating Widget */}
-      <ExecutiveAIPanel />
-      
     </div>
   )
 }

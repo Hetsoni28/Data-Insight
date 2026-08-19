@@ -7,12 +7,12 @@ import { motion } from "framer-motion"
 import { OrganizationHero } from "@/components/organisms/OrganizationHero"
 import { OrganizationKpiGrid } from "@/components/organisms/OrganizationKpiGrid"
 import { OrganizationScoreCards } from "@/components/organisms/OrganizationScoreCards"
-import { OrganizationAnalytics } from "@/components/organisms/OrganizationAnalytics"
 import { OrganizationActivityFeed } from "@/components/organisms/OrganizationActivityFeed"
 import { RecentDatasetsWidget } from "@/components/organisms/RecentDatasetsWidget"
 import { OrganizationReports } from "@/components/organisms/OrganizationReports"
 import { OrganizationSecurity } from "@/components/organisms/OrganizationSecurity"
 import { OrganizationNavStrip } from "@/components/organisms/OrganizationNavStrip"
+import { DynamicOrganizationAnalytics as OrganizationAnalytics } from "@/components/charts/dynamic"
 
 export default function OrganizationAdminDashboard() {
   const { data: user } = useAuth()

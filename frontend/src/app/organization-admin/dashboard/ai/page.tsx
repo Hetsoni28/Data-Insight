@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
-import { CopilotChat } from "@/components/organisms/CopilotChat";
+import { DynamicCopilotChat as CopilotChat } from "@/components/charts/dynamic";
 import api from "@/lib/api";
 
 export default function OrganizationAdminAICopilotPage() {

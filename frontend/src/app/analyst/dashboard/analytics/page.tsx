@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ViewerAnalyticsCenter } from "@/components/organisms/analytics/ViewerAnalyticsCenter";
+import { DynamicViewerAnalyticsCenter as ViewerAnalyticsCenter } from "@/components/charts/dynamic";
 
 export const metadata: Metadata = {
   title: "Analytics | Viewer | Data Insight",

@@ -2,6 +2,7 @@
 import DashboardSidebar from "@/components/layouts/dashboard/DashboardSidebar"
 import DashboardNavbar from "@/components/layouts/dashboard/DashboardNavbar"
 import { useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
 import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import { useRouter } from "next/navigation"
@@ -93,29 +94,30 @@ export function OwnerLayout({ children, user, handleLogout }: OwnerLayoutProps) 
   const router = useRouter()
   const { workspaces, activeWs, loadingWs, setWorkspaces, setActiveWs, setLoadingWs } = useWorkspaceStore()
 
+  // Cache workspaces for 5 minutes — no re-fetch on every route change
+  const { data: workspaceData, isLoading: wsLoading } = useQuery({
+    queryKey: ["workspaces", user?.tenant_id],
+    queryFn: () => api.get("/workspaces").then((r) => r.data),
+    enabled: !!user?.tenant_id,
+    staleTime: 5 * 60 * 1000,  // 5 minutes — serve from cache on navigation
+    gcTime: 10 * 60 * 1000,
+  })
+
+  // Sync React Query result into Zustand workspace store
   useEffect(() => {
-    if (user?.tenant_id) {
-      setLoadingWs(true)
-      api.get("/workspaces")
-        .then(({ data }) => {
-          setWorkspaces(data)
-          const currentActive = useWorkspaceStore.getState().activeWs
-          if (data && data.length > 0) {
-            // Check if current active workspace is still in the fetched list
-            const stillExists = currentActive && data.find((w: any) => w.id === currentActive.id)
-            if (!stillExists) {
-              setActiveWs(data[0])
-            }
-          } else {
-            setActiveWs(null)
-          }
-        })
-        .catch(console.error)
-        .finally(() => setLoadingWs(false))
-    } else {
-      setLoadingWs(false)
+    setLoadingWs(wsLoading)
+    if (workspaceData && workspaceData.length > 0) {
+      setWorkspaces(workspaceData)
+      const currentActive = useWorkspaceStore.getState().activeWs
+      const stillExists = currentActive && workspaceData.find((w: any) => w.id === currentActive.id)
+      if (!stillExists) {
+        setActiveWs(workspaceData[0])
+      }
+    } else if (workspaceData) {
+      setWorkspaces([])
+      setActiveWs(null)
     }
-  }, [user?.tenant_id, setWorkspaces, setActiveWs, setLoadingWs])
+  }, [workspaceData, wsLoading, setWorkspaces, setActiveWs, setLoadingWs])
 
   // Fallback: If workspaces are loaded but activeWs is not set (e.g. from onboarding state), auto-select it
   useEffect(() => {
