@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion"
-import { Building2, Plus, Server, Activity, ShieldCheck, Sun, Bot, FileSpreadsheet, CloudLightning } from "lucide-react"
+import { Building2, Plus, Server, Activity, ShieldCheck, Sun, FileSpreadsheet, CloudLightning } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -93,7 +93,51 @@ export function ExecutiveBanner({ user, kpis, onOpenAiAssistant }: ExecutiveBann
             onClick={onOpenAiAssistant}
             className="bg-emerald-500 hover:bg-emerald-400 text-white h-12 px-6 rounded-xl border-t border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all col-span-2 sm:col-span-3 xl:col-span-1"
           >
-            <Bot className="w-4 h-4 mr-2" />
+            {/* Data Insight logo mark — D+I + chart sparkline */}
+            <svg
+              viewBox="0 0 170 130"
+              className="w-5 h-5 mr-2 flex-shrink-0"
+              aria-hidden="true"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <linearGradient id="btn-grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+                  <stop offset="100%" stopColor="#d1fae5" stopOpacity="0.85" />
+                </linearGradient>
+                <linearGradient id="btn-grad2" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#a7f3d0" />
+                  <stop offset="100%" stopColor="#ffffff" />
+                </linearGradient>
+              </defs>
+              {/* D stroke */}
+              <path
+                d="M 20 100 V 0 H 50 C 83 0 110 22 110 50 C 110 78 83 100 50 100 H 20 Z"
+                stroke="url(#btn-grad1)"
+                strokeWidth="18"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {/* I stroke */}
+              <line
+                x1="140" y1="0" x2="140" y2="100"
+                stroke="url(#btn-grad2)"
+                strokeWidth="18"
+                strokeLinecap="round"
+              />
+              {/* Chart sparkline */}
+              <path
+                d="M 45 65 L 70 40 L 90 55 L 140 10"
+                stroke="#ffffff"
+                strokeWidth="11"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeOpacity="0.9"
+              />
+              {/* Dot at top of sparkline */}
+              <circle cx="140" cy="10" r="6" fill="#ffffff" />
+            </svg>
             Ask AI Assistant
           </Button>
         </motion.div>

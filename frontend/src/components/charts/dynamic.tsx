@@ -1,4 +1,5 @@
-﻿/**
+"use client"
+/**
  * components/charts/dynamic.tsx
  *
  * Central registry of next/dynamic lazy-loaded wrappers for all chart-heavy
