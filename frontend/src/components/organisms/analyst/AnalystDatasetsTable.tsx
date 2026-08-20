@@ -134,7 +134,7 @@ export function AnalystDatasetsTable({
                       <span className="truncate max-w-[200px]">{ds.name}</span>
                     </td>
                     <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
-                      {ds.rows.toLocaleString()}
+                      {ds.rows != null ? ds.rows.toLocaleString() : '—'}
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
