@@ -8,6 +8,7 @@ import { useState } from "react";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { TenantBrandingProvider } from "@/components/providers/TenantBrandingProvider";
 import { usePathname } from "next/navigation";
+import { MotionConfig } from "framer-motion";
 
 export function Providers({ children, tenantDomain }: { children: React.ReactNode, tenantDomain?: string | null }) {
   const pathname = usePathname();
@@ -35,17 +36,22 @@ export function Providers({ children, tenantDomain }: { children: React.ReactNod
   );
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange forcedTheme={isForcedLight ? "light" : undefined}>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AuthProvider>
-            <TenantBrandingProvider tenantDomain={tenantDomain}>
-              {children}
-            </TenantBrandingProvider>
-          </AuthProvider>
-          <Toaster richColors position="top-right" />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <MotionConfig
+      reducedMotion="user"
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange forcedTheme={isForcedLight ? "light" : undefined}>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AuthProvider>
+              <TenantBrandingProvider tenantDomain={tenantDomain}>
+                {children}
+              </TenantBrandingProvider>
+            </AuthProvider>
+            <Toaster richColors position="top-right" />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </MotionConfig>
   );
 }

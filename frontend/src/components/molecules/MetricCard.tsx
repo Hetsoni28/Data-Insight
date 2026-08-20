@@ -1,8 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Area, AreaChart, ResponsiveContainer, YAxis } from "recharts";
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +16,67 @@ interface MetricCardProps {
   delay?: number;
 }
 
+/** Pure-SVG sparkline — zero library cost, identical visual to recharts AreaChart */
+function InlineSvgSparkline({
+  data,
+  dataKey,
+  stroke,
+  gradientId,
+}: {
+  data: any[];
+  dataKey: string;
+  stroke: string;
+  gradientId: string;
+}) {
+  if (!data || data.length < 2) return null;
+
+  const values: number[] = data.map((d) => Number(d[dataKey] ?? 0));
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+
+  const W = 100;
+  const H = 64;
+  const pad = 2;
+
+  const pts = values.map((v, i) => {
+    const x = pad + (i / (values.length - 1)) * (W - pad * 2);
+    const y = H - pad - ((v - min) / range) * (H - pad * 2);
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  });
+
+  const polyline = pts.join(" ");
+  const firstX = pad.toFixed(2);
+  const lastX = (pad + (W - pad * 2)).toFixed(2);
+  const polygon = `${polyline} ${lastX},${H} ${firstX},${H}`;
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      className="w-full h-full"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5%" stopColor={stroke} stopOpacity={0.8} />
+          <stop offset="95%" stopColor={stroke} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <polygon points={polygon} fill={`url(#${gradientId})`} />
+      <polyline
+        points={polyline}
+        fill="none"
+        stroke={stroke}
+        strokeWidth="2"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 export function MetricCard({
   title,
   value,
@@ -29,47 +88,20 @@ export function MetricCard({
   color = "emerald",
   delay = 0,
 }: MetricCardProps) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-
   const isPositive = trend > 0;
   const isNeutral = trend === 0;
   const TrendIcon = isNeutral ? Minus : isPositive ? ArrowUpRight : ArrowDownRight;
 
   const colorConfig = {
-    emerald: {
-      bg: "bg-emerald-50 dark:bg-emerald-500/10",
-      text: "text-emerald-600 dark:text-emerald-400",
-      trendText: "text-emerald-600 dark:text-emerald-400",
-      stroke: "#10b981",
-    },
-    blue: {
-      bg: "bg-emerald-50 dark:bg-emerald-500/10",
-      text: "text-emerald-600 dark:text-emerald-400",
-      trendText: "text-emerald-600 dark:text-emerald-400",
-      stroke: "#3b82f6",
-    },
-    rose: {
-      bg: "bg-rose-50 dark:bg-rose-500/10",
-      text: "text-rose-600 dark:text-rose-400",
-      trendText: "text-rose-600 dark:text-rose-400",
-      stroke: "#f43f5e",
-    },
-    amber: {
-      bg: "bg-amber-50 dark:bg-amber-500/10",
-      text: "text-amber-600 dark:text-amber-400",
-      trendText: "text-amber-600 dark:text-amber-400",
-      stroke: "#f59e0b",
-    },
-    violet: {
-      bg: "bg-violet-50 dark:bg-violet-500/10",
-      text: "text-violet-600 dark:text-violet-400",
-      trendText: "text-violet-600 dark:text-violet-400",
-      stroke: "#8b5cf6",
-    },
+    emerald: { bg: "bg-emerald-50 dark:bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", stroke: "#10b981" },
+    blue:    { bg: "bg-blue-50 dark:bg-blue-500/10",       text: "text-blue-600 dark:text-blue-400",       stroke: "#3b82f6" },
+    rose:    { bg: "bg-rose-50 dark:bg-rose-500/10",       text: "text-rose-600 dark:text-rose-400",       stroke: "#f43f5e" },
+    amber:   { bg: "bg-amber-50 dark:bg-amber-500/10",     text: "text-amber-600 dark:text-amber-400",     stroke: "#f59e0b" },
+    violet:  { bg: "bg-violet-50 dark:bg-violet-500/10",   text: "text-violet-600 dark:text-violet-400",   stroke: "#8b5cf6" },
   };
 
   const theme = colorConfig[color];
+  const gradientId = `sparkline-${title.replace(/\s+/g, "-")}`;
 
   return (
     <motion.div
@@ -101,33 +133,15 @@ export function MetricCard({
         </div>
       </div>
 
-      {/* Background Sparkline */}
+      {/* Background Sparkline — pure SVG, zero library cost */}
       {sparklineData.length > 0 && (
         <div className="absolute bottom-0 left-0 right-0 h-16 opacity-20 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none">
-          {!mounted ? (
-            <div className="w-full h-[64px] rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={sparklineData}>
-              <defs>
-                <linearGradient id={`gradient-${title.replace(/\s+/g, '-')}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={theme.stroke} stopOpacity={0.8} />
-                  <stop offset="95%" stopColor={theme.stroke} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <YAxis domain={["dataMin", "dataMax"]} hide />
-              <Area
-                type="monotone"
-                dataKey={sparklineKey}
-                stroke={theme.stroke}
-                strokeWidth={2}
-                fillOpacity={1}
-                fill={`url(#gradient-${title.replace(/\s+/g, '-')})`}
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-          )}
+          <InlineSvgSparkline
+            data={sparklineData}
+            dataKey={sparklineKey}
+            stroke={theme.stroke}
+            gradientId={gradientId}
+          />
         </div>
       )}
     </motion.div>
