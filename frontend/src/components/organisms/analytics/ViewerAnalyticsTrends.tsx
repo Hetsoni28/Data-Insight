@@ -42,8 +42,8 @@ export const ViewerAnalyticsTrends = React.memo(function ViewerAnalyticsTrends({
           transition={{ delay: i * 0.15, duration: 0.5, ease: "easeOut" }}
           className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
         >
-          {/* Decorative glow */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none group-hover:bg-emerald-500/20 transition-colors duration-1000" />
+          {/* Decorative glow — bottom right, won't bleed into chart */}
+          <div className="absolute bottom-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-[60px] translate-y-1/3 translate-x-1/4 pointer-events-none group-hover:bg-emerald-500/10 transition-colors duration-1000" />
 
           <div className="flex items-center justify-between mb-8 relative z-10">
             <div>
@@ -61,7 +61,7 @@ export const ViewerAnalyticsTrends = React.memo(function ViewerAnalyticsTrends({
               <AreaChart data={trend.data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id={`gradient-${trend.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                    <stop offset="5%"  stopColor="#10b981" stopOpacity={0.15}/>
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
@@ -87,7 +87,7 @@ export const ViewerAnalyticsTrends = React.memo(function ViewerAnalyticsTrends({
                   type="monotone" 
                   dataKey={trend.y_axis_key} 
                   stroke="#10b981" 
-                  strokeWidth={4} 
+                  strokeWidth={3} 
                   fill={`url(#gradient-${trend.id})`}
                   activeDot={{ r: 6, fill: "#ffffff", stroke: "#10b981", strokeWidth: 3 }}
                   isAnimationActive={true}
