@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Send, Loader2, Bot, User, ArrowRight } from "lucide-react";
+import { Sparkles, Send, Loader2, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -100,7 +100,22 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
           {chatHistory.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
               <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-sm border border-slate-100 dark:border-white/5">
-                <Bot className="w-8 h-8 text-emerald-500" />
+                <svg viewBox="0 0 170 130" className="w-8 h-8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="ai-g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#34d399" />
+                      <stop offset="100%" stopColor="#059669" />
+                    </linearGradient>
+                    <linearGradient id="ai-g2" x1="0%" y1="100%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#047857" />
+                      <stop offset="100%" stopColor="#10b981" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M 20 100 V 0 H 50 C 83 0 110 22 110 50 C 110 78 83 100 50 100 H 20 Z" stroke="url(#ai-g1)" strokeWidth="18" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="140" y1="0" x2="140" y2="100" stroke="url(#ai-g2)" strokeWidth="18" strokeLinecap="round"/>
+                  <path d="M 45 65 L 70 40 L 90 55 L 140 10" stroke="#10b981" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.9"/>
+                  <circle cx="140" cy="10" r="6" fill="#059669"/>
+                </svg>
               </div>
               <p className="text-sm font-medium text-slate-500 max-w-[250px]">Ask me to compare metrics, explain anomalies, or summarize trends.</p>
             </div>
@@ -116,7 +131,14 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${
                     msg.role === 'user' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white' : 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-100 dark:border-white/5'
                   }`}>
-                    {msg.role === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+                    {msg.role === 'user' ? <User className="w-5 h-5" /> : (
+                      <svg viewBox="0 0 170 130" className="w-5 h-5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M 20 100 V 0 H 50 C 83 0 110 22 110 50 C 110 78 83 100 50 100 H 20 Z" stroke="#10b981" strokeWidth="18" strokeLinecap="round" strokeLinejoin="round"/>
+                        <line x1="140" y1="0" x2="140" y2="100" stroke="#059669" strokeWidth="18" strokeLinecap="round"/>
+                        <path d="M 45 65 L 70 40 L 90 55 L 140 10" stroke="#34d399" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round"/>
+                        <circle cx="140" cy="10" r="6" fill="#059669"/>
+                      </svg>
+                    )}
                   </div>
                   <div className={`p-4 max-w-[80%] text-[15px] font-medium leading-relaxed ${
                     msg.role === 'user' 
@@ -132,7 +154,12 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
           {isChatting && (
             <div className="flex gap-3">
               <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm">
-                <Bot className="w-5 h-5" />
+                <svg viewBox="0 0 170 130" className="w-5 h-5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M 20 100 V 0 H 50 C 83 0 110 22 110 50 C 110 78 83 100 50 100 H 20 Z" stroke="#10b981" strokeWidth="18" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="140" y1="0" x2="140" y2="100" stroke="#059669" strokeWidth="18" strokeLinecap="round"/>
+                  <path d="M 45 65 L 70 40 L 90 55 L 140 10" stroke="#34d399" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="140" cy="10" r="6" fill="#059669"/>
+                </svg>
               </div>
               <div className="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-tl-sm flex items-center gap-1.5 shadow-sm">
                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" />
