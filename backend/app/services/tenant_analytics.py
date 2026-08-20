@@ -475,30 +475,88 @@ class TenantAnalyticsService:
         return {"comparisons": comparisons}
 
     async def get_forecast(self, actor: User) -> Dict[str, Any]:
+        from datetime import timedelta
         datasets = await self._resolve_datasets(actor)
         forecasts = []
-        if datasets:
-            ds = datasets[0]
-            val = float(ds.row_count or 1000)
-            hist = []
-            pred = []
-            conf = []
-            for i in range(1, 4):
-                hist.append({"date": f"Month -{4-i}", "value": round(val * random.uniform(0.9, 1.0), 0)})
-            for i in range(1, 7):
-                val = val * random.uniform(1.02, 1.08)
-                pred.append({"date": f"Month {i}", "value": round(val, 0)})
-                conf.append({"date": f"Month {i}", "upper": round(val*1.1, 0), "lower": round(val*0.9, 0)})
-            
-            forecasts.append({
-                "id": str(uuid.uuid4()),
-                "title": "Projected Data Volume",
-                "metric": "Total Records",
-                "historical_data": hist,
-                "predicted_data": pred,
-                "confidence_interval": conf,
-                "model_accuracy": 0.92
+
+        if not datasets:
+            return {"forecasts": []}
+
+        # Build real historical data: cumulative rows by dataset upload date (monthly buckets)
+        sorted_ds = sorted(datasets, key=lambda x: x.created_at)
+
+        # Aggregate into monthly buckets
+        monthly: Dict[str, float] = {}
+        cumulative = 0.0
+        for ds in sorted_ds:
+            month_key = ds.created_at.strftime("%Y-%m")
+            cumulative += float(ds.row_count or 0)
+            monthly[month_key] = cumulative  # keep last cumulative value per month
+
+        sorted_months = sorted(monthly.keys())
+        hist_points = [(k, monthly[k]) for k in sorted_months]
+
+        if len(hist_points) < 1:
+            return {"forecasts": []}
+
+        # --- Linear regression on real history ---
+        # x = month index (0, 1, 2...), y = cumulative rows
+        n = len(hist_points)
+        xs = list(range(n))
+        ys = [p[1] for p in hist_points]
+
+        if n >= 2:
+            mean_x = sum(xs) / n
+            mean_y = sum(ys) / n
+            num = sum((xs[i] - mean_x) * (ys[i] - mean_y) for i in range(n))
+            den = sum((xs[i] - mean_x) ** 2 for i in range(n))
+            slope = num / den if den != 0 else 0
+            intercept = mean_y - slope * mean_x
+
+            # R² to estimate model accuracy
+            ss_res = sum((ys[i] - (slope * xs[i] + intercept)) ** 2 for i in range(n))
+            ss_tot = sum((ys[i] - mean_y) ** 2 for i in range(n))
+            r_squared = max(0.0, min(1.0, 1 - ss_res / ss_tot)) if ss_tot > 0 else 0.85
+        else:
+            slope = 0
+            intercept = ys[0]
+            r_squared = 0.5
+
+        # Build historical data for chart (real dates + real values)
+        hist = []
+        for k, v in hist_points:
+            hist.append({"date": k, "value": round(v, 0)})
+
+        # Build 6-month forward projection
+        last_month_str = sorted_months[-1]
+        last_year, last_month = int(last_month_str[:4]), int(last_month_str[5:])
+        pred = []
+        conf = []
+        for i in range(1, 7):
+            future_month = last_month + i
+            future_year = last_year + (future_month - 1) // 12
+            future_month = ((future_month - 1) % 12) + 1
+            future_label = f"{future_year}-{future_month:02d}"
+            projected_val = max(0, slope * (n + i - 1) + intercept)
+            margin = projected_val * 0.10  # ±10% confidence interval
+            pred.append({"date": future_label, "value": round(projected_val, 0)})
+            conf.append({
+                "date": future_label,
+                "upper": round(projected_val + margin, 0),
+                "lower": round(max(0, projected_val - margin), 0)
             })
+
+        forecasts.append({
+            "id": str(uuid.uuid4()),
+            "title": "Projected Data Volume",
+            "metric": "Total Records",
+            "historical_data": hist,
+            "predicted_data": pred,
+            "confidence_interval": conf,
+            "model_accuracy": round(r_squared, 2),
+            "slope_per_month": round(slope, 0),
+        })
+
         return {"forecasts": forecasts}
 
     async def get_ai_insights(self, actor: User) -> Dict[str, Any]:
