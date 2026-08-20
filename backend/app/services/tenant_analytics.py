@@ -296,7 +296,9 @@ class TenantAnalyticsService:
                             "id": f"perf_{i}_{j}",
                             "name": str(row.get("category", "Unknown")),
                             "value": round(val, 2),
-                            "contribution": round(contrib, 1)
+                            "contribution": round(contrib, 1),
+                            "growth": 0,
+                            "trend": "neutral",
                         })
                     performances.append({
                         "dimension": cat_col.replace('_', ' ').title(),
@@ -309,42 +311,119 @@ class TenantAnalyticsService:
     async def _get_aggregate_performance(self, actor: User) -> Dict[str, Any]:
         datasets = await self._resolve_datasets(actor)
         performances = []
-        for d in datasets:
-            if d.profile:
-                cols_dict = self._get_columns_dict(d.profile)
-                cat_cols = [c for c, info in cols_dict.items() if info.get("type") == "categorical"]
-                for c_col in cat_cols[:2]: 
-                    info = cols_dict[c_col]
-                    raw_top = info.get("top_values", {})
-                    top_vals = {}
+
+        for d in datasets[:3]:
+            if not d.profile:
+                continue
+            cols_dict = self._get_columns_dict(d.profile)
+            cat_cols = [c for c, info in cols_dict.items() if info.get("type") == "categorical"]
+            numeric_cols_d = [c for c, info in cols_dict.items() if info.get("type") == "numeric"]
+            num_col = numeric_cols_d[0] if numeric_cols_d else None
+
+            for cat_col in cat_cols[:2]:
+                items = []
+                try:
+                    if num_col:
+                        sql = f'''
+                            SELECT "{cat_col}" as cat,
+                                   SUM(TRY_CAST("{num_col}" AS DOUBLE)) as total
+                            FROM dataset
+                            WHERE "{cat_col}" IS NOT NULL
+                              AND LOWER(CAST("{cat_col}" AS VARCHAR)) NOT IN ('none','null','nan','')
+                            GROUP BY 1
+                            ORDER BY 2 DESC
+                            LIMIT 8
+                        '''
+                    else:
+                        sql = f'''
+                            SELECT "{cat_col}" as cat,
+                                   COUNT(*) as total
+                            FROM dataset
+                            WHERE "{cat_col}" IS NOT NULL
+                              AND LOWER(CAST("{cat_col}" AS VARCHAR)) NOT IN ('none','null','nan','')
+                            GROUP BY 1
+                            ORDER BY 2 DESC
+                            LIMIT 8
+                        '''
+
+                    result = await self.dataset_service.execute_query(d.id, sql, actor)
+                    rows = _rows_to_dicts(result)
+                    total_sum = sum(float(r.get("total") or 0) for r in rows) or 1
+
+                    # Period-over-period: compare first half vs second half of dataset rows
+                    half = max(1, (d.row_count or 2) // 2)
+                    growth_map: Dict[str, float] = {}
+                    if num_col:
+                        try:
+                            g_sql = f'''
+                                SELECT "{cat_col}" as cat,
+                                       SUM(CASE WHEN rn <= {half} THEN TRY_CAST("{num_col}" AS DOUBLE) ELSE 0 END) as first_half,
+                                       SUM(CASE WHEN rn >  {half} THEN TRY_CAST("{num_col}" AS DOUBLE) ELSE 0 END) as second_half
+                                FROM (SELECT *, ROW_NUMBER() OVER () as rn FROM dataset) t
+                                WHERE "{cat_col}" IS NOT NULL
+                                GROUP BY 1
+                                ORDER BY (first_half + second_half) DESC
+                                LIMIT 8
+                            '''
+                            g_result = await self.dataset_service.execute_query(d.id, g_sql, actor)
+                            for gr in _rows_to_dicts(g_result):
+                                first = float(gr.get("first_half") or 0)
+                                second = float(gr.get("second_half") or 0)
+                                key = str(gr.get("cat", ""))
+                                if first > 0:
+                                    growth_map[key] = round((second - first) / first * 100, 1)
+                        except Exception:
+                            pass
+
+                    for j, row in enumerate(rows):
+                        val = float(row.get("total") or 0)
+                        contrib = round(val / total_sum * 100, 1)
+                        cat_name = str(row.get("cat", "Unknown"))
+                        growth_val = growth_map.get(cat_name, 0.0)
+                        items.append({
+                            "id": str(uuid.uuid4()),
+                            "name": cat_name,
+                            "value": round(val, 2),
+                            "contribution": contrib,
+                            "growth": growth_val,
+                            "trend": "up" if growth_val > 0 else ("down" if growth_val < 0 else "neutral"),
+                        })
+
+                except Exception as e:
+                    print(f"[Performance] DuckDB error for {d.name}/{cat_col}: {e}")
+                    # Fallback: profile top_values
+                    raw_top = cols_dict.get(cat_col, {}).get("top_values", {})
+                    top_vals: Dict[str, float] = {}
                     if isinstance(raw_top, list):
                         for entry in raw_top:
                             if isinstance(entry, (list, tuple)) and len(entry) >= 2:
-                                top_vals[str(entry[0])] = entry[1]
+                                top_vals[str(entry[0])] = float(entry[1])
                             elif isinstance(entry, dict):
                                 k = entry.get("value") or entry.get("name") or str(entry)
-                                v = entry.get("count") or entry.get("freq") or 1
+                                v = float(entry.get("count") or entry.get("freq") or 1)
                                 top_vals[str(k)] = v
                     elif isinstance(raw_top, dict):
-                        top_vals = raw_top
-
-                    if top_vals:
-                        total_sum = sum(top_vals.values())
-                        items = []
-                        for k, v in list(top_vals.items())[:5]:
-                            if k and k.lower() not in ('none', 'null', 'nan'):
-                                items.append({
-                                    "id": str(uuid.uuid4()),
-                                    "name": str(k),
-                                    "value": float(v),
-                                    "contribution": float((v / total_sum) * 100) if total_sum else 0
-                                })
-                        if items:
-                            performances.append({
-                                "dimension": f"{d.name} - {c_col.replace('_', ' ').title()}",
-                                "items": items
+                        top_vals = {k: float(v) for k, v in raw_top.items()}
+                    total_sum = sum(top_vals.values()) or 1
+                    for k, v in list(top_vals.items())[:5]:
+                        if k and k.lower() not in ('none', 'null', 'nan'):
+                            items.append({
+                                "id": str(uuid.uuid4()),
+                                "name": str(k),
+                                "value": round(v, 2),
+                                "contribution": round(v / total_sum * 100, 1),
+                                "growth": 0,
+                                "trend": "neutral",
                             })
+
+                if items:
+                    performances.append({
+                        "dimension": f"{d.name} - {cat_col.replace('_', ' ').title()}",
+                        "items": items
+                    })
+
         return {"performances": performances[:4]}
+
 
     # --- Anomalies ---
     async def get_anomalies(self, actor: User, dataset_id: Optional[uuid.UUID] = None) -> Dict[str, Any]:
