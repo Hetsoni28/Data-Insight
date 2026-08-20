@@ -504,31 +504,168 @@ class TenantAnalyticsService:
     async def get_ai_insights(self, actor: User) -> Dict[str, Any]:
         datasets = await self._resolve_datasets(actor)
         domain = self._detect_business_domain(datasets)
+
+        if not datasets:
+            return {
+                "executive_summary": "No datasets found. Upload a dataset to receive AI-driven executive insights.",
+                "insights": [{
+                    "id": str(uuid.uuid4()),
+                    "type": "recommendation",
+                    "content": "Start by uploading datasets to receive AI-driven executive insights."
+                }]
+            }
+
+        # Build a rich context summary from real dataset profiles
+        ds_summary_lines = []
+        for d in datasets[:6]:  # limit to 6 for prompt length
+            line = f"- Dataset: '{d.name}' | Rows: {d.row_count or 0} | Cols: {d.column_count or 0} | Quality: {d.data_quality_score or 100}%"
+            if d.profile:
+                numeric_cols = [c for c, i in self._get_columns_dict(d.profile).items() if i.get("type") == "numeric"]
+                cat_cols = [c for c, i in self._get_columns_dict(d.profile).items() if i.get("type") == "categorical"]
+                line += f" | Numeric cols: {numeric_cols[:4]} | Categorical cols: {cat_cols[:3]}"
+            ds_summary_lines.append(line)
+
+        ds_context = "\n".join(ds_summary_lines)
+        total_rows = sum(d.row_count or 0 for d in datasets)
+        low_quality = [d.name for d in datasets if d.data_quality_score and d.data_quality_score < 80]
+
+        prompt = f"""You are a senior data analyst AI assistant for a business intelligence platform.
+The user's business domain is: {domain}
+
+Here is a summary of their data workspace ({len(datasets)} datasets, {total_rows:,} total rows):
+{ds_context}
+
+Low quality datasets (score < 80%): {low_quality if low_quality else 'None'}
+
+Generate a concise executive business intelligence report with:
+1. A 2-sentence executive summary of the data ecosystem health and growth status.
+2. Exactly 2-3 actionable "Key Discoveries" as bullet points. Each should be specific to their actual data (mention dataset names, row counts, column names, quality scores). Format each as: **[Discovery Type]:** [specific insight]. [Recommendation].
+
+Keep the total response under 200 words. Be specific and data-driven. Do not use generic phrases."""
+
+        executive_summary = f"Your {domain} data ecosystem currently spans {total_rows:,} records across {len(datasets)} datasets."
         insights = []
-        if datasets:
+
+        try:
+            from app.core.config import settings
+            from google import genai
+
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt
+            )
+            raw = response.text.strip()
+
+            # Split into summary + bullet points
+            lines = [l.strip() for l in raw.split("\n") if l.strip()]
+            summary_lines = []
+            insight_lines = []
+            in_bullets = False
+            for line in lines:
+                if line.startswith("**") or line.startswith("- **") or line.startswith("* **") or line.startswith("•"):
+                    in_bullets = True
+                if in_bullets:
+                    clean = line.lstrip("-•* ").strip()
+                    if clean:
+                        insight_type = "opportunity"
+                        if any(w in clean.lower() for w in ["risk", "warning", "missing", "quality", "issue", "problem"]):
+                            insight_type = "risk"
+                        elif any(w in clean.lower() for w in ["recommend", "suggest", "improve", "optimize"]):
+                            insight_type = "opportunity"
+                        insights.append({
+                            "id": str(uuid.uuid4()),
+                            "type": insight_type,
+                            "content": clean
+                        })
+                else:
+                    summary_lines.append(line)
+
+            if summary_lines:
+                executive_summary = " ".join(summary_lines[:2])
+
+        except Exception as e:
+            print(f"[AI Insights] Gemini error: {e}, falling back to template.")
+            # Fallback: template-based but data-driven
+            executive_summary = (
+                f"Your {domain} data ecosystem currently spans {total_rows:,} records across "
+                f"{len(datasets)} datasets with an average quality score of "
+                f"{sum(d.data_quality_score or 100 for d in datasets)/len(datasets):.1f}%."
+            )
             insights.append({
                 "id": str(uuid.uuid4()),
                 "type": "opportunity",
-                "content": f"**{domain} Data Opportunity:** You have {len(datasets)} datasets loaded. Combining them could yield new cross-functional insights. Recommendation: Run cross-dataset join."
+                "content": f"**{domain} Data Opportunity:** You have {len(datasets)} datasets with {total_rows:,} total rows. "
+                           f"Combining them could yield new cross-functional insights. Recommendation: Run a cross-dataset join analysis."
             })
-            if any(d.data_quality_score and d.data_quality_score < 80 for d in datasets):
+            if low_quality:
                 insights.append({
                     "id": str(uuid.uuid4()),
                     "type": "risk",
-                    "content": "**Data Quality Warning:** Some critical datasets have missing or invalid values impacting forecast accuracy. Recommendation: Setup automated cleaning."
+                    "content": f"**Data Quality Warning:** Datasets {low_quality} have quality scores below 80%. "
+                               f"Missing or invalid values may impact forecast accuracy. Recommendation: Set up automated data cleaning."
                 })
-        else:
+
+        if not insights:
             insights.append({
                 "id": str(uuid.uuid4()),
-                "type": "recommendation",
-                "content": "Start by uploading datasets to receive AI-driven executive insights."
+                "type": "opportunity",
+                "content": f"**{domain} Opportunity:** {len(datasets)} datasets with {total_rows:,} rows ready for analysis. Upload more data to unlock deeper cross-dataset insights."
             })
-        return {
-            "executive_summary": f"Your {domain} data ecosystem is currently stable, with moderate growth in data volume.",
-            "insights": insights
-        }
+
+        return {"executive_summary": executive_summary, "insights": insights}
 
     async def chat_ai(self, actor: User, message: str, context: Optional[Dict[str, Any]] = None) -> str:
         datasets = await self._resolve_datasets(actor)
-        ds_names = [d.name for d in datasets]
-        return f"AI Agent: Based on your {len(datasets)} datasets ({', '.join(ds_names[:3])}...), the best way to answer '{message}' is to look at the trend charts in the overview."
+        domain = self._detect_business_domain(datasets)
+
+        # Build context from real dataset profiles
+        ds_context_parts = []
+        for d in datasets[:5]:
+            part = f"Dataset '{d.name}': {d.row_count or 0} rows, {d.column_count or 0} columns, quality {d.data_quality_score or 100}%"
+            if d.profile:
+                numeric_cols = [c for c, i in self._get_columns_dict(d.profile).items() if i.get("type") == "numeric"]
+                cat_cols = [c for c, i in self._get_columns_dict(d.profile).items() if i.get("type") == "categorical"]
+                if numeric_cols:
+                    part += f". Numeric: {', '.join(numeric_cols[:5])}"
+                if cat_cols:
+                    part += f". Categories: {', '.join(cat_cols[:3])}"
+            ds_context_parts.append(part)
+
+        ds_context = "\n".join(ds_context_parts) if ds_context_parts else "No datasets uploaded yet."
+        total_rows = sum(d.row_count or 0 for d in datasets)
+
+        system_prompt = f"""You are a concise, expert data analyst AI for a Business Intelligence platform.
+The user's business domain is: {domain}
+Total datasets: {len(datasets)} | Total records: {total_rows:,}
+
+Available data:
+{ds_context}
+
+Answer the user's question in 2-4 sentences. Be specific and reference actual dataset names, column names, and numbers from the context above. 
+Do not make up data. If you cannot answer from the context, say so and suggest what data they should upload."""
+
+        try:
+            from app.core.config import settings
+            from groq import Groq
+
+            client = Groq(api_key=settings.GROQ_API_KEY)
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": message}
+                ],
+                max_tokens=300,
+                temperature=0.4
+            )
+            return response.choices[0].message.content.strip()
+
+        except Exception as e:
+            print(f"[Chat AI] Groq error: {e}")
+            ds_names = [d.name for d in datasets[:3]]
+            return (
+                f"Based on your {len(datasets)} datasets ({', '.join(ds_names)}{'...' if len(datasets) > 3 else ''}), "
+                f"I wasn't able to fully process your question right now. "
+                f"Please try again or check the trend charts for a visual overview."
+            )
