@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import { useRouter } from "next/navigation"
+import { useRealtimeSync } from "@/hooks/useRealtimeSync"
 
 const MEMBER_NAV = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", allowedRoles: ["organization-admin", "manager", "analyst", "viewer", "org_admin"] },
@@ -41,6 +42,9 @@ interface MemberLayoutProps {
 export function MemberLayout({ children, user, handleLogout }: MemberLayoutProps) {
   const router = useRouter()
   const { workspaces, activeWs, loadingWs, setWorkspaces, setActiveWs, setLoadingWs } = useWorkspaceStore()
+
+  // Real-time sync — invalidates queries when any org member uploads/creates/deletes
+  useRealtimeSync()
 
   // Cache workspaces for 5 minutes — no re-fetch on every route change
   const { data: workspaceData, isLoading: wsLoading } = useQuery({
