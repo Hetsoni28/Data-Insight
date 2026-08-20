@@ -14,11 +14,11 @@ const nextConfig: NextConfig = {
       "@dnd-kit/core",
       "@dnd-kit/sortable",
     ],
+  },
 
-    // @ts-ignore: Next.js types don't officially expose turbo under experimental yet
-    turbo: {
-      resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
-    },
+  // Turbopack config (Next.js 15+ top-level key)
+  turbopack: {
+    resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
   },
 
   // Strip all console.* calls from production bundles
