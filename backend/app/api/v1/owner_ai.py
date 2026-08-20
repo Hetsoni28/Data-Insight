@@ -68,10 +68,41 @@ async def get_ai_overview(
     
     error_rate = (total_errors / total_requests * 100) if total_requests > 0 else 0.0
     success_rate = 100.0 - error_rate
-    
-    # Generate Sparklines (mocked or aggregated daily for the last 30 days)
-    def generate_sparkline(base_value: float, variance: float = 0.1, days: int = 30, trend: str = "up") -> list:
-        return []
+
+    # Previous 30d for trend calculations
+    sixty_days_ago = datetime.now(timezone.utc) - timedelta(days=60)
+    prev_usage_result = await db.execute(
+        select(
+            func.count(AIUsageLog.id),
+            func.sum(AIUsageLog.tokens_total),
+            func.sum(AIUsageLog.cost_usd),
+            func.avg(AIUsageLog.latency_ms),
+            func.sum(case((AIUsageLog.status_code != 200, 1), else_=0))
+        ).where(
+            AIUsageLog.created_at >= sixty_days_ago,
+            AIUsageLog.created_at < thirty_days_ago
+        )
+    )
+    prev_stats = prev_usage_result.fetchone()
+    prev_requests = int(prev_stats[0] or 0)
+    prev_tokens   = int(prev_stats[1] or 0)
+    prev_cost     = float(prev_stats[2] or 0.0)
+    prev_latency  = int(prev_stats[3] or 0)
+    prev_errors   = int(prev_stats[4] or 0)
+    prev_success  = 100.0 - ((prev_errors / prev_requests * 100) if prev_requests > 0 else 0.0)
+
+    def pct_change(curr, prev):
+        """Calculate % change, capped at ±999% for readability."""
+        if prev == 0:
+            return 0.0
+        return round(min(max(((curr - prev) / prev) * 100, -999), 999), 1)
+
+    token_growth    = pct_change(total_tokens, prev_tokens)
+    request_growth  = pct_change(total_requests, prev_requests)
+    cost_growth     = pct_change(total_cost, prev_cost)
+    # For latency: negative trend = improvement (faster)
+    latency_trend   = pct_change(avg_latency, prev_latency)
+    success_trend   = pct_change(success_rate, prev_success)
 
     return {
         "kpis": {
@@ -86,7 +117,15 @@ async def get_ai_overview(
             "avg_latency_ms": avg_latency,
             "success_rate": round(success_rate, 2),
         },
-        # Legacy support for ai-usage page & new LiveKpiGrid
+        # Trends (all period-over-period vs previous 30d)
+        "trends": {
+            "tokens": token_growth,
+            "requests": request_growth,
+            "cost": cost_growth,
+            "latency": latency_trend,
+            "success_rate": success_trend,
+        },
+        # Legacy support
         "total_requests": total_requests,
         "monthly_requests": total_requests,
         "total_tokens": total_tokens,
@@ -96,18 +135,17 @@ async def get_ai_overview(
         "avg_latency": avg_latency,
         "uptime": round(success_rate, 2),
         "active_models": models_count or 0,
-        "active_organizations": 0, 
+        "active_organizations": 0,
         "success_rate": round(success_rate, 2),
         "failed_requests": total_errors,
-        
-        # New: Sparklines for Executive Command Center
         "sparklines": {
-            "requests": generate_sparkline(total_requests, trend="up"),
-            "cost": generate_sparkline(total_cost, trend="up"),
-            "latency": generate_sparkline(avg_latency, variance=0.2, trend="down"),
-            "uptime": generate_sparkline(success_rate, variance=0.01, trend="up")
+            "requests": [],
+            "cost": [],
+            "latency": [],
+            "uptime": []
         }
     }
+
 
 @router.get("/providers")
 async def get_providers(

@@ -1,5 +1,5 @@
 import { MetricCard } from "@/components/molecules/MetricCard"
-import { Building2, Users, Database, FileSpreadsheet, Zap, DollarSign, Activity, Server, Clock, Code, AlertTriangle, Layers, RefreshCw } from "lucide-react"
+import { Building2, Users, Database, FileSpreadsheet, Zap, DollarSign, Activity, Server, Clock, Code, AlertTriangle, Layers } from "lucide-react"
 
 interface LiveKpiGridProps {
   analytics: any;
@@ -28,7 +28,7 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
   );
 
   const aiKpis = aiOverview.kpis;
-  const aiSparklines = aiOverview.sparklines;
+  const aiTrends = aiOverview.trends ?? {};
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
@@ -44,7 +44,7 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
         title="Active Users" 
         value={analytics.users.total} 
         icon={<Users className="h-5 w-5" />} 
-        trend={parseFloat(analytics.users.trend)} 
+        trend={analytics.users.growth ?? parseFloat(analytics.users.trend ?? "0")}
         sparklineData={analytics.users.sparkline}
         color="blue"
         delay={0.15} 
@@ -62,8 +62,8 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
         title="AI Tokens Used" 
         value={(aiKpis.monthly_tokens / 1000).toFixed(1) + "k"} 
         icon={<Zap className="h-5 w-5" />} 
-        trend={aiOverview.sparklines?.requests ? 12.5 : 0} 
-        sparklineData={aiSparklines?.requests}
+        trend={aiTrends.tokens ?? 0}
+        sparklineData={[]}
         color="violet"
         delay={0.25} 
       />
@@ -72,9 +72,9 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
         title="AI Requests" 
         value={aiKpis.monthly_requests.toLocaleString()} 
         icon={<Activity className="h-5 w-5" />} 
-        trend={5.2}
+        trend={aiTrends.requests ?? 0}
         trendLabel="vs last 30d" 
-        sparklineData={aiSparklines?.requests}
+        sparklineData={[]}
         color="amber"
         delay={0.3} 
       />
@@ -82,7 +82,7 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
         title="Total Datasets" 
         value={analytics.platform.datasets} 
         icon={<Database className="h-5 w-5" />} 
-        trend={5.1} 
+        trend={analytics.platform.dataset_growth ?? 0}
         sparklineData={analytics.platform.sparkline}
         color="blue"
         delay={0.35} 
@@ -91,7 +91,7 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
         title="Generated Reports" 
         value={analytics.platform.reports} 
         icon={<FileSpreadsheet className="h-5 w-5" />} 
-        trend={22.4} 
+        trend={analytics.platform.report_growth ?? 0}
         sparklineData={analytics.platform.sparkline}
         delay={0.4} 
       />
@@ -99,9 +99,9 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
         title="Avg Response Time" 
         value={`${aiKpis.avg_latency_ms}ms`} 
         icon={<Clock className="h-5 w-5" />} 
-        trend={-12.5}
-        trendLabel="faster than last week"
-        sparklineData={aiSparklines?.latency}
+        trend={aiTrends.latency ?? 0}
+        trendLabel="vs last 30d"
+        sparklineData={[]}
         color="emerald"
         delay={0.45} 
       />
@@ -116,9 +116,9 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
         title="AI Cost" 
         value={`$${aiKpis.monthly_cost_usd}`} 
         icon={<DollarSign className="h-5 w-5" />} 
-        trend={-3.2}
-        trendLabel="vs last month" 
-        sparklineData={aiSparklines?.cost}
+        trend={aiTrends.cost ?? 0}
+        trendLabel="vs last 30d" 
+        sparklineData={[]}
         color="rose"
         delay={0.55} 
       />
@@ -126,16 +126,16 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
         title="Success Rate" 
         value={`${aiKpis.success_rate}%`} 
         icon={<Code className="h-5 w-5" />} 
-        trend={0.5} 
-        sparklineData={aiSparklines?.uptime}
+        trend={aiTrends.success_rate ?? 0}
+        sparklineData={[]}
         color="emerald"
         delay={0.6} 
       />
       <MetricCard 
-        title="Platform Bounce" 
-        value={`${analytics.platform.bounce_rate}%`} 
+        title="Active Organizations" 
+        value={analytics.organizations.active ?? analytics.organizations.total}
         icon={<AlertTriangle className="h-5 w-5" />} 
-        trend={-0.2} 
+        trend={analytics.organizations.growth}
         color="rose"
         delay={0.65} 
       />

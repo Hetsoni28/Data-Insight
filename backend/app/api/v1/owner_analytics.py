@@ -68,16 +68,30 @@ async def get_analytics_overview(
     prev_ai_requests = (await db.execute(prev_ai_requests_stmt)).scalar_one()
     ai_growth = ((ai_requests - prev_ai_requests) / max(prev_ai_requests, 1)) * 100
 
-    # 5. Platform Usage
+    # 5. Platform Usage — datasets & reports with real period-over-period growth
     total_datasets = (await db.execute(select(func.count(Dataset.id)).where(Dataset.is_deleted == False))).scalar_one()
     total_reports = (await db.execute(select(func.count(Report.id)))).scalar_one()
 
-    # Generate Sparklines (mocked or aggregated daily for the last 30 days)
-    # In a real heavy enterprise system, these would be cached.
-    # For now, we will generate synthetic sparklines around the current metric to ensure the UI looks premium.
-    def generate_sparkline(base_value: int, variance: float = 0.1, days: int = 30, trend: str = "up") -> list:
-        # We must return an empty list or actual data, NO fake data.
-        return []
+    # Dataset growth: new datasets created last 30d vs prior 30d
+    new_datasets_stmt = select(func.count(Dataset.id)).where(Dataset.created_at >= thirty_days_ago, Dataset.is_deleted == False)
+    new_datasets = (await db.execute(new_datasets_stmt)).scalar_one()
+    prev_datasets_stmt = select(func.count(Dataset.id)).where(Dataset.created_at >= sixty_days_ago, Dataset.created_at < thirty_days_ago, Dataset.is_deleted == False)
+    prev_datasets = (await db.execute(prev_datasets_stmt)).scalar_one()
+    dataset_growth = round(((new_datasets - prev_datasets) / max(prev_datasets, 1)) * 100, 1)
+
+    # Report growth: new reports created last 30d vs prior 30d
+    new_reports_stmt = select(func.count(Report.id)).where(Report.created_at >= thirty_days_ago)
+    new_reports = (await db.execute(new_reports_stmt)).scalar_one()
+    prev_reports_stmt = select(func.count(Report.id)).where(Report.created_at >= sixty_days_ago, Report.created_at < thirty_days_ago)
+    prev_reports = (await db.execute(prev_reports_stmt)).scalar_one()
+    report_growth = round(((new_reports - prev_reports) / max(prev_reports, 1)) * 100, 1)
+
+    # User growth (period-over-period, reusing org_growth variable)
+    new_users_stmt = select(func.count(User.id)).where(User.created_at >= thirty_days_ago, User.is_active == True)
+    new_users = (await db.execute(new_users_stmt)).scalar_one()
+    prev_users_stmt = select(func.count(User.id)).where(User.created_at >= sixty_days_ago, User.created_at < thirty_days_ago, User.is_active == True)
+    prev_users = (await db.execute(prev_users_stmt)).scalar_one()
+    user_growth = round(((new_users - prev_users) / max(prev_users, 1)) * 100, 1)
 
     return {
         "status": "success",
@@ -85,35 +99,35 @@ async def get_analytics_overview(
             "users": {
                 "total": total_users,
                 "mau": mau,
-                "retention_rate": 84.5,
-                "trend": f"{'+' if org_growth >= 0 else ''}{round(org_growth, 1)}%",
-                "sparkline": generate_sparkline(total_users, trend="up")
+                "new_last_30d": new_users,
+                "growth": user_growth,
+                "trend": f"{'+' if user_growth >= 0 else ''}{user_growth}%",
+                "sparkline": []
             },
             "organizations": {
                 "total": total_orgs,
                 "active": active_orgs,
                 "new": new_orgs_last_30,
                 "growth": round(org_growth, 1),
-                "sparkline": generate_sparkline(total_orgs, trend="up")
+                "sparkline": []
             },
             "revenue": {
                 "mrr": mrr,
                 "arr": arr,
                 "growth": round(mrr_growth, 1),
-                "sparkline": generate_sparkline(int(mrr), trend="up" if mrr_growth >= 0 else "down")
+                "sparkline": []
             },
             "ai": {
                 "total_requests": ai_requests,
                 "growth": round(ai_growth, 1),
-                "feature_adoption": 68.2,
-                "sparkline": generate_sparkline(ai_requests, variance=0.3, trend="up")
+                "sparkline": []
             },
             "platform": {
                 "datasets": total_datasets,
                 "reports": total_reports,
-                "uptime": 99.99,
-                "bounce_rate": 24.1,
-                "sparkline": generate_sparkline(total_reports, trend="up")
+                "dataset_growth": dataset_growth,
+                "report_growth": report_growth,
+                "sparkline": []
             }
         }
     }
