@@ -180,3 +180,46 @@ async def revoke_user(
     await db.delete(user)
     await db.commit()
     return {"message": "User access revoked."}
+
+
+class ChangeRoleRequest(BaseModel):
+    role: str = Field(..., description="New role to assign: org_admin, manager, analyst, viewer")
+
+
+@router.patch(
+    "/{user_id}/role",
+    response_model=UserResponse,
+    summary="Change a user's role (Owner only)",
+)
+async def change_user_role(
+    user_id: str,
+    body: ChangeRoleRequest,
+    db: AsyncSession = Depends(get_db),
+    owner: User = Depends(require_owner),
+):
+    from app.models.user import UserRole
+
+    # Validate requested role — owner cannot be assigned via this endpoint
+    allowed_roles = [UserRole.org_admin, UserRole.manager, UserRole.analyst, UserRole.viewer]
+    if body.role not in allowed_roles:
+        raise ValidationException(
+            f"Invalid role '{body.role}'. Must be one of: {', '.join(allowed_roles)}"
+        )
+
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
+    if not user:
+        raise ResourceNotFoundException("User not found.")
+
+    if user.is_owner:
+        raise ForbiddenException("Cannot change the Platform Owner's role.")
+
+    old_role = user.role
+    user.role = body.role
+    await db.commit()
+    await db.refresh(user)
+
+    return user
+

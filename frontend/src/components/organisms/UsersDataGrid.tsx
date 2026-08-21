@@ -67,6 +67,24 @@ export function UsersDataGrid() {
     onError: () => toast.error("Failed to send password reset email.")
   })
 
+  const changeRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      const res = await api.patch(`/users/${userId}/role`, { role })
+      return res.data
+    },
+    onSuccess: (data, variables) => {
+      toast.success(`Role changed to "${variables.role}" successfully.`)
+      setUsers(prev => (Array.isArray(prev) ? prev : []).map(u =>
+        u.id === variables.userId ? { ...u, role: variables.role } : u
+      ))
+      queryClient.invalidateQueries({ queryKey: ['admin-global-kpis'] })
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || err?.response?.data?.detail || "Failed to change role."
+      toast.error(msg)
+    }
+  })
+
   const fetchUsers = async () => {
     try {
       const { data } = await api.get("/admin/users")
@@ -344,6 +362,25 @@ export function UsersDataGrid() {
                            <DropdownMenuItem onClick={() => handleResetPassword(user)}>
                              <Key className="h-4 w-4 mr-2.5 text-amber-500" /> Reset Password
                            </DropdownMenuItem>
+                           {!user.is_owner && (
+                             <>
+                               <DropdownMenuSeparator />
+                               <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Role</div>
+                               {["org_admin", "manager", "analyst", "viewer"].map((role) => (
+                                 <DropdownMenuItem
+                                   key={role}
+                                   disabled={user.role === role || changeRoleMutation.isPending}
+                                   onClick={() => changeRoleMutation.mutate({ userId: user.id, role })}
+                                   className={user.role === role ? "opacity-50 cursor-not-allowed" : ""}
+                                 >
+                                   <span className="w-3.5 h-3.5 mr-2.5 text-emerald-500 inline-block">
+                                     {user.role === role ? "✓" : ""}
+                                   </span>
+                                   <span className="capitalize">{role.replace("_", " ")}</span>
+                                 </DropdownMenuItem>
+                               ))}
+                             </>
+                           )}
                            <DropdownMenuSeparator />
                            <DropdownMenuItem
                              onClick={() => handleToggleStatus(user.id, user.is_active)}
