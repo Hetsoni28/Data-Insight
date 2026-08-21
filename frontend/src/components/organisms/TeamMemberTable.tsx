@@ -3,16 +3,36 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
+import { useMutation } from "@tanstack/react-query"
 import { MoreVertical, Search, Filter, Mail, ShieldAlert, MonitorPlay, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import api from "@/lib/api"
 
-export function TeamMemberTable({ members, departments }: { members: any[], departments: any[] }) {
+export function TeamMemberTable({ members: initialMembers, departments }: { members: any[], departments: any[] }) {
+  const [members, setMembers] = useState<any[]>(initialMembers)
   const [searchTerm, setSearchTerm] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [roleFilter, setRoleFilter] = useState("All")
   const [statusFilter, setStatusFilter] = useState("All")
   const [deptFilter, setDeptFilter] = useState("All")
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+
+  const changeRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      const res = await api.patch(`/tenant-team/members/${userId}/role`, { role })
+      return res.data
+    },
+    onSuccess: (_, variables) => {
+      toast.success(`Role changed to "${variables.role}" successfully.`)
+      setMembers(prev => prev.map(m => m.id === variables.userId ? { ...m, role: variables.role } : m))
+      setOpenMenuId(null)
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.detail || "Failed to change role."
+      toast.error(msg)
+    }
+  })
 
   const filteredMembers = members.filter(m => {
     const matchesSearch = m.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -199,9 +219,44 @@ export function TeamMemberTable({ members, departments }: { members: any[], depa
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
+                      {/* Role change dropdown — only for non-org_admin members */}
+                      {member.role !== 'org_admin' && (
+                        <div className="relative inline-block text-left">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setOpenMenuId(openMenuId === member.id ? null : member.id)}
+                            className="h-8 px-2 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg flex items-center gap-1"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                          {openMenuId === member.id && (
+                            <div className="absolute right-0 top-full z-50 mt-1 w-44 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden">
+                              <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-white/5">
+                                Change Role
+                              </div>
+                              {["manager", "analyst", "viewer"].map((role) => (
+                                <button
+                                  key={role}
+                                  disabled={member.role === role || changeRoleMutation.isPending}
+                                  onClick={() => changeRoleMutation.mutate({ userId: member.id, role })}
+                                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors
+                                    ${member.role === role
+                                      ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 cursor-default"
+                                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
+                                    }`}
+                                >
+                                  {member.role === role
+                                    ? <Check className="w-3.5 h-3.5 text-emerald-500" />
+                                    : <span className="w-3.5 h-3.5" />
+                                  }
+                                  <span className="capitalize">{role}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </motion.tr>
                 ))}

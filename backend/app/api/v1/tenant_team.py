@@ -501,3 +501,74 @@ async def get_team_active_sessions(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+
+class ChangeTeamMemberRoleRequest(BaseModel):
+    role: str
+
+
+@router.patch(
+    "/members/{user_id}/role",
+    summary="Change a team member's role (Org Admin only)",
+    dependencies=[Depends(RequireRole(["org_admin"]))],
+)
+async def change_team_member_role(
+    user_id: uuid.UUID,
+    body: ChangeTeamMemberRoleRequest,
+    request: Request,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # Org admin can only assign these roles — not org_admin or owner
+    allowed_roles = [UserRole.manager, UserRole.analyst, UserRole.viewer]
+    if body.role not in allowed_roles:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid role '{body.role}'. Org Admin can assign: {', '.join(allowed_roles)}"
+        )
+
+    tenant_id = current_user.tenant_id
+    if not tenant_id:
+        raise HTTPException(status_code=403, detail="You do not belong to an organization.")
+
+    # Fetch the target user — must be in the same tenant
+    stmt = select(User).where(User.id == user_id, User.tenant_id == tenant_id)
+    result = await db.execute(stmt)
+    target_user = result.scalars().first()
+
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Team member not found in your organization.")
+
+    if target_user.is_owner:
+        raise HTTPException(status_code=403, detail="Cannot change the Platform Owner's role.")
+
+    if target_user.id == current_user.id:
+        raise HTTPException(status_code=403, detail="You cannot change your own role.")
+
+    old_role = target_user.role
+    target_user.role = body.role
+
+    # Audit log
+    audit = AuditLog(
+        tenant_id=tenant_id,
+        user_id=current_user.id,
+        action="team.member.role_changed",
+        resource_type="user",
+        resource_id=str(target_user.id),
+        ip_address=request.client.host if request.client else "127.0.0.1",
+        extra_metadata={"from_role": old_role, "to_role": body.role, "target_email": target_user.email},
+    )
+    db.add(audit)
+    await db.commit()
+    await db.refresh(target_user)
+
+    return {
+        "status": "success",
+        "message": f"Role changed from '{old_role}' to '{body.role}' for {target_user.email}.",
+        "data": {
+            "id": str(target_user.id),
+            "email": target_user.email,
+            "role": target_user.role,
+        }
+    }
+
