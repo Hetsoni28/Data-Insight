@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/useAuth"
 import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"
@@ -44,6 +45,15 @@ export function ViewerDatasetExplorer() {
   const paginatedDatasets = filteredDatasets.slice((currentPage - 1) * pageSize, currentPage * pageSize)
   const totalPages = Math.ceil(filteredDatasets.length / pageSize) || 1
 
+  const { data: overview, isLoading: loadingOverview } = useQuery({
+    queryKey: ['viewer-overview', activeWs?.id],
+    queryFn: async () => {
+      return await TenantDashboardService.getDashboardOverview(activeWs!.id)
+    },
+    enabled: !!activeWs?.id,
+  })
+
+  const isLoading = loading || loadingOverview
   const avgQuality = datasets.length ? datasets.reduce((acc, curr) => acc + (curr.data_quality_score || 0), 0) / datasets.length : 0
 
   const headerBadges = (
@@ -62,29 +72,27 @@ export function ViewerDatasetExplorer() {
   const topMetrics: DatasetMetric[] = [
     {
       title: "Shared Datasets",
-      value: loading ? "-" : datasets.length.toString(),
+      value: isLoading ? "-" : datasets.length.toString(),
       icon: <Database className="w-5 h-5 text-emerald-500" />,
       trend: 2,
       trendLabel: "vs last week",
     },
     {
       title: "Avg. Data Quality",
-      value: loading ? "-" : `${Math.round(avgQuality)}%`,
+      value: isLoading ? "-" : `${Math.round(avgQuality)}%`,
       icon: <Activity className="w-5 h-5 text-emerald-500" />,
       trend: 5,
       trendLabel: "vs last month",
     },
     {
       title: "Favorite Datasets",
-      value: loading ? "-" : "3",
+      value: isLoading ? "-" : (overview?.kpis?.bookmarks_count || 0).toString(),
       icon: <Star className="w-5 h-5 text-amber-500" />,
     },
     {
       title: "Recent Downloads",
-      value: loading ? "-" : "12",
+      value: isLoading ? "-" : (overview?.kpis?.downloads_count || 0).toString(),
       icon: <Download className="w-5 h-5 text-purple-500" />,
-      trend: -2,
-      trendLabel: "vs last month",
     }
   ]
 
