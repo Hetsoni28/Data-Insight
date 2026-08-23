@@ -11,7 +11,7 @@ from app.models.api_gateway import ApiRequestLog, OAuthClient, ApiRateLimit, Api
 from app.models.api_key import ApiKey
 from app.models.security import ThreatIntelligence
 
-router = APIRouter(prefix="/owner/api-gateway", tags=["owner-api-gateway"])
+router = APIRouter(tags=["owner-api-gateway"])
 
 def require_owner(current_user: User = Depends(get_current_user)):
     # UserRole is a plain class with string constants, owner = "owner"

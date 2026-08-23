@@ -464,7 +464,11 @@ async def impersonate_user(
 
     # Issue a short-lived token for impersonation (1 hour)
     token = create_access_token(
-        subject=str(target_user.id), expires_delta=timedelta(hours=1)
+        subject=str(target_user.id),
+        role=target_user.role,
+        tenant_id=str(target_user.tenant_id) if target_user.tenant_id else None,
+        token_version=getattr(target_user, "token_version", 1),
+        expires_delta=timedelta(hours=1)
     )
     return {
         "access_token": token,

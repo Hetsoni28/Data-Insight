@@ -11,7 +11,7 @@ from app.models.user import User, UserRole
 from app.models.tenant import Tenant
 from app.models.storage import StorageBucket, StorageFile, StorageBackup, StorageLifecyclePolicy, StorageActivityLog
 
-router = APIRouter(prefix="/owner/storage", tags=["owner-storage"])
+router = APIRouter(prefix="", tags=["owner-storage"])
 
 def require_owner(current_user: User = Depends(get_current_user)):
     # Fallback to is_owner
