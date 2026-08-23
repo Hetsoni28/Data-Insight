@@ -182,6 +182,9 @@ async def _process_ai_report(tenant_id: str, report_id: str, dataset_id: str, re
                     }
                 }
             
+            if report_category in ["executive", "ai-insight", "dashboard"]:
+                ai_blueprint = generate_structured_report(prompt, schema)
+
             elif report_category in ["forecast", "trend_forecast"]:
                 # Use real Machine Learning Time-Series Forecasting Engine
                 from app.services.analytics.forecasting_engine import ForecastingEngine

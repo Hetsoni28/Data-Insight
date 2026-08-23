@@ -97,7 +97,13 @@ class TenantMiddleware(BaseHTTPMiddleware):
                     tenant_slug = parts[0]
 
         tenant_data: Optional[Dict[str, Any]] = None
-        tenant_uuid = uuid.UUID(tenant_id_str) if tenant_id_str else None
+        try:
+            tenant_uuid = uuid.UUID(tenant_id_str) if tenant_id_str else None
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "BAD_REQUEST", "message": "Invalid X-Tenant-ID format"}
+            )
 
         if tenant_uuid or tenant_slug:
             tenant_data = await self._resolve_tenant(tenant_uuid, tenant_slug)
@@ -118,18 +124,24 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 )
 
         # Build context
-        ctx = TenantContext(
-            tenant_id=uuid.UUID(tenant_data["id"]) if tenant_data else tenant_uuid,
-            tenant_slug=tenant_data.get("slug") if tenant_data else tenant_slug,
-            tenant_name=tenant_data.get("name") if tenant_data else None,
-            tenant_plan=tenant_data.get("plan", "starter") if tenant_data else "starter",
-            db_connection_type=tenant_data.get("db_connection_type", "shared") if tenant_data else "shared",
-            dedicated_db_url=tenant_data.get("dedicated_db_url") if tenant_data else None,
-            user_id=uuid.UUID(user_id_str) if user_id_str else None,
-            user_role=user_role,
-            is_owner=is_owner,
-            is_superadmin=is_superuser,
-        )
+        try:
+            ctx = TenantContext(
+                tenant_id=uuid.UUID(tenant_data["id"]) if tenant_data else tenant_uuid,
+                tenant_slug=tenant_data.get("slug") if tenant_data else tenant_slug,
+                tenant_name=tenant_data.get("name") if tenant_data else None,
+                tenant_plan=tenant_data.get("plan", "starter") if tenant_data else "starter",
+                db_connection_type=tenant_data.get("db_connection_type", "shared") if tenant_data else "shared",
+                dedicated_db_url=tenant_data.get("dedicated_db_url") if tenant_data else None,
+                user_id=uuid.UUID(user_id_str) if user_id_str else None,
+                user_role=user_role,
+                is_owner=is_owner,
+                is_superadmin=is_superuser,
+            )
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "BAD_REQUEST", "message": "Invalid UUID format in context"}
+            )
 
         request.state.tenant = tenant_data
         request.state.tenant_id = ctx.tenant_id

@@ -540,7 +540,7 @@ async def simulate_report_workflow(tenant_id: uuid.UUID, report_id: uuid.UUID, u
         
         try:
             # 1. Download file bytes
-            file_bytes = download_file_bytes(DATASETS_BUCKET, dataset.file_url)
+            file_bytes = await download_file_bytes(DATASETS_BUCKET, dataset.file_url)
         
             # 2. Parse with Pandas
             file_buffer = io.BytesIO(file_bytes)
@@ -607,7 +607,7 @@ async def simulate_report_workflow(tenant_id: uuid.UUID, report_id: uuid.UUID, u
             filename = f"{safe_title}.xlsx"
         
             r_path = report_storage_path(tenant_id, report.id, filename)
-            uploaded_path = upload_file(REPORTS_BUCKET, output_bytes, r_path, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            uploaded_path = await upload_file(REPORTS_BUCKET, output_bytes, r_path, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         
             report.status = ReportStatus.ready
             report.output_size_bytes = len(output_bytes)
@@ -620,7 +620,7 @@ async def simulate_report_workflow(tenant_id: uuid.UUID, report_id: uuid.UUID, u
         
             audit = AuditLog(
                 tenant_id=tenant_id, user_id=user_id, action="report.generated",
-                resource_type="report", resource_id=str(report.id), ip_address=request.client.host if request.client else "127.0.0.1"
+                resource_type="report", resource_id=str(report.id), ip_address="127.0.0.1"
             )
             db.add(audit)
         

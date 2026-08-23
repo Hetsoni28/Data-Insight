@@ -48,6 +48,16 @@ class ConflictException(DataInsightException):
         super().__init__(message=message, code="DI-BE-GLOBAL-409")
 
 
+class BadRequestException(DataInsightException):
+    def __init__(self, message: str = "Bad Request."):
+        super().__init__(message=message, code="DI-BE-GLOBAL-400")
+
+
+class AuthException(DataInsightException):
+    def __init__(self, message: str = "Authentication failed."):
+        super().__init__(message=message, code="DI-BE-AUTH-401")
+
+
 class ValidationException(DataInsightException):
     def __init__(self, message: str):
         super().__init__(message=message, code="DI-BE-GLOBAL-422")

@@ -26,7 +26,8 @@ async def create_chart(
     """
     Create a new chart in the current workspace.
     """
-    # Verify dataset exists and belongs to this tenant/workspace
+    if not current_workspace:
+        raise HTTPException(status_code=400, detail="Workspace context header x-workspace-id is required")
     dataset_result = await db.execute(
         select(Dataset).where(
             Dataset.id == chart_in.dataset_id,
@@ -63,6 +64,8 @@ async def read_charts(
     """
     Retrieve charts.
     """
+    if not current_workspace:
+        raise HTTPException(status_code=400, detail="Workspace context header x-workspace-id is required")
     query = select(Chart).where(
         Chart.tenant_id == current_user.tenant_id,
         Chart.workspace_id == current_workspace.id,
@@ -97,6 +100,8 @@ async def read_chart(
     """
     Get chart by ID.
     """
+    if not current_workspace:
+        raise HTTPException(status_code=400, detail="Workspace context header x-workspace-id is required")
     result = await db.execute(
         select(Chart).where(
             Chart.id == chart_id,
@@ -128,6 +133,8 @@ async def update_chart(
     """
     Update a chart.
     """
+    if not current_workspace:
+        raise HTTPException(status_code=400, detail="Workspace context header x-workspace-id is required")
     result = await db.execute(
         select(Chart).where(
             Chart.id == chart_id,
@@ -159,6 +166,8 @@ async def delete_chart(
     """
     Delete a chart (soft delete).
     """
+    if not current_workspace:
+        raise HTTPException(status_code=400, detail="Workspace context header x-workspace-id is required")
     result = await db.execute(
         select(Chart).where(
             Chart.id == chart_id,

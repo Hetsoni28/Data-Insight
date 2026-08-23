@@ -82,7 +82,6 @@ __all__ = [
     "AIRoutingRule",
     "AIPromptTemplate",
     "AIUsageLog",
-    "AIOps",
     "IntegrationConnection",
     "IntegrationLog",
     "AutomationWorkflow",

@@ -27,10 +27,16 @@ async def _process_schedules_async():
         schedules = res.scalars().all()
         
         for schedule in schedules:
+            # Fetch dataset to get real workspace_id
+            from app.models.dataset import Dataset
+            ds_stmt = select(Dataset).where(Dataset.id == schedule.dataset_id)
+            ds = (await db.execute(ds_stmt)).scalars().first()
+            workspace_id = ds.workspace_id if ds else None
+
             # Create the report record
             report = Report(
                 tenant_id=schedule.tenant_id,
-                workspace_id=uuid.uuid4(), # Fallback if we don't have workspace available
+                workspace_id=workspace_id,
                 dataset_id=schedule.dataset_id,
                 created_by_id=schedule.created_by_id,
                 title=f"{schedule.name} ({now.strftime('%Y-%m-%d %H:%M')})",
