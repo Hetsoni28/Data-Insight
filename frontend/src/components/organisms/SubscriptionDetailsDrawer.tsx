@@ -19,7 +19,7 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
 
   const cancelSubscriptionMutation = useMutation({
     mutationFn: async (tenantId: string) => {
-      const res = await api.post(`/owner/subscriptions/${tenantId}/cancel`)
+      const res = await api.post(`/owner/billing/${tenantId}/cancel`)
       return res.data
     },
     onSuccess: () => {

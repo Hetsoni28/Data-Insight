@@ -43,7 +43,7 @@ export function RevenueAnalyticsCharts() {
   const { data: trends, isLoading: trendsLoading } = useQuery({
     queryKey: ['owner-revenue-trends'],
     queryFn: async () => {
-      const res = await api.get('/owner/subscriptions/revenue-trends')
+      const res = await api.get('/owner/billing/revenue-trends')
       return res.data
     }
   })
@@ -51,7 +51,7 @@ export function RevenueAnalyticsCharts() {
   const { data: forecast, isLoading: forecastLoading } = useQuery({
     queryKey: ['owner-revenue-forecast'],
     queryFn: async () => {
-      const res = await api.get('/owner/subscriptions/analytics/forecast')
+      const res = await api.get('/owner/billing/analytics/forecast')
       return res.data
     }
   })
@@ -59,7 +59,7 @@ export function RevenueAnalyticsCharts() {
   const { data: aiCosts, isLoading: aiCostsLoading } = useQuery({
     queryKey: ['owner-ai-costs'],
     queryFn: async () => {
-      const res = await api.get('/owner/subscriptions/analytics/ai-costs')
+      const res = await api.get('/owner/billing/analytics/ai-costs')
       return res.data
     }
   })

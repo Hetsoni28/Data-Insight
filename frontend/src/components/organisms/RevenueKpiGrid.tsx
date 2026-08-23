@@ -12,7 +12,7 @@ export function RevenueKpiGrid() {
   const { data, isLoading } = useQuery({
     queryKey: ['owner-revenue-kpis'],
     queryFn: async () => {
-      const res = await api.get('/owner/subscriptions/kpis')
+      const res = await api.get('/owner/billing/kpis')
       return res.data
     }
   })

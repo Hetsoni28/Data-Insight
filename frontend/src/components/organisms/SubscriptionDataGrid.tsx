@@ -44,7 +44,7 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
 
   const toggleStatusMutation = useMutation({
     mutationFn: async (tenantId: string) => {
-      const res = await api.post(`/owner/subscriptions/${tenantId}/toggle-status`)
+      const res = await api.post(`/owner/billing/${tenantId}/toggle-status`)
       return res.data
     },
     onSuccess: (data) => {

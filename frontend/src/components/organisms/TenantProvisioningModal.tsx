@@ -75,7 +75,7 @@ export function TenantProvisioningModal({ tenantId, tenantName, isOpen, onClose 
   const { data: status, isLoading: isStatusLoading } = useQuery({
     queryKey: ["provisioning-status", tenantId],
     queryFn: async () => {
-      const res = await api.get(`/owner/subscriptions/${tenantId}/provisioning-status`)
+      const res = await api.get(`/owner/billing/${tenantId}/provisioning-status`)
       return res.data
     },
     enabled: isOpen && !!tenantId,
@@ -88,7 +88,7 @@ export function TenantProvisioningModal({ tenantId, tenantName, isOpen, onClose 
   // ── Provision mutation ─────────────────────────────────────────────────────
   const provisionMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/owner/subscriptions/${tenantId}/provision`, {
+      const res = await api.post(`/owner/billing/${tenantId}/provision`, {
         db_url: dbUrl,
         bucket_name: bucketName || null,
       })
@@ -110,7 +110,7 @@ export function TenantProvisioningModal({ tenantId, tenantName, isOpen, onClose 
   // ── Deprovision mutation ───────────────────────────────────────────────────
   const deprovisionMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/owner/subscriptions/${tenantId}/deprovision`)
+      const res = await api.post(`/owner/billing/${tenantId}/deprovision`)
       return res.data
     },
     onSuccess: () => {

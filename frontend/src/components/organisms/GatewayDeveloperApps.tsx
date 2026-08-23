@@ -91,13 +91,14 @@ function SettingsModal({ app, onClose }: { app: any; onClose: () => void }) {
   const handleSave = async () => {
     setSaving(true)
     try {
-      await api.put(`/developer/apps/${app.id}`, { name, active })
+      await api.put(`/owner/api-gateway/oauth-clients/${app.id}`, { name, active })
       toast.success(`Application "${name}" settings saved`)
       onClose()
     } catch {
       toast.error("Failed to save application settings")
     } finally {
       setSaving(false)
+    }
   }
 
   return (
@@ -163,7 +164,7 @@ function DeleteModal({ app, onClose, onConfirm }: { app: any; onClose: () => voi
   const handleDelete = async () => {
     setDeleting(true)
     try {
-      await api.delete(`/developer/apps/${app.id}`)
+      await api.delete(`/owner/api-gateway/oauth-clients/${app.id}`)
       toast.success(`Application "${app.name}" has been revoked`)
       onConfirm()
       onClose()
@@ -216,7 +217,7 @@ function RegisterAppModal({ open, onClose }: { open: boolean; onClose: () => voi
     if (!redirectUri.trim()) { toast.error("Redirect URI is required"); return }
     setRegistering(true)
     try {
-      await api.post("/developer/apps", { name, redirect_uri: redirectUri, scopes })
+      await api.post("/owner/api-gateway/oauth-clients", { name, redirect_uri: redirectUri, scopes })
       setDone(true)
       queryClient.invalidateQueries({ queryKey: ['api-gateway', 'oauth-clients'] })
       toast.success(`Application "${name}" registered successfully`)

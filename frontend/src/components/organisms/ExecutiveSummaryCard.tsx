@@ -9,7 +9,7 @@ export function ExecutiveSummaryCard() {
   const { data: health, isLoading: healthLoading } = useQuery({
     queryKey: ['owner-revenue-health'],
     queryFn: async () => {
-      const res = await api.get('/owner/subscriptions/analytics/health')
+      const res = await api.get('/owner/billing/analytics/health')
       return res.data
     }
   })

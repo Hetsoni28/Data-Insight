@@ -45,25 +45,25 @@ export default function SubscriptionsPage() {
 
   const { data: kpis, isLoading: isKpisLoading, refetch: refetchKpis } = useQuery({
     queryKey: ['owner-subscriptions-kpis'],
-    queryFn: async () => (await api.get('/owner/subscriptions/kpis')).data
+    queryFn: async () => (await api.get('/owner/billing/kpis')).data
   })
 
   const { data: trends, isLoading: isTrendsLoading, refetch: refetchTrends } = useQuery({
     queryKey: ['owner-subscriptions-trends'],
-    queryFn: async () => (await api.get('/owner/subscriptions/revenue-trends')).data
+    queryFn: async () => (await api.get('/owner/billing/revenue-trends')).data
   })
 
   const { data: subscriptionsData, isLoading: isSubscriptionsLoading, refetch: refetchSubscriptions } = useQuery({
     queryKey: ['owner-subscriptions-list'],
     queryFn: async () => {
-      const res = await api.get('/owner/subscriptions/organizations?skip=0&limit=50')
+      const res = await api.get('/owner/billing/organizations?skip=0&limit=50')
       return Array.isArray(res.data?.data) ? res.data.data : []
     }
   })
 
   const { data: health } = useQuery({
     queryKey: ['owner-subscriptions-health'],
-    queryFn: async () => (await api.get('/owner/subscriptions/analytics/health')).data
+    queryFn: async () => (await api.get('/owner/billing/analytics/health')).data
   })
 
   const handleRefresh = () => {
@@ -76,7 +76,7 @@ export default function SubscriptionsPage() {
   const handleExportCSV = async () => {
     toast.info("Generating CSV...")
     try {
-      const { data } = await api.get("/owner/subscriptions/organizations?skip=0&limit=100")
+      const { data } = await api.get("/owner/billing/organizations?skip=0&limit=100")
       const rows: any[] = Array.isArray(data?.data) ? data.data : []
       if (!rows.length) { toast.error("No data to export."); return }
       const headers = ["ID", "Name", "Plan", "Status", "MRR", "Billing Cycle", "Users", "Storage (GB)", "Created At"]
@@ -96,7 +96,7 @@ export default function SubscriptionsPage() {
     if (!newOrgId.trim()) { toast.error("Please enter an Organization ID."); return }
     setIsCreating(true)
     try {
-      await api.post(`/owner/subscriptions/${newOrgId.trim()}/upgrade`, { plan: newPlan })
+      await api.post(`/owner/billing/${newOrgId.trim()}/upgrade`, { plan: newPlan })
       toast.success(`Organization upgraded to ${newPlan} plan.`)
       setIsCreateOpen(false); setNewOrgId(""); setNewPlan("professional")
       refetchKpis(); refetchTrends(); refetchSubscriptions()

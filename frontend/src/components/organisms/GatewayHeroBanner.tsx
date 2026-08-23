@@ -181,15 +181,15 @@ function CreateApiKeyModal({ open, onClose }: { open: boolean; onClose: () => vo
     if (!name.trim()) { toast.error("Please enter a key name"); return }
     setCreating(true)
     try {
-      const res = await api.post("/developer/keys", { name, scopes })
+      const res = await api.post("/users/me/api-keys", { name, scopes })
       setCreatedKey(res.data.key)
+      queryClient.invalidateQueries({ queryKey: ['api-gateway', 'overview'] })
+      toast.success(`API Key "${name}" created successfully`)
     } catch {
       toast.error("Failed to create API key")
     } finally {
       setCreating(false)
     }
-    queryClient.invalidateQueries({ queryKey: ['api-gateway', 'overview'] })
-    toast.success(`API Key "${name}" created successfully`)
   }
 
   const handleCopy = () => {

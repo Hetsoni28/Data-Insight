@@ -11,7 +11,7 @@ export function TopOrganizationsTable() {
   const { data, isLoading } = useQuery({
     queryKey: ['owner-organizations-top'],
     queryFn: async () => {
-      const res = await api.get('/owner/subscriptions/organizations?skip=0&limit=5')
+      const res = await api.get('/owner/billing/organizations?skip=0&limit=5')
       return res.data
     }
   })

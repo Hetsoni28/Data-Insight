@@ -93,7 +93,13 @@ export function DashboardBuilderWorkspace({ basePath }: { basePath: string }) {
   const handleDuplicate = async () => {
     try {
       toast.loading("Duplicating...", { id: 'duplicate-toast' })
-      const res = await api.post(`/tenant-dashboards/${id}/duplicate`)
+      const { data: sourceDashboard } = await api.get(`/tenant-dashboards/${id}`)
+      const res = await api.post('/tenant-dashboards', {
+        name: `${sourceDashboard.name} (Copy)`,
+        description: sourceDashboard.description,
+        is_published: false,
+        widgets: sourceDashboard.widgets
+      })
       toast.success("Dashboard duplicated successfully", { id: 'duplicate-toast' })
       router.push(`${basePath}/${res.data.id}`)
     } catch (error) {

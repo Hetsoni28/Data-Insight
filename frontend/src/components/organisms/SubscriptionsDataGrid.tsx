@@ -39,7 +39,7 @@ export function SubscriptionsDataGrid() {
 
   const handleCancelSub = async (id: string, name: string) => {
     try {
-      await api.post(`/owner/subscriptions/${id}/cancel`)
+      await api.post(`/owner/billing/${id}/cancel`)
       toast.success(`Subscription for ${name} has been marked for cancellation at the end of the billing cycle.`)
       setSubs(subs.map(s => s.id === id ? { ...s, status: 'suspended' } : s))
     } catch (error) {

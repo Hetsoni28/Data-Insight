@@ -1,4 +1,5 @@
 import api from "./api";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -178,12 +179,15 @@ export class AIService {
       ? JSON.stringify({ question, provider })
       : JSON.stringify({ question, dataset_id: datasetId || undefined, history, provider });
 
+    const { activeWs } = useWorkspaceStore.getState()
+    
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
+          ...(activeWs?.id ? { "x-workspace-id": activeWs.id } : {})
         },
         body,
       });
@@ -254,12 +258,14 @@ export class AIService {
     const token = localStorage.getItem("access_token");
     const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
     
+    const { activeWs } = useWorkspaceStore.getState()
     try {
       const response = await fetch(`${baseUrl}/owner/ai/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${token}`,
+          ...(activeWs?.id ? { "x-workspace-id": activeWs.id } : {})
         },
         body: JSON.stringify({ question, history, model })
       });

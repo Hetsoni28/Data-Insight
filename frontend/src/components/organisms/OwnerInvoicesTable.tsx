@@ -10,7 +10,7 @@ export function OwnerInvoicesTable() {
   const { data, isLoading } = useQuery({
     queryKey: ['owner-invoices'],
     queryFn: async () => {
-      const res = await api.get('/owner/subscriptions/invoices?skip=0&limit=20')
+      const res = await api.get('/owner/billing/invoices?skip=0&limit=20')
       return res.data?.data ?? []
     }
   })

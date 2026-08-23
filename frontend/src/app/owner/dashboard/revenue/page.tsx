@@ -49,7 +49,7 @@ export default function OwnerRevenueDashboardPage() {
     setIsExporting(true)
     toast.info("Generating Financial CSV...")
     try {
-      const { data } = await api.get(`/owner/subscriptions/organizations?skip=0&limit=100`)
+      const { data } = await api.get(`/owner/billing/organizations?skip=0&limit=100`)
       if (!data || !data.data || data.data.length === 0) {
         toast.error("No data to export.")
         return
@@ -87,9 +87,9 @@ export default function OwnerRevenueDashboardPage() {
     toast.info("Compiling AI Financial Report...")
     try {
       const [kpisRes, trendsRes, forecastRes] = await Promise.all([
-        api.get("/owner/subscriptions/kpis").catch(() => ({ data: {} })),
-        api.get("/owner/subscriptions/revenue-trends").catch(() => ({ data: {} })),
-        api.get("/owner/subscriptions/analytics/forecast").catch(() => ({ data: [] })),
+        api.get("/owner/billing/kpis").catch(() => ({ data: {} })),
+        api.get("/owner/billing/revenue-trends").catch(() => ({ data: {} })),
+        api.get("/owner/billing/analytics/forecast").catch(() => ({ data: [] })),
       ])
       const report = {
         report_title: "Data Insight — Financial Intelligence Report",

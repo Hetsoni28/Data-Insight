@@ -15,7 +15,7 @@ export function BillingActivityFeed() {
   const { data, isLoading } = useQuery({
     queryKey: ['owner-billing-activity'],
     queryFn: async () => {
-      const res = await api.get('/owner/subscriptions/activity')
+      const res = await api.get('/owner/billing/activity')
       return res.data?.data ?? []
     }
   })
