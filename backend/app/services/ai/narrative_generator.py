@@ -93,11 +93,11 @@ CRITICAL RULES:
 
         # Include summary stats for top columns
         for col_name, col_data in list(columns_profile.items())[:30]:
-            col_type = col_data.get("inferred_type")
+            col_type = col_data.get("inferred_type") or col_data.get("type") or col_data.get("dtype")
             stats = col_data.get("statistics", {})
             summary_dict["column_metrics"][col_name] = {
                 "type": col_type,
-                "null_percentage": col_data.get("null_percentage"),
+                "null_percentage": col_data.get("null_percentage") or col_data.get("null_pct"),
                 "unique_count": col_data.get("unique_count"),
                 "summary": stats,
             }

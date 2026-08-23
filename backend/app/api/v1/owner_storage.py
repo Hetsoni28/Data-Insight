@@ -420,7 +420,7 @@ async def delete_file(
 
     from app.core import storage as storage_core
     try:
-        storage_core.delete_file(bucket_name, file.file_path)
+        await storage_core.delete_file(bucket_name, file.file_path)
     except Exception:
         pass
 

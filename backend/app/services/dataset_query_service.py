@@ -84,7 +84,7 @@ class DatasetQueryService:
         # 5. Execute via Enterprise DuckDBEngine
         try:
             result = DuckDBEngine.execute_query(df=df, sql=sql, limit=limit)
-            return result.get("data", [])
+            return result
         except Exception as e:
             logger.error(f"DuckDB Execution Error: {e}")
             raise ValueError(f"Query execution failed: {str(e)}")

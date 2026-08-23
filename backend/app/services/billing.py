@@ -15,7 +15,6 @@ import stripe
 from loguru import logger
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models.tenant import Tenant

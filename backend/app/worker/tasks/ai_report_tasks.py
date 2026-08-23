@@ -189,6 +189,8 @@ async def _process_ai_report(tenant_id: str, report_id: str, dataset_id: str, re
                 # Use real Machine Learning Time-Series Forecasting Engine
                 from app.services.analytics.forecasting_engine import ForecastingEngine
                 ai_blueprint = ForecastingEngine.fit_and_forecast(df, horizon=6)
+            else:
+                raise ValueError(f"Unsupported report category: {report_category}")
 
             # 5. Save to database
             report.ai_blueprint = ai_blueprint
