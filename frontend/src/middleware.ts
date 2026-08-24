@@ -1,0 +1,158 @@
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+
+// Routes that should bypass this middleware completely
+const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/onboarding",
+]
+
+/**
+ * Basic Edge-compatible JWT Decoder.
+ * We only need to read the payload, no need to verify the signature here
+ * because the Backend and AuthProvider already verify it.
+ */
+function decodeJwtPayload(token: string) {
+  try {
+    const base64Url = token.split(".")[1]
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return null
+  }
+}
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Ignore static assets and API routes
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next()
+  }
+
+  // --- CUSTOM DOMAIN HANDLING ---
+  const hostname = request.headers.get('host')
+  const isBaseDomain = 
+    !hostname || 
+    hostname.includes('localhost') || 
+    hostname.includes('data-insight.com') ||
+    hostname.includes('127.0.0.1');
+
+  // We will build a response and append headers if necessary.
+  let response = NextResponse.next();
+
+  if (!isBaseDomain) {
+    // If it's a custom domain, we inject an x-tenant-domain header
+    // so the frontend knows to fetch custom branding for this domain.
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-tenant-domain', hostname)
+    
+    // Create a new response with the modified headers for downstream
+    response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  }
+
+  // Allow public routes and invites
+  if (PUBLIC_ROUTES.includes(pathname) || pathname.startsWith("/invite/")) {
+    return response;
+  }
+
+  // Get the token from cookies
+  const token = request.cookies.get("access_token")?.value
+
+  if (!token) {
+    // If they try to access a protected route without a token, Next.js Middleware redirects to /login
+    if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin") || 
+        pathname.startsWith("/owner") || pathname.startsWith("/organization-admin") ||
+        pathname.startsWith("/manager") || pathname.startsWith("/analyst") || pathname.startsWith("/viewer")) {
+      return NextResponse.redirect(new URL("/login", request.url))
+    }
+    return response
+  }
+
+  // Decode the token to find the role
+  const payload = decodeJwtPayload(token)
+  
+  if (!payload || !payload.role) {
+    // If the token is invalid or missing a role, force them to re-login
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url))
+    redirectResponse.cookies.delete("access_token")
+    return redirectResponse
+  }
+
+  let role = payload.role.toLowerCase()
+  if (role === "org_admin") {
+    role = "organization-admin"
+  }
+
+  // Define the valid roles that map to our folder structure
+  const validRoles = ["owner", "organization-admin", "manager", "analyst", "viewer"]
+  
+  // If their role is completely unrecognized, kick them to login
+  if (!validRoles.includes(role)) {
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url))
+    redirectResponse.cookies.delete("access_token")
+    return redirectResponse
+  }
+
+  // Ensure they don't manually access another role's dashboard directly
+  const rolePaths = ["/owner", "/organization-admin", "/manager", "/analyst", "/viewer"]
+  
+  for (const rPath of rolePaths) {
+    if (pathname.startsWith(rPath)) {
+      if (`/${role}` !== rPath) {
+        return NextResponse.redirect(new URL("/dashboard", request.url))
+      }
+      return response
+    }
+  }
+
+  // ── Rewrite logic for /dashboard ──────────────────────────────────────────
+  if (pathname.startsWith("/dashboard")) {
+    // e.g. /dashboard/users -> /owner/dashboard/users
+    // We rewrite the URL internally. The user still sees /dashboard/...
+    const url = request.nextUrl.clone()
+    
+    // Replace "/dashboard" with `/${role}/dashboard`
+    url.pathname = pathname.replace("/dashboard", `/${role}/dashboard`)
+    
+    // Create rewrite and merge headers
+    const rewriteResponse = NextResponse.rewrite(url)
+    if (request.headers.get('host') && !isBaseDomain) {
+       rewriteResponse.headers.set('x-tenant-domain', request.headers.get('host')!)
+    }
+    return rewriteResponse
+  }
+
+  return response
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, icon.svg (favicon files)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|icon.svg).*)',
+  ],
+}

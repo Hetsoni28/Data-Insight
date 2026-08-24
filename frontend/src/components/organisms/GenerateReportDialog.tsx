@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Loader2, FileSpreadsheet } from "lucide-react";
@@ -77,8 +77,9 @@ export function GenerateReportDialog({ open, onOpenChange, onReportGenerated, de
       onReportGenerated();
       onOpenChange(false);
       setTitle("");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to generate report", error);
+      toast.error(error.response?.data?.detail || "Failed to generate report. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

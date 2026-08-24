@@ -750,12 +750,15 @@ async def report_action(
         
         # RBAC and Ownership check
         if action_type in ["delete", "archive"]:
-            user_perms = ROLE_PERMISSIONS.get(current_user.role, [])
-            if "REPORT_DELETE" not in user_perms:
-                if "REPORT_DELETE_OWN" in user_perms and r.created_by_id == current_user.id:
-                    pass # Allowed
-                else:
-                    raise HTTPException(status_code=403, detail="You do not have permission to delete this report.")
+            if current_user.role in ["owner", "org_admin", "organization-admin"]:
+                pass # Allowed
+            else:
+                user_perms = ROLE_PERMISSIONS.get(current_user.role, [])
+                if "report:delete" not in user_perms:
+                    if "report:delete_own" in user_perms and r.created_by_id == current_user.id:
+                        pass # Allowed
+                    else:
+                        raise HTTPException(status_code=403, detail="You do not have permission to delete this report.")
                     
         
         if action_type == "delete":

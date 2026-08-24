@@ -165,11 +165,13 @@ export class TenantDashboardService {
           bookmarks_count: kpiData.bookmarks_count || 0,
           unread_notifications: 0,
           recent_ai_conversations: kpiData.ai_requests?.total || 0
-        }
+        },
+        recent_activity: overviewData.recent_activity || [],
+        unread_notifications: overviewData.unread_notifications || []
       };
     } catch (error) {
       console.error("Error fetching overview:", error);
-      return { welcome: {} as any, kpis: {} as any };
+      return { welcome: {} as any, kpis: {} as any, recent_activity: [], unread_notifications: [] };
     }
   }
 

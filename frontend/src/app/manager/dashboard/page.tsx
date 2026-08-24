@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceStore } from "@/store/workspaceStore";
-import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
+import { tenantDashboardService } from "@/lib/tenantDashboard.service";
 import { DatasetService } from "@/lib/dataset.service";
 import { motion } from "framer-motion";
 
@@ -27,19 +27,13 @@ export default function ManagerDashboardPage() {
 
   const { data: overview, isLoading: loadingOverview } = useQuery({
     queryKey: ['manager-overview', activeWs?.id],
-    queryFn: async () => {
-      const res = await TenantDashboardService.getOverview();
-      return res?.data || res;
-    },
+    queryFn: () => tenantDashboardService.getOverview(),
     enabled: !!activeWs?.id,
   });
 
   const { data: kpis, isLoading: loadingKpis } = useQuery({
     queryKey: ['manager-kpis', activeWs?.id],
-    queryFn: async () => {
-      const res = await TenantDashboardService.getKpis();
-      return res?.data || res;
-    },
+    queryFn: () => tenantDashboardService.getKpis(),
     enabled: !!activeWs?.id,
   });
 
@@ -48,21 +42,21 @@ export default function ManagerDashboardPage() {
     queryFn: () => DatasetService.list(activeWs!.id),
     enabled: !!activeWs?.id,
   });
-  const datasets = datasetsRes?.data || datasetsRes?.items || (Array.isArray(datasetsRes) ? datasetsRes : []);
+  const datasets = datasetsRes as any;
 
   const { data: reportsRes, isLoading: loadingReports } = useQuery({
     queryKey: ['manager-reports-list', activeWs?.id],
-    queryFn: () => TenantDashboardService.getReports(0, 5),
+    queryFn: () => tenantDashboardService.getReports(0, 5),
     enabled: !!activeWs?.id,
   });
-  const reports = reportsRes?.data || reportsRes?.items || (Array.isArray(reportsRes) ? reportsRes : []);
+  const reports = (reportsRes as any)?.data || (reportsRes as any)?.items || (Array.isArray(reportsRes) ? reportsRes : []);
 
   const { data: activityRes, isLoading: loadingActivity } = useQuery({
-    queryKey: ['manager-activity-list', activeWs?.id],
-    queryFn: () => TenantDashboardService.getActivityFeed(0, 10),
+    queryKey: ['manager-activity', activeWs?.id],
+    queryFn: () => tenantDashboardService.getActivity(0, 10),
     enabled: !!activeWs?.id,
   });
-  const activity = activityRes?.data || activityRes?.items || (Array.isArray(activityRes) ? activityRes : []);
+  const activity = (activityRes as any)?.data || (activityRes as any)?.items || (Array.isArray(activityRes) ? activityRes : []);
 
   const loading = loadingOverview || loadingKpis || loadingDatasets || loadingReports || loadingActivity;
   const refreshing = false; // Background fetch handled by React Query

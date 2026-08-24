@@ -292,7 +292,7 @@ class RequirePermission:
     async def __call__(
         self, current_user: User = Depends(get_current_active_tenant_user)
     ) -> User:
-        if current_user.is_owner:
+        if current_user.is_owner or current_user.role in ["owner", "org_admin", "organization-admin"]:
             return current_user
             
         user_perms = ROLE_PERMISSIONS.get(current_user.role, [])

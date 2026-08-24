@@ -85,7 +85,7 @@ export const ViewerAnalyticsTrends = React.memo(function ViewerAnalyticsTrends({
                 />
                 <Area 
                   type="monotone" 
-                  dataKey={trend.y_axis_key} 
+                  dataKey={trend.y_axis_key ?? "value"} 
                   stroke="#10b981" 
                   strokeWidth={3} 
                   fill={`url(#gradient-${trend.id})`}

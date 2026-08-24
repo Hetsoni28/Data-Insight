@@ -91,7 +91,7 @@ export default function AnalystDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <AnalystDatasetsTable
-            datasets={datasets}
+            datasets={datasets as any}
             isLoading={loadingDatasets}
             onUploadClick={() => router.push('/analyst/dashboard/upload-dataset')}
           />

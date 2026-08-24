@@ -17,7 +17,7 @@ interface ViewerAnalyticsAIProps {
 }
 
 export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyticsAIProps) {
-  const { currentWorkspace } = useWorkspaceStore();
+  const { activeWs } = useWorkspaceStore();
   const [chatMessage, setChatMessage] = useState("");
   const [isChatting, setIsChatting] = useState(false);
   const [chatHistory, setChatHistory] = useState<{role: 'user'|'ai', content: string}[]>([]);
@@ -32,7 +32,7 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
     setIsChatting(true);
 
     try {
-      const workspaceId = currentWorkspace?.id || "";
+      const workspaceId = activeWs?.id || "";
       const res = await AnalyticsService.chatAi(workspaceId, userMsg, { context: "viewer_analytics_page" });
       setChatHistory(prev => [...prev, { role: 'ai', content: res.response }]);
     } catch (err) {
@@ -81,7 +81,7 @@ export function ViewerAnalyticsAI({ insights, summary, isLoading }: ViewerAnalyt
               }`}>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
-              <p className="text-[15px] font-medium text-slate-700 dark:text-slate-300 leading-snug">{insight.content}</p>
+              <p className="text-[15px] font-medium text-slate-700 dark:text-slate-300 leading-snug">{insight.description ?? insight.content}</p>
             </motion.div>
           ))}
         </div>

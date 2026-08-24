@@ -48,7 +48,7 @@ export const ViewerAnalyticsComparisons = React.memo(function ViewerAnalyticsCom
               {/* Entity A */}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1">{comp.entity_a}</p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums tracking-tight">{comp.value_a.toLocaleString()}</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums tracking-tight">{(comp.value_a ?? 0).toLocaleString()}</p>
               </div>
 
               {/* Trend Badge */}
@@ -62,14 +62,14 @@ export const ViewerAnalyticsComparisons = React.memo(function ViewerAnalyticsCom
               {/* Entity B */}
               <div className="flex-1 min-w-0 text-right">
                 <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1">{comp.entity_b}</p>
-                <p className="text-2xl font-extrabold text-slate-400/80 dark:text-slate-600 tabular-nums tracking-tight">{comp.value_b.toLocaleString()}</p>
+                <p className="text-2xl font-extrabold text-slate-400/80 dark:text-slate-600 tabular-nums tracking-tight">{(comp.value_b ?? 0).toLocaleString()}</p>
               </div>
             </div>
 
             <div className="mt-4 pt-4 border-t border-slate-200/80 dark:border-white/5 text-[13px] font-medium text-slate-500 flex justify-between items-center">
               <span>Absolute variance</span>
               <span className={`font-bold px-2 py-0.5 rounded-md ${isUp ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : isDown ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400' : 'bg-slate-100 text-slate-600 dark:bg-white/5'}`}>
-                {comp.absolute_difference > 0 ? "+" : ""}{comp.absolute_difference.toLocaleString()}
+                {(comp.absolute_difference ?? 0) > 0 ? "+" : ""}{(comp.absolute_difference ?? 0).toLocaleString()}
               </span>
             </div>
           </motion.div>

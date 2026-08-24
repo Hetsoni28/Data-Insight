@@ -33,9 +33,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!mounted) return
 
-    // If Zustand has a token but the cookie is missing, it means middleware cleared it
+    // If Zustand has a token but the cookie is missing (e.g. after server restart),
+    // re-sync the cookie from the stored token instead of logging out.
     if (token && !document.cookie.includes("access_token=")) {
-      useAuthStore.getState().logout()
+      document.cookie = `access_token=${token}; path=/; max-age=604800; samesite=lax`
       return
     }
 
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/login")
     } else if (token && isSuccess && isPublicRoute && user) {
       const role = user.role === 'org_admin' ? 'organization-admin' : (user.role || 'owner')
-      router.push(`/${role}/dashboard/datasets`)
+      router.push(`/${role}/dashboard`)
     }
   }, [token, isPublicRoute, isSuccess, mounted, router, user])
 

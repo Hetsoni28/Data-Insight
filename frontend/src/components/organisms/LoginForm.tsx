@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import Link from "next/link"
 import React, { useState, useMemo, useEffect, useRef } from "react"
@@ -123,13 +123,13 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
         toast.success("Welcome back! Authenticated successfully.")
         const role = response.user?.role;
         if (role === 'owner') {
-          router.push("/owner/dashboard/datasets")
+          window.location.href = "/owner/dashboard"
         } else if ((role as string) === 'organization-admin' || (role as string) === 'tenant_admin' || role === 'org_admin') {
-          router.push("/organization-admin/dashboard/datasets")
+          window.location.href = "/organization-admin/dashboard"
         } else if (role) {
-          router.push(`/${role}/dashboard/datasets`)
+          window.location.href = `/${role}/dashboard`
         } else {
-          router.push("/datasets")
+          window.location.href = "/dashboard"
         }
       }
     } catch (err) {
@@ -168,13 +168,13 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: "login" | "
         toast.success("Two-Factor Authentication verified!")
         const role = response.user?.role;
         if (role === 'owner') {
-          router.push("/owner/dashboard/datasets")
+          window.location.href = "/owner/dashboard"
         } else if ((role as string) === 'organization-admin' || (role as string) === 'tenant_admin' || role === 'org_admin') {
-          router.push("/organization-admin/dashboard/datasets")
+          window.location.href = "/organization-admin/dashboard"
         } else if (role) {
-          router.push(`/${role}/dashboard/datasets`)
+          window.location.href = `/${role}/dashboard`
         } else {
-          router.push("/datasets")
+          window.location.href = "/dashboard"
         }
       }
     } catch (err) {

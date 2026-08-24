@@ -7,6 +7,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { gatewayService } from "@/lib/gatewayService"
+import api from "@/lib/api"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 

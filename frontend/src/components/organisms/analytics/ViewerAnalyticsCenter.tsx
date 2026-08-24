@@ -105,7 +105,7 @@ export function ViewerAnalyticsCenter() {
     if (!activeWs) return;
     setSaving(true);
     try {
-      await ViewerAnalyticsService.createSavedView(`${dashboardData.domain} Default View`, { dateRange: "This Month" }, activeWs.id);
+      await AnalyticsService.createSavedView(activeWs.id, `${dashboardData.domain} Default View`, { dateRange: "This Month" });
       toast.success("View saved to your personal preferences.");
     } catch (err) {
       toast.error("Failed to save view.");

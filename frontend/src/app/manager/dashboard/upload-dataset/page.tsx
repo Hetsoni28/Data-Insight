@@ -6,5 +6,5 @@ export const metadata = {
 }
 
 export default function AnalystUploadDatasetPage() {
-  return <DatasetIngestionWorkspace role="analyst" />
+  return <DatasetIngestionWorkspace role="manager" />
 }

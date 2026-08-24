@@ -187,7 +187,7 @@ export function AnalystChartConfiguration({ config, setConfig, datasets }: Analy
               >
                 <option value="" disabled>Select numeric value column</option>
                 {numericColumns.map(c => (
-                  <option key={c.name} value={c.name}>{c.name} {c.dtype ? `[${c.dtype}]` : ''}</option>
+                  <option key={c.name} value={c.name}>{c.name} {c.type ? `[${c.type}]` : ''}</option>
                 ))}
               </select>
             </div>

@@ -12,9 +12,10 @@ import { DatasetFileDropzone } from "./DatasetFileDropzone"
 import { DatasetConfiguration } from "./DatasetConfiguration"
 import { DatasetProcessingStepper, ProcessingStatus } from "./DatasetProcessingStepper"
 import { DatasetReadySummary } from "./DatasetReadySummary"
+import { DataQualityReview } from "../DataQualityReview"
 
 interface DatasetIngestionWorkspaceProps {
-  role: "analyst" | "org_admin"
+  role: "owner" | "org_admin" | "organization-admin" | "manager" | "analyst" | "viewer"
 }
 
 export function DatasetIngestionWorkspace({ role }: DatasetIngestionWorkspaceProps) {
@@ -36,6 +37,7 @@ export function DatasetIngestionWorkspace({ role }: DatasetIngestionWorkspacePro
     row_count: number
     column_count: number
     data_quality_score: number
+    profile?: any
   } | null>(null)
 
   // Polling logic
@@ -59,7 +61,8 @@ export function DatasetIngestionWorkspace({ role }: DatasetIngestionWorkspacePro
           setFinalStats({
             row_count: data.row_count || 0,
             column_count: data.column_count || 0,
-            data_quality_score: data.data_quality_score || 0
+            data_quality_score: data.data_quality_score || 0,
+            profile: data.profile || {}
           })
         } else if (data.status === "profiling") {
           setStatus("profiling")
@@ -250,11 +253,13 @@ export function DatasetIngestionWorkspace({ role }: DatasetIngestionWorkspacePro
           )}
 
           {status === "ready" && finalStats && (
-            <DatasetReadySummary 
+            <DataQualityReview
+              datasetId={datasetId!}
               datasetName={name || file?.name || "Dataset"}
               rowCount={finalStats.row_count}
               columnCount={finalStats.column_count}
-              qualityScore={finalStats.data_quality_score}
+              profile={finalStats.profile}
+              role={role}
               onExplore={handleExplore}
               onAnalyze={handleAnalyze}
               onUploadAnother={handleReset}

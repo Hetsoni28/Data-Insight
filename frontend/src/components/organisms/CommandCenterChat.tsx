@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Send, Loader2, Paperclip, FileType, X, Brain } from "lucide-react"
 import { CommandCenterMessage } from "@/components/molecules/CommandCenterMessage"
 import { CommandCenterArtifactPanel, ArtifactType } from "@/components/organisms/CommandCenterArtifactPanel"
@@ -76,8 +76,10 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
     setFiles(prev => [...prev, ...acceptedFiles])
   }, [])
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({ 
     onDrop,
+    noClick: true,
+    noKeyboard: true,
     accept: {
       'text/csv': ['.csv'],
       'application/pdf': ['.pdf'],
@@ -228,9 +230,9 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
           )}
           <div className="flex gap-2 items-end">
             <button
-              onClick={() => {
-                const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
-                if (fileInput) fileInput.click()
+              onClick={(e) => {
+                e.stopPropagation()
+                open()
               }}
               className="p-3 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-none transition-colors shrink-0"
               title="Attach files"

@@ -49,9 +49,10 @@ export default function AnalystDatasetCenterPage() {
     await Promise.all([
       fetchStats(silent),
       fetchDatasets(silent),
-      fetchActivities(silent)
     ])
     if (!silent) setIsRefreshing(false)
+    // Activities loads independently so it can't block the main data
+    fetchActivities(silent).catch(console.error)
   }
   
   const handleWebSocketMessage = useCallback((message: any) => {

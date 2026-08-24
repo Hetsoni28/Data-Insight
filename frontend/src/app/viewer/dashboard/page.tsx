@@ -185,9 +185,7 @@ export default function ViewerDashboardPage() {
           <div className="min-h-[400px]">
             {activeTab === "reports" && (
               <ViewerReportCenter
-                reports={reports}
-                isLoading={loading}
-                onRefresh={handleRefresh}
+                workspaceId={activeWs?.id ?? ""}
               />
             )}
             {activeTab === "dashboards" && (

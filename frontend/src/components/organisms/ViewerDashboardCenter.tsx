@@ -177,7 +177,7 @@ function DashboardCard({ dashboard }: { dashboard: ViewerDashboard }) {
             if (w.type === "bar") return <BarWidget key={w.id} widget={w} />;
             if (w.type === "line") return <LineWidget key={w.id} widget={w} />;
             if (w.type === "pie") return <PieWidget key={w.id} widget={w} />;
-            if (w.type === "text") return <TextWidget key={w.id} widget={w} />;
+            if ((w.type as string) === "text") return <TextWidget key={w.id} widget={w} />;
             return null;
           })}
         </motion.div>

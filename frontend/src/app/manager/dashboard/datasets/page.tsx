@@ -89,9 +89,10 @@ export default function ManagerDatasetCenterPage() {
     await Promise.all([
       fetchStats(silent),
       fetchDatasets(silent),
-      fetchActivities(silent),
     ])
     if (!silent) setIsRefreshing(false)
+    // Activities loads independently so it can't block the main data
+    fetchActivities(silent).catch(console.error)
   }, [fetchStats, fetchDatasets, fetchActivities])
 
   useEffect(() => {

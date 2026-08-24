@@ -162,7 +162,7 @@ function DatasetCard({ dataset }: { dataset: ViewerDataset }) {
               </div>
               <div className="min-w-0">
                 <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Owner</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate mt-0.5">{typeof dataset.owner === 'object' ? dataset.owner?.name || "—" : dataset.owner || "—"}</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate mt-0.5">{typeof (dataset.owner as any) === 'object' ? (dataset.owner as any)?.name || "—" : dataset.owner || "—"}</p>
               </div>
             </div>
 

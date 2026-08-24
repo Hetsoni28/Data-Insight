@@ -24,10 +24,10 @@ export const ViewerAnalyticsForecast = React.memo(function ViewerAnalyticsForeca
       {forecasts.map((forecast, i) => {
         // Merge historical and predicted data into one timeline for Recharts
         const combinedData: any[] = [];
-        
-        // Add historical
-        forecast.historical_data.forEach((h, idx) => {
-          const isLast = idx === forecast.historical_data.length - 1;
+
+        // Add historical (safe access — field is optional)
+        (forecast.historical_data ?? []).forEach((h, idx) => {
+          const isLast = idx === (forecast.historical_data?.length ?? 0) - 1;
           combinedData.push({
             date: h.date,
             actual: h.value,
@@ -37,11 +37,9 @@ export const ViewerAnalyticsForecast = React.memo(function ViewerAnalyticsForeca
           });
         });
 
-        // Add predicted with confidence bounds
-        forecast.predicted_data.forEach((p, idx) => {
-          const conf = forecast.confidence_interval[idx];
-          // If it's the very first prediction point, we can optionally connect it to the last actual point
-          // for a smooth line, but we'll just plot them as a continuous timeline.
+        // Add predicted with confidence bounds (safe access)
+        (forecast.predicted_data ?? []).forEach((p, idx) => {
+          const conf = (forecast.confidence_interval ?? [])[idx];
           combinedData.push({
             date: p.date,
             actual: null,
@@ -68,8 +66,8 @@ export const ViewerAnalyticsForecast = React.memo(function ViewerAnalyticsForeca
                   <Zap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{forecast.title}</h3>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">Model Confidence: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{forecast.model_accuracy}%</span></p>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{forecast.title ?? forecast.metric}</h3>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">Model Confidence: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{forecast.model_accuracy ?? "—"}%</span></p>
                 </div>
               </div>
               <div className="text-xs px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-200 dark:border-indigo-500/20 font-bold tracking-wide uppercase shadow-sm">

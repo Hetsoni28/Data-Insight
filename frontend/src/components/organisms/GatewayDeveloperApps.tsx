@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
+import api from "@/lib/api"
 
 interface GatewayDeveloperAppsProps {
   apps: any[]

@@ -12,6 +12,7 @@ export interface Dataset {
   data_quality_score: number | null;
   department: string | null;
   owner: string | null;
+  profile?: any;
   created_at: string;
   updated_at: string;
 }
@@ -46,18 +47,28 @@ export class DatasetService {
    * Fetch all datasets in a workspace.
    */
   static async list(workspaceId: string): Promise<Dataset[]> {
-    const response = await api.get("/datasets", {
+    const response = await api.get("/tenant-datasets/", {
       params: { workspace_id: workspaceId },
     });
-    return response.data;
+    // Handle both response shapes: { data: [...] } and direct array
+    const payload = response.data;
+    if (payload?.status === "success" && Array.isArray(payload.data)) {
+      return payload.data;
+    }
+    return Array.isArray(payload) ? payload : [];
   }
 
   /**
    * Fetch a single dataset by its ID.
    */
   static async get(datasetId: string): Promise<Dataset> {
-    const response = await api.get(`/datasets/${datasetId}`);
-    return response.data;
+    const response = await api.get(`/tenant-datasets/${datasetId}`);
+    const payload = response.data;
+    // Handle wrapped response: { status: "success", data: {...} }
+    if (payload?.status === "success" && payload.data) {
+      return payload.data;
+    }
+    return payload;
   }
 
   /**
@@ -72,6 +83,7 @@ export class DatasetService {
    * Delete a dataset by its ID.
    */
   static async delete(datasetId: string): Promise<void> {
-    await api.delete(`/datasets/${datasetId}`);
+    await api.delete(`/tenant-datasets/${datasetId}`);
   }
 }
+

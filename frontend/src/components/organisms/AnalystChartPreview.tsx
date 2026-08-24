@@ -39,7 +39,7 @@ export function AnalystChartPreview({ config }: AnalystChartPreviewProps) {
       const cleanMetric = isValidConfigValue(metric) ? metric : undefined;
 
       // Using DashboardQueryService.executeQuery which calls the actual endpoint
-      return DashboardQueryService.executeQuery(datasetId, {
+      return DashboardQueryService.executeQuery(datasetId!, {
         dimension: cleanDimension,
         metric: cleanMetric,
         aggregation: aggregation || 'sum',

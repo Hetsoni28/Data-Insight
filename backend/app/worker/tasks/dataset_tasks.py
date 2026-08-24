@@ -91,6 +91,9 @@ async def _profile_dataset(task, dataset_id: str):
                 await session.commit()
                 raise task.retry(exc=exc)
 
+    except Exception as exc:
+        logger.exception(f"Unhandled error in profile_dataset_task for {dataset_id}: {exc}")
+
 
 @shared_task(bind=True, name="dataset.analyze", max_retries=2, default_retry_delay=60)
 def analyze_dataset_task(

@@ -82,18 +82,29 @@ export interface AnalyticsForecast {
   id: string;
   metric: string;
   horizon: string;
-  data: {
+  title?: string;
+  model_accuracy?: number;
+  /** Flat data array (compact format) */
+  data?: {
     date: string;
     value: number;
     lower_bound: number;
     upper_bound: number;
   }[];
+  /** Split historical data (expanded format) */
+  historical_data?: { date: string; value: number }[];
+  /** Split predicted data (expanded format) */
+  predicted_data?: { date: string; value: number }[];
+  /** Per-point confidence intervals */
+  confidence_interval?: { lower: number; upper: number }[];
 }
 
 export interface AnalyticsInsight {
   id: string;
   title: string;
   description: string;
+  /** Alias for description — used by some components */
+  content?: string;
   type: "opportunity" | "risk" | "neutral";
   confidence: number;
   action_recommended?: string;

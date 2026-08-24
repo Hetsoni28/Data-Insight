@@ -35,7 +35,7 @@ export function ResetPasswordForm() {
     setError("")
 
     try {
-      await api.post("/auth/reset-password", { password: data.password, token: "" }) // Token should be extracted from URL ideally
+      await api.post("/auth/reset-password", { password: password, token: "" }) // Token should be extracted from URL ideally
       setIsSuccess(true)
       toast.success("Password reset successfully!")
     } catch (err) {

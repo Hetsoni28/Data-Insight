@@ -135,8 +135,6 @@ class DatasetService:
     async def list_datasets(
         self, workspace_id: uuid.UUID, actor: User
     ) -> list[Dataset]:
-        if not actor.tenant_id:
-            return []
         return await self.dataset_repo.get_workspace_datasets(
             actor.tenant_id, workspace_id
         )

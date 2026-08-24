@@ -17,6 +17,9 @@ class ReportQueryService:
         query_config = {"dimensions": ["region"], "metrics": [{"field": "revenue", "aggregation": "sum"}], ...}
         """
         # 1. Authorize dataset
+        if not actor.tenant_id:
+            raise ForbiddenException("User must belong to a tenant to query datasets.")
+            
         dataset = await self.dataset_repo.get_tenant_dataset(actor.tenant_id, dataset_id)
         if not dataset:
             raise ResourceNotFoundException("Dataset", str(dataset_id))

@@ -8,7 +8,7 @@ const defaultClientUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:80
 
 // ─── Axios Instance ────────────────────────────────────────────────────────────
 const api = axios.create({
-  timeout: 30000, // 30 seconds — AI operations may take longer
+  timeout: 60000, // 60 seconds — AI operations and large dataset queries need more time
   headers: {
     "Content-Type": "application/json",
   },

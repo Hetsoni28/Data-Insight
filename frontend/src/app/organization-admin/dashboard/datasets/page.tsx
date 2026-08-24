@@ -45,12 +45,14 @@ export default function DatasetCenterPage() {
 
   const refreshAll = async (silent = false) => {
     if (!silent) setIsRefreshing(true)
+    // Load stats & datasets in parallel first — don't block on activities (can be slow)
     await Promise.all([
       fetchStats(silent),
       fetchDatasets(silent),
-      fetchActivities(silent)
     ])
     if (!silent) setIsRefreshing(false)
+    // Activities loads independently so it can't block the main data
+    fetchActivities(silent).catch(console.error)
   }
 
   useEffect(() => {

@@ -184,19 +184,16 @@ async def get_dataset_activities(
     try:
         tenant_id = current_user.tenant_id
     
-        # AuditLog has no workspace_id — join with Dataset to filter by tenant + workspace
-        audit_conditions = [AuditLog.tenant_id == tenant_id, AuditLog.resource_type == 'dataset']
-        if workspace:
-            from sqlalchemy.dialects.postgresql import UUID as PGUUID
-            from sqlalchemy import cast
-            audit_stmt = select(AuditLog, User).outerjoin(User, AuditLog.user_id == User.id)\
-                .join(Dataset, cast(AuditLog.resource_id, PGUUID) == Dataset.id)\
-                .where(*audit_conditions, Dataset.workspace_id == workspace.id)\
-                .order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)
-        else:
-            audit_stmt = select(AuditLog, User).outerjoin(User, AuditLog.user_id == User.id).where(
-                *audit_conditions
-            ).order_by(desc(AuditLog.created_at)).offset(skip).limit(limit)
+        # Simple audit log query — filter by tenant + resource_type only.
+        # Avoid CAST(resource_id AS UUID) JOIN with Dataset which causes full table scans.
+        audit_stmt = (
+            select(AuditLog, User)
+            .outerjoin(User, AuditLog.user_id == User.id)
+            .where(AuditLog.tenant_id == tenant_id, AuditLog.resource_type == "dataset")
+            .order_by(desc(AuditLog.created_at))
+            .offset(skip)
+            .limit(limit)
+        )
     
         audit_res = await db.execute(audit_stmt)
         audit_logs = []
@@ -210,11 +207,14 @@ async def get_dataset_activities(
                 "type": "audit"
             })
         
-        # Get recent AI tasks (from AITokenUsage)
-        # AITokenUsage has no workspace_id column — filter by tenant only
-        ai_stmt = select(AITokenUsage).where(
-            AITokenUsage.tenant_id == tenant_id
-        ).order_by(desc(AITokenUsage.created_at)).offset(skip).limit(limit)
+        # Get recent AI tasks — tenant-scoped only (fast indexed query)
+        ai_stmt = (
+            select(AITokenUsage)
+            .where(AITokenUsage.tenant_id == tenant_id)
+            .order_by(desc(AITokenUsage.created_at))
+            .offset(skip)
+            .limit(limit)
+        )
     
         ai_res = await db.execute(ai_stmt)
         ai_logs = []
@@ -518,7 +518,7 @@ async def upload_dataset(
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
-@router.delete("/{dataset_id}", summary="Delete Dataset", dependencies=[Depends(RequirePermission("DATASET_VIEW"))])
+@router.delete("/{dataset_id}", summary="Delete Dataset", dependencies=[Depends(RequirePermission("DATASET_DELETE"))])
 async def delete_dataset(
     dataset_id: uuid.UUID,
     request: Request,
@@ -791,12 +791,96 @@ async def query_dataset(
             tenant_id=tenant_id,
             workspace_id=workspace.id if workspace else None,
             query_payload={"dimensions": request.dimensions, "metrics": request.metrics},
-            dataset_metadata=d.metadata_ if hasattr(d, "metadata_") else {},
-            storage_path=d.storage_path
+            dataset_metadata=d.profile or {},
+            storage_path=d.file_url
         )
         return {"status": "success", "data": results}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+
+@router.post("/{dataset_id}/clean", summary="Clean Dataset", dependencies=[Depends(RequirePermission("DATASET_EXPORT"))])
+async def clean_dataset_api(
+    dataset_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Scans the dataset for structural chaos, removes duplicates and null rows, 
+    and saves the cleaned version over the original.
+    """
+    from app.services.dataset import DatasetService
+    from app.services.ingestion.cleaner import DatasetCleaner
+    from app.core.storage import upload_file, DATASETS_BUCKET
+    import io
+    
+    try:
+        tenant_id = current_user.tenant_id
+        base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+        if workspace:
+            base_conditions.append(Dataset.workspace_id == workspace.id)
+            
+        stmt = select(Dataset).where(*base_conditions)
+        res = await db.execute(stmt)
+        d = res.scalars().first()
+        if not d:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+        
+        # Load data
+        ds_svc = DatasetService(db)
+        df = await ds_svc.load_dataframe(d)
+        
+        # Clean data
+        import asyncio
+        df_cleaned, metrics = await asyncio.to_thread(DatasetCleaner.clean_dataframe, df)
+        
+        # Write to bytes buffer (always export as xlsx for cleaning)
+        buf = io.BytesIO()
+        df_cleaned.write_excel(buf)
+        buf.seek(0)
+        file_bytes = buf.read()
+        
+        # Generate new filename
+        clean_filename = f"cleaned_{d.id}.xlsx"
+        
+        # Upload new cleaned file
+        new_file_url = await upload_file(DATASETS_BUCKET, file_bytes, clean_filename, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        
+        # Update database
+        d.file_url = new_file_url
+        d.file_size_bytes = len(file_bytes)
+        d.file_type = "xlsx"
+        d.original_filename = f"Cleaned_{d.original_filename}"
+        if not d.original_filename.endswith(".xlsx"):
+            d.original_filename += ".xlsx"
+            
+        d.row_count = metrics["final_rows"]
+        
+        # Log audit
+        audit = AuditLog(
+            tenant_id=tenant_id, user_id=current_user.id, action="dataset.cleaned",
+            resource_type="dataset", resource_id=str(d.id), ip_address=request.client.host if request.client else "127.0.0.1"
+        )
+        db.add(audit)
+        await db.commit()
+        
+        return {
+            "status": "success",
+            "message": "Dataset cleaned successfully.",
+            "metrics": metrics,
+            "dataset": {
+                "id": str(d.id),
+                "row_count": d.row_count,
+                "file_url": d.file_url
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Cleaning failed: {str(e)}")
 
