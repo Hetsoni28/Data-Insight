@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Menu, ArrowRight } from "lucide-react"
@@ -32,15 +32,15 @@ export function Navbar() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-sm shadow-slate-900/5"
-          : "bg-white/70 backdrop-blur-md border-b border-slate-200/50"
+          ? "bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-sm shadow-slate-900/5 py-0"
+          : "bg-transparent border-b border-transparent py-2"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between gap-6">
         
         {/* Brand Logo */}
         <div className="flex items-center gap-4">
-          <Logo size={26} textClassName="text-base font-semibold tracking-tight text-slate-900" />
+          <Logo size={26} whiteMode={!scrolled} textClassName={`text-base font-semibold tracking-tight ${scrolled ? "text-slate-900" : "text-white"}`} />
         </div>
 
         {/* Desktop Navigation Links */}
@@ -49,7 +49,11 @@ export function Navbar() {
             <a
               key={link.name}
               href={link.href}
-              className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-950 rounded-lg hover:bg-slate-100 transition-colors"
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                scrolled
+                  ? "text-slate-600 hover:text-slate-950 hover:bg-slate-100"
+                  : "text-gray-200 hover:text-white hover:bg-white/10"
+              }`}
             >
               {link.name}
             </a>
@@ -60,7 +64,11 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
-            className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100"
+            className={`text-xs font-semibold transition-colors px-3 py-1.5 rounded-lg ${
+              scrolled
+                ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-gray-200 hover:text-white hover:bg-white/10"
+            }`}
           >
             Tenant Login
           </Link>
@@ -80,7 +88,9 @@ export function Navbar() {
         <Sheet>
           <SheetTrigger asChild>
             <button
-              className="lg:hidden text-slate-700 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+              className={`lg:hidden p-2 rounded-lg transition-colors ${
+                scrolled ? "text-slate-700 hover:bg-slate-100" : "text-white hover:bg-white/10"
+              }`}
               aria-label="Open navigation menu"
             >
               <Menu className="h-5 w-5" />
