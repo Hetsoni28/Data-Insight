@@ -233,7 +233,9 @@ export function OrganizationDataGrid() {
                     {/* Plan & MRR */}
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-medium text-slate-900 dark:text-white">{tenant.plan}</span>
+                        <span className="font-medium text-slate-900 dark:text-white">
+                          {tenant.plan === 'Enterprise' ? 'Dedicated System' : tenant.plan}
+                        </span>
                         <span className="text-xs text-slate-500">${tenant.mrr}/mo</span>
                       </div>
                     </td>

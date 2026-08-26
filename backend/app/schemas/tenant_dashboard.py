@@ -10,6 +10,8 @@ class DashboardOverviewResponse(BaseModel):
     platform_status: str
     current_ai_provider: str
     greeting: str
+    mrr: float = 0.0
+    current_period_end: Optional[str] = None
 
 class GrowthMetric(BaseModel):
     total: int

@@ -131,6 +131,7 @@ async def list_tenants(
             "security_score": 100 if t.Tenant.is_active else 50,
             "health_score": calculate_health(t.users_count or 0, t.datasets_count or 0, t.Tenant.is_active),
             "mrr": t.Tenant.mrr or 0.0,
+            "current_period_end": t.Tenant.current_period_end.isoformat() if t.Tenant.current_period_end else None,
             "last_login": t.last_login.isoformat() if t.last_login else None,
         }
         for t in rows

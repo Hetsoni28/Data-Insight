@@ -1,4 +1,4 @@
-﻿import { Building2, Calendar, CreditCard, Users, Database, Shield, Zap, HardDrive, Activity } from "lucide-react"
+import { Building2, Calendar, CreditCard, Users, Database, Shield, Zap, HardDrive, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
@@ -48,11 +48,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     toast.success("Loading invoice history...")
   }
 
-  const _now = Date.now() // captured once at mount, stable via closure
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const renewalDate = useMemo(() => new Date(_now + 864000000), [])
-
-
+  const renewalDate = tenant?.current_period_end ? new Date(tenant.current_period_end) : null
   if (!isOpen) return null
 
   return (
@@ -117,12 +113,21 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             <div className="p-5 rounded-xl border border-slate-200/60 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg font-bold text-slate-900 dark:text-white">{tenant?.plan} Plan</span>
+                  <span className="text-lg font-bold text-slate-900 dark:text-white">{tenant?.plan === 'Enterprise' ? 'Dedicated System Rental' : `${tenant?.plan} Plan`}</span>
                   <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Current</Badge>
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">${tenant?.mrr}/month • Renews {renewalDate.toLocaleDateString()}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {tenant?.plan === 'Enterprise' ? 'Dedicated Single-Tenant VPC • 99.99% SLA' : 'Standard shared infrastructure'}
+                </p>
+                <div className="mt-3 flex items-center gap-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <span>${tenant?.mrr?.toLocaleString() ?? 0}/month</span>
+                  <span className="text-slate-300 dark:text-slate-600">•</span>
+                  <span>Renews {renewalDate ? renewalDate.toLocaleDateString() : 'N/A'}</span>
+                  <span className="text-slate-300 dark:text-slate-600">•</span>
+                  <span className="text-emerald-600">UNLIMITED Resource Limits</span>
+                </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 shrink-0">
                 <Button variant="outline" size="sm" onClick={handleViewInvoices} className="bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 text-slate-700 dark:text-slate-300">View Invoices</Button>
                 <Button size="sm" onClick={handleManagePlan}>Manage Plan</Button>
               </div>

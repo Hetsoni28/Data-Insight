@@ -97,35 +97,39 @@ export function OrganizationScoreCards({ kpis, overview }: { kpis: KPIs | null; 
         </div>
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Plan</span>
-            <Badge className="bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-500/30 capitalize text-xs font-bold px-2.5 py-0.5">
-              {overview?.subscription_plan ?? "Enterprise"}
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Rental Plan</span>
+            <Badge className="bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-500/30 capitalize text-[10px] font-bold px-2 py-0.5">
+              Dedicated System
             </Badge>
           </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Status</span>
-            <StatusBadge status={overview?.subscription_status ?? "active"} />
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">AI Provider</span>
-            <span className="text-xs text-slate-900 dark:text-white font-bold truncate max-w-[160px]">
-              {overview?.current_ai_provider ?? "GPT-4o"}
+          
+          <div className="flex items-center justify-between text-xs border-t border-slate-100 dark:border-slate-800 pt-2 mt-2">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Contracted Fee</span>
+            <span className="text-xs text-slate-900 dark:text-white font-black">
+              ${overview?.mrr?.toLocaleString() ?? 0} / mo
             </span>
           </div>
+          
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">AI Requests</span>
-            <span className="text-xs text-cyan-600 dark:text-cyan-400 font-extrabold flex items-center gap-1">
-              {kpis.ai_requests?.total?.toLocaleString() ?? 0}
-              <TrendBadge growth={kpis.ai_requests?.growth} />
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Renewal Date</span>
+            <span className="text-xs text-slate-700 dark:text-slate-300 font-bold">
+              {overview?.current_period_end ? new Date(overview.current_period_end).toLocaleDateString() : 'N/A'}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Resource Limits</span>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1">
+              UNLIMITED
             </span>
           </div>
           <Link href="/organization-admin/dashboard/billing">
             <motion.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full mt-1 flex items-center justify-center gap-2 bg-violet-50 dark:bg-violet-500/10 hover:bg-violet-100 dark:hover:bg-violet-500/20 border border-violet-200 dark:border-violet-500/30 text-violet-700 dark:text-violet-300 rounded-xl py-2 text-xs font-bold transition-all shadow-xs"
+              className="w-full mt-2 flex items-center justify-center gap-2 bg-violet-50 dark:bg-violet-500/10 hover:bg-violet-100 dark:hover:bg-violet-500/20 border border-violet-200 dark:border-violet-500/30 text-violet-700 dark:text-violet-300 rounded-xl py-2 text-xs font-bold transition-all shadow-xs"
             >
-              Manage Billing <ArrowRight className="h-3.5 w-3.5" />
+              View Full Billing <ArrowRight className="h-3.5 w-3.5" />
             </motion.button>
           </Link>
         </div>
