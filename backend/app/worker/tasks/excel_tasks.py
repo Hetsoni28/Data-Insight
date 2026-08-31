@@ -15,7 +15,13 @@ from celery import shared_task
 @shared_task(bind=True, name="dataset.generate_excel", max_retries=2, default_retry_delay=60)
 def generate_ai_excel_task(self, dataset_id: str, user_id: str):
     """Celery task: generate real AI Excel file from dataset."""
-    asyncio.run(_generate_ai_excel(self, dataset_id, user_id))
+    # Use a fresh event loop to avoid "Event loop is closed" on Celery fork workers
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(_generate_ai_excel(self, dataset_id, user_id))
+    finally:
+        loop.close()
 
 
 def _build_excel_workbook(df_cleaned, profile: Dict[str, Any], dataset_name: str) -> bytes:
@@ -296,11 +302,19 @@ async def _generate_ai_excel(task, dataset_id: str, user_id: str):
                 )
 
             except Exception as exc:
+                import celery.exceptions
                 logger.exception(f"Generate AI Excel failed: {exc}")
-                dataset.status = DatasetStatus.error
-                dataset.error_message = str(exc)
-                await session.commit()
+                try:
+                    dataset.status = DatasetStatus.error
+                    dataset.error_message = str(exc)[:500]
+                    await session.commit()
+                except Exception:
+                    pass
+                # Let Celery handle the retry — don't swallow it
                 raise task.retry(exc=exc)
 
+    except celery.exceptions.Retry:
+        # Re-raise Celery Retry so it's properly handled
+        raise
     except Exception as exc:
         logger.exception(f"Unhandled error in generate_ai_excel_task: {exc}")
