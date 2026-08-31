@@ -445,6 +445,7 @@ async def get_dataset_details(
             "column_count": d.column_count,
             "data_quality_score": d.data_quality_score,
             "profile": d.profile,
+            "excel_url": d.excel_url,
             "created_at": d.created_at,
             "updated_at": d.updated_at,
             "owner": {
