@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState } from "react"
 import { motion } from "framer-motion"
@@ -33,6 +33,78 @@ export function DataQualityReview({
   onAnalyze,
 }: DataQualityReviewProps) {
   const [isCleaning, setIsCleaning] = useState(false)
+  const [isGeneratingExcel, setIsGeneratingExcel] = useState(false)
+  const [excelProgress, setExcelProgress] = useState<string>("Initializing...")
+
+  const handleAIExcelGeneration = async () => {
+    setIsGeneratingExcel(true)
+    setExcelProgress("Initializing...")
+    try {
+      await api.post(`/tenant-datasets/${datasetId}/ai-excel`)
+      
+      const messages = [
+        "Reading your dataset...",
+        "Running statistical analysis...",
+        "Profiling column distributions...",
+        "Building Executive Summary tab...",
+        "Building Column Profiles tab...",
+        "Building Quality Report tab...",
+        "Finalizing and formatting Excel..."
+      ]
+      let msgIdx = 0
+      const msgInterval = setInterval(() => {
+        msgIdx = (msgIdx + 1) % messages.length
+        setExcelProgress(messages[msgIdx])
+      }, 5000)
+
+      let attempts = 0
+      const maxAttempts = 48
+      const pollInterval = setInterval(async () => {
+        attempts++
+        try {
+          const statusRes = await api.get(`/tenant-datasets/${datasetId}`)
+          const ds = statusRes.data?.data
+          if (ds?.status === 'ready' && ds?.excel_url) {
+            clearInterval(pollInterval)
+            clearInterval(msgInterval)
+            toast.success("Your AI Excel is ready! Downloading now...")
+            
+            try {
+              const dlRes = await api.get(`/tenant-datasets/${datasetId}/excel-download`, {
+                responseType: 'blob'
+              })
+              const url = window.URL.createObjectURL(new Blob([dlRes.data]))
+              const link = document.createElement('a')
+              link.href = url
+              link.setAttribute('download', `AI_Excel_${datasetName}.xlsx`)
+              document.body.appendChild(link)
+              link.click()
+              link.remove()
+              window.URL.revokeObjectURL(url)
+            } catch (dlErr) {
+              toast.error("Download failed.")
+            }
+            setIsGeneratingExcel(false)
+          } else if (ds?.status === 'error') {
+            clearInterval(pollInterval)
+            clearInterval(msgInterval)
+            toast.error(`Excel generation failed: ${ds.error_message || 'Unknown error'}`)
+            setIsGeneratingExcel(false)
+          }
+        } catch { /* ignore poll errors */ }
+        
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval)
+          clearInterval(msgInterval)
+          toast.error("Generation timed out, please try again")
+          setIsGeneratingExcel(false)
+        }
+      }, 2500)
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to start AI Excel generation.")
+      setIsGeneratingExcel(false)
+    }
+  }
 
   const handleCleanAndDownload = async () => {
     setIsCleaning(true)
@@ -148,13 +220,22 @@ export function DataQualityReview({
           {isCleaning ? (<span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> Cleaning...</span>) : (<><Download className="w-4 h-4 mr-2" />Clean &amp; Export Excel</>)}
         </Button>
         <div className="flex-1 relative group">
-          <Button onClick={onAnalyze} disabled={!canUseAI} className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold shadow-lg shadow-indigo-500/25 transition-all">
-            {canUseAI ? (<><Sparkles className="w-4 h-4 mr-2" />Proceed to AI Analytics<ArrowRight className="w-4 h-4 ml-2" /></>) : (<><Lock className="w-4 h-4 mr-2 opacity-70" />AI Analytics (Admin Only)</>)}
-          </Button>
-          {!canUseAI && (
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max max-w-xs px-3 py-1.5 bg-slate-800 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-              Requires Admin Privileges to run AI on raw data.
+          {isGeneratingExcel ? (
+            <div className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-extrabold shadow-lg flex items-center justify-center gap-3 px-4">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm truncate">{excelProgress}</span>
             </div>
+          ) : (
+            <>
+              <Button onClick={handleAIExcelGeneration} disabled={!canUseAI} className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold shadow-lg shadow-indigo-500/25 transition-all">
+                {canUseAI ? (<><Sparkles className="w-4 h-4 mr-2" />Proceed to AI Analytics<ArrowRight className="w-4 h-4 ml-2" /></>) : (<><Lock className="w-4 h-4 mr-2 opacity-70" />AI Analytics (Admin Only)</>)}
+              </Button>
+              {!canUseAI && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max max-w-xs px-3 py-1.5 bg-slate-800 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                  Requires Admin Privileges to run AI on raw data.
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

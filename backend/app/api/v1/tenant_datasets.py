@@ -711,7 +711,8 @@ async def generate_ai_excel(
     db.add(ai_log)
     
     await db.commit()
-    background_tasks.add_task(simulate_ai_workflow, tenant_id, dataset_id, 'ai-excel', current_user.id)
+    from app.worker.tasks.excel_tasks import generate_ai_excel_task
+    generate_ai_excel_task.delay(str(dataset_id), str(current_user.id))
     return {"status": "success", "message": "AI Excel generation started"}
 
 @router.post("/{dataset_id}/dashboard", summary="Create Dashboard", dependencies=[Depends(RequirePermission("DATASET_CREATE_DASHBOARD"))])
@@ -883,4 +884,46 @@ async def clean_dataset_api(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Cleaning failed: {str(e)}")
+
+@router.get("/{dataset_id}/excel-download", summary="Download AI Excel")
+async def download_ai_excel(
+    dataset_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns the AI-generated Excel file as a streaming download.
+    Works with both local storage (FileResponse) and Supabase (redirect).
+    """
+    tenant_id = current_user.tenant_id
+    base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+        
+    stmt = select(Dataset).where(*base_conditions)
+    res = await db.execute(stmt)
+    d = res.scalars().first()
+    if not d:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+        
+    if not d.excel_url:
+        raise HTTPException(status_code=404, detail="Excel not generated yet")
+        
+    from app.core.storage import is_local_storage, get_file_url
+    if is_local_storage():
+        from app.core.storage import LOCAL_UPLOADS_DIR, DATASETS_BUCKET
+        from fastapi.responses import FileResponse
+        local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / d.excel_url
+        if not local_path.exists():
+            raise HTTPException(status_code=404, detail="Excel file missing on disk")
+        return FileResponse(
+            path=local_path, 
+            filename=f"ai_excel_{d.name}.xlsx", 
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    else:
+        from fastapi.responses import RedirectResponse
+        url = await get_file_url(DATASETS_BUCKET, d.excel_url)
+        return RedirectResponse(url)
 

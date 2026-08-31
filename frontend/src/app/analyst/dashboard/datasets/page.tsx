@@ -143,18 +143,48 @@ export default function AnalystDatasetCenterPage() {
 
   const executeWorkflow = async (datasetId: string, action: string) => {
     try {
-      const promise = api.post(`/tenant-datasets/${datasetId}/${action}`)
-      toast.promise(promise, {
-        loading: `Initiating ${action.replace('-', ' ')} workflow...`,
-        success: `Successfully started ${action.replace('-', ' ')} processing!`,
-        error: `Failed to start ${action.replace('-', ' ')}.`
-      })
+      await api.post(`/tenant-datasets/${datasetId}/${action}`)
       
-      await promise
-      refreshAll(true)
+      if (action === 'ai-excel') {
+        toast.info('AI Excel generation started. This may take 15-30 seconds...')
+        // Poll for completion
+        let attempts = 0
+        const maxAttempts = 48 // 120 seconds
+        const pollInterval = setInterval(async () => {
+          attempts++
+          try {
+            const statusRes = await api.get(`/tenant-datasets/${datasetId}`)
+            const ds = statusRes.data?.data
+            if (ds?.status === 'ready' && ds?.excel_url) {
+              clearInterval(pollInterval)
+              toast.success('AI Excel is ready! Downloading...')
+              // trigger download
+              const dlRes = await api.get(`/tenant-datasets/${datasetId}/excel-download`, { responseType: 'blob' })
+              const url = window.URL.createObjectURL(new Blob([dlRes.data]))
+              const link = document.createElement('a')
+              link.href = url
+              link.setAttribute('download', `AI_Excel_${ds.name}.xlsx`)
+              document.body.appendChild(link)
+              link.click()
+              link.remove()
+              window.URL.revokeObjectURL(url)
+              refreshAll(true)
+            } else if (ds?.status === 'error') {
+              clearInterval(pollInterval)
+              toast.error(`Excel generation failed: ${ds.error_message || 'Unknown error'}`)
+            }
+          } catch { /* ignore poll errors */ }
+          if (attempts >= maxAttempts) {
+            clearInterval(pollInterval)
+            toast.error('Excel generation timed out. Please try again.')
+          }
+        }, 2500)
+      } else {
+        toast.success(`Successfully started ${action.replace('-', ' ')} processing!`)
+        refreshAll(true)
+      }
     } catch (e: any) {
-      console.error(`Failed to start ${action} workflow`, e)
-      toast.error(e.response?.data?.detail || `Failed to start ${action} workflow`)
+      toast.error(e.response?.data?.detail || `Failed to start ${action}.`)
     }
   }
 

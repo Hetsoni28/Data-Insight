@@ -62,6 +62,7 @@ class Dataset(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     file_type: Mapped[str] = mapped_column(String(20), nullable=False)
     file_url: Mapped[str] = mapped_column(Text, nullable=False)  # Supabase Storage URL
+    excel_url: Mapped[str | None] = mapped_column(String, nullable=True)
     file_size_bytes: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     original_filename: Mapped[str] = mapped_column(String(500), nullable=False)
 
