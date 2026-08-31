@@ -52,6 +52,7 @@ scikit-learn==1.5.2
 pandera==0.21.0
 openpyxl==3.1.5
 xlsxwriter==3.2.0
+cairosvg==2.9.0
 
 # Forecasting
 prophet==1.1.6

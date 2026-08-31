@@ -115,20 +115,121 @@ class AdvancedExcelBuilder:
                 else: fmt=(self.FNE if ie else self.FNO) if isn else (self.FE if ie else self.FO)
                 self._wr(ws,xl,ci,rd[col],fmt,isn)
 
+    @staticmethod
+    def _get_logo_png_bytes():
+        """Render the DataInsight SVG logo to PNG bytes. Returns None on failure."""
+        import os, pathlib
+        # Try backend/app/static/logo.svg (inside Docker at /app/app/static/)
+        candidates = [
+            "/app/app/static/logo.svg",
+            str(pathlib.Path(__file__).parents[3] / "static" / "logo.svg"),
+        ]
+        svg_path = next((p for p in candidates if os.path.exists(p)), None)
+        if not svg_path:
+            return None
+        try:
+            import cairosvg
+            return cairosvg.svg2png(url=svg_path, output_width=420, output_height=105)
+        except Exception:
+            pass
+        # Fallback: read pre-rendered logo_cover.png if it was pre-saved
+        for p in candidates:
+            png = p.replace("logo.svg", "logo_cover.png")
+            if os.path.exists(png):
+                with open(png, "rb") as f:
+                    return f.read()
+        return None
+
     def _t01_cover(self):
-        ws=self._wb.add_worksheet("01 Cover"); ws.set_tab_color(C_GREEN); ws.hide_gridlines(2); ws.set_column(0,0,70)
+        ws=self._wb.add_worksheet("01 Cover"); ws.set_tab_color(C_GREEN); ws.hide_gridlines(2)
+        # Wide column layout: col A wide for content, col B for spacing
+        ws.set_column(0,0,55); ws.set_column(1,1,20)
         ov=self.profile.get("overview",{}); rc=ov.get("row_count") or len(self.df); cc=ov.get("column_count") or len(self.df.columns)
         qs=float(ov.get("quality_score") or self.profile.get("quality_score") or 0)
-        ws.set_row(1,55); ws.merge_range("A2:A2",f"  {self.name}",self.FT)
-        ws.set_row(4,22); ws.write(4,0,"AI-Powered Business Intelligence Report",self.FSUB)
-        ws.set_row(6,20); ws.write(6,0,f"Generated:     {self.generated_at}",self.FV)
-        ws.set_row(7,20); ws.write(7,0,f"Total Rows:    {rc:,}",self.FV)
-        ws.set_row(8,20); ws.write(8,0,f"Columns:       {cc}",self.FV)
-        ws.set_row(9,20); ws.write(9,0,f"Quality Score: {qs:.1f} / 100",self.FV)
+
+        # ── Row 0: top padding
+        ws.set_row(0,12)
+
+        # ── Row 1-2: Logo banner (navy background spans the logo area)
+        ws.set_row(1,65)
+        ws.set_row(2,8)
+        # Navy banner cell behind logo
+        banner_fmt = self._wb.add_format({"bg_color":C_NAVY,"valign":"vcenter"})
+        ws.merge_range("A2:B2","",banner_fmt)
+
+        # Insert SVG logo as PNG image
+        logo_bytes = self._get_logo_png_bytes()
+        if logo_bytes:
+            import io as _io
+            ws.insert_image(
+                "A2", "logo.png",
+                {
+                    "image_data": _io.BytesIO(logo_bytes),
+                    "x_offset": 14,
+                    "y_offset": 8,
+                    "x_scale": 0.88,
+                    "y_scale": 0.88,
+                    "object_position": 1,
+                }
+            )
+        else:
+            # Fallback: text logo if image unavailable
+            logo_txt_fmt = self._wb.add_format({"font_name":"Calibri","font_size":20,"bold":True,"font_color":"#10B981","bg_color":C_NAVY,"valign":"vcenter"})
+            ws.merge_range("A2:B2","  DataInsight",logo_txt_fmt)
+
+        # ── Row 3: separator (thin green line effect)
+        ws.set_row(3,4)
+        sep_fmt = self._wb.add_format({"bg_color":C_GREEN})
+        ws.merge_range("A4:B4","",sep_fmt)
+
+        # ── Row 4: padding
+        ws.set_row(4,14)
+
+        # ── Row 5: Dataset title (big, dark)
+        ws.set_row(5,48)
+        title_fmt = self._wb.add_format({"font_name":"Calibri","font_size":26,"bold":True,"font_color":C_NAVY,"valign":"vcenter","bottom":1,"bottom_color":C_GREEN_L})
+        ws.merge_range("A6:B6",f"  {self.name}",title_fmt)
+
+        # ── Row 6: subtitle
+        ws.set_row(6,24)
+        sub_fmt = self._wb.add_format({"font_name":"Calibri","font_size":12,"italic":True,"font_color":C_SLATE,"valign":"vcenter"})
+        ws.merge_range("A7:B7","  AI-Powered Business Intelligence Report",sub_fmt)
+
+        # ── Row 7: spacer
+        ws.set_row(7,14)
+
+        # ── Rows 8-11: Key metrics in a clean 2-col grid
+        kv_fmt_l = self._wb.add_format({"font_name":"Calibri","font_size":11,"bold":True,"font_color":C_NAVY,"bg_color":C_GREEN_XL,"left":3,"left_color":C_GREEN,"top":1,"top_color":C_GREEN_L,"bottom":1,"bottom_color":C_GREEN_L,"valign":"vcenter","indent":1})
+        kv_fmt_r = self._wb.add_format({"font_name":"Calibri","font_size":11,"font_color":C_SLATE,"bg_color":"#FFFFFF","right":1,"right_color":C_GREEN_L,"top":1,"top_color":C_GREEN_L,"bottom":1,"bottom_color":C_GREEN_L,"valign":"vcenter","indent":1})
+
+        metrics = [
+            ("Generated",    self.generated_at),
+            ("Total Rows",   f"{rc:,}"),
+            ("Columns",      str(cc)),
+            ("Quality Score",f"{qs:.1f} / 100"),
+        ]
+        for i,(lbl,val) in enumerate(metrics):
+            r=8+i; ws.set_row(r,22)
+            ws.write(r,0,lbl,kv_fmt_l)
+            ws.write(r,1,val,kv_fmt_r)
+
+        # ── Row 12: spacer
+        ws.set_row(12,18)
+
+        # ── Rows 13-15: AI Executive Summary section
         es=self.ai.get("executive_summary","")
-        if es: ws.set_row(11,60); ws.merge_range("A12:A14",str(es),self.FWRAP)
-        ws.set_row(15,18); ws.write(15,0,"DataInsight AI  |  Confidential",self.FSUB)
-        return ("01 Cover","Report cover with dataset summary")
+        if es:
+            sec_fmt = self._wb.add_format({"font_name":"Calibri","font_size":10,"bold":True,"font_color":"#FFFFFF","bg_color":C_GREEN_D,"valign":"vcenter","indent":1})
+            ws.set_row(13,18); ws.merge_range("A14:B14","  AI Executive Summary",sec_fmt)
+            wrap_fmt = self._wb.add_format({"font_name":"Calibri","font_size":11,"font_color":C_NAVY,"text_wrap":True,"valign":"top","bg_color":C_GREEN_XL,"left":3,"left_color":C_GREEN,"right":1,"right_color":C_GREEN_L,"bottom":1,"bottom_color":C_GREEN_L,"indent":1})
+            ws.set_row(14,75); ws.merge_range("A15:B15",str(es),wrap_fmt)
+
+        # ── Footer
+        ws.set_row(17,16)
+        foot_fmt = self._wb.add_format({"font_name":"Calibri","font_size":9,"italic":True,"font_color":"#94A3B8","align":"center"})
+        ws.merge_range("A18:B18","DataInsight AI  |  Confidential  |  Generated by AdvancedExcelBuilder",foot_fmt)
+
+        return ("01 Cover","Report cover with logo, metrics, and AI executive summary")
 
     def _t03_exec(self):
         ws=self._wb.add_worksheet("03 Executive Summary"); ws.set_tab_color(C_INDIGO); ws.hide_gridlines(2)
