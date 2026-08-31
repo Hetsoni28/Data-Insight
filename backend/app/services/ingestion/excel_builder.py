@@ -142,17 +142,22 @@ class AdvancedExcelBuilder:
             # ONLY change: add overflow="visible" so the wordmark is not
             # clipped at the 640px viewBox boundary.
             # Keep viewBox, gradients, transforms all untouched.
-            if 'overflow=' not in svg_src:
-                svg_src = svg_src.replace(
-                    "<svg ",
-                    '<svg overflow="visible" ',
-                    1,
-                )
-            # Render at 720x180 (wider than 640 to capture overflow text)
+            # Expand viewBox width from 640 to 780 so the wordmark "Data Insight"
+            # (which ends at SVG x~700) fits without clipping.
+            # IMPORTANT: do NOT touch width/height attrs — those are "100%" and
+            # changing them to px values breaks gradient rendering.
+            svg_src = svg_src.replace(
+                'viewBox="0 0 640 160"',
+                'viewBox="0 0 780 160"',
+                1,
+            )
+            # With viewBox=780x160 and output_width=728:
+            #   scale = 728/780 = 0.933
+            #   x=700 in SVG → x=653 in PNG  (safely inside 728px canvas)
             return cairosvg.svg2png(
                 bytestring=svg_src.encode("utf-8"),
-                output_width=720,
-                output_height=180,
+                output_width=728,
+                output_height=149,
                 background_color="#FFFFFF",
             )
         except Exception:
