@@ -15,12 +15,19 @@ from celery import shared_task
 @shared_task(bind=True, name="dataset.generate_excel", max_retries=2, default_retry_delay=60)
 def generate_ai_excel_task(self, dataset_id: str, user_id: str):
     """Celery task: generate real AI Excel file from dataset."""
-    # Use a fresh event loop to avoid "Event loop is closed" on Celery fork workers
+    import asyncio
+    # Must create fresh loop each time
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        loop.run_until_complete(_generate_ai_excel(self, dataset_id, user_id))
+        loop.run_until_complete(_generate_ai_excel_safe(self, dataset_id, user_id))
+    except Exception as exc:
+        raise self.retry(exc=exc)
     finally:
+        try:
+            loop.run_until_complete(loop.shutdown_asyncgens())
+        except Exception:
+            pass
         loop.close()
 
 
@@ -236,12 +243,12 @@ def _build_excel_workbook(df_cleaned, profile: Dict[str, Any], dataset_name: str
     return buf.getvalue()
 
 
-async def _generate_ai_excel(task, dataset_id: str, user_id: str):
+async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
     import httpx
     from app.db.session import AsyncSessionLocal
     from app.repositories.dataset import DatasetRepository
     from app.models.dataset import DatasetStatus
-    from app.core.storage import get_signed_url, DATASETS_BUCKET, is_local_storage, LOCAL_UPLOADS_DIR, upload_file
+    from app.core.storage import get_signed_url, DATASETS_BUCKET, is_local_storage, LOCAL_UPLOADS_DIR
     from app.services.ingestion.polars_engine import PolarsEngine
     from app.services.ingestion.cleaner import DatasetCleaner
     from app.services.ingestion.profiler import DataProfiler
@@ -259,7 +266,7 @@ async def _generate_ai_excel(task, dataset_id: str, user_id: str):
                 # 1. Download File
                 if is_local_storage():
                     local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
-                    file_bytes = await asyncio.to_thread(local_path.read_bytes)
+                    file_bytes = local_path.read_bytes()
                 else:
                     signed_url = await get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=300)
                     async with httpx.AsyncClient() as client:
@@ -272,22 +279,30 @@ async def _generate_ai_excel(task, dataset_id: str, user_id: str):
                 df = PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
 
                 # 3. Clean
-                df_cleaned, _ = await asyncio.to_thread(DatasetCleaner.clean_dataframe, df)
+                df_cleaned, _ = DatasetCleaner.clean_dataframe(df)
                 
                 # 4. Profile
-                profile = await asyncio.to_thread(DataProfiler.profile_dataframe, df_cleaned)
+                profile = DataProfiler.profile_dataframe(df_cleaned)
 
                 # 5. Build Excel
-                excel_bytes = await asyncio.to_thread(_build_excel_workbook, df_cleaned, profile, dataset.name)
+                excel_bytes = _build_excel_workbook(df_cleaned, profile, dataset.name)
 
                 # 6. Upload
                 new_filename = f"ai_excel_{dataset_id}.xlsx"
-                new_url = await upload_file(
-                    DATASETS_BUCKET, 
-                    excel_bytes, 
-                    new_filename, 
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+                if is_local_storage():
+                    out_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / new_filename
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    out_path.write_bytes(excel_bytes)
+                    new_url = new_filename
+                else:
+                    from app.core.storage import _client
+                    client = _client()
+                    client.storage.from_(DATASETS_BUCKET).upload(
+                        path=new_filename,
+                        file=excel_bytes,
+                        file_options={"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "upsert": "true"}
+                    )
+                    new_url = new_filename
 
                 # 7. Update Dataset
                 dataset.excel_url = new_url
@@ -295,11 +310,14 @@ async def _generate_ai_excel(task, dataset_id: str, user_id: str):
                 await session.commit()
                 
                 # 8. Notify WebSocket
-                await ws_manager.publish_tenant_event(
-                    str(dataset.tenant_id),
-                    "dataset_excel_ready",
-                    {"dataset_id": str(dataset.id)}
-                )
+                try:
+                    await ws_manager.publish_tenant_event(
+                        str(dataset.tenant_id),
+                        "dataset_excel_ready",
+                        {"dataset_id": str(dataset.id)}
+                    )
+                except Exception as e:
+                    pass
 
             except Exception as exc:
                 import celery.exceptions
