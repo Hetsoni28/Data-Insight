@@ -1,11 +1,14 @@
-"""Real AI-Powered Excel Generation Celery Task.
+"""AI-Powered 15-Tab Excel Generation Celery Task.
 
-Generates a professionally formatted, 4-tab .xlsx file from a dataset
-using XlsxWriter for pixel-perfect alignment and styling.
+Generates a professionally formatted 15-tab .xlsx file from a dataset using
+AdvancedExcelBuilder + XlsxWriter. Every tab is driven by real dataset data.
+Zero fake data policy enforced.
 """
 from __future__ import annotations
 import asyncio
 import io
+import json
+import re
 import uuid
 from datetime import datetime
 from typing import Any, Dict
@@ -243,6 +246,111 @@ def _build_excel_workbook(df_cleaned, profile: Dict[str, Any], dataset_name: str
     return buf.getvalue()
 
 
+
+async def _get_ai_content(df, profile: Dict[str, Any], dataset_name: str) -> Dict[str, Any]:
+    """Call Groq AI to generate real insights from dataset statistics. Returns structured dict."""
+    empty = {"executive_summary": "", "insights": [], "recommendations": [], "anomaly_summary": "", "column_descriptions": {}}
+    try:
+        import polars as pl
+        from app.core.config import settings
+        from app.services.ai.router import LLMRouter
+
+        ov = profile.get("overview", {})
+        row_count   = ov.get("row_count") or len(df)
+        col_count   = ov.get("column_count") or len(df.columns)
+        quality     = ov.get("quality_score") or profile.get("quality_score") or 0
+        missing_pct = ov.get("missing_cells_pct") or profile.get("missing_cells_pct") or 0
+        dup_rows    = ov.get("duplicate_rows") or profile.get("duplicate_rows") or 0
+
+        # Build per-column stats summary (real data, no fake values)
+        col_summary_lines = []
+        for col in df.columns[:20]:  # limit to 20 cols for prompt size
+            dtype = str(df[col].dtype)
+            nc    = int(df[col].null_count())
+            np_   = round(nc / row_count * 100, 1) if row_count else 0
+            uc    = int(df[col].n_unique())
+            extras = ""
+            num_types = (pl.Float32, pl.Float64, pl.Int8, pl.Int16, pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64)
+            if df[col].dtype in num_types:
+                s = df[col].drop_nulls()
+                if len(s):
+                    extras = f" mean={round(float(s.mean()),2)} min={round(float(s.min()),2)} max={round(float(s.max()),2)}"
+            elif df[col].dtype == pl.Utf8 and uc <= 20:
+                top = df[col].drop_nulls().value_counts().sort("count", descending=True).head(3)
+                vals = [str(r[0]) for r in top.iter_rows()]
+                extras = f" top_values=[{', '.join(vals)}]"
+            col_summary_lines.append(f"  - {col} ({dtype}): null={np_}% unique={uc}{extras}")
+
+        col_summary = "\n".join(col_summary_lines)
+
+        prompt = f"""You are a senior data analyst. Analyze this dataset and return ONLY valid JSON.
+
+Dataset: {dataset_name}
+Rows: {row_count:,}  |  Columns: {col_count}  |  Quality Score: {quality:.1f}/100
+Missing Data: {missing_pct:.1f}%  |  Duplicate Rows: {dup_rows}
+
+Column Statistics:
+{col_summary}
+
+Return ONLY this exact JSON structure (no markdown, no explanation):
+{{
+  "executive_summary": "2-3 sentence business overview of this dataset",
+  "insights": [
+    "First key business insight from the data",
+    "Second key business insight",
+    "Third key business insight"
+  ],
+  "recommendations": [
+    "First actionable recommendation",
+    "Second actionable recommendation",
+    "Third actionable recommendation"
+  ],
+  "anomaly_summary": "Brief description of any data quality issues or outliers detected",
+  "column_descriptions": {{
+    "{df.columns[0] if df.columns else 'col'}": "Plain English description of what this column represents"
+  }}
+}}
+
+Write column_descriptions for ALL {col_count} columns. Return ONLY valid JSON."""
+
+        router = LLMRouter(
+            groq_api_key=settings.GROQ_API_KEY,
+            gemini_api_key=settings.GEMINI_API_KEY,
+        )
+        response = await router.generate(
+            prompt=prompt,
+            task_type="deep_report",
+            temperature=0.2,
+            max_tokens=3000,
+        )
+        text = response.strip()
+
+        # Strip markdown fences if present
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.MULTILINE)
+        text = re.sub(r"\s*```$", "", text, flags=re.MULTILINE)
+
+        # Extract first JSON object
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if not match:
+            logger.warning("[AI Excel] No JSON found in AI response — using empty content")
+            return empty
+
+        data = json.loads(match.group())
+
+        # Validate structure
+        return {
+            "executive_summary": str(data.get("executive_summary", "")),
+            "insights": [str(x) for x in data.get("insights", []) if x][:5],
+            "recommendations": [str(x) for x in data.get("recommendations", []) if x][:5],
+            "anomaly_summary": str(data.get("anomaly_summary", "")),
+            "column_descriptions": {k: str(v) for k, v in data.get("column_descriptions", {}).items()},
+        }
+
+    except Exception as exc:
+        logger.warning(f"[AI Excel] AI content generation failed (non-critical): {exc}")
+        return empty
+
+
 async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
     import httpx
     from app.db.session import AsyncSessionLocal
@@ -284,8 +392,15 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                 # 4. Profile
                 profile = DataProfiler.profile_dataframe(df_cleaned)
 
-                # 5. Build Excel
-                excel_bytes = _build_excel_workbook(df_cleaned, profile, dataset.name)
+                # 5. Get AI Insights (Groq) then build 15-tab Excel
+                ai_content = await _get_ai_content(df_cleaned, profile, dataset.name)
+                from app.services.ingestion.excel_builder import AdvancedExcelBuilder
+                excel_bytes = AdvancedExcelBuilder(
+                    df=df_cleaned,
+                    profile=profile,
+                    dataset_name=dataset.name,
+                    ai_content=ai_content,
+                ).build()
 
                 # 6. Upload
                 new_filename = f"ai_excel_{dataset_id}.xlsx"
