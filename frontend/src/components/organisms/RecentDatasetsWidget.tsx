@@ -49,7 +49,7 @@ export function RecentDatasetsWidget({ datasets, basePath = "/dashboard/datasets
                     {dataset.name}
                   </span>
                   <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                    {dataset.rows.toLocaleString()} rows • Uploaded {formatDistanceToNow(new Date(dataset.created_at), { addSuffix: true })}
+                    {Number(dataset.row_count ?? dataset.rows ?? 0).toLocaleString()} rows • Uploaded {formatDistanceToNow(new Date(dataset.created_at), { addSuffix: true })}
                   </span>
                 </div>
               </div>
