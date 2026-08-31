@@ -119,10 +119,13 @@ class AdvancedExcelBuilder:
     @staticmethod
     def _get_logo_png_bytes():
         """Render the DataInsight SVG logo to PNG bytes. Returns None on failure.
-        
-        Patches the SVG viewBox to 900x180 before rendering so the full
-        wordmark 'Data Insight' (which extends to ~690px in the original 640px
-        viewBox) is never clipped by cairosvg.
+
+        The SVG wordmark ends at ~690px but viewBox is 640px wide, causing
+        the trailing 't' in 'Insight' to be clipped.  Fix: inject
+        overflow="visible" into the SVG root element so cairosvg renders
+        content that extends past the viewBox boundary.  We do NOT touch
+        viewBox, width, height or any gradient definitions so the D-icon
+        renders exactly as designed.
         """
         import os, pathlib, re as _re
         candidates = [
@@ -134,23 +137,22 @@ class AdvancedExcelBuilder:
             return None
         try:
             import cairosvg
-            # Read SVG and expand viewBox so the wordmark isn't clipped.
-            # Original viewBox="0 0 640 160" but text ends at ~690px.
             with open(svg_path, "r", encoding="utf-8") as _f:
                 svg_src = _f.read()
-            # Expand viewBox width from 640 to 900 (add right padding)
-            svg_src = _re.sub(
-                r'viewBox="0 0 \d+ \d+"',
-                'viewBox="0 0 900 160"',
-                svg_src,
-            )
-            # Also remove fixed width/height so cairosvg uses output_width/height
-            svg_src = _re.sub(r'width="[^"]*"', 'width="900"', svg_src)
-            svg_src = _re.sub(r'height="[^"]*"', 'height="160"', svg_src)
+            # ONLY change: add overflow="visible" so the wordmark is not
+            # clipped at the 640px viewBox boundary.
+            # Keep viewBox, gradients, transforms all untouched.
+            if 'overflow=' not in svg_src:
+                svg_src = svg_src.replace(
+                    "<svg ",
+                    '<svg overflow="visible" ',
+                    1,
+                )
+            # Render at 720x180 (wider than 640 to capture overflow text)
             return cairosvg.svg2png(
                 bytestring=svg_src.encode("utf-8"),
-                output_width=750,
-                output_height=133,
+                output_width=720,
+                output_height=180,
                 background_color="#FFFFFF",
             )
         except Exception:
