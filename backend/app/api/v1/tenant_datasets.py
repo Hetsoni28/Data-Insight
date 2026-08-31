@@ -911,20 +911,22 @@ async def download_ai_excel(
     if not d.excel_url:
         raise HTTPException(status_code=404, detail="Excel not generated yet")
         
-    from app.core.storage import is_local_storage, get_file_url
+    from app.core.storage import is_local_storage
     if is_local_storage():
         from app.core.storage import LOCAL_UPLOADS_DIR, DATASETS_BUCKET
         from fastapi.responses import FileResponse
         local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / d.excel_url
         if not local_path.exists():
             raise HTTPException(status_code=404, detail="Excel file missing on disk")
+        safe_name = f"AI_Excel_{d.name}.xlsx".replace("/", "_")
         return FileResponse(
-            path=local_path, 
-            filename=f"ai_excel_{d.name}.xlsx", 
+            path=str(local_path),
+            filename=safe_name,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
     else:
         from fastapi.responses import RedirectResponse
-        url = await get_file_url(DATASETS_BUCKET, d.excel_url)
+        from app.core.storage import get_signed_url, DATASETS_BUCKET
+        url = await get_signed_url(DATASETS_BUCKET, d.excel_url, expires_in=300)
         return RedirectResponse(url)
 
