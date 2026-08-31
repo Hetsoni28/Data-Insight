@@ -33,13 +33,31 @@ def _build_excel_workbook(df_cleaned, profile: Dict[str, Any], dataset_name: str
     row_odd_format_green = workbook.add_format({'bg_color': '#FFFFFF'})
     num_format_even_green = workbook.add_format({'bg_color': '#F0FDF4', 'num_format': '#,##0.00'})
     num_format_odd_green = workbook.add_format({'bg_color': '#FFFFFF', 'num_format': '#,##0.00'})
-    
+    # Sticky sidebar column A — visually distinct emerald stripe
+    sidebar_even_fmt = workbook.add_format({
+        'bg_color': '#ECFDF5', 'bold': True, 'font_color': '#065F46',
+        'left': 2, 'left_color': '#10B981', 'right': 1, 'right_color': '#D1FAE5'
+    })
+    sidebar_odd_fmt = workbook.add_format({
+        'bg_color': '#D1FAE5', 'bold': True, 'font_color': '#065F46',
+        'left': 2, 'left_color': '#10B981', 'right': 1, 'right_color': '#A7F3D0'
+    })
+    sidebar_num_even_fmt = workbook.add_format({
+        'bg_color': '#ECFDF5', 'bold': True, 'font_color': '#065F46',
+        'num_format': '#,##0.00', 'left': 2, 'left_color': '#10B981'
+    })
+    sidebar_num_odd_fmt = workbook.add_format({
+        'bg_color': '#D1FAE5', 'bold': True, 'font_color': '#065F46',
+        'num_format': '#,##0.00', 'left': 2, 'left_color': '#10B981'
+    })
+
     # TAB 1: Clean Data
     ws1 = workbook.add_worksheet("📊 Clean Data")
     ws1.set_tab_color('#10B981')
-    ws1.freeze_panes(1, 0)
+    # freeze_panes(1, 1) locks both the top header row AND column A as a sticky sidebar
+    ws1.freeze_panes(1, 1)
     ws1.set_row(0, 25)
-    
+
     headers = df_cleaned.columns
     for col_idx, header in enumerate(headers):
         ws1.write(0, col_idx, header, header_format_green)
@@ -48,7 +66,7 @@ def _build_excel_workbook(df_cleaned, profile: Dict[str, Any], dataset_name: str
     # Take first 10000 rows max
     max_rows = min(10000, len(df_cleaned))
     df_head = df_cleaned.head(max_rows)
-    
+
     for row_idx, row in enumerate(df_head.iter_rows(named=True)):
         xl_row = row_idx + 1
         is_even = xl_row % 2 == 0
@@ -56,17 +74,24 @@ def _build_excel_workbook(df_cleaned, profile: Dict[str, Any], dataset_name: str
         num_fmt = num_format_even_green if is_even else num_format_odd_green
         for col_idx, col in enumerate(headers):
             val = row[col]
+            # Column A (index 0) gets the sticky emerald sidebar style
+            if col_idx == 0:
+                cell_fmt = sidebar_even_fmt if is_even else sidebar_odd_fmt
+                cell_num_fmt = sidebar_num_even_fmt if is_even else sidebar_num_odd_fmt
+            else:
+                cell_fmt = fmt
+                cell_num_fmt = num_fmt
             if val is None:
-                ws1.write(xl_row, col_idx, "", fmt)
+                ws1.write(xl_row, col_idx, "", cell_fmt)
             elif isinstance(val, (int, float)):
                 if math.isnan(val) or math.isinf(val):
-                    ws1.write(xl_row, col_idx, str(val), fmt)
+                    ws1.write(xl_row, col_idx, str(val), cell_fmt)
                 else:
-                    ws1.write_number(xl_row, col_idx, val, num_fmt)
+                    ws1.write_number(xl_row, col_idx, val, cell_num_fmt)
             else:
-                ws1.write(xl_row, col_idx, str(val), fmt)
-    
-    # Adjust widths for data (simplified)
+                ws1.write(xl_row, col_idx, str(val), cell_fmt)
+
+    # Auto-size column widths based on real content length
     for col_idx, col in enumerate(headers):
         max_len = len(str(col))
         for row in df_head.iter_rows(named=True):
@@ -107,7 +132,8 @@ def _build_excel_workbook(df_cleaned, profile: Dict[str, Any], dataset_name: str
     # TAB 3: Column Profiles
     ws3 = workbook.add_worksheet("🔬 Column Profiles")
     ws3.set_tab_color('#F59E0B')
-    ws3.freeze_panes(1, 0)
+    # freeze_panes(1,1): sticky header row + sticky Column Name sidebar
+    ws3.freeze_panes(1, 1)
     
     ws3_header_fmt = workbook.add_format({'bg_color': '#1E293B', 'font_color': '#FFFFFF', 'bold': True})
     ws3_headers = ["Column Name", "Data Type", "Null Count", "Null %", "Unique Count", "Unique %", "Min", "Max", "Mean", "Std Dev", "Outlier Count"]
