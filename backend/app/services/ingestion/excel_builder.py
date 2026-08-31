@@ -118,9 +118,13 @@ class AdvancedExcelBuilder:
 
     @staticmethod
     def _get_logo_png_bytes():
-        """Render the DataInsight SVG logo to PNG bytes. Returns None on failure."""
-        import os, pathlib
-        # Try backend/app/static/logo.svg (inside Docker at /app/app/static/)
+        """Render the DataInsight SVG logo to PNG bytes. Returns None on failure.
+        
+        Patches the SVG viewBox to 900x180 before rendering so the full
+        wordmark 'Data Insight' (which extends to ~690px in the original 640px
+        viewBox) is never clipped by cairosvg.
+        """
+        import os, pathlib, re as _re
         candidates = [
             "/app/app/static/logo.svg",
             str(pathlib.Path(__file__).parents[3] / "static" / "logo.svg"),
@@ -130,10 +134,27 @@ class AdvancedExcelBuilder:
             return None
         try:
             import cairosvg
-            return cairosvg.svg2png(url=svg_path, output_width=700, output_height=175, background_color="#FFFFFF")
+            # Read SVG and expand viewBox so the wordmark isn't clipped.
+            # Original viewBox="0 0 640 160" but text ends at ~690px.
+            with open(svg_path, "r", encoding="utf-8") as _f:
+                svg_src = _f.read()
+            # Expand viewBox width from 640 to 900 (add right padding)
+            svg_src = _re.sub(
+                r'viewBox="0 0 \d+ \d+"',
+                'viewBox="0 0 900 160"',
+                svg_src,
+            )
+            # Also remove fixed width/height so cairosvg uses output_width/height
+            svg_src = _re.sub(r'width="[^"]*"', 'width="900"', svg_src)
+            svg_src = _re.sub(r'height="[^"]*"', 'height="160"', svg_src)
+            return cairosvg.svg2png(
+                bytestring=svg_src.encode("utf-8"),
+                output_width=750,
+                output_height=133,
+                background_color="#FFFFFF",
+            )
         except Exception:
             pass
-        # Fallback: read pre-rendered logo_cover.png if it was pre-saved
         for p in candidates:
             png = p.replace("logo.svg", "logo_cover.png")
             if os.path.exists(png):
