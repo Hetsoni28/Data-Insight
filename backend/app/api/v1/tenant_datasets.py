@@ -696,6 +696,7 @@ async def generate_ai_excel(
         raise HTTPException(status_code=404, detail="Dataset not found")
         
     d.status = DatasetStatus.profiling
+    d.excel_url = None
     
     audit = AuditLog(
         tenant_id=tenant_id, user_id=current_user.id, action="dataset.ai-excel.started",
@@ -714,7 +715,8 @@ async def generate_ai_excel(
     await db.commit()
     from app.worker.tasks.excel_tasks import generate_ai_excel_task
     generate_ai_excel_task.delay(str(dataset_id), str(current_user.id))
-    return {"status": "success", "message": "AI Excel generation started"}
+    
+    return {"status": "success", "message": "AI Excel generation started in background"}
 
 @router.post("/{dataset_id}/dashboard", summary="Create Dashboard", dependencies=[Depends(RequirePermission("DATASET_CREATE_DASHBOARD"))])
 @limiter.limit("5/minute")
