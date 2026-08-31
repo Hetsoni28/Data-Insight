@@ -85,7 +85,7 @@ class AdvancedExcelBuilder:
 
     def _na(self,name,reason):
         ws=self._wb.add_worksheet(name[:31]); ws.set_tab_color(C_SLATE); ws.set_column(0,0,60)
-        ws.set_row(0,40); ws.merge_range("A1:L1",name,self.FS); ws.set_row(2,20)
+        ws.set_row(0,40); ws.merge_range("A1:N1",name,self.FS); ws.set_row(2,20)
         ws.write(2,0,f"Not applicable: {reason}",self.FV); return (name[:31],f"N/A - {reason[:55]}")
 
     def _sec(self,ws,row,text,ncols=6):
@@ -93,7 +93,7 @@ class AdvancedExcelBuilder:
 
     def _fill_toc(self,ws,tabs):
         ws.hide_gridlines(2); ws.set_column(0,0,6); ws.set_column(1,1,32); ws.set_column(2,2,60)
-        ws.set_row(0,40); ws.merge_range("A1:L1","Table of Contents",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1","Table of Contents",self.FT)
         ws.set_row(2,20); ws.write(2,0,"#",self.FH); ws.write(2,1,"Section",self.FH); ws.write(2,2,"Description",self.FH)
         for i,(sn,desc) in enumerate(tabs):
             r=i+3; ws.set_row(r,20); fe=self.FE if i%2==0 else self.FO; ws.write(r,0,i+1,fe)
@@ -130,7 +130,7 @@ class AdvancedExcelBuilder:
             return None
         try:
             import cairosvg
-            return cairosvg.svg2png(url=svg_path, output_width=420, output_height=105)
+            return cairosvg.svg2png(url=svg_path, output_width=700, output_height=175, background_color="#FFFFFF")
         except Exception:
             pass
         # Fallback: read pre-rendered logo_cover.png if it was pre-saved
@@ -155,7 +155,7 @@ class AdvancedExcelBuilder:
         ws.set_row(1,65)
         ws.set_row(2,8)
         # Navy banner cell behind logo
-        banner_fmt = self._wb.add_format({"bg_color":C_NAVY,"valign":"vcenter"})
+        banner_fmt = self._wb.add_format({"bg_color":"#FFFFFF","valign":"vcenter","bottom":2,"bottom_color":C_GREEN})
         ws.merge_range("A2:B2","",banner_fmt)
 
         # Insert SVG logo as PNG image
@@ -166,10 +166,10 @@ class AdvancedExcelBuilder:
                 "A2", "logo.png",
                 {
                     "image_data": _io.BytesIO(logo_bytes),
-                    "x_offset": 14,
-                    "y_offset": 8,
-                    "x_scale": 0.88,
-                    "y_scale": 0.88,
+                    "x_offset": 8,
+                    "y_offset": 6,
+                    "x_scale": 0.75,
+                    "y_scale": 0.75,
                     "object_position": 1,
                 }
             )
@@ -240,7 +240,7 @@ class AdvancedExcelBuilder:
         qg=str(ov.get("quality_grade") or self.profile.get("quality_grade") or "N/A")
         dup=int(ov.get("duplicate_rows") or self.profile.get("duplicate_rows") or 0)
         mp=float(ov.get("missing_cells_pct") or self.profile.get("missing_cells_pct") or 0)
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"Executive Summary - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"Executive Summary - {self.name}",self.FT)
         row=2; row=self._sec(ws,row,"Dataset Overview",4)
         items=[("Total Rows",f"{rc:,}"),("Total Columns",str(cc)),("Completeness",f"{round(100-mp,2):.2f}%"),
                ("Quality Score",f"{qs:.1f}/100"),("Grade",qg),("Duplicates",f"{dup:,}"),
@@ -260,7 +260,7 @@ class AdvancedExcelBuilder:
     def _t04_insights(self):
         ws=self._wb.add_worksheet("04 AI Insights"); ws.set_tab_color(C_TEAL); ws.hide_gridlines(2)
         ws.set_column(0,0,4); ws.set_column(1,1,88)
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"AI Insights - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"AI Insights - {self.name}",self.FT)
         row=2; insights=self.ai.get("insights",[])
         if insights:
             row=self._sec(ws,row,"Key Business Insights",2)
@@ -271,12 +271,39 @@ class AdvancedExcelBuilder:
         if es: row=self._sec(ws,row,"Executive Summary",2); ws.set_row(row,80); ws.merge_range(row,0,row,1,str(es),self.FWRAP); row+=2
         at=self.ai.get("anomaly_summary","")
         if at: row=self._sec(ws,row,"Anomaly Overview",2); ws.set_row(row,60); ws.merge_range(row,0,row,1,str(at),self.FWRAP); row+=2
-        if not insights and not es: ws.write(2,1,"AI insights not available for this dataset.",self.FV)
-        return ("04 AI Insights","AI-generated findings and overview")
+        if not insights and not es:
+            # AI failed — generate automatic insights from real profile data
+            row = self._sec(ws, row, "Automated Data Profile Insights", 2)
+            ov = self.profile.get("overview", {})
+            rc = ov.get("row_count") or len(self.df)
+            cc = ov.get("column_count") or len(self.df.columns)
+            qs = float(ov.get("quality_score") or self.profile.get("quality_score") or 0)
+            mp = float(ov.get("missing_cells_pct") or self.profile.get("missing_cells_pct") or 0)
+            dup = int(ov.get("duplicate_rows") or 0)
+            auto_insights = [
+                f"Dataset contains {rc:,} records across {cc} columns with a quality score of {qs:.1f}/100.",
+                f"Data completeness is {100-mp:.1f}% — {mp:.1f}% of cells contain missing values.",
+                f"Duplicate rows detected: {dup:,}.",
+            ]
+            if self.num_cols:
+                auto_insights.append(f"Numeric columns available for statistical analysis: {', '.join(self.num_cols[:6])}.")
+            if self.cat_cols:
+                top_cats = []
+                for c in self.cat_cols[:3]:
+                    uv = int(self.df[c].n_unique())
+                    top_cats.append(f"{c} ({uv} unique values)")
+                auto_insights.append(f"Categorical columns: {', '.join(top_cats)}.")
+            if not self.date_cols:
+                auto_insights.append("No date/time column found — Trend and Forecast tabs are not available for this dataset.")
+            else:
+                auto_insights.append(f"Time-series analysis available using column: {self.date_cols[0]}.")
+            for i, ins in enumerate(auto_insights):
+                ws.set_row(row, 50); ws.write(row, 0, f"{i+1}.", self.FL); ws.write(row, 1, ins, self.FWRAP); row += 1
+        return ("04 AI Insights", "AI-generated findings and overview")
 
     def _t05_kpi(self):
         sn="05 KPI Dashboard"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_GREEN); ws.hide_gridlines(2)
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"KPI Dashboard - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"KPI Dashboard - {self.name}",self.FT)
         hdrs=["Column","Count","Mean","Min","Max","Std Dev","Nulls"]; wds=[28,10,16,16,16,16,12]
         for ci,(h,w) in enumerate(zip(hdrs,wds)): ws.set_column(ci,ci,w); ws.write(2,ci,h,self.FH)
         stats=[]
@@ -304,7 +331,7 @@ class AdvancedExcelBuilder:
     def _t06_exec_dash(self):
         sn="06 Exec Dashboard"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_AMBER); ws.hide_gridlines(2)
         ws.set_column(0,0,28); ws.set_column(1,1,14)
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"Exec Dashboard - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"Exec Dashboard - {self.name}",self.FT)
         cr=2; cc=0
         for col in self.cat_cols[:5]:
             vc=self.df[col].drop_nulls().value_counts().sort("count",descending=True)
@@ -332,7 +359,7 @@ class AdvancedExcelBuilder:
 
     def _t08_quality(self):
         sn="08 Data Quality"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_TEAL); ws.freeze_panes(3,1)
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"Data Quality - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"Data Quality - {self.name}",self.FT)
         hdrs=["Column","Type","Total","Null Count","Null %","Unique Count","Unique %","Status"]; wds=[28,14,10,12,10,14,10,12]
         ws.set_row(2,20)
         for ci,(h,w) in enumerate(zip(hdrs,wds)): ws.set_column(ci,ci,w); ws.write(2,ci,h,self.FH)
@@ -351,7 +378,7 @@ class AdvancedExcelBuilder:
 
     def _t09_pivot(self):
         sn="09 Pivot Analysis"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_INDIGO); ws.freeze_panes(4,1)
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"Pivot Analysis - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"Pivot Analysis - {self.name}",self.FT)
         gc=min(self.cat_cols,key=lambda c:self.df[c].n_unique()); acs=self.num_cols[:5]
         agg=[]
         for nc in acs:
@@ -372,7 +399,7 @@ class AdvancedExcelBuilder:
     def _t10_trend(self):
         sn="10 Trend Analysis"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_TEAL); ws.freeze_panes(3,0)
         dc=self.date_cols[0]; vc=self.num_cols[0] if self.num_cols else None
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"Trend Analysis - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"Trend Analysis - {self.name}",self.FT)
         if not vc: ws.write(2,0,"No numeric col to plot.",self.FV); return (sn,"Trend N/A")
         tdf=(self.df.filter(pl.col(dc).is_not_null()&pl.col(vc).is_not_null()).sort(dc).group_by(dc).agg(pl.col(vc).mean().alias("avg")).sort(dc))
         ws.set_column(0,0,18); ws.set_column(1,1,18); ws.write(2,0,dc,self.FH); ws.write(2,1,f"Avg {vc}",self.FH); ds=2
@@ -390,7 +417,7 @@ class AdvancedExcelBuilder:
 
     def _t10_corr(self):
         sn="10 Correlation"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_TEAL); ws.freeze_panes(4,1)
-        cols=self.num_cols[:8]; ws.set_row(0,40); ws.merge_range("A1:L1",f"Correlation Matrix - {self.name}",self.FT)
+        cols=self.num_cols[:8]; ws.set_row(0,40); ws.merge_range("A1:N1",f"Correlation Matrix - {self.name}",self.FT)
         ws.set_row(2,18); ws.write(2,0,"Pearson correlation (-1 to +1)",self.FL); ws.set_column(0,0,25)
         for ci,col in enumerate(cols): ws.set_column(ci+1,ci+1,14); ws.write(3,ci+1,col,self.FH); ws.write(4+ci,0,col,self.FL)
         sub=self.df.select(cols).drop_nulls()
@@ -409,7 +436,7 @@ class AdvancedExcelBuilder:
     def _t11_forecast(self):
         sn="11 Forecasting"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_AMBER); ws.freeze_panes(3,0)
         dc=self.date_cols[0]; vc=self.num_cols[0] if self.num_cols else None
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"30-Period Forecast - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"30-Period Forecast - {self.name}",self.FT)
         if not vc: ws.write(2,0,"No numeric col.",self.FV); return (sn,"Forecast N/A")
         tdf=(self.df.filter(pl.col(dc).is_not_null()&pl.col(vc).is_not_null()).sort(dc).group_by(dc).agg(pl.col(vc).mean().alias("val")).sort(dc))
         if len(tdf)<10: ws.write(2,0,f"Only {len(tdf)} pts. Need 10+.",self.FV); return (sn,"Forecast N/A")
@@ -433,16 +460,16 @@ class AdvancedExcelBuilder:
 
     def _t11_top(self):
         sn="11 Top Records"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_AMBER); ws.freeze_panes(3,1); ws.set_row(0,40)
-        if not self.num_cols: ws.merge_range("A1:L1",f"Top Records - {self.name}",self.FT); ws.write(2,0,"No numeric col.",self.FV); return (sn,"Top records")
+        if not self.num_cols: ws.merge_range("A1:N1",f"Top Records - {self.name}",self.FT); ws.write(2,0,"No numeric col.",self.FV); return (sn,"Top records")
         sc=self.num_cols[0]; df=self.df.sort(sc,descending=True).head(25)
-        ws.merge_range("A1:L1",f"Top 25 by {sc}",self.FT); hdrs=df.columns
+        ws.merge_range("A1:N1",f"Top 25 by {sc}",self.FT); hdrs=df.columns
         nci={ci for ci,c in enumerate(hdrs) if c in self.num_cols}
         for ci,col in enumerate(hdrs): ws.set_column(ci,ci,_col_w(df,col)); ws.write(2,ci,col,self.FH)
         self._write_rows(ws,3,df,hdrs,nci); return (sn,f"Top 25 by '{sc}'")
 
     def _t12_anomalies(self):
         sn="12 Risk & Anomalies"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_RED); ws.freeze_panes(4,1)
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"Risk & Anomalies - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"Risk & Anomalies - {self.name}",self.FT)
         cc=self.num_cols[:6]; mask=pl.lit(False)
         for col in cc:
             mv=self.df[col].mean(); sv=self.df[col].std()
@@ -460,7 +487,7 @@ class AdvancedExcelBuilder:
 
     def _t12_catfreq(self):
         sn="12 Category Freq"; ws=self._wb.add_worksheet(sn); ws.set_tab_color(C_RED); ws.freeze_panes(0,0)
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"Category Frequencies - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"Category Frequencies - {self.name}",self.FT)
         ws.set_column(0,0,28); ws.set_column(1,1,14); ws.set_column(2,2,12); cr=2; tr=len(self.df)
         for col in self.cat_cols[:5]:
             vc=self.df[col].drop_nulls().value_counts().sort("count",descending=True)
@@ -477,11 +504,34 @@ class AdvancedExcelBuilder:
     def _t13_recs(self):
         ws=self._wb.add_worksheet("13 Recommendations"); ws.set_tab_color(C_GREEN); ws.hide_gridlines(2)
         ws.set_column(0,0,5); ws.set_column(1,1,88); ws.set_row(0,40)
-        ws.merge_range("A1:L1",f"Recommendations - {self.name}",self.FT)
+        ws.merge_range("A1:N1",f"Recommendations - {self.name}",self.FT)
         row=2; recs=self.ai.get("recommendations",[])
         if recs:
             row=self._sec(ws,row,"AI Recommendations",2)
             for i,r in enumerate(recs): ws.set_row(row,60); ws.write(row,0,f"{i+1}.",self.FL); ws.write(row,1,str(r),self.FWRAP); row+=1
+        # Auto-generate recs from profile if AI recs empty
+        if not recs:
+            ov = self.profile.get("overview", {})
+            rc = ov.get("row_count") or len(self.df)
+            cc = ov.get("column_count") or len(self.df.columns)
+            qs = float(ov.get("quality_score") or self.profile.get("quality_score") or 0)
+            mp = float(ov.get("missing_cells_pct") or self.profile.get("missing_cells_pct") or 0)
+            row = self._sec(ws, row, "Automated Recommendations", 2)
+            auto_recs = [
+                f"This dataset has {rc:,} rows and {cc} columns — suitable for statistical modeling.",
+                f"Quality score is {qs:.1f}/100 — {'excellent data quality.' if qs >= 90 else 'review missing values before modeling.'}",
+            ]
+            if mp > 5:
+                auto_recs.append(f"Missing data at {mp:.1f}% — apply imputation strategies (mean/median/mode) before analysis.")
+            if self.num_cols:
+                auto_recs.append(f"Perform correlation analysis on numeric columns: {', '.join(self.num_cols[:4])}.")
+            if self.cat_cols:
+                auto_recs.append(f"Encode categorical columns ({', '.join(self.cat_cols[:3])}) before machine learning models.")
+            if not self.date_cols:
+                auto_recs.append("Add a date/timestamp column to enable time-series Trend and Forecast analysis.")
+            for i, r in enumerate(auto_recs):
+                ws.set_row(row, 50); ws.write(row, 0, f"{i+1}.", self.FL); ws.write(row, 1, r, self.FWRAP); row += 1
+            row += 1
         row+=1; row=self._sec(ws,row,"Data-Driven Checks",2)
         ov=self.profile.get("overview",{}); dup=int(ov.get("duplicate_rows") or 0); mp=float(ov.get("missing_cells_pct") or 0)
         cp=self.profile.get("columns",{}); hn=[c for c,d in cp.items() if d.get("null_pct",0)>50]
@@ -498,7 +548,7 @@ class AdvancedExcelBuilder:
     def _t14_method(self):
         ws=self._wb.add_worksheet("14 Methodology"); ws.set_tab_color(C_SLATE); ws.hide_gridlines(2)
         ws.set_column(0,0,35); ws.set_column(1,1,55); ws.set_row(0,40)
-        ws.merge_range("A1:L1",f"Methodology - {self.name}",self.FT)
+        ws.merge_range("A1:N1",f"Methodology - {self.name}",self.FT)
         ov=self.profile.get("overview",{}); row=2; row=self._sec(ws,row,"Processing Pipeline",2)
         steps=[("Step 1: File Parsing","Raw file parsed using PolarsEngine for columnar processing."),
                ("Step 2: Data Cleaning","Nulls identified, duplicates flagged, types inferred."),
@@ -517,7 +567,7 @@ class AdvancedExcelBuilder:
 
     def _t15_dict(self):
         ws=self._wb.add_worksheet("15 Data Dictionary"); ws.set_tab_color(C_NAVY); ws.freeze_panes(3,1)
-        ws.set_row(0,40); ws.merge_range("A1:L1",f"Data Dictionary - {self.name}",self.FT)
+        ws.set_row(0,40); ws.merge_range("A1:N1",f"Data Dictionary - {self.name}",self.FT)
         hdrs=["Column","Data Type","Null Count","Null %","Unique Count","Sample Values","AI Description"]
         wds=[28,14,12,10,14,35,55]
         ws.set_row(2,20)
