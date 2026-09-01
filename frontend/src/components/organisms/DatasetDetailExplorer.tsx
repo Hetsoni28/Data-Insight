@@ -14,7 +14,10 @@ import { DatasetHeaderBanner } from "@/components/molecules/DatasetHeaderBanner"
 import { DatasetMetricsGrid, DatasetMetric } from "@/components/organisms/DatasetMetricsGrid"
 import { DatasetDetailTabs } from "@/components/organisms/DatasetDetailTabs"
 import { ReportSchedulerModal } from "@/components/organisms/ReportSchedulerModal"
+import { DatasetAlertsModal } from "@/components/organisms/DatasetAlertsModal"
+import { BellRing } from "lucide-react"
 import { toast } from "sonner"
+import { GenerateReportDialog } from "@/components/organisms/GenerateReportDialog"
 
 interface DatasetDetailExplorerProps {
   backHref?: string
@@ -41,6 +44,9 @@ export function DatasetDetailExplorer({
   const [insights, setInsights] = useState<any>(null)
   const [charts, setCharts] = useState<any[]>([])
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+  const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [reportCategory, setReportCategory] = useState("executive")
   const [activeTab, setActiveTab] = useState("preview")
 
   useEffect(() => {
@@ -48,18 +54,16 @@ export function DatasetDetailExplorer({
       const fetchAll = async () => {
         try {
           setLoading(true)
-          
-          // These endpoints exist on the backend
-          const dsPromise = api.get(`/tenant-datasets/${params.id}`);
-          const schPromise = api.get(`/tenant-datasets/${params.id}/schema`).catch(() => ({ data: [] }));
-          const prevPromise = api.get(`/tenant-datasets/${params.id}/preview`).catch(() => ({ data: { columns: [], rows: [] } }));
-          const insPromise = api.get(`/tenant-datasets/${params.id}/insights`).catch(() => ({ data: { summary: "No insights available.", metrics: [] } }));
-          const chPromise = api.get(`/tenant-datasets/${params.id}/charts`).catch(() => ({ data: [] }));
+          const dsPromise = api.get(`/tenant-datasets/${params.id}`)
+          const schPromise = api.get(`/tenant-datasets/${params.id}/schema`).catch(() => ({ data: [] }))
+          const prevPromise = api.get(`/tenant-datasets/${params.id}/preview`).catch(() => ({ data: { columns: [], rows: [] } }))
+          const insPromise = api.get(`/tenant-datasets/${params.id}/insights`).catch(() => ({ data: { summary: "No insights available.", metrics: [] } }))
+          const chPromise = api.get(`/tenant-datasets/${params.id}/charts`).catch(() => ({ data: [] }))
 
           const [dsRes, schRes, prevRes, insRes, chRes] = await Promise.all([
             dsPromise, schPromise, prevPromise, insPromise, chPromise
           ])
-          
+
           setDataset(dsRes.data?.data || dsRes.data)
           setSchema(schRes.data?.data || schRes.data || [])
           setPreview(prevRes.data?.data || prevRes.data)
@@ -77,20 +81,15 @@ export function DatasetDetailExplorer({
 
   if (loading) {
     return (
-      <div className="p-8 max-w-[1600px] mx-auto space-y-6">
-        <div className="flex items-center gap-4 mb-10">
-          <Skeleton className="h-12 w-12 rounded-2xl bg-slate-200/50 dark:bg-slate-800/50" />
-          <div className="space-y-3">
-            <Skeleton className="h-8 w-80 rounded-lg bg-slate-200/50 dark:bg-slate-800/50" />
-            <Skeleton className="h-5 w-60 rounded-lg bg-slate-200/50 dark:bg-slate-800/50" />
-          </div>
+      <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-8 pt-6 space-y-8">
+        <Skeleton className="h-64 w-full rounded-[2rem]" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Skeleton className="h-32 rounded-3xl" />
+          <Skeleton className="h-32 rounded-3xl" />
+          <Skeleton className="h-32 rounded-3xl" />
+          <Skeleton className="h-32 rounded-3xl" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 w-full rounded-2xl bg-slate-200/50 dark:bg-slate-800/50" />
-          ))}
-        </div>
-        <Skeleton className="h-[500px] w-full rounded-3xl mt-8 bg-slate-200/50 dark:bg-slate-800/50" />
+        <Skeleton className="h-[400px] w-full rounded-3xl" />
       </div>
     )
   }
@@ -100,11 +99,11 @@ export function DatasetDetailExplorer({
       <div className="p-8 flex flex-col items-center justify-center h-[80vh]">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center">
           <div className="w-24 h-24 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6 shadow-inner border border-slate-200 dark:border-slate-700">
-             <TableIcon className="w-10 h-10 text-slate-400" />
+            <TableIcon className="w-10 h-10 text-slate-400" />
           </div>
           <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Dataset Not Found</h2>
-          <p className="text-slate-500 font-medium mb-8 max-w-sm text-center">We couldn't locate this dataset, or you may not have permission to view it.</p>
-          <Button onClick={() => router.push(backHref)} className="bg-emerald-600 hover:bg-emerald-500 h-12 px-8 rounded-xl font-bold shadow-lg shadow-emerald-500/20">
+          <p className="text-slate-500 font-medium mb-8 max-w-sm text-center">We could not locate this dataset, or you may not have permission to view it.</p>
+          <Button onClick={() => router.push(finalBackHref)} className="bg-emerald-600 hover:bg-emerald-500 h-12 px-8 rounded-xl font-bold shadow-lg shadow-emerald-500/20">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Return to Datasets
           </Button>
@@ -114,30 +113,10 @@ export function DatasetDetailExplorer({
   }
 
   const detailMetrics: DatasetMetric[] = [
-    {
-      title: "Total Rows",
-      value: dataset.row_count?.toLocaleString() || "0",
-      icon: <TableIcon className="w-4 h-4 text-blue-500" />,
-      colorClass: "bg-blue-500/5 group-hover:bg-blue-500/10",
-    },
-    {
-      title: "Columns",
-      value: dataset.column_count?.toString() || "0",
-      icon: <FileDigit className="w-4 h-4 text-purple-500" />,
-      colorClass: "bg-purple-500/5 group-hover:bg-purple-500/10",
-    },
-    {
-      title: "Department",
-      value: dataset.department || "Business Analytics",
-      icon: <Info className="w-4 h-4 text-amber-500" />,
-      colorClass: "bg-amber-500/5 group-hover:bg-amber-500/10",
-    },
-    {
-      title: "Last Updated",
-      value: new Date(dataset.updated_at).toLocaleDateString(),
-      icon: <Calendar className="w-4 h-4 text-emerald-500" />,
-      colorClass: "bg-emerald-500/5 group-hover:bg-emerald-500/10",
-    }
+    { title: "Total Rows", value: dataset.row_count?.toLocaleString() || "0", icon: <TableIcon className="w-4 h-4 text-blue-500" />, colorClass: "bg-blue-500/5 group-hover:bg-blue-500/10" },
+    { title: "Columns", value: dataset.column_count?.toString() || "0", icon: <FileDigit className="w-4 h-4 text-purple-500" />, colorClass: "bg-purple-500/5 group-hover:bg-purple-500/10" },
+    { title: "Department", value: dataset.department || "Business Analytics", icon: <Info className="w-4 h-4 text-amber-500" />, colorClass: "bg-amber-500/5 group-hover:bg-amber-500/10" },
+    { title: "Last Updated", value: new Date(dataset.updated_at).toLocaleDateString(), icon: <Calendar className="w-4 h-4 text-emerald-500" />, colorClass: "bg-emerald-500/5 group-hover:bg-emerald-500/10" }
   ]
 
   const headerBadges = (
@@ -151,96 +130,91 @@ export function DatasetDetailExplorer({
     <div className="p-8 max-w-[1600px] mx-auto space-y-10 h-full overflow-y-auto pb-32">
       <DatasetHeaderBanner
         title={dataset.name}
-        description={dataset.description || "Enterprise dataset available for read-only analytical exploration and AI insights."}
+        description={dataset.description || "Enterprise dataset available for analytical exploration and AI insights."}
         badges={headerBadges}
         showBack={true}
         backLink={finalBackHref}
         actions={
           <div className="flex flex-wrap items-center gap-3">
-            <Button 
-              onClick={() => {
-                setActiveTab("insights")
-                setTimeout(() => {
-                  document.querySelector('[data-radix-tabs-content]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }, 100)
-              }}
+            <Button
+              onClick={() => { setReportCategory("executive"); setIsReportModalOpen(true) }}
               className="bg-emerald-500 hover:bg-emerald-400 border-none text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
               <BrainCircuit className="w-5 h-5 mr-2.5" />
               AI Gen Report
             </Button>
-            <Button 
-              onClick={() => {
-                setActiveTab("charts")
-                setTimeout(() => {
-                  document.querySelector('[data-radix-tabs-content]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }, 100)
-              }}
+            <Button
+              onClick={() => { setReportCategory("forecast"); setIsReportModalOpen(true) }}
               variant="outline" className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white backdrop-blur-md h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
               <LineChart className="w-5 h-5 mr-2.5 text-emerald-400" />
               AI Forecasting
             </Button>
 
-            {['owner', 'organization-admin', 'manager'].includes(user?.role || '') && (
-              <Button 
-                onClick={() => setIsScheduleModalOpen(true)}
-                variant="outline" 
-                className="bg-transparent border-emerald-500/30 text-white hover:bg-emerald-500/20 hover:text-white backdrop-blur-md h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
-                <Calendar className="w-5 h-5 mr-2.5 text-emerald-400" />
-                Schedule
-              </Button>
+            {["owner", "organization-admin", "manager"].includes(user?.role || "") && (
+              <>
+                <Button
+                  onClick={() => setIsScheduleModalOpen(true)}
+                  variant="outline"
+                  className="bg-transparent border-emerald-500/30 text-white hover:bg-emerald-500/20 hover:text-white backdrop-blur-md h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                  <Calendar className="w-5 h-5 mr-2.5 text-emerald-400" />
+                  Schedule
+                </Button>
+                <Button
+                  onClick={() => setIsAlertsModalOpen(true)}
+                  variant="outline"
+                  className="bg-transparent border-emerald-500/30 text-white hover:bg-emerald-500/20 hover:text-white backdrop-blur-md h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                  <BellRing className="w-5 h-5 mr-2.5 text-emerald-400" />
+                  Alerts
+                </Button>
+              </>
             )}
-            
+
             <div className="flex rounded-xl overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-              <Button 
+              <Button
                 onClick={async () => {
                   if (!dataset.excel_url) {
-                    toast.warning("Excel not generated yet. Trigger 'Generate AI Excel' from the Datasets list to create one.")
+                    toast.warning("Excel not generated yet. Click the Generate PDF button to start generation.")
                     return
                   }
                   try {
                     toast.loading("Preparing Excel download...")
-                    const dlRes = await api.get(`/tenant-datasets/${dataset.id}/excel-download`, { responseType: 'blob' });
-                    const url = window.URL.createObjectURL(new Blob([dlRes.data]));
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `AI_Excel_${dataset.name}.xlsx`;
-                    a.click();
-                    toast.dismiss()
-                    toast.success("Excel downloaded successfully!")
+                    const dlRes = await api.get(`/tenant-datasets/${dataset.id}/excel-download`, { responseType: "blob" })
+                    const url = window.URL.createObjectURL(new Blob([dlRes.data]))
+                    const a = document.createElement("a"); a.href = url; a.download = `AI_Excel_${dataset.name}.xlsx`; a.click()
+                    toast.dismiss(); toast.success("Excel downloaded successfully!")
                   } catch (e) {
-                    toast.dismiss()
-                    toast.error("Excel download failed. Please try again.")
-                    console.error("Download failed", e);
+                    toast.dismiss(); toast.error("Excel download failed. Please try again.")
                   }
                 }}
                 className="bg-emerald-600 hover:bg-emerald-500 border-r border-emerald-700/50 text-white h-12 px-5 rounded-none font-bold transition-colors">
                 Download Excel
               </Button>
-              <Button 
+              <Button
                 onClick={async () => {
                   if (!dataset.pdf_url) {
-                    toast.warning("PDF not generated yet. Upload a new dataset to auto-generate the PDF report.")
-                    return;
+                    try {
+                      toast.loading("Generating PDF from your dataset data... this may take a minute.", { id: "pdf-gen" })
+                      await api.post(`/tenant-datasets/${dataset.id}/ai-excel`)
+                      toast.dismiss("pdf-gen")
+                      toast.success("PDF generation started! Refresh this page in ~1 minute to download.", { duration: 8000 })
+                    } catch (e: any) {
+                      toast.dismiss("pdf-gen")
+                      toast.error(e?.response?.data?.detail || "Failed to start PDF generation. Please try again.")
+                    }
+                    return
                   }
                   try {
-                    toast.loading("Preparing PDF download...")
-                    const dlRes = await api.get(`/tenant-datasets/${dataset.id}/pdf-download`, { responseType: 'blob' });
-                    const url = window.URL.createObjectURL(new Blob([dlRes.data]));
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `AI_Report_${dataset.name}.pdf`;
-                    a.click();
-                    toast.dismiss()
-                    toast.success("PDF downloaded successfully!")
+                    toast.loading("Preparing PDF download...", { id: "pdf-dl" })
+                    const dlRes = await api.get(`/tenant-datasets/${dataset.id}/pdf-download`, { responseType: "blob" })
+                    const url = window.URL.createObjectURL(new Blob([dlRes.data]))
+                    const a = document.createElement("a"); a.href = url; a.download = `AI_Report_${dataset.name}.pdf`; a.click()
+                    toast.dismiss("pdf-dl"); toast.success("PDF downloaded successfully!")
                   } catch (e) {
-                    toast.dismiss()
-                    toast.error("PDF download failed. Please try again.")
-                    console.error("Download failed", e);
+                    toast.dismiss("pdf-dl"); toast.error("PDF download failed. Please try again.")
                   }
                 }}
-                title={dataset.pdf_url ? "Download AI PDF Report" : "PDF not generated yet — upload a new dataset"}
-                className={`h-12 px-5 rounded-none font-bold transition-colors border-none ${dataset.pdf_url ? 'bg-emerald-700 hover:bg-emerald-600 text-white' : 'bg-slate-600 hover:bg-slate-500 text-slate-300 cursor-not-allowed'}`}>
-                {dataset.pdf_url ? 'Download PDF' : 'PDF Not Ready'}
+                title={dataset.pdf_url ? "Download AI PDF Report" : "Generate AI PDF from this dataset"}
+                className={`h-12 px-5 rounded-none font-bold transition-colors border-none ${dataset.pdf_url ? "bg-emerald-700 hover:bg-emerald-600 text-white" : "bg-violet-600 hover:bg-violet-500 text-white"}`}>
+                {dataset.pdf_url ? "Download PDF" : "Generate PDF"}
               </Button>
             </div>
           </div>
@@ -249,7 +223,7 @@ export function DatasetDetailExplorer({
 
       <DatasetMetricsGrid metrics={detailMetrics} />
 
-      <DatasetDetailTabs 
+      <DatasetDetailTabs
         preview={preview}
         schema={schema}
         insights={insights}
@@ -258,12 +232,28 @@ export function DatasetDetailExplorer({
         onTabChange={setActiveTab}
       />
 
-      <ReportSchedulerModal 
+            <ReportSchedulerModal
         open={isScheduleModalOpen}
         onOpenChange={setIsScheduleModalOpen}
-        onScheduleCreated={() => {}}
-        initialDatasetId={dataset.id}
+        datasetId={dataset.id}
+      />
+      <DatasetAlertsModal
+        open={isAlertsModalOpen}
+        onOpenChange={setIsAlertsModalOpen}
+        datasetId={dataset.id}
+        schema={schema}
+      />
+
+      <GenerateReportDialog
+        open={isReportModalOpen}
+        onOpenChange={setIsReportModalOpen}
+        onReportGenerated={() => {
+          router.push(roleMatch ? `${roleMatch[0]}/dashboard/reports` : "/viewer/dashboard/reports")
+        }}
+        defaultDatasetId={dataset.id}
+        defaultCategory={reportCategory}
       />
     </div>
   )
 }
+

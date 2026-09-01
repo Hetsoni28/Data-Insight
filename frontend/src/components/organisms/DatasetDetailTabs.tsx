@@ -11,6 +11,12 @@ import { useAuth } from "@/hooks/useAuth"
 import { DatasetComparisonView } from "./DatasetComparisonView"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Loader2, Search, Eraser } from "lucide-react"
+import api from "@/lib/api"
+import { DynamicNLChart } from "./DynamicNLChart"
+import { DataCleaningTab } from "./DataCleaningTab"
 
 interface DatasetDetailTabsProps {
   preview: any
@@ -36,10 +42,28 @@ export function DatasetDetailTabs({
   const allRows = preview?.rows || []
   const totalPages = Math.max(1, Math.ceil(allRows.length / PAGE_SIZE))
   const pagedRows = allRows.slice((previewPage - 1) * PAGE_SIZE, previewPage * PAGE_SIZE)
+  const [nlQuery, setNlQuery] = useState("")
+  const [nlChartData, setNlChartData] = useState<any>(null)
+  const [isNlLoading, setIsNlLoading] = useState(false)
+  
+  const handleNLSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!nlQuery.trim()) return
+    setIsNlLoading(true)
+    try {
+      const res = await api.post(`/tenant-datasets/${datasetId}/nl-chart`, { query: nlQuery })
+      setNlChartData(res.data?.data)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsNlLoading(false)
+    }
+  }
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="w-full">
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-        <TabsList className={`grid w-full grid-cols-2 h-auto p-1.5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/10 rounded-2xl shadow-sm mb-8 ${!isViewer ? 'md:grid-cols-5 lg:w-[850px]' : 'md:grid-cols-4 lg:w-[700px]'}`}>
+        <TabsList className={`grid w-full grid-cols-2 h-auto p-1.5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/10 rounded-2xl shadow-sm mb-8 ${!isViewer ? 'md:grid-cols-6 lg:w-[850px]' : 'md:grid-cols-5 lg:w-[700px]'}`}>
           <TabsTrigger value="preview" className="rounded-xl py-3 font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all">
             <Eye className="w-4 h-4 mr-2" /> Data Preview
           </TabsTrigger>
@@ -262,7 +286,28 @@ export function DatasetDetailTabs({
         </TabsContent>
 
         {/* TAB: CHARTS */}
+                {/* TAB: CHARTS */}
         <TabsContent value="charts" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <div className="mb-8">
+            <form onSubmit={handleNLSubmit} className="flex gap-4 mb-8 relative z-10">
+              <Input
+                placeholder="Ask your data anything (e.g. 'Show me row count by department')"
+                value={nlQuery}
+                onChange={e => setNlQuery(e.target.value)}
+                className="h-14 bg-white dark:bg-slate-900 border-emerald-500/20 text-lg rounded-2xl shadow-sm"
+              />
+              <Button type="submit" disabled={isNlLoading} className="h-14 px-8 bg-emerald-600 hover:bg-emerald-500 rounded-2xl text-white font-bold">
+                {isNlLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Search className="w-5 h-5 mr-2" />}
+                Ask AI
+              </Button>
+            </form>
+            
+            {nlChartData && (
+              <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/50 rounded-3xl p-8 shadow-xl mb-8">
+                <DynamicNLChart data={nlChartData} />
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {charts?.length > 0 ? (
               charts.map((chart: any, idx: number) => (
@@ -337,3 +382,6 @@ export function DatasetDetailTabs({
     </motion.div>
   )
 }
+
+
+

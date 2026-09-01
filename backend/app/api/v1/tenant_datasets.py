@@ -446,6 +446,7 @@ async def get_dataset_details(
             "data_quality_score": d.data_quality_score,
             "profile": d.profile,
             "excel_url": d.excel_url,
+            "pdf_url": d.pdf_url,
             "created_at": d.created_at,
             "updated_at": d.updated_at,
             "owner": {
@@ -511,6 +512,16 @@ async def upload_dataset(
             "dataset_uploaded",
             {"dataset_id": str(d.id), "name": d.name}
         )
+
+        # Auto-trigger AI Excel + PDF generation in background
+        # This ensures every newly uploaded dataset gets a PDF automatically
+        try:
+            from app.worker.tasks.excel_tasks import generate_ai_excel_task
+            generate_ai_excel_task.delay(str(d.id), str(current_user.id))
+        except Exception as task_err:
+            # Non-blocking: if Celery is down, the upload still succeeds
+            import logging
+            logging.getLogger(__name__).warning(f"Could not queue AI Excel task: {task_err}")
     
         return {"status": "success", "data": {"id": str(d.id)}}
 
@@ -766,6 +777,57 @@ async def create_dashboard(
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
+class NLChartRequest(BaseModel):
+    query: str
+
+@router.post("/{dataset_id}/nl-chart", summary="Generate Natural Language Chart", dependencies=[Depends(RequirePermission("DATASET_VIEW"))])
+@limiter.limit("5/minute")
+async def generate_nl_chart(
+    dataset_id: uuid.UUID,
+    req: NLChartRequest,
+    request: Request,
+    current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        tenant_id = current_user.tenant_id
+        base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id, Dataset.is_deleted == False]
+        if workspace:
+            base_conditions.append(Dataset.workspace_id == workspace.id)
+            
+        stmt = select(Dataset).where(*base_conditions)
+        res = await db.execute(stmt)
+        d = res.scalars().first()
+        if not d:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        from app.services.ai.visual_sql_agent import VisualSQLAgent
+        from app.services.ai.router import LLMRouter
+        from app.services.dataset import DatasetService
+        
+        # Get preview data and DF to feed into AI
+        ds_service = DatasetService(db)
+        df = await ds_service.load_dataframe(d)
+        preview_data = await ds_service.get_preview_data(dataset_id, current_user)
+        
+        router_instance = LLMRouter(db=db, tenant_id=tenant_id, user_id=current_user.id)
+        agent = VisualSQLAgent(router_instance)
+        
+        result = await agent.execute_and_synthesize(
+            question=req.query,
+            df=df,
+            schema_info=d.profile.get("columns", {}) if d.profile else {},
+            preview_rows=preview_data.get("preview_rows", [])[:3]
+        )
+        
+        return {"status": "success", "data": result}
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).exception("Failed to generate NL chart")
+        raise HTTPException(status_code=500, detail=f"Failed to generate chart: {str(e)}")
+
+
 class QueryRequest(BaseModel):
     dimensions: List[str] = []
     metrics: List[str] = []
@@ -973,3 +1035,157 @@ async def download_ai_pdf(
         from app.core.storage import get_signed_url, DATASETS_BUCKET
         url = await get_signed_url(DATASETS_BUCKET, d.pdf_url, expires_in=300)
         return RedirectResponse(url)
+
+
+
+
+# =================================================================================
+# Data Alerts
+# =================================================================================
+
+class DatasetAlertCreate(BaseModel):
+    name: str
+    metric_column: str
+    condition: str
+    threshold_value: float
+
+@router.get("/{dataset_id}/alerts", summary="Get Dataset Alerts", dependencies=[Depends(RequirePermission("DATASET_VIEW"))])
+async def get_dataset_alerts(
+    dataset_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    from app.models.dataset_alert import DatasetAlert
+    stmt = select(DatasetAlert).where(DatasetAlert.dataset_id == dataset_id, DatasetAlert.tenant_id == current_user.tenant_id)
+    res = await db.execute(stmt)
+    alerts = res.scalars().all()
+    return {"status": "success", "data": alerts}
+
+@router.post("/{dataset_id}/alerts", summary="Create Dataset Alert", dependencies=[Depends(RequirePermission("DATASET_EXPORT"))])
+async def create_dataset_alert(
+    dataset_id: uuid.UUID,
+    req: DatasetAlertCreate,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    from app.models.dataset_alert import DatasetAlert
+    alert = DatasetAlert(
+        tenant_id=current_user.tenant_id,
+        dataset_id=dataset_id,
+        name=req.name,
+        metric_column=req.metric_column,
+        condition=req.condition,
+        threshold_value=req.threshold_value,
+        is_active=True
+    )
+    db.add(alert)
+    await db.commit()
+    await db.refresh(alert)
+    
+    # Trigger an immediate evaluation
+    from app.worker.tasks.excel_tasks import evaluate_single_alert_task
+    evaluate_single_alert_task.delay(str(alert.id), str(current_user.id))
+    
+    return {"status": "success", "data": alert}
+
+@router.delete("/{dataset_id}/alerts/{alert_id}", summary="Delete Dataset Alert", dependencies=[Depends(RequirePermission("DATASET_EXPORT"))])
+async def delete_dataset_alert(
+    dataset_id: uuid.UUID,
+    alert_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    from app.models.dataset_alert import DatasetAlert
+    stmt = select(DatasetAlert).where(DatasetAlert.id == alert_id, DatasetAlert.tenant_id == current_user.tenant_id)
+    res = await db.execute(stmt)
+    alert = res.scalars().first()
+    if alert:
+        await db.delete(alert)
+        await db.commit()
+    return {"status": "success"}
+
+# =================================================================================
+# AI Data Cleaning
+# =================================================================================
+
+class CleanApplyRequest(BaseModel):
+    operations: List[Dict[str, Any]]
+
+@router.post("/{dataset_id}/cleaning/suggestions", summary="Get AI Cleaning Suggestions", dependencies=[Depends(RequirePermission("DATASET_EXPORT"))])
+@limiter.limit("5/minute")
+async def get_cleaning_suggestions(
+    dataset_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = select(Dataset).where(Dataset.id == dataset_id, Dataset.tenant_id == current_user.tenant_id)
+    res = await db.execute(stmt)
+    d = res.scalars().first()
+    if not d:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+        
+    from app.services.dataset import DatasetService
+    from app.services.ai.cleaning_agent import CleaningAgent
+    from app.services.ai.router import LLMRouter
+    
+    ds_svc = DatasetService(db)
+    df = await ds_svc.load_dataframe(d)
+    
+    router_instance = LLMRouter(db=db, tenant_id=current_user.tenant_id, user_id=current_user.id)
+    agent = CleaningAgent(router_instance)
+    
+    schema = d.profile.get("columns", {}) if d.profile else {}
+    suggestions = await agent.suggest_cleaning(df, schema)
+    
+    return {"status": "success", "data": suggestions}
+
+@router.post("/{dataset_id}/cleaning/apply", summary="Apply AI Cleaning", dependencies=[Depends(RequirePermission("DATASET_EXPORT"))])
+@limiter.limit("5/minute")
+async def apply_cleaning_operations(
+    dataset_id: uuid.UUID,
+    req: CleanApplyRequest,
+    request: Request,
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = select(Dataset).where(Dataset.id == dataset_id, Dataset.tenant_id == current_user.tenant_id)
+    res = await db.execute(stmt)
+    d = res.scalars().first()
+    if not d:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+        
+    from app.services.dataset import DatasetService
+    from app.services.ai.cleaning_agent import CleaningAgent
+    from app.core.storage import upload_file, DATASETS_BUCKET
+    import io
+    
+    ds_svc = DatasetService(db)
+    df = await ds_svc.load_dataframe(d)
+    
+    agent = CleaningAgent(None) # Router not needed for apply
+    df_cleaned = agent.apply_operations(df, req.operations)
+    
+    buf = io.BytesIO()
+    df_cleaned.write_excel(buf)
+    buf.seek(0)
+    file_bytes = buf.read()
+    
+    await upload_file(DATASETS_BUCKET, d.file_url, file_bytes)
+    
+    # Re-profile dataset
+    from app.services.ingestion.profiler import DataProfiler
+    profile = DataProfiler.profile_dataframe(df_cleaned)
+    d.profile = profile
+    d.row_count = profile["row_count"]
+    d.column_count = profile["column_count"]
+    d.quality_score = profile["quality_score"]
+    d.updated_at = datetime.now(timezone.utc)
+    
+    await db.commit()
+    
+    # Re-trigger AI Excel gen to update the PDF
+    from app.worker.tasks.excel_tasks import generate_ai_excel_task
+    generate_ai_excel_task.delay(str(d.id), str(current_user.id))
+    
+    return {"status": "success", "message": "Cleaning applied successfully"}

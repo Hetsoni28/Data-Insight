@@ -40,12 +40,12 @@ export default function ManagerDatasetCenterPage() {
   const fetchStats = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoadingStats(true)
-      // Use tenant-datasets/stats — same endpoint as org-admin/analyst
-      // Returns exact field names DatasetExecutiveKPIs expects
       const res = await api.get("/tenant-datasets/stats")
       setStats(res.data?.data || res.data || null)
-    } catch (e) {
-      console.error("Failed to fetch manager dataset stats", e)
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch manager dataset stats", e.message || e)
+      }
     } finally {
       if (!silent) setLoadingStats(false)
     }
@@ -60,8 +60,10 @@ export default function ManagerDatasetCenterPage() {
       const list = raw.datasets || raw || []
       
       setDatasets(list)
-    } catch (e) {
-      console.error("Failed to fetch manager datasets", e)
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch manager datasets", e.message || e)
+      }
     } finally {
       if (!silent) setLoadingDatasets(false)
     }
@@ -123,6 +125,8 @@ export default function ManagerDatasetCenterPage() {
       const ds = datasets.find((d) => d.id === id)
       setDatasetToDelete(ds)
       setDeleteModalOpen(true)
+    } else if (action === "navigate") {
+      router.push(`/manager/dashboard/datasets/${id}`)
     } else if (action === "preview" || action === "analyze") {
       const ds = datasets.find((d) => d.id === id)
       setSelectedDatasetId(id)

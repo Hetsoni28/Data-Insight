@@ -23,14 +23,15 @@ interface GenerateReportDialogProps {
   onOpenChange: (open: boolean) => void;
   onReportGenerated: () => void;
   defaultCategory?: string;
+  defaultDatasetId?: string;
 }
 
-export function GenerateReportDialog({ open, onOpenChange, onReportGenerated, defaultCategory = "executive" }: GenerateReportDialogProps) {
+export function GenerateReportDialog({ open, onOpenChange, onReportGenerated, defaultCategory = "executive", defaultDatasetId }: GenerateReportDialogProps) {
   const { activeWs } = useWorkspaceStore();
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [isLoadingDatasets, setIsLoadingDatasets] = useState(false);
 
-  const [selectedDatasetId, setSelectedDatasetId] = useState("");
+  const [selectedDatasetId, setSelectedDatasetId] = useState(defaultDatasetId || "");
   const [title, setTitle] = useState("");
   const [reportType, setReportType] = useState("excel");
   const [reportCategory, setReportCategory] = useState(defaultCategory);
@@ -40,8 +41,9 @@ export function GenerateReportDialog({ open, onOpenChange, onReportGenerated, de
     if (open && activeWs) {
       fetchDatasets();
       setReportCategory(defaultCategory);
+      if (defaultDatasetId) setSelectedDatasetId(defaultDatasetId);
     }
-  }, [open, activeWs, defaultCategory]);
+  }, [open, activeWs, defaultCategory, defaultDatasetId]);
 
   const fetchDatasets = async () => {
     if (!activeWs) return;
@@ -49,7 +51,7 @@ export function GenerateReportDialog({ open, onOpenChange, onReportGenerated, de
     try {
       const data = await DatasetService.list(activeWs.id);
       setDatasets(data);
-      if (data.length > 0) {
+      if (!defaultDatasetId && data.length > 0) {
         setSelectedDatasetId(data[0].id);
       }
     } catch (error) {

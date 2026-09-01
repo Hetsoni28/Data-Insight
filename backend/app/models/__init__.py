@@ -109,3 +109,5 @@ __all__ = [
     "ReportBookmark",
     "ReportActivity"
 ]
+from app.models.dataset_alert import DatasetAlert
+

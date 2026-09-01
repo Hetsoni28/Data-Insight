@@ -81,8 +81,10 @@ export default function DatasetCenterPage() {
       if (!silent) setLoadingStats(true)
       const res = await api.get("/tenant-datasets/stats")
       setStats(res.data.data)
-    } catch (e) {
-      console.error(e)
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch stats:", e.message || e)
+      }
     } finally {
       if (!silent) setLoadingStats(false)
     }
@@ -94,8 +96,10 @@ export default function DatasetCenterPage() {
       const query = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ""
       const res = await api.get(`/tenant-datasets${query}`)
       setDatasets(res.data.data)
-    } catch (e) {
-      console.error(e)
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch datasets:", e.message || e)
+      }
     } finally {
       if (!silent) setLoadingDatasets(false)
     }
@@ -111,8 +115,10 @@ export default function DatasetCenterPage() {
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       
       setActivities(combined.slice(0, 15))
-    } catch (e) {
-      console.error(e)
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch activities:", e.message || e)
+      }
     } finally {
       if (!silent) setLoadingActivities(false)
     }
@@ -180,7 +186,7 @@ export default function DatasetCenterPage() {
       setDatasetToDelete(ds)
       setDeleteModalOpen(true)
     } else if (action === 'navigate') {
-      router.push(/organization-admin/dashboard/datasets/+id)
+      router.push(`/organization-admin/dashboard/datasets/${id}`)
     } else if (action === 'preview' || action === 'analyze') {
       const ds = datasets.find(d => d.id === id)
       setSelectedDatasetId(id)

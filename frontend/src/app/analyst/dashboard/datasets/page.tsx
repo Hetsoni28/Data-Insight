@@ -95,8 +95,10 @@ export default function AnalystDatasetCenterPage() {
       if (!silent) setLoadingStats(true)
       const res = await api.get("/tenant-datasets/stats")
       setStats(res.data.data)
-    } catch (e) {
-      console.error(e)
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch stats:", e.message || e)
+      }
     } finally {
       if (!silent) setLoadingStats(false)
     }
@@ -108,8 +110,10 @@ export default function AnalystDatasetCenterPage() {
       const query = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ""
       const res = await api.get(`/tenant-datasets${query}`)
       setDatasets(res.data.data)
-    } catch (e) {
-      console.error(e)
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch datasets:", e.message || e)
+      }
     } finally {
       if (!silent) setLoadingDatasets(false)
     }
@@ -118,15 +122,17 @@ export default function AnalystDatasetCenterPage() {
   const fetchActivities = async (silent = false) => {
     try {
       if (!silent) setLoadingActivities(true)
-      const res = await api.get("/tenant-datasets/activities")
+            const res = await api.get("/tenant-datasets/activities")
       const combined = [
         ...(res.data.data.audit_logs || []),
         ...(res.data.data.ai_activities || [])
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       
       setActivities(combined.slice(0, 15))
-    } catch (e) {
-      console.error(e)
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch activities:", e.message || e)
+      }
     } finally {
       if (!silent) setLoadingActivities(false)
     }

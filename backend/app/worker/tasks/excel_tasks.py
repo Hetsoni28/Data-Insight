@@ -483,3 +483,60 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
         raise
     except Exception as exc:
         logger.exception(f"Unhandled error in generate_ai_excel_task: {exc}")
+
+@shared_task(bind=True, max_retries=3)
+def evaluate_single_alert_task(self, alert_id: str, user_id: str):
+    import asyncio
+    asyncio.run(_evaluate_single_alert(alert_id, user_id))
+
+async def _evaluate_single_alert(alert_id: str, user_id: str):
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from app.db.session import AsyncSessionLocal
+    from sqlalchemy import select
+    from app.models.dataset_alert import DatasetAlert
+    from app.models.dataset import Dataset
+    from app.models.notification import Notification
+    from app.services.dataset import DatasetService
+    from app.services.ingestion.duckdb_engine import DuckDBEngine
+    
+    async with AsyncSessionLocal() as db:
+        res = await db.execute(select(DatasetAlert).where(DatasetAlert.id == alert_id))
+        alert = res.scalars().first()
+        if not alert or not alert.is_active:
+            return
+            
+        res2 = await db.execute(select(Dataset).where(Dataset.id == alert.dataset_id))
+        dataset = res2.scalars().first()
+        if not dataset:
+            return
+            
+        try:
+            ds_service = DatasetService(db)
+            df = await ds_service.load_dataframe(dataset)
+            
+            # Use DuckDB to evaluate
+            col = alert.metric_column
+            sql = f'SELECT count(*) as breaches FROM data WHERE "{col}" {alert.condition} {alert.threshold_value}'
+            import asyncio
+            query_result = await asyncio.to_thread(DuckDBEngine.execute_query, df, sql, "data", 100)
+            
+            breaches = 0
+            if query_result.get("rows") and len(query_result["rows"]) > 0:
+                breaches = query_result["rows"][0][0]
+                
+            if breaches > 0:
+                # Create notification
+                notif = Notification(
+                    tenant_id=alert.tenant_id,
+                    user_id=user_id,
+                    title=f"Alert Breached: {alert.name}",
+                    message=f"Found {breaches} rows where {alert.metric_column} {alert.condition} {alert.threshold_value} in {dataset.name}",
+                    type="alert",
+                    action_url=f"/owner/dashboard/datasets/{dataset.id}"
+                )
+                db.add(notif)
+                await db.commit()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).exception("Failed to evaluate alert")
+
