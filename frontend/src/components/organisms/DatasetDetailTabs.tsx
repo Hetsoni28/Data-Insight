@@ -5,7 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { BarChart, Bar, LineChart as RechartsLineChart, Line, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts'
-import { Eye, Table as TableIcon, Sparkles, PieChart, TrendingUp, AlertTriangle, Zap, LineChart } from "lucide-react"
+import { Eye, Table as TableIcon, Sparkles, PieChart, TrendingUp, AlertTriangle, Zap, LineChart, ArrowRightLeft } from "lucide-react"
+import { useParams } from "next/navigation"
+import { useAuth } from "@/hooks/useAuth"
+import { DatasetComparisonView } from "./DatasetComparisonView"
 
 interface DatasetDetailTabsProps {
   preview: any
@@ -20,10 +23,14 @@ export function DatasetDetailTabs({
   insights,
   charts
 }: DatasetDetailTabsProps) {
+  const params = useParams()
+  const datasetId = params?.id as string
+  const { data: user } = useAuth()
+  const isViewer = user?.role === 'viewer'
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="w-full">
       <Tabs defaultValue="preview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:w-[700px] h-auto p-1.5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/10 rounded-2xl shadow-sm mb-8">
+        <TabsList className={`grid w-full grid-cols-2 h-auto p-1.5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/10 rounded-2xl shadow-sm mb-8 ${!isViewer ? 'md:grid-cols-5 lg:w-[850px]' : 'md:grid-cols-4 lg:w-[700px]'}`}>
           <TabsTrigger value="preview" className="rounded-xl py-3 font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all">
             <Eye className="w-4 h-4 mr-2" /> Data Preview
           </TabsTrigger>
@@ -34,8 +41,13 @@ export function DatasetDetailTabs({
             <Sparkles className="w-4 h-4 mr-2 text-emerald-500" /> AI Insights
           </TabsTrigger>
           <TabsTrigger value="charts" className="rounded-xl py-3 font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all">
-            <PieChart className="w-4 h-4 mr-2 text-rose-500" /> Visualizations
+            <PieChart className="w-4 h-4 mr-2" /> Visuals
           </TabsTrigger>
+          {!isViewer && (
+            <TabsTrigger value="compare" className="rounded-xl py-3 font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-sm transition-all">
+              <ArrowRightLeft className="w-4 h-4 mr-2" /> Compare
+            </TabsTrigger>
+          )}
         </TabsList>
         
         {/* TAB: PREVIEW */}
@@ -294,6 +306,12 @@ export function DatasetDetailTabs({
             )}
           </div>
         </TabsContent>
+
+        {!isViewer && (
+          <TabsContent value="compare" className="focus-visible:outline-none focus-visible:ring-0 mt-0">
+            <DatasetComparisonView baseDatasetId={datasetId} />
+          </TabsContent>
+        )}
       </Tabs>
     </motion.div>
   )
