@@ -213,9 +213,9 @@ export function DatasetExplorerTable({
                       )}
                       
                       <button 
-                        onClick={() => onAction('preview', dataset.id)} 
+                        onClick={() => onAction('navigate', dataset.id)} 
                         className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors" 
-                        title="View Details"
+                        title="Open Dataset Detail (Download PDF/Excel, Compare, Schedule)"
                       >
                         <Eye className="w-4 h-4" />
                       </button>

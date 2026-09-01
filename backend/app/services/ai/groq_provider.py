@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 import logging
 from typing import AsyncIterator, Optional, Dict, Any, List
@@ -14,14 +15,30 @@ from app.services.ai.base import BaseLLMProvider, LLMResponse
 logger = logging.getLogger(__name__)
 
 
+def _strip_thinking_tags(text: str) -> str:
+    """Remove <think>...</think> internal reasoning blocks from model output.
+    
+    Some reasoning models (e.g. openai/gpt-oss-120b) expose chain-of-thought
+    in <think> tags. We strip these before returning to the user.
+    """
+    # Remove full <think>...</think> blocks (multiline)
+    cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    # Also strip any orphaned closing tags
+    cleaned = re.sub(r"</think>", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"<think>", "", cleaned, flags=re.IGNORECASE)
+    return cleaned.strip()
+
+
 class GroqProvider(BaseLLMProvider):
     """Ultra-low latency inference provider powered by Groq LPUs."""
 
     provider_name: str = "groq"
-    default_model: str = "llama-3.3-70b-versatile"
+    default_model: str = "openai/gpt-oss-120b"
 
     # Pricing per 1M tokens in USD
     PRICING: Dict[str, Dict[str, float]] = {
+        "openai/gpt-oss-120b": {"prompt": 0.59, "completion": 0.79},
+        "qwen/qwen3.8-27b": {"prompt": 0.59, "completion": 0.79},
         "llama-3.3-70b-versatile": {"prompt": 0.59, "completion": 0.79},
         "llama3-70b-8192": {"prompt": 0.59, "completion": 0.79},
         "deepseek-r1-distill-llama-70b": {"prompt": 0.59, "completion": 0.79},
@@ -81,7 +98,8 @@ class GroqProvider(BaseLLMProvider):
             resp = await client.chat.completions.create(**kwargs)
             latency_ms = (time.perf_counter() - start_time) * 1000.0
 
-            content = resp.choices[0].message.content or ""
+            raw_content = resp.choices[0].message.content or ""
+            content = _strip_thinking_tags(raw_content)
             usage = resp.usage
             prompt_tokens = usage.prompt_tokens if usage else int(len(prompt) / 4)
             completion_tokens = usage.completion_tokens if usage else int(len(content) / 4)
@@ -108,7 +126,8 @@ class GroqProvider(BaseLLMProvider):
                     kwargs["model"] = "llama-3.1-8b-instant"
                     resp = await client.chat.completions.create(**kwargs)
                     latency_ms = (time.perf_counter() - start_time) * 1000.0
-                    content = resp.choices[0].message.content or ""
+                    raw_content = resp.choices[0].message.content or ""
+                    content = _strip_thinking_tags(raw_content)
                     usage = resp.usage
                     prompt_tokens = usage.prompt_tokens if usage else int(len(prompt) / 4)
                     completion_tokens = usage.completion_tokens if usage else int(len(content) / 4)
@@ -152,9 +171,49 @@ class GroqProvider(BaseLLMProvider):
                 max_tokens=max_tokens,
                 stream=True,
             )
+            # Buffer to handle <think> tags that span multiple chunks
+            buffer = ""
+            inside_think = False
             async for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
+                    token = chunk.choices[0].delta.content
+                    buffer += token
+
+                    # Process buffer to strip think tags
+                    while True:
+                        if inside_think:
+                            end_idx = buffer.find("</think>")
+                            if end_idx != -1:
+                                # Found closing tag — skip everything up to and including it
+                                buffer = buffer[end_idx + len("</think>"):]
+                                inside_think = False
+                            else:
+                                # Still inside think block — discard buffer, wait for more
+                                buffer = ""
+                                break
+                        else:
+                            start_idx = buffer.find("<think>")
+                            if start_idx != -1:
+                                # Yield anything before the think tag
+                                if start_idx > 0:
+                                    yield buffer[:start_idx]
+                                buffer = buffer[start_idx + len("<think>"):]
+                                inside_think = True
+                            else:
+                                # No think tag — safe to yield everything except last few chars
+                                # (keep last 8 chars in case a tag boundary spans chunks)
+                                safe_len = max(0, len(buffer) - 8)
+                                if safe_len > 0:
+                                    yield buffer[:safe_len]
+                                    buffer = buffer[safe_len:]
+                                break
+
+            # Flush remaining buffer
+            if buffer and not inside_think:
+                cleaned = _strip_thinking_tags(buffer)
+                if cleaned:
+                    yield cleaned
+
         except Exception as e:
             logger.error(f"[GroqProvider] Streaming failed: {e}")
             raise AIServiceException(f"Groq streaming failed: {str(e)}")

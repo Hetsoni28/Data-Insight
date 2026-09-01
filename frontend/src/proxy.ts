@@ -33,7 +33,7 @@ function decodeJwtPayload(token: string) {
   }
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Ignore static assets and API routes
@@ -156,3 +156,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|icon.svg).*)',
   ],
 }
+

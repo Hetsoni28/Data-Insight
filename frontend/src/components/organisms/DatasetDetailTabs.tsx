@@ -9,6 +9,8 @@ import { Eye, Table as TableIcon, Sparkles, PieChart, TrendingUp, AlertTriangle,
 import { useParams } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { DatasetComparisonView } from "./DatasetComparisonView"
+import { PaginationControls } from "@/components/molecules/PaginationControls"
+import { useState } from "react"
 
 interface DatasetDetailTabsProps {
   preview: any
@@ -21,15 +23,22 @@ export function DatasetDetailTabs({
   preview,
   schema,
   insights,
-  charts
-}: DatasetDetailTabsProps) {
+  charts,
+  activeTab = "preview",
+  onTabChange,
+}: DatasetDetailTabsProps & { activeTab?: string; onTabChange?: (tab: string) => void }) {
   const params = useParams()
   const datasetId = params?.id as string
   const { data: user } = useAuth()
   const isViewer = user?.role === 'viewer'
+  const [previewPage, setPreviewPage] = useState(1)
+  const PAGE_SIZE = 10
+  const allRows = preview?.rows || []
+  const totalPages = Math.max(1, Math.ceil(allRows.length / PAGE_SIZE))
+  const pagedRows = allRows.slice((previewPage - 1) * PAGE_SIZE, previewPage * PAGE_SIZE)
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="w-full">
-      <Tabs defaultValue="preview" className="w-full">
+      <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
         <TabsList className={`grid w-full grid-cols-2 h-auto p-1.5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-emerald-500/10 rounded-2xl shadow-sm mb-8 ${!isViewer ? 'md:grid-cols-5 lg:w-[850px]' : 'md:grid-cols-4 lg:w-[700px]'}`}>
           <TabsTrigger value="preview" className="rounded-xl py-3 font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all">
             <Eye className="w-4 h-4 mr-2" /> Data Preview
@@ -41,7 +50,7 @@ export function DatasetDetailTabs({
             <Sparkles className="w-4 h-4 mr-2 text-emerald-500" /> AI Insights
           </TabsTrigger>
           <TabsTrigger value="charts" className="rounded-xl py-3 font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all">
-            <PieChart className="w-4 h-4 mr-2" /> Visuals
+            <PieChart className="w-4 h-4 mr-2 text-rose-500" /> Visualizations
           </TabsTrigger>
           {!isViewer && (
             <TabsTrigger value="compare" className="rounded-xl py-3 font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-sm transition-all">
@@ -59,7 +68,7 @@ export function DatasetDetailTabs({
                 Data Preview
               </h3>
               <Badge variant="outline" className="text-slate-600 dark:text-slate-300 font-bold bg-white dark:bg-slate-950 border-emerald-500/20 px-3 py-1.5 rounded-xl shadow-sm">
-                Showing {preview?.preview_count || 0} sample rows
+                {allRows.length} rows &nbsp;·&nbsp; Page {previewPage} of {totalPages}
               </Badge>
             </div>
             <div className="overflow-x-auto flex-1 p-2">
@@ -77,8 +86,8 @@ export function DatasetDetailTabs({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {preview?.rows?.length > 0 ? (
-                    preview.rows.map((row: any, i: number) => (
+                  {pagedRows.length > 0 ? (
+                    pagedRows.map((row: any, i: number) => (
                       <TableRow key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors border-b border-emerald-500/5 last:border-0">
                         {preview.columns.map((col: any) => (
                           <TableCell key={col.name} className="whitespace-nowrap font-mono text-sm font-medium text-slate-600 dark:text-slate-300 px-6 py-4">
@@ -101,6 +110,18 @@ export function DatasetDetailTabs({
                 </TableBody>
               </Table>
             </div>
+            {totalPages > 1 && (
+              <div className="px-8 py-5 border-t border-emerald-500/10 bg-white/40 dark:bg-slate-900/40 flex justify-center">
+                <PaginationControls
+                  currentPage={previewPage}
+                  totalPages={totalPages}
+                  totalItems={allRows.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={setPreviewPage}
+                  onPageSizeChange={() => {}}
+                />
+              </div>
+            )}
           </div>
         </TabsContent>
 

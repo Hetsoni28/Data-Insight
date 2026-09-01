@@ -1,3 +1,5 @@
+"use client"
+
 import { DatasetDetailExplorer } from "@/components/organisms/DatasetDetailExplorer"
 
 export default function OwnerDatasetDetailPage() {

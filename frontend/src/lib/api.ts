@@ -164,7 +164,9 @@ api.interceptors.response.use(
       case 502:
       case 503:
       case 504:
-        showToastOnce("error", "We are experiencing technical difficulties. Please try again shortly.");
+        if (!originalRequest.url?.includes("/insights") && !originalRequest.url?.includes("/charts")) {
+          showToastOnce("error", "We are experiencing technical difficulties. Please try again shortly.");
+        }
         break;
 
       default:

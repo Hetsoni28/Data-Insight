@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import api from "@/lib/api"
-import { ShieldCheck, Table as TableIcon, FileDigit, Info, Calendar, ArrowLeft } from "lucide-react"
+import { ShieldCheck, Table as TableIcon, FileDigit, Info, Calendar, ArrowLeft, BrainCircuit, LineChart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -14,6 +14,7 @@ import { DatasetHeaderBanner } from "@/components/molecules/DatasetHeaderBanner"
 import { DatasetMetricsGrid, DatasetMetric } from "@/components/organisms/DatasetMetricsGrid"
 import { DatasetDetailTabs } from "@/components/organisms/DatasetDetailTabs"
 import { ReportSchedulerModal } from "@/components/organisms/ReportSchedulerModal"
+import { toast } from "sonner"
 
 interface DatasetDetailExplorerProps {
   backHref?: string
@@ -40,6 +41,7 @@ export function DatasetDetailExplorer({
   const [insights, setInsights] = useState<any>(null)
   const [charts, setCharts] = useState<any[]>([])
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState("preview")
 
   useEffect(() => {
     if (params.id) {
@@ -155,6 +157,29 @@ export function DatasetDetailExplorer({
         backLink={finalBackHref}
         actions={
           <div className="flex flex-wrap items-center gap-3">
+            <Button 
+              onClick={() => {
+                setActiveTab("insights")
+                setTimeout(() => {
+                  document.querySelector('[data-radix-tabs-content]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }, 100)
+              }}
+              className="bg-emerald-500 hover:bg-emerald-400 border-none text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+              <BrainCircuit className="w-5 h-5 mr-2.5" />
+              AI Gen Report
+            </Button>
+            <Button 
+              onClick={() => {
+                setActiveTab("charts")
+                setTimeout(() => {
+                  document.querySelector('[data-radix-tabs-content]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }, 100)
+              }}
+              variant="outline" className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white backdrop-blur-md h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+              <LineChart className="w-5 h-5 mr-2.5 text-emerald-400" />
+              AI Forecasting
+            </Button>
+
             {['owner', 'organization-admin', 'manager'].includes(user?.role || '') && (
               <Button 
                 onClick={() => setIsScheduleModalOpen(true)}
@@ -168,14 +193,23 @@ export function DatasetDetailExplorer({
             <div className="flex rounded-xl overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.2)]">
               <Button 
                 onClick={async () => {
+                  if (!dataset.excel_url) {
+                    toast.warning("Excel not generated yet. Trigger 'Generate AI Excel' from the Datasets list to create one.")
+                    return
+                  }
                   try {
+                    toast.loading("Preparing Excel download...")
                     const dlRes = await api.get(`/tenant-datasets/${dataset.id}/excel-download`, { responseType: 'blob' });
                     const url = window.URL.createObjectURL(new Blob([dlRes.data]));
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `AI_Excel_${dataset.name}.xlsx`;
                     a.click();
+                    toast.dismiss()
+                    toast.success("Excel downloaded successfully!")
                   } catch (e) {
+                    toast.dismiss()
+                    toast.error("Excel download failed. Please try again.")
                     console.error("Download failed", e);
                   }
                 }}
@@ -184,19 +218,29 @@ export function DatasetDetailExplorer({
               </Button>
               <Button 
                 onClick={async () => {
+                  if (!dataset.pdf_url) {
+                    toast.warning("PDF not generated yet. Upload a new dataset to auto-generate the PDF report.")
+                    return;
+                  }
                   try {
+                    toast.loading("Preparing PDF download...")
                     const dlRes = await api.get(`/tenant-datasets/${dataset.id}/pdf-download`, { responseType: 'blob' });
                     const url = window.URL.createObjectURL(new Blob([dlRes.data]));
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `AI_Report_${dataset.name}.pdf`;
                     a.click();
+                    toast.dismiss()
+                    toast.success("PDF downloaded successfully!")
                   } catch (e) {
+                    toast.dismiss()
+                    toast.error("PDF download failed. Please try again.")
                     console.error("Download failed", e);
                   }
                 }}
-                className="bg-emerald-700 hover:bg-emerald-600 border-none text-white h-12 px-5 rounded-none font-bold transition-colors">
-                Download PDF
+                title={dataset.pdf_url ? "Download AI PDF Report" : "PDF not generated yet — upload a new dataset"}
+                className={`h-12 px-5 rounded-none font-bold transition-colors border-none ${dataset.pdf_url ? 'bg-emerald-700 hover:bg-emerald-600 text-white' : 'bg-slate-600 hover:bg-slate-500 text-slate-300 cursor-not-allowed'}`}>
+                {dataset.pdf_url ? 'Download PDF' : 'PDF Not Ready'}
               </Button>
             </div>
           </div>
@@ -210,6 +254,8 @@ export function DatasetDetailExplorer({
         schema={schema}
         insights={insights}
         charts={charts}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
       <ReportSchedulerModal 

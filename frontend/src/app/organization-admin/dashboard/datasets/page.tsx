@@ -179,6 +179,8 @@ export default function DatasetCenterPage() {
       const ds = datasets.find(d => d.id === id)
       setDatasetToDelete(ds)
       setDeleteModalOpen(true)
+    } else if (action === 'navigate') {
+      router.push(/organization-admin/dashboard/datasets/+id)
     } else if (action === 'preview' || action === 'analyze') {
       const ds = datasets.find(d => d.id === id)
       setSelectedDatasetId(id)
@@ -293,3 +295,4 @@ export default function DatasetCenterPage() {
     </div>
   )
 }
+

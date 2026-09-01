@@ -272,9 +272,15 @@ Provide the corrected DuckDB SQL in JSON format."""
             if fix_json.startswith("```"):
                 fix_json = re.sub(r"^```(?:json)?\s*", "", fix_json)
                 fix_json = re.sub(r"\s*```$", "", fix_json)
-            parsed_fix = json.loads(fix_json)
-            generated_sql = parsed_fix.get("sql", generated_sql)
-            recommended_chart = parsed_fix.get("recommended_chart", recommended_chart)
+            
+            try:
+                parsed_fix = json.loads(fix_json)
+                generated_sql = parsed_fix.get("sql", generated_sql)
+                recommended_chart = parsed_fix.get("recommended_chart", recommended_chart)
+            except Exception:
+                match = re.search(r"SELECT\s+.+;", fix_json, re.DOTALL | re.IGNORECASE)
+                generated_sql = match.group(0) if match else fix_json
+
             query_result = DuckDBEngine.execute_query(df=df, sql=generated_sql, table_name="data", limit=100)
 
         # 3. Construct In-Chat Visual Artifact Specification

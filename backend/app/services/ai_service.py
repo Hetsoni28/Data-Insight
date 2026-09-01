@@ -103,7 +103,7 @@ class AIService:
         history: Optional[List[Dict[str, str]]] = None,
         preferred_provider: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Interactive Copilot chat grounded in dataset profiling and context."""
+        """Interactive Copilot chat — context-aware, multi-turn, grounded in dataset profiling."""
         tenant_id = actor.tenant_id if actor else None
         user_id = actor.id if actor else None
 
@@ -126,32 +126,55 @@ class AIService:
                     "row_count": dataset.profile.get("overview", {}).get("row_count") or dataset.row_count,
                     "column_count": dataset.profile.get("overview", {}).get("column_count") or dataset.column_count,
                     "columns": columns_meta,
-                    "quality_score": dataset.profile.get("quality_score", {}),
                 }
-                dataset_context = f"\n\nDATASET CONTEXT:\n{json.dumps(profile_summary, indent=2, default=str)}\n"
+                dataset_context = (
+                    f"\n\nYou have access to a dataset called '{dataset.name}' with "
+                    f"{profile_summary['row_count']} rows and {profile_summary['column_count']} columns.\n"
+                    f"Column names: {', '.join(profile_summary['columns'].keys())}\n"
+                    f"If the user asks about data, encourage them to ask specific questions like "
+                    f"'Show me a chart of X by Y' or 'What is the total Z'.\n"
+                )
 
         clean_question = _sanitize_prompt(question)
 
-        prompt_lines = [f"{_MASTER_PERSONA}"]
-        if dataset_context:
-            prompt_lines.append(dataset_context)
+        # Build a proper conversational system prompt
+        system_prompt = (
+            "You are DataInsight AI, a friendly and highly knowledgeable Business Intelligence assistant. "
+            "You help users understand their data, discover insights, and make smart business decisions. "
+            "You are professional but warm, clear but not technical unless asked. "
+            "When users greet you or make small talk, respond naturally and helpfully. "
+            "When users ask about their data, guide them toward asking specific data questions. "
+            "Never make up data or statistics. Be concise and direct."
+            + dataset_context
+        )
 
+        # Build conversation messages
+        messages = [{"role": "system", "content": system_prompt}]
         if history:
-            prompt_lines.append("\nCONVERSATION HISTORY:")
+            for turn in history[-MAX_HISTORY:]:
+                role = turn.get("role", "user")
+                content = turn.get("content", "")
+                if role in ["user", "assistant"] and content:
+                    messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": clean_question})
+
+        # Build a single prompt string (router uses prompt-based API)
+        history_block = ""
+        if history:
             for turn in history[-MAX_HISTORY:]:
                 role = turn.get("role", "user").capitalize()
                 content = turn.get("content", "")
-                prompt_lines.append(f"{role}: {content}")
+                if role in ["User", "Assistant"] and content:
+                    history_block += f"{role}: {content}\n"
 
-        prompt_lines.append(f"\nUser Question: {clean_question}\nAnalyst:")
-        full_prompt = "\n".join(prompt_lines)
+        full_prompt = f"{system_prompt}\n\n{history_block}User: {clean_question}\nDataInsight AI:"
 
         response = await self.router.generate(
             prompt=full_prompt,
             task_type="chat",
             preferred_provider=preferred_provider,
-            temperature=0.3,
-            max_tokens=2048,
+            temperature=0.4,
+            max_tokens=1024,
         )
 
         if tenant_id:
@@ -630,40 +653,111 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         clean_question = _sanitize_prompt(question)
         await chat_repo.add_message(session_id=session_id, role="user", content=clean_question)
 
-        # 2. Check if session has a bound dataset
+        # 2. Get conversation history for context
+        history_msgs = await chat_repo.get_session_messages(session_id, limit=MAX_HISTORY)
+        history_payload = [
+            {"role": m.role, "content": m.content}
+            for m in history_msgs
+            if m.role in ["user", "assistant"] and m.content != clean_question
+        ]
+
+        # 3. Check if session has a bound dataset and detect intent
         dataset_id = chat_sess.dataset_id
+        is_data_question = False
+
         if dataset_id:
+            # Fast keyword-based intent detection — no extra LLM call needed.
+            # A question is a DATA question if it matches analytical patterns.
+            # Only pure conversational openers (hi, thanks, etc.) skip the SQL pipeline.
+            q_lower = clean_question.lower().strip()
+
+            # Explicit conversational signals — these are chat only
+            CHAT_PATTERNS = [
+                q_lower in {"hi", "hello", "hey", "thanks", "thank you", "ok", "okay", "bye", "goodbye", "yes", "no", "yep", "nope", "sure", "cool", "great", "good", "nice"},
+                q_lower.startswith(("hi ", "hey ", "hello ", "thanks ", "thank you")),
+                q_lower in {"what can you do", "who are you", "what are you", "help me"},
+            ]
+
+            # Data/analytics signals — anything that sounds like a query
+            DATA_KEYWORDS = [
+                "show", "chart", "graph", "plot", "visualize", "visualise",
+                "how many", "how much", "what is the total", "what is the average",
+                "count", "sum", "average", "mean", "median", "max", "min",
+                "percentage", "percent", "%", "ratio", "distribution",
+                "top", "bottom", "highest", "lowest", "most", "least",
+                "compare", "comparison", "trend", "over time", "by month", "by year", "by week",
+                "group by", "breakdown", "split by", "segment", "category",
+                "list", "table", "rows", "columns", "data",
+                "revenue", "sales", "customer", "user", "order", "product",
+                "status", "advance", "convert", "shortlist", "hired", "rejected",
+                "who", "which", "where", "when", "find", "filter", "select",
+                "correlation", "insight", "analyze", "analyse", "report",
+                "total", "number of", "amount", "value",
+            ]
+
+            is_chat = any(CHAT_PATTERNS)
+            is_data_question = (not is_chat) and any(kw in q_lower for kw in DATA_KEYWORDS)
+
+            # If not explicitly chat and no keyword match, default to data if dataset is bound
+            # (Better to try SQL and get a graceful fallback than to refuse to query)
+            if not is_chat and not is_data_question and len(q_lower) > 10:
+                is_data_question = True
+
+            logger.info(f"[AIService] Intent detection: '{clean_question[:60]}' → {'DATA' if is_data_question else 'CHAT'}")
+
+        if dataset_id and is_data_question:
             from app.repositories.dataset import DatasetRepository
             ds_repo = DatasetRepository(self.session)
             dataset = await ds_repo.get_tenant_dataset(tenant_id, dataset_id)
             if not dataset:
                 raise ResourceNotFoundException("Dataset", str(dataset_id))
 
-            # Load dataframe asynchronously from disk or MinIO storage
-            df = await self._load_dataset_df(dataset)
-            schema_info = {col: str(dtype) for col, dtype in zip(df.columns, df.dtypes)}
-            preview_rows = df.head(3).to_dicts()
+            try:
+                # Load dataframe and execute NL-to-SQL pipeline
+                df = await self._load_dataset_df(dataset)
+                schema_info = {col: str(dtype) for col, dtype in zip(df.columns, df.dtypes)}
+                preview_rows = df.head(3).to_dicts()
 
-            result = await self.visual_sql_agent.execute_and_synthesize(
-                question=clean_question,
-                df=df,
-                schema_info=schema_info,
-                preview_rows=preview_rows,
-                preferred_provider=preferred_provider,
-            )
+                result = await self.visual_sql_agent.execute_and_synthesize(
+                    question=clean_question,
+                    df=df,
+                    schema_info=schema_info,
+                    preview_rows=preview_rows,
+                    preferred_provider=preferred_provider,
+                )
 
-            assistant_content = result["answer"]
-            artifact_data = result["artifact_data"]
-            provider = result["provider"]
-            model = result["model"]
-            prompt_tokens = result["prompt_tokens"]
-            completion_tokens = result["completion_tokens"]
-            cost_usd = result["cost_usd"]
-            latency_ms = result["latency_ms"]
+                assistant_content = result["answer"]
+                artifact_data = result["artifact_data"]
+                provider = result["provider"]
+                model = result["model"]
+                prompt_tokens = result["prompt_tokens"]
+                completion_tokens = result["completion_tokens"]
+                cost_usd = result["cost_usd"]
+                latency_ms = result["latency_ms"]
+
+            except Exception as e:
+                logger.error(f"[AIService] Data pipeline failed for dataset {dataset_id}: {e}")
+                # Return a friendly error message rather than hanging
+                assistant_content = (
+                    f"⚠️ I wasn't able to query the dataset **{dataset.name}** right now. "
+                    f"The file may not be fully uploaded or may have been moved.\n\n"
+                    f"**Please try:**\n"
+                    f"- Starting a **New Chat** and re-selecting your dataset\n"
+                    f"- Re-uploading the dataset from the Datasets page\n\n"
+                    f"*Technical detail: {str(e)[:120]}*"
+                )
+                artifact_data = None
+                provider = "system"
+                model = "fallback"
+                prompt_tokens = 0
+                completion_tokens = 0
+                cost_usd = 0.0
+                latency_ms = 0.0
         else:
-            # Multi-turn conversation fallback
-            history_msgs = await chat_repo.get_session_messages(session_id, limit=MAX_HISTORY)
-            history_payload = [{"role": m.role, "content": m.content} for m in history_msgs if m.role in ["user", "assistant"]]
+            # General conversational response — multi-turn, context-aware
+            dataset_hint = ""
+            if dataset_id and chat_sess:
+                dataset_hint = "\n\nContext: The user has a dataset connected to this chat session. You can guide them to ask data questions like 'Show me a chart of X by Y' or 'What is the total Z'."
 
             chat_res = await self.copilot_chat(
                 question=clean_question,

@@ -250,6 +250,11 @@ export class TenantDashboardService {
     return data;
   }
 
+  static async nlQuery(body: ViewerAiChatRequest): Promise<any> {
+    const { data } = await api.post("/ai/nl-query", body);
+    return data;
+  }
+
   static async downloadReport(reportId: string): Promise<{ report_id: string; download_url: string; expires_in_seconds: number }> {
     const { data } = await api.get(`/tenant-reports/${reportId}/download`);
     return data;

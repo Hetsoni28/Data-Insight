@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Loader2, Sparkles, ChevronDown,
-  User, BarChart2, FileText, AlertTriangle, TrendingUp, MessageSquare
+  User, BarChart2, FileText, AlertTriangle, TrendingUp, MessageSquare, Code
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +13,7 @@ import type { ViewerDataset } from "@/lib/tenant-dashboard.service";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/atoms/Logo";
 import ReactMarkdown from "react-markdown";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 interface Message {
   id: string;
@@ -70,17 +71,50 @@ export function ViewerAiAssistant({ datasets, isLoading }: ViewerAiAssistantProp
 
     try {
       const history = messages.slice(-8).map((m) => ({ role: m.role, content: m.content }));
-      const res = await TenantDashboardService.chat({
-        question: question.trim(),
-        dataset_id: selectedDatasetId || undefined,
-        history,
-      });
+      
+      let answerText = "";
+      let model = "";
+      let chartData: any[] | undefined = undefined;
+      let sqlQuery: string | undefined = undefined;
+
+      if (selectedDatasetId) {
+        // Use natural language to SQL query
+        const res = await TenantDashboardService.nlQuery({
+          question: question.trim(),
+          dataset_id: selectedDatasetId,
+          history,
+        });
+        answerText = res.answer;
+        model = res.provider ? `${res.provider}/${res.model}` : res.model;
+        
+        if (res.query_result && res.query_result.rows && res.query_result.rows.length > 0) {
+           sqlQuery = res.generated_sql;
+           // Convert array of arrays to array of objects for Recharts
+           chartData = res.query_result.rows.map((row: any[]) => {
+             const obj: any = {};
+             res.query_result.columns.forEach((col: string, i: number) => {
+               obj[col] = row[i];
+             });
+             return obj;
+           });
+        }
+      } else {
+        // Fallback to basic text chat
+        const res = await TenantDashboardService.chat({
+          question: question.trim(),
+          history,
+        });
+        answerText = res.answer;
+        model = res.model;
+      }
 
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: res.answer,
-        model: res.model,
+        content: answerText,
+        chartData,
+        sqlQuery,
+        model: model,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMsg]);
@@ -88,7 +122,7 @@ export function ViewerAiAssistant({ datasets, isLoading }: ViewerAiAssistantProp
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I encountered an error processing your request. Please check that datasets are available and try again.",
+        content: "I encountered an error executing that query. Please try asking in a different way or check your dataset.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -188,6 +222,56 @@ export function ViewerAiAssistant({ datasets, isLoading }: ViewerAiAssistantProp
                       <ReactMarkdown>
                         {msg.content}
                       </ReactMarkdown>
+                      
+                      {msg.chartData && msg.chartData.length > 0 && (
+                        <div className="mt-4 mb-2 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                          <div className="h-64 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={msg.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" strokeOpacity={0.4} />
+                                <XAxis 
+                                  dataKey={Object.keys(msg.chartData[0])[0]} 
+                                  tick={{ fontSize: 11, fill: '#64748b' }}
+                                  axisLine={false}
+                                  tickLine={false}
+                                />
+                                <YAxis 
+                                  tick={{ fontSize: 11, fill: '#64748b' }}
+                                  axisLine={false}
+                                  tickLine={false}
+                                  tickFormatter={(val) => {
+                                    if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M`;
+                                    if (val >= 1000) return `${(val / 1000).toFixed(0)}k`;
+                                    return val;
+                                  }}
+                                />
+                                <Tooltip 
+                                  cursor={{ fill: '#f1f5f9' }}
+                                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                />
+                                <Bar 
+                                  dataKey={Object.keys(msg.chartData[0])[1]} 
+                                  fill="#10b981" 
+                                  radius={[4, 4, 0, 0]}
+                                  maxBarSize={40}
+                                />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                      )}
+
+                      {msg.sqlQuery && (
+                        <div className="mt-2 flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                            <Code className="w-3 h-3" />
+                            Generated DuckDB SQL
+                          </div>
+                          <pre className="text-[10px] p-2.5 rounded-lg bg-slate-100 dark:bg-slate-950/50 text-slate-600 dark:text-slate-400 overflow-x-auto border border-slate-200 dark:border-slate-800">
+                            <code>{msg.sqlQuery}</code>
+                          </pre>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="whitespace-pre-wrap">{msg.content}</p>
