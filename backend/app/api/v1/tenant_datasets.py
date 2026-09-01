@@ -932,3 +932,46 @@ async def download_ai_excel(
         url = await get_signed_url(DATASETS_BUCKET, d.excel_url, expires_in=300)
         return RedirectResponse(url)
 
+
+@router.get("/{dataset_id}/pdf-download", summary="Download AI PDF Report")
+async def download_ai_pdf(
+    dataset_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db)
+):
+    "\"\"
+    Returns the AI-generated PDF Report as a streaming download.
+    "\"\"
+    tenant_id = current_user.tenant_id
+    base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+        
+    stmt = select(Dataset).where(*base_conditions)
+    res = await db.execute(stmt)
+    d = res.scalars().first()
+    if not d:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+        
+    if not d.pdf_url:
+        raise HTTPException(status_code=404, detail="PDF not generated yet")
+        
+    from app.core.storage import is_local_storage
+    if is_local_storage():
+        from app.core.storage import LOCAL_UPLOADS_DIR, DATASETS_BUCKET
+        from fastapi.responses import FileResponse
+        local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / d.pdf_url
+        if not local_path.exists():
+            raise HTTPException(status_code=404, detail="PDF file missing on disk")
+        safe_name = f"AI_Report_{d.name}.pdf".replace("/", "_")
+        return FileResponse(
+            path=str(local_path),
+            filename=safe_name,
+            media_type="application/pdf"
+        )
+    else:
+        from fastapi.responses import RedirectResponse
+        from app.core.storage import get_signed_url, DATASETS_BUCKET
+        url = await get_signed_url(DATASETS_BUCKET, d.pdf_url, expires_in=300)
+        return RedirectResponse(url)

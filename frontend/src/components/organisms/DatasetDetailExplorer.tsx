@@ -151,6 +151,51 @@ export function DatasetDetailExplorer({
         badges={headerBadges}
         showBack={true}
         backLink={finalBackHref}
+        actions={
+          <div className="flex flex-wrap items-center gap-3">
+            {['owner', 'organization-admin', 'manager'].includes(user?.role || '') && (
+              <Button variant="outline" className="bg-transparent border-emerald-500/30 text-white hover:bg-emerald-500/20 hover:text-white backdrop-blur-md h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                <Calendar className="w-5 h-5 mr-2.5 text-emerald-400" />
+                Schedule
+              </Button>
+            )}
+            
+            <div className="flex rounded-xl overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+              <Button 
+                onClick={async () => {
+                  try {
+                    const dlRes = await api.get(`/tenant-datasets/${dataset.id}/excel-download`, { responseType: 'blob' });
+                    const url = window.URL.createObjectURL(new Blob([dlRes.data]));
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `AI_Excel_${dataset.name}.xlsx`;
+                    a.click();
+                  } catch (e) {
+                    console.error("Download failed", e);
+                  }
+                }}
+                className="bg-emerald-600 hover:bg-emerald-500 border-r border-emerald-700/50 text-white h-12 px-5 rounded-none font-bold transition-colors">
+                Download Excel
+              </Button>
+              <Button 
+                onClick={async () => {
+                  try {
+                    const dlRes = await api.get(`/tenant-datasets/${dataset.id}/pdf-download`, { responseType: 'blob' });
+                    const url = window.URL.createObjectURL(new Blob([dlRes.data]));
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `AI_Report_${dataset.name}.pdf`;
+                    a.click();
+                  } catch (e) {
+                    console.error("Download failed", e);
+                  }
+                }}
+                className="bg-emerald-700 hover:bg-emerald-600 border-none text-white h-12 px-5 rounded-none font-bold transition-colors">
+                Download PDF
+              </Button>
+            </div>
+          </div>
+        }
       />
 
       <DatasetMetricsGrid metrics={detailMetrics} />

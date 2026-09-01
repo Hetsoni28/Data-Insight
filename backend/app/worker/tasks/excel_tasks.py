@@ -395,20 +395,41 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                 # 5. Get AI Insights (Groq) then build 15-tab Excel
                 ai_content = await _get_ai_content(df_cleaned, profile, dataset.name)
                 from app.services.ingestion.excel_builder import AdvancedExcelBuilder
+                from app.services.ingestion.pdf_builder import AdvancedPdfBuilder
                 excel_bytes = AdvancedExcelBuilder(
                     df=df_cleaned,
                     profile=profile,
                     dataset_name=dataset.name,
                     ai_content=ai_content,
                 ).build()
+                
+                try:
+                    pdf_bytes = AdvancedPdfBuilder(
+                        df=df_cleaned,
+                        profile=profile,
+                        dataset_name=dataset.name,
+                        ai_content=ai_content,
+                    ).build()
+                except Exception as e:
+                    logger.error(f"PDF generation failed: {e}")
+                    pdf_bytes = None
 
                 # 6. Upload
                 new_filename = f"ai_excel_{dataset_id}.xlsx"
+                pdf_filename = f"ai_report_{dataset_id}.pdf"
+                
                 if is_local_storage():
                     out_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / new_filename
                     out_path.parent.mkdir(parents=True, exist_ok=True)
                     out_path.write_bytes(excel_bytes)
                     new_url = new_filename
+                    
+                    if pdf_bytes:
+                        pdf_out = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / pdf_filename
+                        pdf_out.write_bytes(pdf_bytes)
+                        pdf_url = pdf_filename
+                    else:
+                        pdf_url = None
                 else:
                     from app.core.storage import _client
                     client = _client()
@@ -418,9 +439,20 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                         file_options={"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "upsert": "true"}
                     )
                     new_url = new_filename
+                    
+                    if pdf_bytes:
+                        client.storage.from_(DATASETS_BUCKET).upload(
+                            path=pdf_filename,
+                            file=pdf_bytes,
+                            file_options={"content-type": "application/pdf", "upsert": "true"}
+                        )
+                        pdf_url = pdf_filename
+                    else:
+                        pdf_url = None
 
                 # 7. Update Dataset
                 dataset.excel_url = new_url
+                dataset.pdf_url = pdf_url
                 dataset.status = DatasetStatus.ready
                 await session.commit()
                 
