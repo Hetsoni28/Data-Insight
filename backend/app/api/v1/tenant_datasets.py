@@ -940,9 +940,7 @@ async def download_ai_pdf(
     workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db)
 ):
-    "\"\"
-    Returns the AI-generated PDF Report as a streaming download.
-    "\"\"
+    """Returns the AI-generated PDF Report as a streaming download."""
     tenant_id = current_user.tenant_id
     base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
     if workspace:
