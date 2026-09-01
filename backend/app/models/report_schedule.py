@@ -16,6 +16,9 @@ class ReportSchedule(Base):
     report_type = Column(String, nullable=False, default="ai_insight")
     report_category = Column(String, nullable=False, default="executive")
     
+    export_format = Column(String, nullable=False, default="pdf") # 'pdf', 'excel', 'both'
+    email_recipients = Column(String, nullable=True) # comma-separated emails
+    
     cron_expression = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     

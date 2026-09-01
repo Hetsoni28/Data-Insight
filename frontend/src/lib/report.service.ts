@@ -125,6 +125,8 @@ export class ReportScheduleService {
     report_type?: string;
     report_category?: string;
     cron_expression: string;
+    export_format?: string;
+    email_recipients?: string[];
   }): Promise<ReportSchedule> {
     const response = await api.post("/tenant-reports/schedules", data);
     return response.data;

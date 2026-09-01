@@ -13,6 +13,7 @@ import { motion } from "framer-motion"
 import { DatasetHeaderBanner } from "@/components/molecules/DatasetHeaderBanner"
 import { DatasetMetricsGrid, DatasetMetric } from "@/components/organisms/DatasetMetricsGrid"
 import { DatasetDetailTabs } from "@/components/organisms/DatasetDetailTabs"
+import { ReportSchedulerModal } from "@/components/organisms/ReportSchedulerModal"
 
 interface DatasetDetailExplorerProps {
   backHref?: string
@@ -38,6 +39,7 @@ export function DatasetDetailExplorer({
   const [schema, setSchema] = useState<any[]>([])
   const [insights, setInsights] = useState<any>(null)
   const [charts, setCharts] = useState<any[]>([])
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -154,7 +156,10 @@ export function DatasetDetailExplorer({
         actions={
           <div className="flex flex-wrap items-center gap-3">
             {['owner', 'organization-admin', 'manager'].includes(user?.role || '') && (
-              <Button variant="outline" className="bg-transparent border-emerald-500/30 text-white hover:bg-emerald-500/20 hover:text-white backdrop-blur-md h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+              <Button 
+                onClick={() => setIsScheduleModalOpen(true)}
+                variant="outline" 
+                className="bg-transparent border-emerald-500/30 text-white hover:bg-emerald-500/20 hover:text-white backdrop-blur-md h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
                 <Calendar className="w-5 h-5 mr-2.5 text-emerald-400" />
                 Schedule
               </Button>
@@ -205,6 +210,13 @@ export function DatasetDetailExplorer({
         schema={schema}
         insights={insights}
         charts={charts}
+      />
+
+      <ReportSchedulerModal 
+        open={isScheduleModalOpen}
+        onOpenChange={setIsScheduleModalOpen}
+        onScheduleCreated={() => {}}
+        initialDatasetId={dataset.id}
       />
     </div>
   )

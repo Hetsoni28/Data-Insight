@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Loader2, CalendarClock } from "lucide-react";
@@ -22,18 +22,28 @@ interface ReportSchedulerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onScheduleCreated: () => void;
+  initialDatasetId?: string;
 }
 
-export function ReportSchedulerModal({ open, onOpenChange, onScheduleCreated }: ReportSchedulerModalProps) {
+export function ReportSchedulerModal({ open, onOpenChange, onScheduleCreated, initialDatasetId }: ReportSchedulerModalProps) {
   const { activeWs } = useWorkspaceStore();
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [isLoadingDatasets, setIsLoadingDatasets] = useState(false);
 
-  const [selectedDatasetId, setSelectedDatasetId] = useState("");
+  const [selectedDatasetId, setSelectedDatasetId] = useState(initialDatasetId || "");
   const [name, setName] = useState("");
   const [reportCategory, setReportCategory] = useState("executive");
   const [cronExpression, setCronExpression] = useState("0 9 * * 1"); // Default: Monday at 9AM
+  const [exportFormat, setExportFormat] = useState("pdf");
+  const [emailRecipients, setEmailRecipients] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update selectedDatasetId if initialDatasetId changes or modal opens
+  useEffect(() => {
+    if (open && initialDatasetId) {
+      setSelectedDatasetId(initialDatasetId);
+    }
+  }, [open, initialDatasetId]);
 
   useEffect(() => {
     if (open && activeWs) {
@@ -74,7 +84,9 @@ export function ReportSchedulerModal({ open, onOpenChange, onScheduleCreated }: 
         name,
         dataset_id: selectedDatasetId,
         report_category: reportCategory,
-        cron_expression: cronExpression
+        cron_expression: cronExpression,
+        export_format: exportFormat,
+        email_recipients: emailRecipients ? emailRecipients.split(',').map(e => e.trim()).filter(e => e) : []
       });
       toast.success("Report schedule created successfully!");
       onScheduleCreated();
@@ -169,6 +181,32 @@ export function ReportSchedulerModal({ open, onOpenChange, onScheduleCreated }: 
               <option value="0 9 1 * *">Monthly (1st of Month 9:00 AM)</option>
               <option value="0 * * * *">Every Hour</option>
             </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="exportFormat">Delivery Format</Label>
+            <select
+              id="exportFormat"
+              value={exportFormat}
+              onChange={(e) => setExportFormat(e.target.value)}
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              disabled={isSubmitting}
+            >
+              <option value="pdf">PDF Executive Report</option>
+              <option value="excel">AI Data Excel</option>
+              <option value="both">Both (PDF & Excel)</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="emailRecipients">Email Recipients (comma separated)</Label>
+            <Input
+              id="emailRecipients"
+              placeholder="e.g. boss@company.com, team@company.com"
+              value={emailRecipients}
+              onChange={(e) => setEmailRecipients(e.target.value)}
+              disabled={isSubmitting}
+            />
           </div>
           
           <DialogFooter className="pt-4">

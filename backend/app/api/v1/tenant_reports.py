@@ -350,6 +350,8 @@ async def create_schedule(
         report_type=req.report_type,
         report_category=req.report_category,
         cron_expression=req.cron_expression,
+        export_format=req.export_format,
+        email_recipients=",".join(req.email_recipients) if req.email_recipients else None,
         next_run_at=next_run
     )
     db.add(schedule)

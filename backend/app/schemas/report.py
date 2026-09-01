@@ -53,6 +53,8 @@ class ReportScheduleCreate(BaseModel):
     report_type: str = "ai_insight"
     report_category: str = "executive"
     cron_expression: str
+    export_format: str = "pdf"
+    email_recipients: list[str] = []
 
 class ReportScheduleResponse(BaseModel):
     id: uuid.UUID
@@ -61,6 +63,8 @@ class ReportScheduleResponse(BaseModel):
     report_type: str
     report_category: str
     cron_expression: str
+    export_format: str
+    email_recipients: str | None
     is_active: bool
     next_run_at: datetime
     last_run_at: datetime | None
