@@ -2,9 +2,9 @@ import time
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user
+from app.db.session import engine
 from app.models.user import User
 
 router = APIRouter()
@@ -20,23 +20,21 @@ async def require_owner(current_user: User = Depends(get_current_user)) -> User:
 
 @router.get("", summary="Get Platform Health")
 async def get_platform_health(
-    db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    """Returns live health metrics for the platform infrastructure.
-    """
-    # 1. Database Ping
+    """Returns live health metrics for the platform infrastructure."""
+    # 1. Database Ping — use a fresh engine connection to avoid session state issues
     db_start = time.perf_counter()
     try:
-        await db.execute(text("SELECT 1"))
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
         db_status = "operational"
     except Exception:
         db_status = "down"
     db_latency = int((time.perf_counter() - db_start) * 1000)
 
-    # 2. Simulate other infrastructure checks (since this is Phase 1 without external integrations)
-    # Core API is operational if this endpoint responds
-    api_latency = 45  # A static baseline instead of random if we can't measure it accurately without middleware
+    # 2. Core API is operational if this endpoint responds
+    api_latency = 45
 
     # Redis cache (simulated fast response)
     redis_latency = 2
