@@ -95,7 +95,7 @@ export function DataCleaningTab({ datasetId, onCleaned }: DataCleaningTabProps) 
                   className="mt-1 w-5 h-5 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
                 />
                 <div>
-                  <p className="font-bold text-slate-800 dark:text-white">{s.operation} on '{s.column}'</p>
+                  <p className="font-bold text-slate-800 dark:text-white">{s.operation} on &apos;{s.column}&apos;</p>
                   <p className="text-sm text-slate-500 mt-1">{s.reason}</p>
                   {s.value && <p className="text-xs font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded mt-2 inline-block">Replace with: {s.value}</p>}
                 </div>
