@@ -1361,9 +1361,7 @@ async def get_cleaning_suggestions(
     ds_svc = DatasetService(db)
     df = await ds_svc.load_dataframe(d)
 
-    router_instance = LLMRouter(
-        db=db, tenant_id=current_user.tenant_id, user_id=current_user.id,
-    )
+    router_instance = LLMRouter()
     agent = CleaningAgent(router_instance)
 
     schema = d.profile.get("columns", {}) if d.profile else {}
