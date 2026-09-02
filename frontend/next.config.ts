@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: { ignoreDuringBuilds: true },
-typescript: { ignoreBuildErrors: true },
-  experimental: {
+    experimental: {
     // Tree-shake heavy barrel-import libraries — only bundle what's actually used.
     // This alone reduces initial JS by ~30-40% for chart and animation-heavy pages.
     optimizePackageImports: [
