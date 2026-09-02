@@ -9,8 +9,9 @@ import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import api from "@/lib/api"
 
-const SystemMonitoring = dynamic(() => import('@/components/organisms/SystemMonitoring').then(m => m.SystemMonitoring), { ssr: false })
 
+
+const SystemMonitoring = dynamic(() => import('@/components/organisms/SystemMonitoring').then(m => m.SystemMonitoring), { ssr: false })
 
 export default function MonitoringPage() {
   const [isRefreshing, setIsRefreshing] = useState(false)

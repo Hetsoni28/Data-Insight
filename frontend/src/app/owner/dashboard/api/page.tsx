@@ -5,13 +5,14 @@ import { useState, useCallback } from "react"
 
 import { gatewayService } from "@/lib/gatewayService"
 
+
+
 const GatewayHeroBanner = dynamic(() => import('@/components/organisms/GatewayHeroBanner').then(m => m.GatewayHeroBanner), { ssr: false })
 const GatewayLiveKpis = dynamic(() => import('@/components/organisms/GatewayLiveKpis').then(m => m.GatewayLiveKpis), { ssr: false })
 const GatewayUsageCharts = dynamic(() => import('@/components/organisms/GatewayUsageCharts').then(m => m.GatewayUsageCharts), { ssr: false })
 const GatewaySecurityCenter = dynamic(() => import('@/components/organisms/GatewaySecurityCenter').then(m => m.GatewaySecurityCenter), { ssr: false })
 const GatewayDeveloperApps = dynamic(() => import('@/components/organisms/GatewayDeveloperApps').then(m => m.GatewayDeveloperApps), { ssr: false })
 const GatewayLiveStream = dynamic(() => import('@/components/organisms/GatewayLiveStream').then(m => m.GatewayLiveStream), { ssr: false })
-
 
 export default function ApiGatewayPage() {
   const queryClient = useQueryClient()

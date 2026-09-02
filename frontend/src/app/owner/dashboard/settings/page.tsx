@@ -13,8 +13,9 @@ import { TenantService, Tenant } from "@/lib/tenant.service"
 import { getActiveUsers, getPendingUsers } from "@/lib/users.service"
 import { WebhooksService, Webhook } from "@/lib/webhooks.service"
 
-const SettingsGrid = dynamic(() => import('@/components/organisms/SettingsGrid').then(m => m.SettingsGrid), { ssr: false })
 
+
+const SettingsGrid = dynamic(() => import('@/components/organisms/SettingsGrid').then(m => m.SettingsGrid), { ssr: false })
 
 export default function SettingsPage() {
   const router = useRouter()

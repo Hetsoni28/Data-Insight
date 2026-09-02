@@ -7,9 +7,10 @@ import { Brain, Sparkles, Plus, Settings, MessageSquare } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import api from "@/lib/api"
 
+
+
 const CommandCenterQuickActions = dynamic(() => import('@/components/organisms/CommandCenterQuickActions').then(m => m.CommandCenterQuickActions), { ssr: false })
 const CommandCenterChat = dynamic(() => import('@/components/organisms/CommandCenterChat').then(m => m.CommandCenterChat), { ssr: false })
-
 
 export default function AICommandCenterPage() {
   const { data: user } = useAuth()

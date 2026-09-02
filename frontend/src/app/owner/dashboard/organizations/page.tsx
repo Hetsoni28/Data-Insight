@@ -9,11 +9,12 @@ import { useState, useEffect } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSearchParams, useRouter } from "next/navigation"
 
+
+
 const OrganizationDataGrid = dynamic(() => import('@/components/organisms/OrganizationDataGrid').then(m => m.OrganizationDataGrid), { ssr: false })
 const LiveKpiDashboard = dynamic(() => import('@/components/organisms/LiveKpiDashboard').then(m => m.LiveKpiDashboard), { ssr: false })
 const OrganizationAnalytics = dynamic(() => import('@/components/organisms/OrganizationAnalytics').then(m => m.OrganizationAnalytics), { ssr: false })
 const CreateOrganizationModal = dynamic(() => import('@/components/organisms/CreateOrganizationModal').then(m => m.CreateOrganizationModal), { ssr: false })
-
 
 export default function OrganizationsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)

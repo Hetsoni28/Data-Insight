@@ -10,14 +10,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { tenantDashboardService } from '@/lib/tenantDashboard.service';
 import { DatasetService } from '@/lib/dataset.service';
 
+
+
+
 const AnalystDashboardHeader = dynamic(() => import('@/components/organisms/analyst/AnalystDashboardHeader').then(m => m.AnalystDashboardHeader), { ssr: false })
 const AnalystKpiGrid = dynamic(() => import('@/components/organisms/analyst/AnalystKpiGrid').then(m => m.AnalystKpiGrid), { ssr: false })
 const AnalystActivityChart = dynamic(() => import('@/components/organisms/analyst/AnalystActivityChart').then(m => m.AnalystActivityChart), { ssr: false })
 const AnalystRecentActivityFeed = dynamic(() => import('@/components/organisms/analyst/AnalystRecentActivityFeed').then(m => m.AnalystRecentActivityFeed), { ssr: false })
 const AnalystDatasetsTable = dynamic(() => import('@/components/organisms/analyst/AnalystDatasetsTable').then(m => m.AnalystDatasetsTable), { ssr: false })
 const AnalystAiCopilotCard = dynamic(() => import('@/components/organisms/analyst/AnalystAiCopilotCard').then(m => m.AnalystAiCopilotCard), { ssr: false })
-
-
 
 export default function AnalystDashboard() {
   const router = useRouter();

@@ -7,11 +7,12 @@ import { RefreshCw, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import api from "@/lib/api"
 
+
+
+
 const LeadsKpiGrid = dynamic(() => import('@/components/organisms/leads/LeadsKpiGrid').then(m => m.LeadsKpiGrid), { ssr: false })
 const LeadsDataGrid = dynamic(() => import('@/components/organisms/leads/LeadsDataGrid').then(m => m.LeadsDataGrid), { ssr: false })
 const LeadStatus = dynamic(() => import('@/components/organisms/leads/LeadDetailsDrawer').then(m => m.LeadStatus), { ssr: false })
-
-
 
 export default function LeadsPipelinePage() {
   const [search, setSearch] = useState("")

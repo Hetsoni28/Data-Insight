@@ -36,7 +36,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
-const UsersDataGrid = dynamic(() => import('@/components/organisms/UsersDataGrid').then(m => m.UsersDataGrid), { ssr: false })
 
 
 interface TenantOption {
@@ -57,6 +56,8 @@ interface PlatformInvitation {
   expires_at: string
   created_at: string
 }
+
+const UsersDataGrid = dynamic(() => import('@/components/organisms/UsersDataGrid').then(m => m.UsersDataGrid), { ssr: false })
 
 export default function UsersPage() {
   const [activeTab, setActiveTab] = useState<"users" | "invitations">("users")

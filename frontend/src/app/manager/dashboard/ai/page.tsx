@@ -4,8 +4,9 @@ import dynamic from "next/dynamic"
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 
-const CopilotChat = dynamic(() => import('@/components/organisms/CopilotChat').then(m => m.CopilotChat), { ssr: false })
 
+
+const CopilotChat = dynamic(() => import('@/components/organisms/CopilotChat').then(m => m.CopilotChat), { ssr: false })
 
 export default function ManagerAICopilotPage() {
   const [datasets, setDatasets] = useState<any[]>([]);

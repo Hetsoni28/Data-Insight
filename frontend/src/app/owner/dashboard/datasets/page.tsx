@@ -27,8 +27,9 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 
-const DatasetUploader = dynamic(() => import('@/components/organisms/DatasetUploader').then(m => m.DatasetUploader), { ssr: false })
 
+
+const DatasetUploader = dynamic(() => import('@/components/organisms/DatasetUploader').then(m => m.DatasetUploader), { ssr: false })
 
 export default function OwnerDatasetsPage() {
   const { activeWs } = useWorkspaceStore();

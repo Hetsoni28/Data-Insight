@@ -24,11 +24,6 @@ import { toast } from "sonner"
 // ── Organisms ─────────────────────────────────────────────────────────────────
 import {
 
-const SubscriptionAnalyticsCharts = dynamic(() => import('@/components/organisms/SubscriptionAnalyticsCharts').then(m => m.SubscriptionAnalyticsCharts), { ssr: false })
-const SubscriptionDataGrid = dynamic(() => import('@/components/organisms/SubscriptionDataGrid').then(m => m.SubscriptionDataGrid), { ssr: false })
-const OwnerInvoicesTable = dynamic(() => import('@/components/organisms/OwnerInvoicesTable').then(m => m.OwnerInvoicesTable), { ssr: false })
-const BillingActivityFeed = dynamic(() => import('@/components/organisms/BillingActivityFeed').then(m => m.BillingActivityFeed), { ssr: false })
-const SubscriptionRevenueKpi = dynamic(() => import('@/components/organisms/SubscriptionRevenueKpi').then(m => m.SubscriptionRevenueKpi), { ssr: false })
 
   SubscriptionPlanCard,
   DEDICATED_RENTAL_FEATURES,
@@ -39,6 +34,12 @@ const SubscriptionRevenueKpi = dynamic(() => import('@/components/organisms/Subs
 const fmtUsd = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
+const SubscriptionAnalyticsCharts = dynamic(() => import('@/components/organisms/SubscriptionAnalyticsCharts').then(m => m.SubscriptionAnalyticsCharts), { ssr: false })
+const SubscriptionDataGrid = dynamic(() => import('@/components/organisms/SubscriptionDataGrid').then(m => m.SubscriptionDataGrid), { ssr: false })
+const OwnerInvoicesTable = dynamic(() => import('@/components/organisms/OwnerInvoicesTable').then(m => m.OwnerInvoicesTable), { ssr: false })
+const BillingActivityFeed = dynamic(() => import('@/components/organisms/BillingActivityFeed').then(m => m.BillingActivityFeed), { ssr: false })
+const SubscriptionRevenueKpi = dynamic(() => import('@/components/organisms/SubscriptionRevenueKpi').then(m => m.SubscriptionRevenueKpi), { ssr: false })
+
 export default function SubscriptionsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)

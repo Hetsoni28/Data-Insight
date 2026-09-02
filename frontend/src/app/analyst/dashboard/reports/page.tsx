@@ -13,6 +13,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import { useWebSocket } from "@/hooks/useWebSocket"
 
+
+
 const ReportExecutiveKPIs = dynamic(() => import('@/components/organisms/ReportExecutiveKPIs').then(m => m.ReportExecutiveKPIs), { ssr: false })
 const ReportQuickActions = dynamic(() => import('@/components/organisms/ReportQuickActions').then(m => m.ReportQuickActions), { ssr: false })
 const ReportAuditTimeline = dynamic(() => import('@/components/organisms/ReportAuditTimeline').then(m => m.ReportAuditTimeline), { ssr: false })
@@ -23,7 +25,6 @@ const ReportSchedulerModal = dynamic(() => import('@/components/organisms/Report
 const ReportFilters = dynamic(() => import('@/components/organisms/ReportFilters').then(m => m.ReportFilters), { ssr: false })
 const ReportExportModal = dynamic(() => import('@/components/organisms/ReportExportModal').then(m => m.ReportExportModal), { ssr: false })
 const ReportBuilder = dynamic(() => import('@/components/organisms/ReportBuilder').then(m => m.ReportBuilder), { ssr: false })
-
 
 export default function AnalystReportsCenterPage() {
   const [stats, setStats] = useState(null)

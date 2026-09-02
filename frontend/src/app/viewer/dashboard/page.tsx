@@ -19,6 +19,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/atoms/Logo";
 
+
+
+type ActiveTab = "reports" | "dashboards" | "datasets" | "activity";
+
 const ViewerHero = dynamic(() => import('@/components/organisms/ViewerHero').then(m => m.ViewerHero), { ssr: false })
 const ViewerKpiGrid = dynamic(() => import('@/components/organisms/ViewerKpiGrid').then(m => m.ViewerKpiGrid), { ssr: false })
 const ViewerReportCenter = dynamic(() => import('@/components/organisms/reports/ViewerReportCenter').then(m => m.ViewerReportCenter), { ssr: false })
@@ -27,9 +31,6 @@ const ViewerDatasetCenter = dynamic(() => import('@/components/organisms/ViewerD
 const ViewerAiAssistant = dynamic(() => import('@/components/organisms/ViewerAiAssistant').then(m => m.ViewerAiAssistant), { ssr: false })
 const ViewerActivityFeed = dynamic(() => import('@/components/organisms/ViewerActivityFeed').then(m => m.ViewerActivityFeed), { ssr: false })
 const ViewerNotifications = dynamic(() => import('@/components/organisms/ViewerNotifications').then(m => m.ViewerNotifications), { ssr: false })
-
-
-type ActiveTab = "reports" | "dashboards" | "datasets" | "activity";
 
 export default function ViewerDashboardPage() {
   const { data: user } = useAuth();

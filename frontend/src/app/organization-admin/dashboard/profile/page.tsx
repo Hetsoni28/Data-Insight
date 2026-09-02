@@ -11,6 +11,8 @@ import { useAuthStore } from "@/store/authStore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+
+
 const ProfileHero = dynamic(() => import('@/components/organisms/profile/ProfileHero').then(m => m.ProfileHero), { ssr: false })
 const PersonalInfoCard = dynamic(() => import('@/components/organisms/profile/PersonalInfoCard').then(m => m.PersonalInfoCard), { ssr: false })
 const SecuritySettingsCard = dynamic(() => import('@/components/organisms/profile/SecuritySettingsCard').then(m => m.SecuritySettingsCard), { ssr: false })
@@ -20,7 +22,6 @@ const NotificationPreferencesCard = dynamic(() => import('@/components/organisms
 const AccountPreferencesCard = dynamic(() => import('@/components/organisms/profile/AccountPreferencesCard').then(m => m.AccountPreferencesCard), { ssr: false })
 const DangerZoneCard = dynamic(() => import('@/components/organisms/profile/DangerZoneCard').then(m => m.DangerZoneCard), { ssr: false })
 const AvatarModal = dynamic(() => import('@/components/organisms/profile/AvatarModal').then(m => m.AvatarModal), { ssr: false })
-
 
 export default function OrgAdminProfilePage() {
   const { logout } = useAuthStore();

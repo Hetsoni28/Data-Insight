@@ -10,10 +10,6 @@ import { Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 import {
 
-const ExecutiveBanner = dynamic(() => import('@/components/organisms/ExecutiveBanner').then(m => m.ExecutiveBanner), { ssr: false })
-const LiveKpiGrid = dynamic(() => import('@/components/organisms/LiveKpiGrid').then(m => m.LiveKpiGrid), { ssr: false })
-const DashboardActivityFeed = dynamic(() => import('@/components/organisms/DashboardActivityFeed').then(m => m.DashboardActivityFeed), { ssr: false })
-const ExecutiveAIPanel = dynamic(() => import('@/components/organisms/ExecutiveAIPanel').then(m => m.ExecutiveAIPanel), { ssr: false })
 
   DynamicPlatformHealthOverview,
   DynamicDashboardUsageChart,
@@ -23,6 +19,11 @@ const AnalyticsGrid = dynamic(
   () => import("@/components/organisms/AnalyticsGrid").then((mod) => mod.AnalyticsGrid),
   { ssr: false }
 )
+
+const ExecutiveBanner = dynamic(() => import('@/components/organisms/ExecutiveBanner').then(m => m.ExecutiveBanner), { ssr: false })
+const LiveKpiGrid = dynamic(() => import('@/components/organisms/LiveKpiGrid').then(m => m.LiveKpiGrid), { ssr: false })
+const DashboardActivityFeed = dynamic(() => import('@/components/organisms/DashboardActivityFeed').then(m => m.DashboardActivityFeed), { ssr: false })
+const ExecutiveAIPanel = dynamic(() => import('@/components/organisms/ExecutiveAIPanel').then(m => m.ExecutiveAIPanel), { ssr: false })
 
 export default function DashboardPage() {
   const router = useRouter()

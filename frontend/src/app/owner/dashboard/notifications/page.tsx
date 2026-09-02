@@ -13,9 +13,10 @@ import { NotificationStatsRow } from "@/components/molecules/NotificationStatsRo
 import { NotificationSidebar } from "@/components/molecules/NotificationSidebar";
 import { useAuth } from "@/hooks/useAuth";
 
+
+
 const NotificationFeed = dynamic(() => import('@/components/organisms/NotificationFeed').then(m => m.NotificationFeed), { ssr: false })
 const NotificationDrawer = dynamic(() => import('@/components/organisms/NotificationDrawer').then(m => m.NotificationDrawer), { ssr: false })
-
 
 export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<"feed" | "preferences">("feed");

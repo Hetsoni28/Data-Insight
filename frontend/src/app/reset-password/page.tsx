@@ -1,8 +1,9 @@
 import dynamic from "next/dynamic"
 import { AuthLayout } from "@/components/templates/AuthLayout"
 
-const ResetPasswordForm = dynamic(() => import('@/components/organisms/ResetPasswordForm').then(m => m.ResetPasswordForm), { ssr: false })
 
+
+const ResetPasswordForm = dynamic(() => import('@/components/organisms/ResetPasswordForm').then(m => m.ResetPasswordForm), { ssr: false })
 
 export const metadata = {
   title: "Reset Password",

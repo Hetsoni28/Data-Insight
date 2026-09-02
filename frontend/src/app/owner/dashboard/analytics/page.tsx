@@ -5,15 +5,16 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
 
-const AnalyticsHeroBanner = dynamic(() => import('@/components/organisms/AnalyticsHeroBanner').then(m => m.AnalyticsHeroBanner), { ssr: false })
-const ExecutiveKpiGrid = dynamic(() => import('@/components/organisms/ExecutiveKpiGrid').then(m => m.ExecutiveKpiGrid), { ssr: false })
-const AnomalyDetectionFeed = dynamic(() => import('@/components/organisms/AnomalyDetectionFeed').then(m => m.AnomalyDetectionFeed), { ssr: false })
-const CustomerHealthMatrix = dynamic(() => import('@/components/organisms/CustomerHealthMatrix').then(m => m.CustomerHealthMatrix), { ssr: false })
 
   DynamicRevenueTrendChart as RevenueTrendChart,
   DynamicPlatformGrowthChart as PlatformGrowthChart,
   DynamicForecastingChart as ForecastingChart,
 } from "@/components/charts/dynamic";
+
+const AnalyticsHeroBanner = dynamic(() => import('@/components/organisms/AnalyticsHeroBanner').then(m => m.AnalyticsHeroBanner), { ssr: false })
+const ExecutiveKpiGrid = dynamic(() => import('@/components/organisms/ExecutiveKpiGrid').then(m => m.ExecutiveKpiGrid), { ssr: false })
+const AnomalyDetectionFeed = dynamic(() => import('@/components/organisms/AnomalyDetectionFeed').then(m => m.AnomalyDetectionFeed), { ssr: false })
+const CustomerHealthMatrix = dynamic(() => import('@/components/organisms/CustomerHealthMatrix').then(m => m.CustomerHealthMatrix), { ssr: false })
 
 export default function AnalyticsPage() {
   const [refreshKey, setRefreshKey] = useState(0);

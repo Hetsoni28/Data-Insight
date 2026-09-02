@@ -9,6 +9,8 @@ import { ReportExplorerTable, Report } from "@/components/organisms/ReportExplor
 import { ReportScheduleService, ReportSchedule } from "@/lib/report.service"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
+
+
 const ReportExecutiveKPIs = dynamic(() => import('@/components/organisms/ReportExecutiveKPIs').then(m => m.ReportExecutiveKPIs), { ssr: false })
 const ReportQuickActions = dynamic(() => import('@/components/organisms/ReportQuickActions').then(m => m.ReportQuickActions), { ssr: false })
 const ReportAuditTimeline = dynamic(() => import('@/components/organisms/ReportAuditTimeline').then(m => m.ReportAuditTimeline), { ssr: false })
@@ -19,7 +21,6 @@ const ReportSchedulerModal = dynamic(() => import('@/components/organisms/Report
 const ReportFilters = dynamic(() => import('@/components/organisms/ReportFilters').then(m => m.ReportFilters), { ssr: false })
 const ReportExportModal = dynamic(() => import('@/components/organisms/ReportExportModal').then(m => m.ReportExportModal), { ssr: false })
 const ReportBuilder = dynamic(() => import('@/components/organisms/ReportBuilder').then(m => m.ReportBuilder), { ssr: false })
-
 
 export default function ReportsCenterPage() {
   const [stats, setStats] = useState(null)

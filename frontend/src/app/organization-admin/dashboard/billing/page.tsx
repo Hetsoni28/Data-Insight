@@ -17,15 +17,6 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-const BillingHero = dynamic(() => import('@/components/organisms/billing/BillingHero').then(m => m.BillingHero), { ssr: false })
-const RentedSystemOverview = dynamic(() => import('@/components/organisms/billing/RentedSystemOverview').then(m => m.RentedSystemOverview), { ssr: false })
-const CostBreakdownCard = dynamic(() => import('@/components/organisms/billing/CostBreakdownCard').then(m => m.CostBreakdownCard), { ssr: false })
-const ContractDetailsCard = dynamic(() => import('@/components/organisms/billing/ContractDetailsCard').then(m => m.ContractDetailsCard), { ssr: false })
-const ResourceRequestCenter = dynamic(() => import('@/components/organisms/billing/ResourceRequestCenter').then(m => m.ResourceRequestCenter), { ssr: false })
-const PaymentHistoryTable = dynamic(() => import('@/components/organisms/billing/PaymentHistoryTable').then(m => m.PaymentHistoryTable), { ssr: false })
-const BillingUsageMeters = dynamic(() => import('@/components/organisms/billing/BillingUsageMeters').then(m => m.BillingUsageMeters), { ssr: false })
-const BillingPlansTab = dynamic(() => import('@/components/organisms/billing/BillingPlansTab').then(m => m.BillingPlansTab), { ssr: false })
-const InvoiceHistoryTable = dynamic(() => import('@/components/organisms/InvoiceHistoryTable').then(m => m.InvoiceHistoryTable), { ssr: false })
 
 
 // ── Organisms ─────────────────────────────────────────────────────────────────
@@ -359,6 +350,16 @@ function BillingContent() {
 }
 
 // ── Page Export ───────────────────────────────────────────────────────────────
+const BillingHero = dynamic(() => import('@/components/organisms/billing/BillingHero').then(m => m.BillingHero), { ssr: false })
+const RentedSystemOverview = dynamic(() => import('@/components/organisms/billing/RentedSystemOverview').then(m => m.RentedSystemOverview), { ssr: false })
+const CostBreakdownCard = dynamic(() => import('@/components/organisms/billing/CostBreakdownCard').then(m => m.CostBreakdownCard), { ssr: false })
+const ContractDetailsCard = dynamic(() => import('@/components/organisms/billing/ContractDetailsCard').then(m => m.ContractDetailsCard), { ssr: false })
+const ResourceRequestCenter = dynamic(() => import('@/components/organisms/billing/ResourceRequestCenter').then(m => m.ResourceRequestCenter), { ssr: false })
+const PaymentHistoryTable = dynamic(() => import('@/components/organisms/billing/PaymentHistoryTable').then(m => m.PaymentHistoryTable), { ssr: false })
+const BillingUsageMeters = dynamic(() => import('@/components/organisms/billing/BillingUsageMeters').then(m => m.BillingUsageMeters), { ssr: false })
+const BillingPlansTab = dynamic(() => import('@/components/organisms/billing/BillingPlansTab').then(m => m.BillingPlansTab), { ssr: false })
+const InvoiceHistoryTable = dynamic(() => import('@/components/organisms/InvoiceHistoryTable').then(m => m.InvoiceHistoryTable), { ssr: false })
+
 export default function OrgBillingPage() {
   return (
     <Suspense

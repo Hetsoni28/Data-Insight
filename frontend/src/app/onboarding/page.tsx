@@ -12,9 +12,6 @@ import { logoutUser } from "@/lib/auth.service"
 import api from "@/lib/api"
 import { cn } from "@/lib/utils"
 
-const OnboardingOrgStep = dynamic(() => import('@/components/organisms/OnboardingOrgStep').then(m => m.OnboardingOrgStep), { ssr: false })
-const OnboardingWorkspaceStep = dynamic(() => import('@/components/organisms/OnboardingWorkspaceStep').then(m => m.OnboardingWorkspaceStep), { ssr: false })
-const OnboardingSuccessStep = dynamic(() => import('@/components/organisms/OnboardingSuccessStep').then(m => m.OnboardingSuccessStep), { ssr: false })
 
 
 
@@ -197,6 +194,10 @@ function OnboardingContent() {
     </div>
   )
 }
+
+const OnboardingOrgStep = dynamic(() => import('@/components/organisms/OnboardingOrgStep').then(m => m.OnboardingOrgStep), { ssr: false })
+const OnboardingWorkspaceStep = dynamic(() => import('@/components/organisms/OnboardingWorkspaceStep').then(m => m.OnboardingWorkspaceStep), { ssr: false })
+const OnboardingSuccessStep = dynamic(() => import('@/components/organisms/OnboardingSuccessStep').then(m => m.OnboardingSuccessStep), { ssr: false })
 
 export default function OnboardingPage() {
   return (

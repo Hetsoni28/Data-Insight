@@ -9,11 +9,6 @@ import { toast } from "sonner"
 import api from "@/lib/api"
 import {
 
-const RevenueKpiGrid = dynamic(() => import('@/components/organisms/RevenueKpiGrid').then(m => m.RevenueKpiGrid), { ssr: false })
-const ExecutiveSummaryCard = dynamic(() => import('@/components/organisms/ExecutiveSummaryCard').then(m => m.ExecutiveSummaryCard), { ssr: false })
-const RevenueAnalyticsCharts = dynamic(() => import('@/components/organisms/RevenueAnalyticsCharts').then(m => m.RevenueAnalyticsCharts), { ssr: false })
-const TopOrganizationsTable = dynamic(() => import('@/components/organisms/TopOrganizationsTable').then(m => m.TopOrganizationsTable), { ssr: false })
-const FinancialActivityTimeline = dynamic(() => import('@/components/organisms/FinancialActivityTimeline').then(m => m.FinancialActivityTimeline), { ssr: false })
 
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +25,12 @@ const DATE_RANGES = [
 ] as const
 
 type DateRange = typeof DATE_RANGES[number]
+
+const RevenueKpiGrid = dynamic(() => import('@/components/organisms/RevenueKpiGrid').then(m => m.RevenueKpiGrid), { ssr: false })
+const ExecutiveSummaryCard = dynamic(() => import('@/components/organisms/ExecutiveSummaryCard').then(m => m.ExecutiveSummaryCard), { ssr: false })
+const RevenueAnalyticsCharts = dynamic(() => import('@/components/organisms/RevenueAnalyticsCharts').then(m => m.RevenueAnalyticsCharts), { ssr: false })
+const TopOrganizationsTable = dynamic(() => import('@/components/organisms/TopOrganizationsTable').then(m => m.TopOrganizationsTable), { ssr: false })
+const FinancialActivityTimeline = dynamic(() => import('@/components/organisms/FinancialActivityTimeline').then(m => m.FinancialActivityTimeline), { ssr: false })
 
 export default function OwnerRevenueDashboardPage() {
   const queryClient = useQueryClient()

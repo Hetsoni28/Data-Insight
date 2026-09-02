@@ -1,5 +1,7 @@
 import dynamic from "next/dynamic"
 
+
+
 const Navbar = dynamic(() => import('@/components/organisms/Navbar').then(m => m.Navbar), { ssr: false })
 const HeroSection = dynamic(() => import('@/components/organisms/HeroSection').then(m => m.HeroSection), { ssr: false })
 const StopReportingSection = dynamic(() => import('@/components/organisms/StopReportingSection').then(m => m.StopReportingSection), { ssr: false })
@@ -13,7 +15,6 @@ const PricingSection = dynamic(() => import('@/components/organisms/PricingSecti
 const FaqSection = dynamic(() => import('@/components/organisms/FaqSection').then(m => m.FaqSection), { ssr: false })
 const CtaSection = dynamic(() => import('@/components/organisms/CtaSection').then(m => m.CtaSection), { ssr: false })
 const Footer = dynamic(() => import('@/components/organisms/Footer').then(m => m.Footer), { ssr: false })
-
 
 export const metadata = {
   title: "Enterprise AI Business Intelligence",

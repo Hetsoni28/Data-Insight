@@ -19,8 +19,9 @@ import { ProfileService, FullProfile, UserSession, UserActivity, AuditLog } from
 import { ProfileHeader } from "@/components/molecules/ProfileHeader";
 import { ProfileStatsSidebar } from "@/components/molecules/ProfileStatsSidebar";
 
-const ProfileContentTabs = dynamic(() => import('@/components/organisms/ProfileContentTabs').then(m => m.ProfileContentTabs), { ssr: false })
 
+
+const ProfileContentTabs = dynamic(() => import('@/components/organisms/ProfileContentTabs').then(m => m.ProfileContentTabs), { ssr: false })
 
 export default function PlatformOwnerProfilePage() {
   const { data: user, refetch } = useAuth();
