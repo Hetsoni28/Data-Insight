@@ -103,7 +103,7 @@ export function ViewerNotifications({ notifications, isLoading, onRefresh }: Vie
             <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center mx-auto mb-3">
               <CheckCircle2 className="w-7 h-7 text-emerald-400" />
             </div>
-            <p className="font-semibold text-slate-600 dark:text-slate-400 text-sm">You're all caught up!</p>
+            <p className="font-semibold text-slate-600 dark:text-slate-400 text-sm">You&apos;re all caught up!</p>
             <p className="text-slate-400 text-xs mt-1">No unread notifications at the moment.</p>
           </div>
         ) : (

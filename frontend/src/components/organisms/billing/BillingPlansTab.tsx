@@ -146,7 +146,7 @@ function ContactSalesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
             Contact Our Sales Team
           </DialogTitle>
           <DialogDescription className="text-slate-500 text-sm">
-            We'll reach out within 1 business day to discuss your requirements.
+            We&apos;ll reach out within 1 business day to discuss your requirements.
           </DialogDescription>
         </DialogHeader>
 

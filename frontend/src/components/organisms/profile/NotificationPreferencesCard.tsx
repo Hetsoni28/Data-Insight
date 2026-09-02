@@ -71,7 +71,7 @@ export function NotificationPreferencesCard({ user, profileData, onUpdate }: Pro
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label className="text-base">Billing & Subscription</Label>
-            <p className="text-sm text-slate-500">Important notices regarding your organization's subscription and invoices.</p>
+            <p className="text-sm text-slate-500">Important notices regarding your organization&apos;s subscription and invoices.</p>
           </div>
           <Switch checked={!!prefs.billing_notifs} disabled={loading} onCheckedChange={() => togglePref("billing_notifs")} />
         </div>

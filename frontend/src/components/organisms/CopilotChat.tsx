@@ -823,12 +823,12 @@ export function CopilotChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask anything about your data... (e.g. 'Show me top 5 revenue by region as a bar chart')"
-              disabled={isStreamingRef.current}
+              disabled={false}
               className="w-full pl-5 pr-12 py-3 rounded-xl border-slate-200/80 dark:border-white/10 border bg-white dark:bg-card text-slate-900 dark:text-white placeholder:text-slate-400 shadow-sm hover:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-xs"
             />
             <Button
               type="submit"
-              disabled={!input.trim() || isStreamingRef.current}
+              disabled={!input.trim()}
               size="icon"
               className="absolute right-1.5 top-1.5 bottom-1.5 h-auto w-9 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all"
             >

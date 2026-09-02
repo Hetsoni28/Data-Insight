@@ -264,7 +264,7 @@ export function DashboardBuilderHub({ basePath }: { basePath: string }) {
               </div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Delete Dashboard</h2>
               <p className="text-slate-500 dark:text-slate-400 mb-6">
-                Are you sure you want to delete <span className="font-semibold text-slate-700 dark:text-slate-300">"{dashboardToDelete.name}"</span>? This action cannot be undone.
+                Are you sure you want to delete <span className="font-semibold text-slate-700 dark:text-slate-300">&quot;{dashboardToDelete.name}&quot;</span>? This action cannot be undone.
               </p>
               <div className="flex space-x-3 justify-end">
                 <button 

@@ -265,7 +265,7 @@ export function TenantProvisioningModal({ tenantId, tenantName, isOpen, onClose 
               ) : (
                 <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-500/5 border border-rose-200 dark:border-rose-500/20 space-y-3">
                   <p className="text-xs font-semibold text-rose-700 dark:text-rose-400">
-                    ⚠️ This will clear the dedicated DB configuration. The client's data on their dedicated server is NOT deleted — you just remove the pointer.
+                    ⚠️ This will clear the dedicated DB configuration. The client&apos;s data on their dedicated server is NOT deleted — you just remove the pointer.
                   </p>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline"

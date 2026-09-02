@@ -458,7 +458,7 @@ export default function OrganizationSettingsPage() {
                   <CardHeader>
                     <CardTitle>White Label Configuration</CardTitle>
                     <CardDescription>
-                      Upload your logo and choose your primary brand color to match your company's identity.
+                      Upload your logo and choose your primary brand color to match your company&apos;s identity.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -687,7 +687,7 @@ export default function OrganizationSettingsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4 mt-2">
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Send automated reports, alerts, and insights directly to your team's Slack channels.</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Send automated reports, alerts, and insights directly to your team&apos;s Slack channels.</p>
                       
                       {!integrations?.slack_enabled ? (
                         <div className="space-y-2 pt-2">

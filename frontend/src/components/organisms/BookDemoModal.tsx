@@ -84,7 +84,7 @@ function SuccessScreen({ leadId, onClose }: { leadId: string; onClose: () => voi
       <div className="space-y-2">
         <h3 className="text-2xl font-black text-slate-900">Request Submitted!</h3>
         <p className="text-slate-500 text-sm leading-relaxed max-w-sm">
-          We've received your demo request. Our team will review your requirements and reach out within <strong className="text-slate-800">1 business day</strong>.
+          We&apos;ve received your demo request. Our team will review your requirements and reach out within <strong className="text-slate-800">1 business day</strong>.
         </p>
       </div>
 
