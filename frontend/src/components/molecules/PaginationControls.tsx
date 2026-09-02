@@ -103,32 +103,24 @@ export function PaginationControls({
                     <ChevronLeft className="h-4 w-4 text-slate-700 dark:text-slate-300" />
                 </Button>
                 
-                <div className="hidden sm:flex items-center gap-1.5 bg-slate-50/80 dark:bg-black/20 p-1 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-inner">
+                <div className="hidden sm:flex items-center gap-1 bg-slate-100/80 dark:bg-black/40 p-1 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-inner">
                     {getPageNumbers().map((num, i) => (
                         num === -1 ? (
                             <span key={`ellipsis-${i}`} className="w-8 flex items-center justify-center text-slate-400">
                                 <MoreHorizontal className="h-4 w-4" />
                             </span>
                         ) : (
-                            <div key={`page-${num}`} className="relative h-8 w-8">
-                                {safeCurrentPage === num && (
-                                    <motion.div
-                                        layoutId="activePageBubble"
-                                        className="absolute inset-0 bg-gradient-to-tr from-emerald-600 to-teal-500 rounded-lg shadow-md shadow-emerald-500/20"
-                                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                                    />
-                                )}
-                                <button
-                                    onClick={() => onPageChange(num)}
-                                    className={`relative z-10 w-full h-full flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${
-                                        safeCurrentPage === num 
-                                            ? "text-white" 
-                                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/10"
-                                    }`}
-                                >
-                                    {num}
-                                </button>
-                            </div>
+                            <button
+                                key={`page-${num}`}
+                                onClick={() => onPageChange(num)}
+                                className={`relative h-8 w-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-300 ${
+                                    safeCurrentPage === num 
+                                        ? "bg-gradient-to-tr from-emerald-500 to-teal-400 text-white shadow-md shadow-emerald-500/30 scale-100" 
+                                        : "bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 hover:shadow-sm scale-95 hover:scale-100"
+                                }`}
+                            >
+                                {num}
+                            </button>
                         )
                     ))}
                 </div>

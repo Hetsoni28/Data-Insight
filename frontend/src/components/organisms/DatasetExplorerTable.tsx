@@ -84,7 +84,7 @@ export function DatasetExplorerTable({
   }
 
   const [currentPage, setCurrentPage] = React.useState(1)
-  const itemsPerPage = 6
+  const [itemsPerPage, setItemsPerPage] = React.useState(6)
 
   const filteredDatasets = React.useMemo(() => {
     if (!datasets) return [];
@@ -97,6 +97,7 @@ export function DatasetExplorerTable({
 
   const totalPages = Math.ceil(filteredDatasets.length / itemsPerPage)
   const paginatedDatasets = filteredDatasets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
 
   React.useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
@@ -260,7 +261,10 @@ export function DatasetExplorerTable({
             totalItems={filteredDatasets.length}
             pageSize={itemsPerPage}
             onPageChange={setCurrentPage}
-            onPageSizeChange={() => {}}
+            onPageSizeChange={(newSize) => {
+              setItemsPerPage(newSize);
+              setCurrentPage(1);
+            }}
             pageSizeOptions={[6, 12, 24]}
           />
         </div>
