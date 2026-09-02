@@ -56,7 +56,9 @@ export function useWebSocket({ onMessage }: { onMessage?: (event: WebSocketEvent
 
       ws.onerror = (error) => {
         if (!isUnmounted) {
-          console.error("[WebSocket] Error occurred:", error)
+          // Use warn instead of error to avoid triggering the Next.js overlay
+          // WS connection failure is non-fatal (backend may not have WS endpoint active)
+          console.warn("[WebSocket] Connection failed — real-time updates unavailable")
         }
       }
 
