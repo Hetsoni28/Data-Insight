@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic"
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,12 +10,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { tenantDashboardService } from '@/lib/tenantDashboard.service';
 import { DatasetService } from '@/lib/dataset.service';
 
-import { AnalystDashboardHeader } from '@/components/organisms/analyst/AnalystDashboardHeader';
-import { AnalystKpiGrid } from '@/components/organisms/analyst/AnalystKpiGrid';
-import { AnalystActivityChart } from '@/components/organisms/analyst/AnalystActivityChart';
-import { AnalystRecentActivityFeed } from '@/components/organisms/analyst/AnalystRecentActivityFeed';
-import { AnalystDatasetsTable } from '@/components/organisms/analyst/AnalystDatasetsTable';
-import { AnalystAiCopilotCard } from '@/components/organisms/analyst/AnalystAiCopilotCard';
+const AnalystDashboardHeader = dynamic(() => import('@/components/organisms/analyst/AnalystDashboardHeader').then(m => m.AnalystDashboardHeader), { ssr: false })
+const AnalystKpiGrid = dynamic(() => import('@/components/organisms/analyst/AnalystKpiGrid').then(m => m.AnalystKpiGrid), { ssr: false })
+const AnalystActivityChart = dynamic(() => import('@/components/organisms/analyst/AnalystActivityChart').then(m => m.AnalystActivityChart), { ssr: false })
+const AnalystRecentActivityFeed = dynamic(() => import('@/components/organisms/analyst/AnalystRecentActivityFeed').then(m => m.AnalystRecentActivityFeed), { ssr: false })
+const AnalystDatasetsTable = dynamic(() => import('@/components/organisms/analyst/AnalystDatasetsTable').then(m => m.AnalystDatasetsTable), { ssr: false })
+const AnalystAiCopilotCard = dynamic(() => import('@/components/organisms/analyst/AnalystAiCopilotCard').then(m => m.AnalystAiCopilotCard), { ssr: false })
+
+
 
 export default function AnalystDashboard() {
   const router = useRouter();

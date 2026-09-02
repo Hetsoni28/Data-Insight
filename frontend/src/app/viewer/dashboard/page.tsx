@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -11,20 +12,22 @@ import type {
   ViewerDataset
 } from "@/lib/tenant-dashboard.service";
 
-import { ViewerHero } from "@/components/organisms/ViewerHero";
-import { ViewerKpiGrid } from "@/components/organisms/ViewerKpiGrid";
-import { ViewerReportCenter } from "@/components/organisms/reports/ViewerReportCenter";
-import { ViewerDashboardCenter } from "@/components/organisms/ViewerDashboardCenter";
-import { ViewerDatasetCenter } from "@/components/organisms/ViewerDatasetCenter";
-import { ViewerAiAssistant } from "@/components/organisms/ViewerAiAssistant";
-import { ViewerActivityFeed } from "@/components/organisms/ViewerActivityFeed";
-import { ViewerNotifications } from "@/components/organisms/ViewerNotifications";
 
 import { FileText, LayoutDashboard, Database, Brain, Activity, Bell, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/atoms/Logo";
+
+const ViewerHero = dynamic(() => import('@/components/organisms/ViewerHero').then(m => m.ViewerHero), { ssr: false })
+const ViewerKpiGrid = dynamic(() => import('@/components/organisms/ViewerKpiGrid').then(m => m.ViewerKpiGrid), { ssr: false })
+const ViewerReportCenter = dynamic(() => import('@/components/organisms/reports/ViewerReportCenter').then(m => m.ViewerReportCenter), { ssr: false })
+const ViewerDashboardCenter = dynamic(() => import('@/components/organisms/ViewerDashboardCenter').then(m => m.ViewerDashboardCenter), { ssr: false })
+const ViewerDatasetCenter = dynamic(() => import('@/components/organisms/ViewerDatasetCenter').then(m => m.ViewerDatasetCenter), { ssr: false })
+const ViewerAiAssistant = dynamic(() => import('@/components/organisms/ViewerAiAssistant').then(m => m.ViewerAiAssistant), { ssr: false })
+const ViewerActivityFeed = dynamic(() => import('@/components/organisms/ViewerActivityFeed').then(m => m.ViewerActivityFeed), { ssr: false })
+const ViewerNotifications = dynamic(() => import('@/components/organisms/ViewerNotifications').then(m => m.ViewerNotifications), { ssr: false })
+
 
 type ActiveTab = "reports" | "dashboards" | "datasets" | "activity";
 

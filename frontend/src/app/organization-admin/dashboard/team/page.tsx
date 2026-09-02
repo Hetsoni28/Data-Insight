@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client"
 
 import { useState, useEffect } from "react"
@@ -7,12 +8,14 @@ import { Users, Settings, ShieldAlert, BarChart3, Mail, Download, Plus, Sparkles
 import { Button } from "@/components/ui/button"
 import api from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
-import { TeamOverviewKPIs } from "@/components/organisms/TeamOverviewKPIs"
-import { TeamMemberTable } from "@/components/organisms/TeamMemberTable"
-import { TeamRoleManager } from "@/components/organisms/TeamRoleManager"
-import { TeamAnalytics } from "@/components/organisms/TeamAnalytics"
-import { TeamInvitationCenter } from "@/components/organisms/TeamInvitationCenter"
-import { TeamSecurityAudit } from "@/components/organisms/TeamSecurityAudit"
+
+const TeamOverviewKPIs = dynamic(() => import('@/components/organisms/TeamOverviewKPIs').then(m => m.TeamOverviewKPIs), { ssr: false })
+const TeamMemberTable = dynamic(() => import('@/components/organisms/TeamMemberTable').then(m => m.TeamMemberTable), { ssr: false })
+const TeamRoleManager = dynamic(() => import('@/components/organisms/TeamRoleManager').then(m => m.TeamRoleManager), { ssr: false })
+const TeamAnalytics = dynamic(() => import('@/components/organisms/TeamAnalytics').then(m => m.TeamAnalytics), { ssr: false })
+const TeamInvitationCenter = dynamic(() => import('@/components/organisms/TeamInvitationCenter').then(m => m.TeamInvitationCenter), { ssr: false })
+const TeamSecurityAudit = dynamic(() => import('@/components/organisms/TeamSecurityAudit').then(m => m.TeamSecurityAudit), { ssr: false })
+
 
 export default function TeamManagementPage() {
   const { data: user } = useAuth()

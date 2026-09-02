@@ -1,7 +1,10 @@
+import dynamic from "next/dynamic"
+
+const IntegrationsHeroBanner = dynamic(() => import('@/components/organisms/IntegrationsHeroBanner').then(m => m.IntegrationsHeroBanner), { ssr: false })
+const IntegrationsOperationsCenter = dynamic(() => import('@/components/organisms/IntegrationsOperationsCenter').then(m => m.IntegrationsOperationsCenter), { ssr: false })
+
 ﻿"use client";
 
-import { IntegrationsHeroBanner } from "@/components/organisms/IntegrationsHeroBanner";
-import { IntegrationsOperationsCenter } from "@/components/organisms/IntegrationsOperationsCenter";
 
 export default function IntegrationsPage() {
   return (

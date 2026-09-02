@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 ﻿﻿"use client"
 
 import { useState, useEffect, useMemo } from "react"
@@ -20,7 +21,6 @@ import {
   ExternalLink,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { UsersDataGrid } from "@/components/organisms/UsersDataGrid"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
 import api from "@/lib/api"
@@ -35,6 +35,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
+
+const UsersDataGrid = dynamic(() => import('@/components/organisms/UsersDataGrid').then(m => m.UsersDataGrid), { ssr: false })
+
 
 interface TenantOption {
   id: string

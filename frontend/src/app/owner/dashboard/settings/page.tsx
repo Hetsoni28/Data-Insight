@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 ﻿"use client"
 import { useState, useEffect } from "react"
 import { Building2, Save, Loader2, Settings2 } from "lucide-react"
@@ -11,7 +12,9 @@ import { Button } from "@/components/ui/button"
 import { TenantService, Tenant } from "@/lib/tenant.service"
 import { getActiveUsers, getPendingUsers } from "@/lib/users.service"
 import { WebhooksService, Webhook } from "@/lib/webhooks.service"
-import { SettingsGrid } from "@/components/organisms/SettingsGrid"
+
+const SettingsGrid = dynamic(() => import('@/components/organisms/SettingsGrid').then(m => m.SettingsGrid), { ssr: false })
+
 
 export default function SettingsPage() {
   const router = useRouter()

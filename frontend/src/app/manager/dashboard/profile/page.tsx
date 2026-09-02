@@ -1,5 +1,8 @@
+import dynamic from "next/dynamic"
 import { Metadata } from "next";
-import { ViewerProfileCenter } from "@/components/organisms/profile/ViewerProfileCenter";
+
+const ViewerProfileCenter = dynamic(() => import('@/components/organisms/profile/ViewerProfileCenter').then(m => m.ViewerProfileCenter), { ssr: false })
+
 
 export const metadata: Metadata = {
   title: "Profile | Viewer | Data Insight",

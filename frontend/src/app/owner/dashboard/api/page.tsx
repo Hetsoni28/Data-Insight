@@ -1,14 +1,17 @@
+import dynamic from "next/dynamic"
 ﻿﻿"use client"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState, useCallback } from "react"
 
 import { gatewayService } from "@/lib/gatewayService"
-import { GatewayHeroBanner } from "@/components/organisms/GatewayHeroBanner"
-import { GatewayLiveKpis } from "@/components/organisms/GatewayLiveKpis"
-import { GatewayUsageCharts } from "@/components/organisms/GatewayUsageCharts"
-import { GatewaySecurityCenter } from "@/components/organisms/GatewaySecurityCenter"
-import { GatewayDeveloperApps } from "@/components/organisms/GatewayDeveloperApps"
-import { GatewayLiveStream } from "@/components/organisms/GatewayLiveStream"
+
+const GatewayHeroBanner = dynamic(() => import('@/components/organisms/GatewayHeroBanner').then(m => m.GatewayHeroBanner), { ssr: false })
+const GatewayLiveKpis = dynamic(() => import('@/components/organisms/GatewayLiveKpis').then(m => m.GatewayLiveKpis), { ssr: false })
+const GatewayUsageCharts = dynamic(() => import('@/components/organisms/GatewayUsageCharts').then(m => m.GatewayUsageCharts), { ssr: false })
+const GatewaySecurityCenter = dynamic(() => import('@/components/organisms/GatewaySecurityCenter').then(m => m.GatewaySecurityCenter), { ssr: false })
+const GatewayDeveloperApps = dynamic(() => import('@/components/organisms/GatewayDeveloperApps').then(m => m.GatewayDeveloperApps), { ssr: false })
+const GatewayLiveStream = dynamic(() => import('@/components/organisms/GatewayLiveStream').then(m => m.GatewayLiveStream), { ssr: false })
+
 
 export default function ApiGatewayPage() {
   const queryClient = useQueryClient()

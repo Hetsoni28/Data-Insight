@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 ﻿"use client"
 
 import { useState } from "react"
@@ -7,17 +8,19 @@ import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import api from "@/lib/api"
 import {
+
+const RevenueKpiGrid = dynamic(() => import('@/components/organisms/RevenueKpiGrid').then(m => m.RevenueKpiGrid), { ssr: false })
+const ExecutiveSummaryCard = dynamic(() => import('@/components/organisms/ExecutiveSummaryCard').then(m => m.ExecutiveSummaryCard), { ssr: false })
+const RevenueAnalyticsCharts = dynamic(() => import('@/components/organisms/RevenueAnalyticsCharts').then(m => m.RevenueAnalyticsCharts), { ssr: false })
+const TopOrganizationsTable = dynamic(() => import('@/components/organisms/TopOrganizationsTable').then(m => m.TopOrganizationsTable), { ssr: false })
+const FinancialActivityTimeline = dynamic(() => import('@/components/organisms/FinancialActivityTimeline').then(m => m.FinancialActivityTimeline), { ssr: false })
+
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { RevenueKpiGrid } from "@/components/organisms/RevenueKpiGrid"
-import { ExecutiveSummaryCard } from "@/components/organisms/ExecutiveSummaryCard"
-import { RevenueAnalyticsCharts } from "@/components/organisms/RevenueAnalyticsCharts"
-import { TopOrganizationsTable } from "@/components/organisms/TopOrganizationsTable"
-import { FinancialActivityTimeline } from "@/components/organisms/FinancialActivityTimeline"
 
 const DATE_RANGES = [
   { label: "Last 7 Days", value: 7 },

@@ -1,9 +1,12 @@
+import dynamic from "next/dynamic"
 ﻿'use client';
 
 import { useQuery } from '@tanstack/react-query';
 import { securityOpsService } from '@/lib/securityOpsService';
-import { SecurityHeroBanner } from '@/components/organisms/SecurityHeroBanner';
-import { SecurityOperationsCenter } from '@/components/organisms/SecurityOperationsCenter';
+
+const SecurityHeroBanner = dynamic(() => import('@/components/organisms/SecurityHeroBanner').then(m => m.SecurityHeroBanner), { ssr: false })
+const SecurityOperationsCenter = dynamic(() => import('@/components/organisms/SecurityOperationsCenter').then(m => m.SecurityOperationsCenter), { ssr: false })
+
 
 export default function SecurityPage() {
     // 1. Fetch Overview KPIs

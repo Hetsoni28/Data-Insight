@@ -1,5 +1,8 @@
+import dynamic from "next/dynamic"
 import React from "react"
-import { AnalystChartsShell } from "@/components/organisms/AnalystChartsShell"
+
+const AnalystChartsShell = dynamic(() => import('@/components/organisms/AnalystChartsShell').then(m => m.AnalystChartsShell), { ssr: false })
+
 
 export const metadata = {
   title: "Charts - Data Insight",

@@ -1,6 +1,9 @@
+import dynamic from "next/dynamic"
+
+const DashboardBuilderHub = dynamic(() => import('@/components/organisms/DashboardBuilderHub').then(m => m.DashboardBuilderHub), { ssr: false })
+
 "use client"
 
-import { DashboardBuilderHub } from "@/components/organisms/DashboardBuilderHub"
 
 export default function ManagerDashboardBuilderPage() {
   return <DashboardBuilderHub basePath="/manager/dashboard/builder" />

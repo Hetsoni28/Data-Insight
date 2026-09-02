@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DatasetUploader } from "@/components/organisms/DatasetUploader";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
 import {
   DropdownMenu,
@@ -26,6 +26,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { toast } from "sonner";
+
+const DatasetUploader = dynamic(() => import('@/components/organisms/DatasetUploader').then(m => m.DatasetUploader), { ssr: false })
+
 
 export default function OwnerDatasetsPage() {
   const { activeWs } = useWorkspaceStore();

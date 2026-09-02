@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 ﻿"use client";
 
 import { useState, useEffect } from "react";
@@ -10,9 +11,11 @@ import { NotificationService, Notification, NotificationStats } from "@/lib/noti
 
 import { NotificationStatsRow } from "@/components/molecules/NotificationStatsRow";
 import { NotificationSidebar } from "@/components/molecules/NotificationSidebar";
-import { NotificationFeed } from "@/components/organisms/NotificationFeed";
-import { NotificationDrawer } from "@/components/organisms/NotificationDrawer";
 import { useAuth } from "@/hooks/useAuth";
+
+const NotificationFeed = dynamic(() => import('@/components/organisms/NotificationFeed').then(m => m.NotificationFeed), { ssr: false })
+const NotificationDrawer = dynamic(() => import('@/components/organisms/NotificationDrawer').then(m => m.NotificationDrawer), { ssr: false })
+
 
 export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<"feed" | "preferences">("feed");

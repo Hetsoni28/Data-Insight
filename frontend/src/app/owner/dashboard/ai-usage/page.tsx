@@ -1,18 +1,21 @@
+import dynamic from "next/dynamic"
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AiKpiGrid } from "@/components/organisms/AiKpiGrid";
-import { AiExecutiveBriefing } from "@/components/organisms/AiExecutiveBriefing";
-import { AiProviderAnalytics } from "@/components/organisms/AiProviderAnalytics";
-import { AiModelLeaderboard } from "@/components/organisms/AiModelLeaderboard";
-import { AiOrganizationUsage } from "@/components/organisms/AiOrganizationUsage";
-import { AiActivityTimeline } from "@/components/organisms/AiActivityTimeline";
 import { Button } from "@/components/ui/button";
 import { Download, RefreshCcw, Settings } from "lucide-react";
 import { useState } from "react";
 import api from "@/lib/api";
+
+const AiKpiGrid = dynamic(() => import('@/components/organisms/AiKpiGrid').then(m => m.AiKpiGrid), { ssr: false })
+const AiExecutiveBriefing = dynamic(() => import('@/components/organisms/AiExecutiveBriefing').then(m => m.AiExecutiveBriefing), { ssr: false })
+const AiProviderAnalytics = dynamic(() => import('@/components/organisms/AiProviderAnalytics').then(m => m.AiProviderAnalytics), { ssr: false })
+const AiModelLeaderboard = dynamic(() => import('@/components/organisms/AiModelLeaderboard').then(m => m.AiModelLeaderboard), { ssr: false })
+const AiOrganizationUsage = dynamic(() => import('@/components/organisms/AiOrganizationUsage').then(m => m.AiOrganizationUsage), { ssr: false })
+const AiActivityTimeline = dynamic(() => import('@/components/organisms/AiActivityTimeline').then(m => m.AiActivityTimeline), { ssr: false })
+
 
 export default function OwnerAiDashboardPage() {
   const queryClient = useQueryClient();

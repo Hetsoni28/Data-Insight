@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,7 +18,9 @@ import { ProfileService, FullProfile, UserSession, UserActivity, AuditLog } from
 
 import { ProfileHeader } from "@/components/molecules/ProfileHeader";
 import { ProfileStatsSidebar } from "@/components/molecules/ProfileStatsSidebar";
-import { ProfileContentTabs } from "@/components/organisms/ProfileContentTabs";
+
+const ProfileContentTabs = dynamic(() => import('@/components/organisms/ProfileContentTabs').then(m => m.ProfileContentTabs), { ssr: false })
+
 
 export default function PlatformOwnerProfilePage() {
   const { data: user, refetch } = useAuth();

@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -6,18 +7,20 @@ import { ProfileService, FullProfile, UserSession } from "@/lib/profile.service"
 import { getLoginHistory, LoginHistoryItem } from "@/lib/auth.service";
 import { useAuthStore } from "@/store/authStore";
 
-import { ProfileHero } from "@/components/organisms/profile/ProfileHero";
-import { PersonalInfoCard } from "@/components/organisms/profile/PersonalInfoCard";
-import { SecuritySettingsCard } from "@/components/organisms/profile/SecuritySettingsCard";
-import { ActiveSessionsCard } from "@/components/organisms/profile/ActiveSessionsCard";
-import { LoginHistoryTable } from "@/components/organisms/profile/LoginHistoryTable";
-import { NotificationPreferencesCard } from "@/components/organisms/profile/NotificationPreferencesCard";
-import { AccountPreferencesCard } from "@/components/organisms/profile/AccountPreferencesCard";
-import { DangerZoneCard } from "@/components/organisms/profile/DangerZoneCard";
-import { AvatarModal } from "@/components/organisms/profile/AvatarModal";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+const ProfileHero = dynamic(() => import('@/components/organisms/profile/ProfileHero').then(m => m.ProfileHero), { ssr: false })
+const PersonalInfoCard = dynamic(() => import('@/components/organisms/profile/PersonalInfoCard').then(m => m.PersonalInfoCard), { ssr: false })
+const SecuritySettingsCard = dynamic(() => import('@/components/organisms/profile/SecuritySettingsCard').then(m => m.SecuritySettingsCard), { ssr: false })
+const ActiveSessionsCard = dynamic(() => import('@/components/organisms/profile/ActiveSessionsCard').then(m => m.ActiveSessionsCard), { ssr: false })
+const LoginHistoryTable = dynamic(() => import('@/components/organisms/profile/LoginHistoryTable').then(m => m.LoginHistoryTable), { ssr: false })
+const NotificationPreferencesCard = dynamic(() => import('@/components/organisms/profile/NotificationPreferencesCard').then(m => m.NotificationPreferencesCard), { ssr: false })
+const AccountPreferencesCard = dynamic(() => import('@/components/organisms/profile/AccountPreferencesCard').then(m => m.AccountPreferencesCard), { ssr: false })
+const DangerZoneCard = dynamic(() => import('@/components/organisms/profile/DangerZoneCard').then(m => m.DangerZoneCard), { ssr: false })
+const AvatarModal = dynamic(() => import('@/components/organisms/profile/AvatarModal').then(m => m.AvatarModal), { ssr: false })
+
 
 export default function AnalystProfilePage() {
   const { logout } = useAuthStore();

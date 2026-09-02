@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client"
 
 import { useState } from "react"
@@ -21,16 +22,18 @@ import api from "@/lib/api"
 import { toast } from "sonner"
 
 // ── Organisms ─────────────────────────────────────────────────────────────────
-import { SubscriptionAnalyticsCharts } from "@/components/organisms/SubscriptionAnalyticsCharts"
-import { SubscriptionDataGrid } from "@/components/organisms/SubscriptionDataGrid"
-import { OwnerInvoicesTable } from "@/components/organisms/OwnerInvoicesTable"
-import { BillingActivityFeed } from "@/components/organisms/BillingActivityFeed"
 import {
+
+const SubscriptionAnalyticsCharts = dynamic(() => import('@/components/organisms/SubscriptionAnalyticsCharts').then(m => m.SubscriptionAnalyticsCharts), { ssr: false })
+const SubscriptionDataGrid = dynamic(() => import('@/components/organisms/SubscriptionDataGrid').then(m => m.SubscriptionDataGrid), { ssr: false })
+const OwnerInvoicesTable = dynamic(() => import('@/components/organisms/OwnerInvoicesTable').then(m => m.OwnerInvoicesTable), { ssr: false })
+const BillingActivityFeed = dynamic(() => import('@/components/organisms/BillingActivityFeed').then(m => m.BillingActivityFeed), { ssr: false })
+const SubscriptionRevenueKpi = dynamic(() => import('@/components/organisms/SubscriptionRevenueKpi').then(m => m.SubscriptionRevenueKpi), { ssr: false })
+
   SubscriptionPlanCard,
   DEDICATED_RENTAL_FEATURES,
   CUSTOM_LICENSE_FEATURES
 } from "@/components/organisms/SubscriptionPlanCard"
-import { SubscriptionRevenueKpi } from "@/components/organisms/SubscriptionRevenueKpi"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const fmtUsd = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`

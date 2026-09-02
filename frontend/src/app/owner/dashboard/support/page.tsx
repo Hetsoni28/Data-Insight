@@ -1,12 +1,15 @@
+import dynamic from "next/dynamic"
 ﻿﻿"use client";
 
 import { toast } from "sonner";
-import { SupportHero } from "@/components/organisms/SupportHero";
-import { SupportKpiDashboard } from "@/components/organisms/SupportKpiDashboard";
-import { TicketManagementGrid } from "@/components/organisms/TicketManagementGrid";
-import { PlatformIncidents } from "@/components/organisms/PlatformIncidents";
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
+const SupportHero = dynamic(() => import('@/components/organisms/SupportHero').then(m => m.SupportHero), { ssr: false })
+const SupportKpiDashboard = dynamic(() => import('@/components/organisms/SupportKpiDashboard').then(m => m.SupportKpiDashboard), { ssr: false })
+const TicketManagementGrid = dynamic(() => import('@/components/organisms/TicketManagementGrid').then(m => m.TicketManagementGrid), { ssr: false })
+const PlatformIncidents = dynamic(() => import('@/components/organisms/PlatformIncidents').then(m => m.PlatformIncidents), { ssr: false })
+
 
 export default function SupportCenterPage() {
   const { data: dashboardData, isLoading: loadingDashboard } = useQuery({

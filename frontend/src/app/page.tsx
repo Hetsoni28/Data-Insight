@@ -1,16 +1,19 @@
-import { Navbar } from "@/components/organisms/Navbar"
-import { HeroSection } from "@/components/organisms/HeroSection"
-import { StopReportingSection } from "@/components/organisms/StopReportingSection"
-import { ArchitectureSection } from "@/components/organisms/ArchitectureSection"
-import { ExcelSection } from "@/components/organisms/ExcelSection"
-import { IntelligenceSection } from "@/components/organisms/IntelligenceSection"
-import { WhitelabelShowcaseSection } from "@/components/organisms/WhitelabelShowcaseSection"
-import { ScheduledReportsSection } from "@/components/organisms/ScheduledReportsSection"
-import { SecurityComplianceSection } from "@/components/organisms/SecurityComplianceSection"
-import { PricingSection } from "@/components/organisms/PricingSection"
-import { FaqSection } from "@/components/organisms/FaqSection"
-import { CtaSection } from "@/components/organisms/CtaSection"
-import { Footer } from "@/components/organisms/Footer"
+import dynamic from "next/dynamic"
+
+const Navbar = dynamic(() => import('@/components/organisms/Navbar').then(m => m.Navbar), { ssr: false })
+const HeroSection = dynamic(() => import('@/components/organisms/HeroSection').then(m => m.HeroSection), { ssr: false })
+const StopReportingSection = dynamic(() => import('@/components/organisms/StopReportingSection').then(m => m.StopReportingSection), { ssr: false })
+const ArchitectureSection = dynamic(() => import('@/components/organisms/ArchitectureSection').then(m => m.ArchitectureSection), { ssr: false })
+const ExcelSection = dynamic(() => import('@/components/organisms/ExcelSection').then(m => m.ExcelSection), { ssr: false })
+const IntelligenceSection = dynamic(() => import('@/components/organisms/IntelligenceSection').then(m => m.IntelligenceSection), { ssr: false })
+const WhitelabelShowcaseSection = dynamic(() => import('@/components/organisms/WhitelabelShowcaseSection').then(m => m.WhitelabelShowcaseSection), { ssr: false })
+const ScheduledReportsSection = dynamic(() => import('@/components/organisms/ScheduledReportsSection').then(m => m.ScheduledReportsSection), { ssr: false })
+const SecurityComplianceSection = dynamic(() => import('@/components/organisms/SecurityComplianceSection').then(m => m.SecurityComplianceSection), { ssr: false })
+const PricingSection = dynamic(() => import('@/components/organisms/PricingSection').then(m => m.PricingSection), { ssr: false })
+const FaqSection = dynamic(() => import('@/components/organisms/FaqSection').then(m => m.FaqSection), { ssr: false })
+const CtaSection = dynamic(() => import('@/components/organisms/CtaSection').then(m => m.CtaSection), { ssr: false })
+const Footer = dynamic(() => import('@/components/organisms/Footer').then(m => m.Footer), { ssr: false })
+
 
 export const metadata = {
   title: "Enterprise AI Business Intelligence",

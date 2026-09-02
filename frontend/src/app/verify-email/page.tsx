@@ -1,5 +1,8 @@
+import dynamic from "next/dynamic"
 import { AuthLayout } from "@/components/templates/AuthLayout"
-import { VerifyEmailForm } from "@/components/organisms/VerifyEmailForm"
+
+const VerifyEmailForm = dynamic(() => import('@/components/organisms/VerifyEmailForm').then(m => m.VerifyEmailForm), { ssr: false })
+
 
 export const metadata = {
   title: "Verify Email",

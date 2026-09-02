@@ -1,18 +1,21 @@
+import dynamic from "next/dynamic"
 "use client"
 import { useEffect } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/useAuth"
 import api from "@/lib/api"
 import { motion } from "framer-motion"
-import { OrganizationHero } from "@/components/organisms/OrganizationHero"
-import { OrganizationKpiGrid } from "@/components/organisms/OrganizationKpiGrid"
-import { OrganizationScoreCards } from "@/components/organisms/OrganizationScoreCards"
-import { OrganizationActivityFeed } from "@/components/organisms/OrganizationActivityFeed"
-import { RecentDatasetsWidget } from "@/components/organisms/RecentDatasetsWidget"
-import { OrganizationReports } from "@/components/organisms/OrganizationReports"
-import { OrganizationSecurity } from "@/components/organisms/OrganizationSecurity"
-import { OrganizationNavStrip } from "@/components/organisms/OrganizationNavStrip"
 import { DynamicOrganizationAnalytics as OrganizationAnalytics } from "@/components/charts/dynamic"
+
+const OrganizationHero = dynamic(() => import('@/components/organisms/OrganizationHero').then(m => m.OrganizationHero), { ssr: false })
+const OrganizationKpiGrid = dynamic(() => import('@/components/organisms/OrganizationKpiGrid').then(m => m.OrganizationKpiGrid), { ssr: false })
+const OrganizationScoreCards = dynamic(() => import('@/components/organisms/OrganizationScoreCards').then(m => m.OrganizationScoreCards), { ssr: false })
+const OrganizationActivityFeed = dynamic(() => import('@/components/organisms/OrganizationActivityFeed').then(m => m.OrganizationActivityFeed), { ssr: false })
+const RecentDatasetsWidget = dynamic(() => import('@/components/organisms/RecentDatasetsWidget').then(m => m.RecentDatasetsWidget), { ssr: false })
+const OrganizationReports = dynamic(() => import('@/components/organisms/OrganizationReports').then(m => m.OrganizationReports), { ssr: false })
+const OrganizationSecurity = dynamic(() => import('@/components/organisms/OrganizationSecurity').then(m => m.OrganizationSecurity), { ssr: false })
+const OrganizationNavStrip = dynamic(() => import('@/components/organisms/OrganizationNavStrip').then(m => m.OrganizationNavStrip), { ssr: false })
+
 
 export default function OrganizationAdminDashboard() {
   const { data: user } = useAuth()

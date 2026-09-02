@@ -1,7 +1,10 @@
+import dynamic from "next/dynamic"
+
+const AiOpsHeroBanner = dynamic(() => import('@/components/organisms/AiOpsHeroBanner').then(m => m.AiOpsHeroBanner), { ssr: false })
+const AiOpsOperationsCenter = dynamic(() => import('@/components/organisms/AiOpsOperationsCenter').then(m => m.AiOpsOperationsCenter), { ssr: false })
+
 ﻿"use client";
 
-import { AiOpsHeroBanner } from "@/components/organisms/AiOpsHeroBanner";
-import { AiOpsOperationsCenter } from "@/components/organisms/AiOpsOperationsCenter";
 
 export default function AiProvidersPage() {
   return (

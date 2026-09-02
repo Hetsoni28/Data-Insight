@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 ﻿﻿"use client"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState, useCallback, useMemo } from "react"
@@ -5,16 +6,18 @@ import { motion } from "framer-motion"
 import { toast } from "sonner"
 
 import { storageService } from "@/lib/storageService"
-import { StorageHeroBanner } from "@/components/organisms/StorageHeroBanner"
-import { StorageLiveKpis } from "@/components/organisms/StorageLiveKpis"
-import { StorageExecutiveSummary } from "@/components/organisms/StorageExecutiveSummary"
-import { StorageAnalyticsCharts } from "@/components/organisms/StorageAnalyticsCharts"
-import { StorageOrganizationUsage } from "@/components/organisms/StorageOrganizationUsage"
-import { StorageBucketManagement } from "@/components/organisms/StorageBucketManagement"
-import { StorageFileExplorer } from "@/components/organisms/StorageFileExplorer"
-import { StorageBackupCenter } from "@/components/organisms/StorageBackupCenter"
-import { StorageSecurityCenter } from "@/components/organisms/StorageSecurityCenter"
-import { StorageActivityTimeline } from "@/components/organisms/StorageActivityTimeline"
+
+const StorageHeroBanner = dynamic(() => import('@/components/organisms/StorageHeroBanner').then(m => m.StorageHeroBanner), { ssr: false })
+const StorageLiveKpis = dynamic(() => import('@/components/organisms/StorageLiveKpis').then(m => m.StorageLiveKpis), { ssr: false })
+const StorageExecutiveSummary = dynamic(() => import('@/components/organisms/StorageExecutiveSummary').then(m => m.StorageExecutiveSummary), { ssr: false })
+const StorageAnalyticsCharts = dynamic(() => import('@/components/organisms/StorageAnalyticsCharts').then(m => m.StorageAnalyticsCharts), { ssr: false })
+const StorageOrganizationUsage = dynamic(() => import('@/components/organisms/StorageOrganizationUsage').then(m => m.StorageOrganizationUsage), { ssr: false })
+const StorageBucketManagement = dynamic(() => import('@/components/organisms/StorageBucketManagement').then(m => m.StorageBucketManagement), { ssr: false })
+const StorageFileExplorer = dynamic(() => import('@/components/organisms/StorageFileExplorer').then(m => m.StorageFileExplorer), { ssr: false })
+const StorageBackupCenter = dynamic(() => import('@/components/organisms/StorageBackupCenter').then(m => m.StorageBackupCenter), { ssr: false })
+const StorageSecurityCenter = dynamic(() => import('@/components/organisms/StorageSecurityCenter').then(m => m.StorageSecurityCenter), { ssr: false })
+const StorageActivityTimeline = dynamic(() => import('@/components/organisms/StorageActivityTimeline').then(m => m.StorageActivityTimeline), { ssr: false })
+
 
 export default function StorageCommandCenterPage() {
   const queryClient = useQueryClient()

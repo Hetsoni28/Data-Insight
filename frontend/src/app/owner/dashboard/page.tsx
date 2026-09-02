@@ -7,12 +7,14 @@ import { useWorkspaceStore } from "@/store/workspaceStore"
 import api from "@/lib/api"
 import { Loader2 } from "lucide-react"
 
-import { ExecutiveBanner } from "@/components/organisms/ExecutiveBanner"
-import { LiveKpiGrid } from "@/components/organisms/LiveKpiGrid"
-import { DashboardActivityFeed } from "@/components/organisms/DashboardActivityFeed"
-import { ExecutiveAIPanel } from "@/components/organisms/ExecutiveAIPanel"
 import dynamic from "next/dynamic"
 import {
+
+const ExecutiveBanner = dynamic(() => import('@/components/organisms/ExecutiveBanner').then(m => m.ExecutiveBanner), { ssr: false })
+const LiveKpiGrid = dynamic(() => import('@/components/organisms/LiveKpiGrid').then(m => m.LiveKpiGrid), { ssr: false })
+const DashboardActivityFeed = dynamic(() => import('@/components/organisms/DashboardActivityFeed').then(m => m.DashboardActivityFeed), { ssr: false })
+const ExecutiveAIPanel = dynamic(() => import('@/components/organisms/ExecutiveAIPanel').then(m => m.ExecutiveAIPanel), { ssr: false })
+
   DynamicPlatformHealthOverview,
   DynamicDashboardUsageChart,
 } from "@/components/charts/dynamic"

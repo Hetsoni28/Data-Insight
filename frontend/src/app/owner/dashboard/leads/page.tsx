@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client"
 
 import { useState } from "react"
@@ -6,9 +7,11 @@ import { RefreshCw, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import api from "@/lib/api"
 
-import { LeadsKpiGrid } from "@/components/organisms/leads/LeadsKpiGrid"
-import { LeadsDataGrid } from "@/components/organisms/leads/LeadsDataGrid"
-import { LeadStatus } from "@/components/organisms/leads/LeadDetailsDrawer"
+const LeadsKpiGrid = dynamic(() => import('@/components/organisms/leads/LeadsKpiGrid').then(m => m.LeadsKpiGrid), { ssr: false })
+const LeadsDataGrid = dynamic(() => import('@/components/organisms/leads/LeadsDataGrid').then(m => m.LeadsDataGrid), { ssr: false })
+const LeadStatus = dynamic(() => import('@/components/organisms/leads/LeadDetailsDrawer').then(m => m.LeadStatus), { ssr: false })
+
+
 
 export default function LeadsPipelinePage() {
   const [search, setSearch] = useState("")

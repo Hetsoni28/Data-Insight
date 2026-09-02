@@ -1,13 +1,16 @@
+import dynamic from "next/dynamic"
 ﻿"use client"
 
 import { Activity, Download, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SystemMonitoring } from "@/components/organisms/SystemMonitoring"
 import { motion } from "framer-motion"
 import { toast } from "sonner"
 import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import api from "@/lib/api"
+
+const SystemMonitoring = dynamic(() => import('@/components/organisms/SystemMonitoring').then(m => m.SystemMonitoring), { ssr: false })
+
 
 export default function MonitoringPage() {
   const [isRefreshing, setIsRefreshing] = useState(false)

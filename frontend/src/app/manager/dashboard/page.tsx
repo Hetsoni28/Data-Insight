@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client";
 
 import { useState, useCallback } from "react";
@@ -8,16 +9,18 @@ import { tenantDashboardService } from "@/lib/tenantDashboard.service";
 import { DatasetService } from "@/lib/dataset.service";
 import { motion } from "framer-motion";
 
-import { ManagerHero } from "@/components/organisms/ManagerHero";
-import { ManagerKpiGrid } from "@/components/organisms/ManagerKpiGrid";
-import { RecentDatasetsWidget } from "@/components/organisms/RecentDatasetsWidget";
-import { ManagerReports } from "@/components/organisms/ManagerReports";
-import { ManagerActivityFeed } from "@/components/organisms/ManagerActivityFeed";
-import { ManagerQuickActions } from "@/components/organisms/ManagerQuickActions";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+const ManagerHero = dynamic(() => import('@/components/organisms/ManagerHero').then(m => m.ManagerHero), { ssr: false })
+const ManagerKpiGrid = dynamic(() => import('@/components/organisms/ManagerKpiGrid').then(m => m.ManagerKpiGrid), { ssr: false })
+const RecentDatasetsWidget = dynamic(() => import('@/components/organisms/RecentDatasetsWidget').then(m => m.RecentDatasetsWidget), { ssr: false })
+const ManagerReports = dynamic(() => import('@/components/organisms/ManagerReports').then(m => m.ManagerReports), { ssr: false })
+const ManagerActivityFeed = dynamic(() => import('@/components/organisms/ManagerActivityFeed').then(m => m.ManagerActivityFeed), { ssr: false })
+const ManagerQuickActions = dynamic(() => import('@/components/organisms/ManagerQuickActions').then(m => m.ManagerQuickActions), { ssr: false })
+
 
 export default function ManagerDashboardPage() {
   const { data: user } = useAuth();

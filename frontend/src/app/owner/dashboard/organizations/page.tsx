@@ -1,16 +1,19 @@
+import dynamic from "next/dynamic"
 ﻿"use client"
 import { Building2, Plus, Download, Command } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { OrganizationDataGrid } from "@/components/organisms/OrganizationDataGrid"
-import { LiveKpiDashboard } from "@/components/organisms/LiveKpiDashboard"
-import { OrganizationAnalytics } from "@/components/organisms/OrganizationAnalytics"
-import { CreateOrganizationModal } from "@/components/organisms/CreateOrganizationModal"
 import { motion } from "framer-motion"
 import { toast } from "sonner"
 import api from "@/lib/api"
 import { useState, useEffect } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSearchParams, useRouter } from "next/navigation"
+
+const OrganizationDataGrid = dynamic(() => import('@/components/organisms/OrganizationDataGrid').then(m => m.OrganizationDataGrid), { ssr: false })
+const LiveKpiDashboard = dynamic(() => import('@/components/organisms/LiveKpiDashboard').then(m => m.LiveKpiDashboard), { ssr: false })
+const OrganizationAnalytics = dynamic(() => import('@/components/organisms/OrganizationAnalytics').then(m => m.OrganizationAnalytics), { ssr: false })
+const CreateOrganizationModal = dynamic(() => import('@/components/organisms/CreateOrganizationModal').then(m => m.CreateOrganizationModal), { ssr: false })
+
 
 export default function OrganizationsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)

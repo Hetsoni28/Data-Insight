@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client"
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -11,9 +12,11 @@ import { logoutUser } from "@/lib/auth.service"
 import api from "@/lib/api"
 import { cn } from "@/lib/utils"
 
-import { OnboardingOrgStep } from "@/components/organisms/OnboardingOrgStep"
-import { OnboardingWorkspaceStep } from "@/components/organisms/OnboardingWorkspaceStep"
-import { OnboardingSuccessStep } from "@/components/organisms/OnboardingSuccessStep"
+const OnboardingOrgStep = dynamic(() => import('@/components/organisms/OnboardingOrgStep').then(m => m.OnboardingOrgStep), { ssr: false })
+const OnboardingWorkspaceStep = dynamic(() => import('@/components/organisms/OnboardingWorkspaceStep').then(m => m.OnboardingWorkspaceStep), { ssr: false })
+const OnboardingSuccessStep = dynamic(() => import('@/components/organisms/OnboardingSuccessStep').then(m => m.OnboardingSuccessStep), { ssr: false })
+
+
 
 function OnboardingContent() {
   const router = useRouter()

@@ -1,22 +1,25 @@
+import dynamic from "next/dynamic"
 "use client"
 
 import { useState, useEffect } from "react"
 import api from "@/lib/api"
 import { toast } from "sonner"
 
-import { ReportExecutiveKPIs } from "@/components/organisms/ReportExecutiveKPIs"
-import { ReportQuickActions } from "@/components/organisms/ReportQuickActions"
 import { ReportExplorerTable, Report } from "@/components/organisms/ReportExplorerTable"
-import { ReportAuditTimeline } from "@/components/organisms/ReportAuditTimeline"
-import { ReportActionModal } from "@/components/organisms/ReportActionModal"
-import { ReportViewerModal } from "@/components/organisms/ReportViewerModal"
-import { ReportSchedulesTable } from "@/components/organisms/ReportSchedulesTable"
-import { ReportSchedulerModal } from "@/components/organisms/ReportSchedulerModal"
-import { ReportFilters } from "@/components/organisms/ReportFilters"
-import { ReportExportModal } from "@/components/organisms/ReportExportModal"
-import { ReportBuilder } from "@/components/organisms/ReportBuilder"
 import { ReportScheduleService, ReportSchedule } from "@/lib/report.service"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+
+const ReportExecutiveKPIs = dynamic(() => import('@/components/organisms/ReportExecutiveKPIs').then(m => m.ReportExecutiveKPIs), { ssr: false })
+const ReportQuickActions = dynamic(() => import('@/components/organisms/ReportQuickActions').then(m => m.ReportQuickActions), { ssr: false })
+const ReportAuditTimeline = dynamic(() => import('@/components/organisms/ReportAuditTimeline').then(m => m.ReportAuditTimeline), { ssr: false })
+const ReportActionModal = dynamic(() => import('@/components/organisms/ReportActionModal').then(m => m.ReportActionModal), { ssr: false })
+const ReportViewerModal = dynamic(() => import('@/components/organisms/ReportViewerModal').then(m => m.ReportViewerModal), { ssr: false })
+const ReportSchedulesTable = dynamic(() => import('@/components/organisms/ReportSchedulesTable').then(m => m.ReportSchedulesTable), { ssr: false })
+const ReportSchedulerModal = dynamic(() => import('@/components/organisms/ReportSchedulerModal').then(m => m.ReportSchedulerModal), { ssr: false })
+const ReportFilters = dynamic(() => import('@/components/organisms/ReportFilters').then(m => m.ReportFilters), { ssr: false })
+const ReportExportModal = dynamic(() => import('@/components/organisms/ReportExportModal').then(m => m.ReportExportModal), { ssr: false })
+const ReportBuilder = dynamic(() => import('@/components/organisms/ReportBuilder').then(m => m.ReportBuilder), { ssr: false })
+
 
 export default function ReportsCenterPage() {
   const [stats, setStats] = useState(null)

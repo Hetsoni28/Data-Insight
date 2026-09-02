@@ -1,12 +1,15 @@
+import dynamic from "next/dynamic"
 "use client";
 
 import { useState } from "react";
-import { AnalyticsHeroBanner } from "@/components/organisms/AnalyticsHeroBanner";
-import { ExecutiveKpiGrid } from "@/components/organisms/ExecutiveKpiGrid";
-import { AnomalyDetectionFeed } from "@/components/organisms/AnomalyDetectionFeed";
-import { CustomerHealthMatrix } from "@/components/organisms/CustomerHealthMatrix";
 import { toast } from "sonner";
 import {
+
+const AnalyticsHeroBanner = dynamic(() => import('@/components/organisms/AnalyticsHeroBanner').then(m => m.AnalyticsHeroBanner), { ssr: false })
+const ExecutiveKpiGrid = dynamic(() => import('@/components/organisms/ExecutiveKpiGrid').then(m => m.ExecutiveKpiGrid), { ssr: false })
+const AnomalyDetectionFeed = dynamic(() => import('@/components/organisms/AnomalyDetectionFeed').then(m => m.AnomalyDetectionFeed), { ssr: false })
+const CustomerHealthMatrix = dynamic(() => import('@/components/organisms/CustomerHealthMatrix').then(m => m.CustomerHealthMatrix), { ssr: false })
+
   DynamicRevenueTrendChart as RevenueTrendChart,
   DynamicPlatformGrowthChart as PlatformGrowthChart,
   DynamicForecastingChart as ForecastingChart,

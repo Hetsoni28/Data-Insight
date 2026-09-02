@@ -1,9 +1,12 @@
+import dynamic from "next/dynamic"
 "use client";
 
 import { useEffect, useState } from "react";
 import { useWorkspaceStore } from "@/store/workspaceStore";
-import { ViewerReportCenter } from "@/components/organisms/reports/ViewerReportCenter";
 import { AlertCircle } from "lucide-react";
+
+const ViewerReportCenter = dynamic(() => import('@/components/organisms/reports/ViewerReportCenter').then(m => m.ViewerReportCenter), { ssr: false })
+
 
 export default function ViewerReportsPage() {
   const { activeWs } = useWorkspaceStore();

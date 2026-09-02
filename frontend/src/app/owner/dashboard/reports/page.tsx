@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,8 +7,10 @@ import { RefreshCw, Plus, FileSpreadsheet } from "lucide-react";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { Report, ReportService } from "@/lib/report.service";
 import { Button } from "@/components/ui/button";
-import { ReportTable } from "@/components/organisms/ReportTable";
-import { GenerateReportDialog } from "@/components/organisms/GenerateReportDialog";
+
+const ReportTable = dynamic(() => import('@/components/organisms/ReportTable').then(m => m.ReportTable), { ssr: false })
+const GenerateReportDialog = dynamic(() => import('@/components/organisms/GenerateReportDialog').then(m => m.GenerateReportDialog), { ssr: false })
+
 
 export default function ReportsPage() {
   const { activeWs } = useWorkspaceStore();
