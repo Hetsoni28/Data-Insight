@@ -8,6 +8,7 @@ import { Database, ArrowUpRight, Search, FileSpreadsheet, Plus } from 'lucide-re
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PaginationControls } from '@/components/molecules/PaginationControls';
 import type { DashboardDataset } from '@/lib/tenantDashboard.service';
 
 interface AnalystDatasetsTableProps {
@@ -37,6 +38,8 @@ export function AnalystDatasetsTable({
   const basePath = roleMatch ? roleMatch[0] : '/analyst';
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   if (isLoading) {
     return (
@@ -49,6 +52,11 @@ export function AnalystDatasetsTable({
   const filteredDatasets = (datasets || []).filter((ds) =>
     ds.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalItems = filteredDatasets.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedDatasets = filteredDatasets.slice(startIndex, startIndex + pageSize);
 
   return (
     <motion.div
@@ -77,7 +85,10 @@ export function AnalystDatasetsTable({
                 type="text"
                 placeholder="Search datasets..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="pl-9 h-9 w-44 sm:w-56 text-xs bg-slate-100 dark:bg-slate-800 border-slate-200/60 dark:border-slate-700 rounded-xl"
               />
             </div>
@@ -110,56 +121,73 @@ export function AnalystDatasetsTable({
             </Button>
           </div>
         ) : (
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full text-sm text-left">
-              <thead className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider bg-slate-100/50 dark:bg-slate-800/40 border-b border-slate-200/60 dark:border-slate-800">
-                <tr>
-                  <th className="px-6 py-4">Dataset Name</th>
-                  <th className="px-6 py-4">Rows</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Last Updated</th>
-                  <th className="px-6 py-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
-                {filteredDatasets.map((ds) => (
-                  <tr
-                    key={ds.id}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group"
-                  >
-                    <td className="px-6 py-4 font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                      <div className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20 group-hover:scale-105 transition-transform">
-                        <FileSpreadsheet className="w-4 h-4" />
-                      </div>
-                      <span className="truncate max-w-[200px]">{ds.name}</span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
-                      {ds.rows != null ? ds.rows.toLocaleString() : '—'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        {ds.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-400 dark:text-slate-500 text-xs">
-                      {formatDistanceToNow(new Date(ds.created_at), { addSuffix: true })}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link href={`/analyst/dashboard/analytics?dataset=${ds.id}`}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-xl gap-1 transition-all"
-                        >
-                          Analyze <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                        </Button>
-                      </Link>
-                    </td>
+          <div className="flex flex-col flex-1 min-h-[400px] justify-between">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider bg-slate-100/50 dark:bg-slate-800/40 border-b border-slate-200/60 dark:border-slate-800">
+                  <tr>
+                    <th className="px-6 py-4">Dataset Name</th>
+                    <th className="px-6 py-4">Rows</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Last Updated</th>
+                    <th className="px-6 py-4 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
+                  {paginatedDatasets.map((ds) => (
+                    <tr
+                      key={ds.id}
+                      className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group"
+                    >
+                      <td className="px-6 py-4 font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                        <div className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20 group-hover:scale-105 transition-transform">
+                          <FileSpreadsheet className="w-4 h-4" />
+                        </div>
+                        <span className="truncate max-w-[200px]">{ds.name}</span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                        {ds.rows != null ? ds.rows.toLocaleString() : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          {ds.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-400 dark:text-slate-500 text-xs">
+                        {formatDistanceToNow(new Date(ds.created_at), { addSuffix: true })}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Link href={`${basePath}/dashboard/analytics?dataset=${ds.id}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-xl gap-1 transition-all"
+                          >
+                            Analyze <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                          </Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="mt-auto">
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(newSize) => {
+                  setPageSize(newSize);
+                  setCurrentPage(1);
+                }}
+                pageSizeOptions={[5, 10, 25, 50]}
+              />
+            </div>
           </div>
         )}
       </div>
