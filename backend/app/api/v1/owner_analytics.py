@@ -688,26 +688,18 @@ async def get_dashboard_aggregation(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner),
 ):
-    import asyncio
     from app.api.v1.owner_ai import get_ai_overview
     from app.api.v1.owner_health import get_platform_health
 
-    # Run all heavy queries concurrently
+    # Run queries sequentially because SQLAlchemy AsyncSession does not support concurrent
+    # queries on the same session (raises "concurrent operations are not permitted").
     # Note: get_platform_health no longer takes db — it uses engine.connect() directly
-    analytics_task = get_analytics_overview(db, current_user)
-    revenue_task = get_revenue_analytics(db, current_user)
-    users_task = get_user_analytics(db, current_user)
-    ai_task = get_ai_overview(db, current_user)
-    health_task = get_platform_health(current_user)
-
-    results = await asyncio.gather(
-        analytics_task,
-        revenue_task,
-        users_task,
-        ai_task,
-        health_task,
-        return_exceptions=True
-    )
+    
+    analytics_res = await get_analytics_overview(db, current_user)
+    revenue_res = await get_revenue_analytics(db, current_user)
+    users_res = await get_user_analytics(db, current_user)
+    ai_res = await get_ai_overview(db, current_user)
+    health_res = await get_platform_health(current_user)
 
     def safe_data(res):
         if isinstance(res, Exception):
@@ -717,10 +709,10 @@ async def get_dashboard_aggregation(
     return {
         "status": "success",
         "data": {
-            "analytics_overview": safe_data(results[0]),
-            "revenue": safe_data(results[1]),
-            "users": safe_data(results[2]),
-            "ai_overview": safe_data(results[3]),
-            "health": safe_data(results[4]),
+            "analytics_overview": safe_data(analytics_res),
+            "revenue": safe_data(revenue_res),
+            "users": safe_data(users_res),
+            "ai_overview": safe_data(ai_res),
+            "health": safe_data(health_res),
         }
     }
