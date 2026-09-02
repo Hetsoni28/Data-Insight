@@ -203,23 +203,79 @@ async def get_ai_summary(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    """Returns an AI-generated executive briefing.
-    In a real production environment, a background worker would query the DB daily,
-    pass the metrics to Gemini, and store the resulting text to be served here.
-    For this demo, we return a dynamic but structured mockup string.
-    """
+    """Returns a real AI-generated executive briefing powered by live KPI data from the DB."""
+    from app.services.ai.router import LLMRouter
+
+    now = datetime.now(timezone.utc)
+    thirty_days_ago = now - timedelta(days=30)
+    sixty_days_ago = now - timedelta(days=60)
+
+    # Fetch live KPIs
+    total_orgs = (await db.execute(select(func.count(Tenant.id)).where(Tenant.is_deleted == False))).scalar_one()
+    active_orgs = (await db.execute(select(func.count(Tenant.id)).where(Tenant.is_deleted == False, Tenant.is_active == True))).scalar_one()
+    new_orgs = (await db.execute(select(func.count(Tenant.id)).where(Tenant.created_at >= thirty_days_ago))).scalar_one()
+    total_users = (await db.execute(select(func.count(User.id)).where(User.is_active == True))).scalar_one()
+
+    mrr_cents = (await db.execute(select(func.sum(Invoice.amount)).where(Invoice.status == "paid", Invoice.created_at >= thirty_days_ago))).scalar_one() or 0
+    mrr = mrr_cents / 100
+    prev_mrr_cents = (await db.execute(select(func.sum(Invoice.amount)).where(Invoice.status == "paid", Invoice.created_at >= sixty_days_ago, Invoice.created_at < thirty_days_ago))).scalar_one() or 0
+    prev_mrr = prev_mrr_cents / 100
+    mrr_growth = round(((mrr - prev_mrr) / max(prev_mrr, 1)) * 100, 1)
+
+    ai_requests = (await db.execute(select(func.count(AITokenUsage.id)).where(AITokenUsage.created_at >= thirty_days_ago))).scalar_one()
+    total_datasets = (await db.execute(select(func.count(Dataset.id)).where(Dataset.is_deleted == False))).scalar_one()
+
+    kpi_context = f"""
+You are a senior business intelligence AI for a B2B SaaS platform called Data Insight.
+Based on the following LIVE platform metrics for the last 30 days, write a concise executive briefing.
+
+LIVE METRICS:
+- Total Organizations: {total_orgs} ({active_orgs} active)
+- New Organizations (last 30d): {new_orgs}
+- Total Active Users: {total_users}
+- Monthly Recurring Revenue (MRR): ${mrr:,.2f} ({mrr_growth:+.1f}% vs previous month)
+- AI Requests (last 30d): {ai_requests:,}
+- Total Datasets: {total_datasets}
+
+Return a JSON object with exactly these keys:
+{{
+  "business_growth": "2-3 sentence insight about revenue and org growth",
+  "churn_risk": "1-2 sentence assessment of engagement or churn risk based on the data",
+  "feature_adoption": "1-2 sentence observation about AI usage and dataset activity",
+  "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"]
+}}
+Only return valid JSON, no extra text.
+"""
+
+    try:
+        llm = LLMRouter()
+        provider = llm.groq_provider if llm.groq_provider.is_available() else llm.gemini_provider
+        response = await provider.generate(
+            prompt=kpi_context,
+            temperature=0.4,
+            max_tokens=600,
+            json_mode=True,
+        )
+        import json as _json
+        briefing_data = _json.loads(response.content)
+    except Exception:
+        # Graceful fallback if AI call fails
+        briefing_data = {
+            "business_growth": f"MRR is ${mrr:,.0f} ({mrr_growth:+.1f}% vs last month). {active_orgs} of {total_orgs} organizations are active.",
+            "churn_risk": f"Monitor the {total_orgs - active_orgs} inactive organizations for re-engagement opportunities.",
+            "feature_adoption": f"Platform has processed {ai_requests:,} AI requests and hosts {total_datasets} datasets this month.",
+            "recommendations": [
+                "Review inactive organizations and initiate re-engagement outreach.",
+                "Analyze which AI features drive the most value for active users.",
+                "Consider upsell opportunities for organizations approaching plan limits.",
+            ],
+        }
+
     return {
         "status": "success",
         "briefing": {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "business_growth": "Monthly Recurring Revenue (MRR) grew by 14% this month, primarily driven by enterprise upgrades in the NA region. Active organizations increased by 8%.",
-            "churn_risk": "3 mid-market organizations have shown a 40% drop in login activity over the last 14 days. Recommend reaching out to their primary admins.",
-            "feature_adoption": "The new AI Excel Generator feature has seen a 65% adoption rate among premium users, significantly boosting overall token usage.",
-            "recommendations": [
-                "Launch a targeted re-engagement campaign for the 3 at-risk mid-market organizations.",
-                "Consider increasing API rate limits for the Enterprise tier as 4 organizations are hitting their daily caps.",
-                "Promote the AI Copilot to free-tier users, as conversion rates are 2x higher for users who interact with AI features.",
-            ],
+            "generated_at": now.isoformat(),
+            **briefing_data,
         },
     }
 

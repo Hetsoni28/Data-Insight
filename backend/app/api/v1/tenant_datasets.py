@@ -569,11 +569,17 @@ async def upload_dataset(
                 detail="Dataset quota exceeded for your organization's plan.",
             )
 
+        # Default name to filename (without extension) if not provided
+        dataset_name = req.name or (
+            req.original_filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
+            if req.original_filename else "Untitled Dataset"
+        )
+
         d = Dataset(
             tenant_id=tenant_id,
             workspace_id=req.workspace_id,
             uploaded_by_id=current_user.id,
-            name=req.name,
+            name=dataset_name,
             description=req.description,
             file_type=req.file_type,
             file_url=req.file_url,
