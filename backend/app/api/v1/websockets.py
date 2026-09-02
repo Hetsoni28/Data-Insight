@@ -10,13 +10,14 @@ from app.repositories.user import UserRepository
 
 router = APIRouter()
 
+
 async def get_user_from_token(token: str):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         user_id: str | None = payload.get("sub")
         if not user_id:
             return None
-            
+
         async with AsyncSessionLocal() as session:
             user_repo = UserRepository(session)
             user = await user_repo.get_by_id(user_id)
@@ -26,10 +27,10 @@ async def get_user_from_token(token: str):
         logger.error(f"WebSocket auth failed: {e}")
     return None
 
+
 @router.websocket("/ws/tenant-events")
 async def websocket_tenant_events(
-    websocket: WebSocket,
-    token: Optional[str] = Query(None)
+    websocket: WebSocket, token: Optional[str] = Query(None)
 ):
     logger.info(f"Incoming WebSocket connection attempt. Token present: {bool(token)}")
     if not token:

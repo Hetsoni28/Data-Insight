@@ -19,7 +19,9 @@ class GeminiProvider(BaseLLMProvider):
     """Deep analytical provider powered by Google Gemini models with 1M+ context."""
 
     provider_name: str = "gemini"
-    default_model: str = "gemini-2.5-flash"  # Switched from gemini-2.0-flash (quota exhausted)
+    default_model: str = (
+        "gemini-2.5-flash"  # Switched from gemini-2.0-flash (quota exhausted)
+    )
 
     # Pricing per 1M tokens in USD
     PRICING: Dict[str, Dict[str, float]] = {
@@ -37,7 +39,9 @@ class GeminiProvider(BaseLLMProvider):
             try:
                 self._client = genai.Client(api_key=self.api_key)
             except Exception as e:
-                logger.error(f"[GeminiProvider] Failed to initialize Gemini client: {e}")
+                logger.error(
+                    f"[GeminiProvider] Failed to initialize Gemini client: {e}"
+                )
 
     def is_available(self) -> bool:
         return bool(self.api_key and self._client)
@@ -80,9 +84,21 @@ class GeminiProvider(BaseLLMProvider):
 
             content = resp.text or ""
             usage = getattr(resp, "usage_metadata", None)
-            prompt_tokens = getattr(usage, "prompt_token_count", 0) if usage else int(len(prompt) / 4)
-            completion_tokens = getattr(usage, "candidates_token_count", 0) if usage else int(len(content) / 4)
-            total_tokens = getattr(usage, "total_token_count", prompt_tokens + completion_tokens) if usage else (prompt_tokens + completion_tokens)
+            prompt_tokens = (
+                getattr(usage, "prompt_token_count", 0)
+                if usage
+                else int(len(prompt) / 4)
+            )
+            completion_tokens = (
+                getattr(usage, "candidates_token_count", 0)
+                if usage
+                else int(len(content) / 4)
+            )
+            total_tokens = (
+                getattr(usage, "total_token_count", prompt_tokens + completion_tokens)
+                if usage
+                else (prompt_tokens + completion_tokens)
+            )
 
             cost = self.calculate_cost(target_model, prompt_tokens, completion_tokens)
 

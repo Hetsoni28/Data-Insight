@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 import polars as pl
 import weasyprint
 
+
 def _safe_float(v):
     try:
         f = float(v)
@@ -13,22 +14,53 @@ def _safe_float(v):
     except Exception:
         return None
 
+
 class AdvancedPdfBuilder:
-    def __init__(self, df: pl.DataFrame, profile: Dict[str, Any], dataset_name: str, ai_content: Dict[str, Any]):
+    def __init__(
+        self,
+        df: pl.DataFrame,
+        profile: Dict[str, Any],
+        dataset_name: str,
+        ai_content: Dict[str, Any],
+    ):
         self.df = df
         self.profile = profile or {}
         self.name = (dataset_name or "Dataset")[:50]
         self.ai = ai_content or {}
         self.generated_at = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
-        self.num_cols = [c for c in df.columns if df[c].dtype in (pl.Float32, pl.Float64, pl.Int8, pl.Int16, pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64)]
-        self.cat_cols = [c for c in df.columns if df[c].dtype == pl.Utf8 and 2 <= df[c].n_unique() <= 50]
-        self.date_cols = [c for c in df.columns if df[c].dtype in (pl.Date, pl.Datetime)]
+        self.num_cols = [
+            c
+            for c in df.columns
+            if df[c].dtype
+            in (
+                pl.Float32,
+                pl.Float64,
+                pl.Int8,
+                pl.Int16,
+                pl.Int32,
+                pl.Int64,
+                pl.UInt8,
+                pl.UInt16,
+                pl.UInt32,
+                pl.UInt64,
+            )
+        ]
+        self.cat_cols = [
+            c
+            for c in df.columns
+            if df[c].dtype == pl.Utf8 and 2 <= df[c].n_unique() <= 50
+        ]
+        self.date_cols = [
+            c for c in df.columns if df[c].dtype in (pl.Date, pl.Datetime)
+        ]
 
     def _get_logo_base64(self) -> str:
         """Render the logo to PNG (using the fix from excel_builder) and return as base64 data URI."""
         import base64
+
         try:
             from app.services.ingestion.excel_builder import AdvancedExcelBuilder
+
             png_bytes = AdvancedExcelBuilder._get_logo_png_bytes()
             if png_bytes:
                 b64 = base64.b64encode(png_bytes).decode("utf-8")
@@ -43,11 +75,17 @@ class AdvancedPdfBuilder:
         row_count = ov.get("row_count") or len(self.df)
         col_count = ov.get("column_count") or len(self.df.columns)
         qs = float(ov.get("quality_score") or self.profile.get("quality_score") or 0)
-        miss_pct = float(ov.get("missing_cells_pct") or self.profile.get("missing_cells_pct") or 0)
+        miss_pct = float(
+            ov.get("missing_cells_pct") or self.profile.get("missing_cells_pct") or 0
+        )
         dupes = int(ov.get("duplicate_rows") or 0)
 
         logo_uri = self._get_logo_base64()
-        logo_html = f'<img src="{logo_uri}" class="logo" />' if logo_uri else f'<h1>Data Insight</h1>'
+        logo_html = (
+            f'<img src="{logo_uri}" class="logo" />'
+            if logo_uri
+            else f"<h1>Data Insight</h1>"
+        )
 
         # Extract AI Content safely
         insights = self.ai.get("insights", [])
@@ -55,17 +93,19 @@ class AdvancedPdfBuilder:
             insights = [
                 f"Dataset contains {row_count:,} records across {col_count} columns with a quality score of {qs:.1f}/100.",
                 f"Data completeness is {100-miss_pct:.1f}% \u2014 {miss_pct:.1f}% of cells contain missing values.",
-                f"Duplicate rows detected: {dupes:,}."
+                f"Duplicate rows detected: {dupes:,}.",
             ]
 
         recs = self.ai.get("recommendations", [])
         if not recs:
             recs = [
                 f"This dataset has {row_count:,} rows and {col_count} columns \u2014 suitable for statistical modeling.",
-                f"Quality score is {qs:.1f}/100 \u2014 {'excellent data quality.' if qs >= 90 else 'review missing values before modeling.'}"
+                f"Quality score is {qs:.1f}/100 \u2014 {'excellent data quality.' if qs >= 90 else 'review missing values before modeling.'}",
             ]
             if miss_pct > 5:
-                recs.append(f"Missing data at {miss_pct:.1f}% \u2014 apply imputation strategies (mean/median/mode) before analysis.")
+                recs.append(
+                    f"Missing data at {miss_pct:.1f}% \u2014 apply imputation strategies (mean/median/mode) before analysis."
+                )
 
         html_content = f"""
         <!DOCTYPE html>
@@ -254,15 +294,22 @@ class AdvancedPdfBuilder:
                 </thead>
                 <tbody>
 """
-        
+
         # Build Table Rows
         cols = self.profile.get("columns", {})
         for col_name, cinfo in cols.items():
-            dt = cinfo.get("type", str(self.df[col_name].dtype) if col_name in self.df.columns else "Unknown")
+            dt = cinfo.get(
+                "type",
+                (
+                    str(self.df[col_name].dtype)
+                    if col_name in self.df.columns
+                    else "Unknown"
+                ),
+            )
             uniq = cinfo.get("n_unique", 0)
             nulls = cinfo.get("null_count", 0)
             null_pct = (nulls / row_count * 100) if row_count > 0 else 0
-            
+
             fill_width = min(max(null_pct, 0), 100)
             html_content += f"""
                     <tr>
@@ -289,23 +336,32 @@ class AdvancedPdfBuilder:
         pdf_bytes = weasyprint.HTML(string=html_content).write_pdf()
         return pdf_bytes
 
+
 if __name__ == "__main__":
     import sys
+
     # Quick test logic
     print("Testing PDF builder...")
-    df = pl.DataFrame({"CustomerID": [1,2,3], "Age": [25, 30, None], "Segment": ["A", "B", "A"]})
+    df = pl.DataFrame(
+        {"CustomerID": [1, 2, 3], "Age": [25, 30, None], "Segment": ["A", "B", "A"]}
+    )
     prof = {
-        "overview": {"row_count": 3, "column_count": 3, "quality_score": 85.5, "missing_cells_pct": 11.1},
+        "overview": {
+            "row_count": 3,
+            "column_count": 3,
+            "quality_score": 85.5,
+            "missing_cells_pct": 11.1,
+        },
         "columns": {
             "CustomerID": {"type": "Int64", "n_unique": 3, "null_count": 0},
             "Age": {"type": "Float64", "n_unique": 2, "null_count": 1},
-            "Segment": {"type": "Utf8", "n_unique": 2, "null_count": 0}
-        }
+            "Segment": {"type": "Utf8", "n_unique": 2, "null_count": 0},
+        },
     }
     ai = {
         "executive_summary": "Test summary",
         "insights": ["Age: Has missing values", "Segment: mostly A"],
-        "recommendations": ["Impute Age", "Check Segment balance"]
+        "recommendations": ["Impute Age", "Check Segment balance"],
     }
     b = AdvancedPdfBuilder(df, prof, "Test Dataset", ai)
     out = b.build()

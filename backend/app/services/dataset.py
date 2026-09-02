@@ -77,8 +77,11 @@ class DatasetService:
 
         # Check storage quota via QuotaService
         from app.services.quota_service import QuotaService
+
         quota_svc = QuotaService(self.session)
-        await quota_svc.check_storage_quota(actor.tenant_id, additional_bytes=len(file_bytes))
+        await quota_svc.check_storage_quota(
+            actor.tenant_id, additional_bytes=len(file_bytes)
+        )
 
         # Upload to Supabase Storage
         storage_path = dataset_storage_path(actor.tenant_id, filename)
@@ -109,6 +112,7 @@ class DatasetService:
             background_tasks.add_task(_profile_dataset, None, str(dataset.id))
         else:
             import asyncio
+
             asyncio.create_task(_profile_dataset(None, str(dataset.id)))
         # Notify
         await NotificationService.create_notification(
@@ -119,7 +123,7 @@ class DatasetService:
             priority="Low",
             notif_type="system.dataset_upload",
             icon="database",
-            tenant_id=actor.tenant_id
+            tenant_id=actor.tenant_id,
         )
 
         await self.audit_repo.log(
@@ -147,7 +151,9 @@ class DatasetService:
 
     async def get_preview_url(self, dataset_id: uuid.UUID, actor: User) -> str:
         ds = await self.get_dataset(dataset_id, actor)
-        return await get_signed_url(DATASETS_BUCKET, ds.file_url, expires_in=900)  # 15 min
+        return await get_signed_url(
+            DATASETS_BUCKET, ds.file_url, expires_in=900
+        )  # 15 min
 
     async def delete_dataset(self, dataset_id: uuid.UUID, actor: User) -> None:
         ds = await self.get_dataset(dataset_id, actor)
@@ -160,6 +166,7 @@ class DatasetService:
 
         # Release storage in QuotaService
         from app.services.quota_service import QuotaService
+
         quota_svc = QuotaService(self.session)
         await quota_svc.release_storage(actor.tenant_id, ds.file_size_bytes or 0)
 
@@ -178,11 +185,14 @@ class DatasetService:
         from app.services.ingestion.polars_engine import PolarsEngine
 
         import asyncio
+
         if is_local_storage():
             local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
             file_bytes = await asyncio.to_thread(local_path.read_bytes)
         else:
-            signed_url = await get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=300)
+            signed_url = await get_signed_url(
+                DATASETS_BUCKET, dataset.file_url, expires_in=300
+            )
             async with httpx.AsyncClient() as client:
                 response = await client.get(signed_url)
                 file_bytes = response.content
@@ -195,19 +205,19 @@ class DatasetService:
         ext = ext.lower().strip().lstrip(".")
         return await asyncio.to_thread(PolarsEngine.load_from_bytes, file_bytes, ext)
 
-    async def get_preview_data(self, dataset_id: uuid.UUID, actor: User, limit: int = 50) -> dict:
+    async def get_preview_data(
+        self, dataset_id: uuid.UUID, actor: User, limit: int = 50
+    ) -> dict:
         """Return dataset preview rows and column metadata."""
         from app.services.ingestion.polars_engine import PolarsEngine
 
         import asyncio
+
         ds = await self.get_dataset(dataset_id, actor)
         df = await self.load_dataframe(ds)
         preview_rows = await asyncio.to_thread(PolarsEngine.preview_rows, df, limit)
 
-        columns = [
-            {"name": col, "dtype": str(df.schema[col])}
-            for col in df.columns
-        ]
+        columns = [{"name": col, "dtype": str(df.schema[col])} for col in df.columns]
 
         return {
             "dataset_id": str(ds.id),
@@ -247,6 +257,7 @@ class DatasetService:
             return ds.profile["correlations"]
 
         import asyncio
+
         df = await self.load_dataframe(ds)
         return await asyncio.to_thread(DuckDBEngine.compute_correlation_matrix, df)
 
@@ -264,6 +275,7 @@ class DatasetService:
         ds = await self.get_dataset(dataset_id, actor)
         df = await self.load_dataframe(ds)
         import asyncio
+
         result = await asyncio.to_thread(
             DuckDBEngine.execute_query,
             df,
@@ -279,7 +291,10 @@ class DatasetService:
             user_id=actor.id,
             resource_type="dataset",
             resource_id=str(ds.id),
-            extra_metadata={"sql": sql, "execution_time_ms": result["execution_time_ms"]},
+            extra_metadata={
+                "sql": sql,
+                "execution_time_ms": result["execution_time_ms"],
+            },
         )
         return result
 
@@ -310,8 +325,17 @@ class DatasetService:
                 return True  # Assume numeric if we don't know
             col_info = profile_columns[col_name]
             dtype = str(col_info.get("dtype", "")).lower()
-            numeric_keywords = ("int", "float", "double", "decimal", "numeric",
-                                "number", "real", "bigint", "smallint")
+            numeric_keywords = (
+                "int",
+                "float",
+                "double",
+                "decimal",
+                "numeric",
+                "number",
+                "real",
+                "bigint",
+                "smallint",
+            )
             return any(k in dtype for k in numeric_keywords)
 
         def build_metric_expr(col_name: str, agg: str, alias: str) -> str:
@@ -327,7 +351,7 @@ class DatasetService:
                 # MIN/MAX on strings is fine, no cast needed
                 pass
 
-            return f"{agg}({col_expr}) as \"{alias}\""
+            return f'{agg}({col_expr}) as "{alias}"'
 
         select_parts = []
         group_by = []
@@ -358,8 +382,12 @@ class DatasetService:
             for f in req.filters:
                 col = safe_col(f.column)
                 op_map = {
-                    "eq": "=", "neq": "!=", "gt": ">", "lt": "<",
-                    "gte": ">=", "lte": "<="
+                    "eq": "=",
+                    "neq": "!=",
+                    "gt": ">",
+                    "lt": "<",
+                    "gte": ">=",
+                    "lte": "<=",
                 }
                 if f.operator in op_map:
                     val = str(f.value).replace("'", "''")

@@ -6,6 +6,7 @@ from loguru import logger
 from app.db.redis import get_redis_client
 from redis.asyncio.client import PubSub
 
+
 class WebSocketManager:
     def __init__(self):
         # tenant_id -> set of active WebSockets
@@ -18,7 +19,9 @@ class WebSocketManager:
         if tenant_id not in self.active_connections:
             self.active_connections[tenant_id] = set()
         self.active_connections[tenant_id].add(websocket)
-        logger.debug(f"WebSocket connected for tenant {tenant_id}. Total: {len(self.active_connections[tenant_id])}")
+        logger.debug(
+            f"WebSocket connected for tenant {tenant_id}. Total: {len(self.active_connections[tenant_id])}"
+        )
 
     def disconnect(self, websocket: WebSocket, tenant_id: str):
         if tenant_id in self.active_connections:
@@ -41,13 +44,15 @@ class WebSocketManager:
                     logger.error(f"Error sending message to websocket: {e}")
                     self.disconnect(connection, tenant_id)
 
-    async def publish_tenant_event(self, tenant_id: str, event_type: str, payload: dict = None):
+    async def publish_tenant_event(
+        self, tenant_id: str, event_type: str, payload: dict = None
+    ):
         """Publish event to Redis so all workers/instances can broadcast it."""
         redis = await get_redis_client()
         message = {
             "tenant_id": str(tenant_id),
             "type": event_type,
-            "payload": payload or {}
+            "payload": payload or {},
         }
         await redis.publish("tenant_events", json.dumps(message))
 
@@ -56,9 +61,9 @@ class WebSocketManager:
         redis = await get_redis_client()
         self.pubsub = redis.pubsub()
         await self.pubsub.subscribe("tenant_events")
-        
+
         logger.info("[WebSocketManager] Listening for tenant_events on Redis Pub/Sub")
-        
+
         try:
             async for message in self.pubsub.listen():
                 if message["type"] == "message":
@@ -86,5 +91,6 @@ class WebSocketManager:
                 await self.listener_task
             except asyncio.CancelledError:
                 pass
+
 
 manager = WebSocketManager()

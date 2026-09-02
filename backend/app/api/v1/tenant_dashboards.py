@@ -25,71 +25,99 @@ async def get_dashboards(
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
-    base_conditions = [Dashboard.tenant_id == current_user.tenant_id, Dashboard.is_deleted == False]
+    base_conditions = [
+        Dashboard.tenant_id == current_user.tenant_id,
+        Dashboard.is_deleted == False,
+    ]
     if workspace:
         base_conditions.append(Dashboard.workspace_id == workspace.id)
 
-    stmt = select(Dashboard, Dataset).outerjoin(
-        Dataset, Dashboard.primary_dataset_id == Dataset.id
-    ).where(*base_conditions).order_by(Dashboard.updated_at.desc())
-    
+    stmt = (
+        select(Dashboard, Dataset)
+        .outerjoin(Dataset, Dashboard.primary_dataset_id == Dataset.id)
+        .where(*base_conditions)
+        .order_by(Dashboard.updated_at.desc())
+    )
+
     result = await db.execute(stmt)
-    
+
     # Map backend widget type names to frontend-compatible types
     TYPE_MAP = {
-        "chart_bar": "bar", "chart_line": "line", "chart_pie": "pie",
-        "bar": "bar", "line": "line", "pie": "pie", "kpi": "kpi",
-        "ai_insight": "text", "text": "text"
+        "chart_bar": "bar",
+        "chart_line": "line",
+        "chart_pie": "pie",
+        "bar": "bar",
+        "line": "line",
+        "pie": "pie",
+        "kpi": "kpi",
+        "ai_insight": "text",
+        "text": "text",
     }
-    
+
     dashboards = []
     for d, ds in result:
         raw_widgets = d.layout_json.get("widgets", []) if d.layout_json else []
         hydrated_widgets = []
-        
+
         for w in raw_widgets:
             w_type = TYPE_MAP.get(w.get("type", "bar"), "bar")
             config = w.get("config", {})
             x_axis = config.get("xAxis") or config.get("x_axis", "name")
             y_axis = config.get("yAxis") or config.get("y_axis", "value")
-            
+
             # Build chart data from dataset profile if available
             chart_data = []
-            
+
             # Fetch the widget's specific dataset if it differs from the primary
             widget_dataset = ds
             widget_ds_id = config.get("dataset_id")
             if widget_ds_id and (not ds or str(ds.id) != str(widget_ds_id)):
                 widget_dataset = await db.get(Dataset, widget_ds_id)
-                
+
             if widget_dataset and widget_dataset.profile and w_type != "kpi":
                 col_profiles = widget_dataset.profile.get("columns", {})
-                
+
                 # Function to extract data from a column profile
                 def extract_data(col_info):
                     # Try categorical top values first
                     top_vals = col_info.get("top_values", [])
                     if top_vals:
-                        return [{"name": str(item.get("value", "")), "value": item.get("count", 0)} for item in top_vals[:10]]
+                        return [
+                            {
+                                "name": str(item.get("value", "")),
+                                "value": item.get("count", 0),
+                            }
+                            for item in top_vals[:10]
+                        ]
                     # Fallback to numeric histogram
                     hist = col_info.get("histogram", [])
                     if hist:
-                        return [{"name": f"{round(item.get('bin_start', 0),1)}-{round(item.get('bin_end', 0),1)}", "value": item.get("count", 0)} for item in hist[:10]]
+                        return [
+                            {
+                                "name": f"{round(item.get('bin_start', 0),1)}-{round(item.get('bin_end', 0),1)}",
+                                "value": item.get("count", 0),
+                            }
+                            for item in hist[:10]
+                        ]
                     return []
 
                 # Try to get data for the requested x-axis column
                 if x_axis in col_profiles:
                     chart_data = extract_data(col_profiles[x_axis])
-                
+
                 # Fallback: use any column that has valid top_values or histogram
                 if not chart_data:
                     for col_name, col_info in col_profiles.items():
                         extracted = extract_data(col_info)
-                        if extracted and len(extracted) > 1 and not all(e["value"] == 1 for e in extracted):
+                        if (
+                            extracted
+                            and len(extracted) > 1
+                            and not all(e["value"] == 1 for e in extracted)
+                        ):
                             # Ensure we don't fall back to a primary key (where all counts are 1)
                             chart_data = extracted
                             break
-            
+
             # KPI widget
             metrics = {}
             if w_type == "kpi" and widget_dataset and widget_dataset.profile:
@@ -104,29 +132,35 @@ async def get_dashboards(
                 metrics = {
                     "text": config.get("text", "No insights available for this widget.")
                 }
-            
-            hydrated_widgets.append({
-                "id": w.get("id", str(uuid.uuid4())),
-                "type": w_type,
-                "title": w.get("title", "Chart"),
-                "x_axis_key": x_axis,
-                "y_axis_key": y_axis,
-                "data": chart_data,
-                "metrics": metrics,
-            })
-        
-        dashboards.append({
-            "id": str(d.id),
-            "name": d.name,
-            "description": d.description,
-            "dataset_id": str(d.primary_dataset_id) if d.primary_dataset_id else None,
-            "dataset_name": ds.name if ds else "Unknown",
-            "widgets": hydrated_widgets,
-            "is_published": d.is_published,
-            "updated_at": d.updated_at,
-            "view_count": d.view_count,
-        })
-    
+
+            hydrated_widgets.append(
+                {
+                    "id": w.get("id", str(uuid.uuid4())),
+                    "type": w_type,
+                    "title": w.get("title", "Chart"),
+                    "x_axis_key": x_axis,
+                    "y_axis_key": y_axis,
+                    "data": chart_data,
+                    "metrics": metrics,
+                }
+            )
+
+        dashboards.append(
+            {
+                "id": str(d.id),
+                "name": d.name,
+                "description": d.description,
+                "dataset_id": (
+                    str(d.primary_dataset_id) if d.primary_dataset_id else None
+                ),
+                "dataset_name": ds.name if ds else "Unknown",
+                "widgets": hydrated_widgets,
+                "is_published": d.is_published,
+                "updated_at": d.updated_at,
+                "view_count": d.view_count,
+            }
+        )
+
     return dashboards
 
 
@@ -145,12 +179,15 @@ async def create_dashboard(
     from app.services.entitlements import check_quota, BillingResource, get_usage
     from app.models.tenant import Tenant
     from sqlalchemy import select
-    
+
     tenant = await db.scalar(select(Tenant).where(Tenant.id == current_user.tenant_id))
     usage = await get_usage(tenant, db)
     quota = check_quota(tenant, usage, BillingResource.DASHBOARDS)
     if not quota.allowed:
-        raise HTTPException(status_code=402, detail="Dashboards quota exceeded for your organization's plan.")
+        raise HTTPException(
+            status_code=402,
+            detail="Dashboards quota exceeded for your organization's plan.",
+        )
 
     name = data.get("name", "New Dashboard")
     description = data.get("description", "")
@@ -171,7 +208,7 @@ async def create_dashboard(
     return {
         "id": str(dashboard.id),
         "name": dashboard.name,
-        "layout_json": dashboard.layout_json
+        "layout_json": dashboard.layout_json,
     }
 
 
@@ -186,7 +223,11 @@ async def get_dashboard(
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
-    base_conditions = [Dashboard.id == id, Dashboard.tenant_id == current_user.tenant_id, Dashboard.is_deleted == False]
+    base_conditions = [
+        Dashboard.id == id,
+        Dashboard.tenant_id == current_user.tenant_id,
+        Dashboard.is_deleted == False,
+    ]
     if workspace:
         base_conditions.append(Dashboard.workspace_id == workspace.id)
 
@@ -195,7 +236,7 @@ async def get_dashboard(
 
     if not dashboard:
         raise HTTPException(status_code=404, detail="Dashboard not found")
-        
+
     # Increment view count when loaded
     dashboard.view_count += 1
     await db.commit()
@@ -221,7 +262,11 @@ async def update_dashboard(
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
-    base_conditions = [Dashboard.id == id, Dashboard.tenant_id == current_user.tenant_id, Dashboard.is_deleted == False]
+    base_conditions = [
+        Dashboard.id == id,
+        Dashboard.tenant_id == current_user.tenant_id,
+        Dashboard.is_deleted == False,
+    ]
     if workspace:
         base_conditions.append(Dashboard.workspace_id == workspace.id)
 
@@ -243,7 +288,10 @@ async def update_dashboard(
         if publishing and current_user.role not in ["owner", "org_admin", "manager"]:
             # In a full RBAC system, we'd check `current_user.has_permission('DASHBOARD_PUBLISH')`
             # For now, restrict analysts/viewers from publishing without explicit permission.
-            raise HTTPException(status_code=403, detail="You do not have the DASHBOARD_PUBLISH permission.")
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have the DASHBOARD_PUBLISH permission.",
+            )
         dashboard.is_published = publishing
 
     await db.commit()
@@ -252,7 +300,7 @@ async def update_dashboard(
     return {
         "id": str(dashboard.id),
         "name": dashboard.name,
-        "layout_json": dashboard.layout_json
+        "layout_json": dashboard.layout_json,
     }
 
 
@@ -267,7 +315,11 @@ async def delete_dashboard(
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
-    base_conditions = [Dashboard.id == id, Dashboard.tenant_id == current_user.tenant_id, Dashboard.is_deleted == False]
+    base_conditions = [
+        Dashboard.id == id,
+        Dashboard.tenant_id == current_user.tenant_id,
+        Dashboard.is_deleted == False,
+    ]
     if workspace:
         base_conditions.append(Dashboard.workspace_id == workspace.id)
 
@@ -284,28 +336,29 @@ async def delete_dashboard(
 
 
 async def generate_dashboard_background_task(
-    dashboard_id: uuid.UUID,
-    dataset_id: uuid.UUID,
-    prompt: str,
-    tenant_id: uuid.UUID
+    dashboard_id: uuid.UUID, dataset_id: uuid.UUID, prompt: str, tenant_id: uuid.UUID
 ):
     from app.db.session import AsyncSessionLocal
     from app.core.config import settings
     import json
     from groq import AsyncGroq
-    
+
     if not settings.GROQ_API_KEY:
         print("Groq API Key is not configured for background task")
         return
-        
+
     client = AsyncGroq(api_key=settings.GROQ_API_KEY)
-    
+
     async with AsyncSessionLocal() as db:
         # Fetch dataset for schema
-        dataset = await db.scalar(select(Dataset).where(Dataset.id == dataset_id, Dataset.tenant_id == tenant_id))
+        dataset = await db.scalar(
+            select(Dataset).where(
+                Dataset.id == dataset_id, Dataset.tenant_id == tenant_id
+            )
+        )
         if not dataset:
             return
-            
+
         # ── Build rich schema: separate numeric from categorical, include sample values ──
         numeric_cols: list[str] = []
         categorical_cols: list[str] = []
@@ -315,8 +368,17 @@ async def generate_dashboard_background_task(
             cols: dict = dataset.profile.get("columns", {})
             for col_name, col_info in cols.items():
                 dtype = str(col_info.get("dtype", "")).lower()
-                numeric_keywords = ("int", "float", "double", "decimal", "numeric",
-                                    "number", "real", "bigint", "smallint")
+                numeric_keywords = (
+                    "int",
+                    "float",
+                    "double",
+                    "decimal",
+                    "numeric",
+                    "number",
+                    "real",
+                    "bigint",
+                    "smallint",
+                )
                 is_numeric = any(k in dtype for k in numeric_keywords)
                 if is_numeric:
                     numeric_cols.append(col_name)
@@ -326,16 +388,26 @@ async def generate_dashboard_background_task(
                 top_vals = col_info.get("top_values", [])
                 sample_str = ""
                 if top_vals:
-                    samples = [str(v.get("value", "")) for v in top_vals[:3] if v.get("value") is not None]
+                    samples = [
+                        str(v.get("value", ""))
+                        for v in top_vals[:3]
+                        if v.get("value") is not None
+                    ]
                     sample_str = f" (samples: {', '.join(samples)})" if samples else ""
-                schema_lines.append(f"  - \"{col_name}\" [{dtype}]{sample_str}")
+                schema_lines.append(f'  - "{col_name}" [{dtype}]{sample_str}')
 
-        schema_block = "\n".join(schema_lines) if schema_lines else "  No schema available."
+        schema_block = (
+            "\n".join(schema_lines) if schema_lines else "  No schema available."
+        )
         numeric_list = json.dumps(numeric_cols)
         categorical_list = json.dumps(categorical_cols)
 
         prompt_words = prompt.strip().split()
-        dashboard_title = " ".join(prompt_words[:6]) if len(prompt_words) > 3 else (prompt[:50] or "AI Dashboard")
+        dashboard_title = (
+            " ".join(prompt_words[:6])
+            if len(prompt_words) > 3
+            else (prompt[:50] or "AI Dashboard")
+        )
 
         system_prompt = f"""You are an expert data visualization and dashboard design AI.
 
@@ -418,10 +490,10 @@ CRITICAL RULES:
                 response_format={"type": "json_object"},
                 temperature=0.1,
             )
-            
+
             response_text = response.choices[0].message.content
             generated_layout = json.loads(response_text)
-            
+
             for widget in generated_layout.get("widgets", []):
                 if not widget.get("id"):
                     widget["id"] = str(uuid.uuid4())
@@ -433,7 +505,13 @@ CRITICAL RULES:
                     cfg["dimension"] = cfg.pop("xAxis")
                 if "yAxis" in cfg and "metric" not in cfg:
                     cfg["metric"] = cfg.pop("yAxis")
-                if widget["type"] in ("kpi", "chart_bar", "chart_line", "chart_pie", "data_table"):
+                if widget["type"] in (
+                    "kpi",
+                    "chart_bar",
+                    "chart_line",
+                    "chart_pie",
+                    "data_table",
+                ):
                     if "metric" in cfg and "aggregation" not in cfg:
                         cfg["aggregation"] = "SUM"
 
@@ -444,43 +522,82 @@ CRITICAL RULES:
             fallback_widgets = []
 
             if fallback_metric:
-                fallback_widgets.append({
-                    "id": str(uuid.uuid4()),
-                    "type": "kpi",
-                    "title": f"Total {fallback_metric}",
-                    "x": 0, "y": 0, "w": 4, "h": 4,
-                    "config": {"dataset_id": str(dataset_id), "metric": fallback_metric, "aggregation": "SUM"}
-                })
+                fallback_widgets.append(
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "kpi",
+                        "title": f"Total {fallback_metric}",
+                        "x": 0,
+                        "y": 0,
+                        "w": 4,
+                        "h": 4,
+                        "config": {
+                            "dataset_id": str(dataset_id),
+                            "metric": fallback_metric,
+                            "aggregation": "SUM",
+                        },
+                    }
+                )
             if fallback_dim and fallback_metric:
-                fallback_widgets.append({
-                    "id": str(uuid.uuid4()),
-                    "type": "chart_bar",
-                    "title": f"{fallback_metric} by {fallback_dim}",
-                    "x": 4, "y": 0, "w": 8, "h": 4,
-                    "config": {"dataset_id": str(dataset_id), "dimension": fallback_dim, "metric": fallback_metric, "aggregation": "SUM"}
-                })
+                fallback_widgets.append(
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "chart_bar",
+                        "title": f"{fallback_metric} by {fallback_dim}",
+                        "x": 4,
+                        "y": 0,
+                        "w": 8,
+                        "h": 4,
+                        "config": {
+                            "dataset_id": str(dataset_id),
+                            "dimension": fallback_dim,
+                            "metric": fallback_metric,
+                            "aggregation": "SUM",
+                        },
+                    }
+                )
             if fallback_dim and fallback_metric:
-                fallback_widgets.append({
-                    "id": str(uuid.uuid4()),
-                    "type": "data_table",
-                    "title": f"Data Overview",
-                    "x": 0, "y": 4, "w": 12, "h": 6,
-                    "config": {"dataset_id": str(dataset_id), "dimension": fallback_dim, "metric": fallback_metric, "aggregation": "SUM"}
-                })
+                fallback_widgets.append(
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "data_table",
+                        "title": "Data Overview",
+                        "x": 0,
+                        "y": 4,
+                        "w": 12,
+                        "h": 6,
+                        "config": {
+                            "dataset_id": str(dataset_id),
+                            "dimension": fallback_dim,
+                            "metric": fallback_metric,
+                            "aggregation": "SUM",
+                        },
+                    }
+                )
 
             if not fallback_widgets:
-                fallback_widgets.append({
-                    "id": str(uuid.uuid4()),
-                    "type": "ai_insight",
-                    "title": "Generation Note",
-                    "x": 0, "y": 0, "w": 12, "h": 4,
-                    "config": {"text": f"Dashboard generation encountered an issue: {str(e)}\n\nDataset **{dataset.name}** has been connected. Please configure widgets manually.", "dataset_id": str(dataset_id)}
-                })
+                fallback_widgets.append(
+                    {
+                        "id": str(uuid.uuid4()),
+                        "type": "ai_insight",
+                        "title": "Generation Note",
+                        "x": 0,
+                        "y": 0,
+                        "w": 12,
+                        "h": 4,
+                        "config": {
+                            "text": f"Dashboard generation encountered an issue: {str(e)}\n\nDataset **{dataset.name}** has been connected. Please configure widgets manually.",
+                            "dataset_id": str(dataset_id),
+                        },
+                    }
+                )
 
             generated_layout = {"widgets": fallback_widgets}
 
         # Update dashboard
-        dashboard = await db.scalar(select(Dashboard).where(Dashboard.id == dashboard_id))
+        dashboard = await db.scalar(
+            select(Dashboard).where(Dashboard.id == dashboard_id)
+        )
         if dashboard:
             dashboard.layout_json = generated_layout
             dashboard.name = dashboard_title
@@ -504,23 +621,30 @@ async def ai_generate_dashboard(
 
     dataset_id = data.get("dataset_id")
     prompt = data.get("prompt", "Create a comprehensive dashboard")
-    
+
     if not dataset_id:
         raise HTTPException(status_code=400, detail="dataset_id is required")
-        
-    ds_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == current_user.tenant_id]
+
+    ds_conditions = [
+        Dataset.id == dataset_id,
+        Dataset.tenant_id == current_user.tenant_id,
+    ]
     if workspace:
         ds_conditions.append(Dataset.workspace_id == workspace.id)
 
     result = await db.execute(select(Dataset).where(*ds_conditions))
     dataset = result.scalar_one_or_none()
-    
+
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
 
     # Generate title immediately so the placeholder looks good
     prompt_words = prompt.strip().split()
-    dashboard_title = " ".join(prompt_words[:6]) if len(prompt_words) > 3 else (prompt[:50] or "AI Dashboard")
+    dashboard_title = (
+        " ".join(prompt_words[:6])
+        if len(prompt_words) > 3
+        else (prompt[:50] or "AI Dashboard")
+    )
 
     # Create empty dashboard
     dashboard = Dashboard(
@@ -529,7 +653,7 @@ async def ai_generate_dashboard(
         primary_dataset_id=dataset.id,
         name=dashboard_title,
         description=f"AI-generated dashboard for: {prompt}",
-        layout_json={"widgets": []}, # Empty initially
+        layout_json={"widgets": []},  # Empty initially
         workspace_id=workspace.id if workspace else None,
     )
     db.add(dashboard)
@@ -542,11 +666,11 @@ async def ai_generate_dashboard(
         dashboard.id,
         dataset.id,
         prompt,
-        current_user.tenant_id
+        current_user.tenant_id,
     )
 
     return {
         "id": str(dashboard.id),
         "name": dashboard.name,
-        "layout_json": dashboard.layout_json
+        "layout_json": dashboard.layout_json,
     }

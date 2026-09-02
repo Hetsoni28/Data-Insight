@@ -28,7 +28,9 @@ from app.services import email as email_service
 router = APIRouter(prefix="/invitations", tags=["Invitations"])
 
 
-def _to_response(inv: Invitation, tenant_name: Optional[str] = None) -> InvitationResponse:
+def _to_response(
+    inv: Invitation, tenant_name: Optional[str] = None
+) -> InvitationResponse:
     invite_url = f"{settings.FRONTEND_URL}/invite/{inv.token}"
     return InvitationResponse(
         id=inv.id,
@@ -36,7 +38,8 @@ def _to_response(inv: Invitation, tenant_name: Optional[str] = None) -> Invitati
         role=inv.role,
         status=inv.status.value if hasattr(inv.status, "value") else str(inv.status),
         tenant_id=inv.tenant_id,
-        tenant_name=tenant_name or (inv.tenant.name if getattr(inv, "tenant", None) else "Organization"),
+        tenant_name=tenant_name
+        or (inv.tenant.name if getattr(inv, "tenant", None) else "Organization"),
         token=inv.token,
         invite_url=invite_url,
         expires_at=inv.expires_at,
@@ -48,7 +51,9 @@ def _to_response(inv: Invitation, tenant_name: Optional[str] = None) -> Invitati
 async def create_invitation(
     body: InvitationCreate,
     request: Request,
-    current_user: User = Depends(RequireRole([UserRole.org_admin, UserRole.manager, UserRole.owner])),
+    current_user: User = Depends(
+        RequireRole([UserRole.org_admin, UserRole.manager, UserRole.owner])
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     """Create and send an invitation to a user to join the organization."""
@@ -65,7 +70,9 @@ async def create_invitation(
         if body.tenant_id:
             target_tenant_id = body.tenant_id
         elif not target_tenant_id:
-            first_tenant = await db.scalar(select(Tenant).order_by(Tenant.created_at.asc()))
+            first_tenant = await db.scalar(
+                select(Tenant).order_by(Tenant.created_at.asc())
+            )
             if first_tenant:
                 target_tenant_id = first_tenant.id
 
@@ -80,6 +87,7 @@ async def create_invitation(
 
     # Enforce seat limits for target organization
     from app.services.quota_service import QuotaService
+
     quota_svc = QuotaService(db)
     await quota_svc.check_user_seats(target_tenant_id)
 
@@ -91,7 +99,9 @@ async def create_invitation(
 
     if existing_user:
         if existing_user.tenant_id == target_tenant_id:
-            raise ConflictException("User is already an active member of this organization.")
+            raise ConflictException(
+                "User is already an active member of this organization."
+            )
         raise ConflictException(
             "A user with this email already has an account in another organization."
         )
@@ -133,7 +143,11 @@ async def create_invitation(
         action="team.invite.create",
         resource_type="invitation",
         ip_address=request.client.host if request.client else "127.0.0.1",
-        extra_metadata={"invited_email": clean_email, "role": body.role, "org_name": org_name},
+        extra_metadata={
+            "invited_email": clean_email,
+            "role": body.role,
+            "org_name": org_name,
+        },
     )
     db.add(audit)
 
@@ -160,18 +174,24 @@ async def create_invitation(
 @router.get("", response_model=List[InvitationResponse])
 async def list_invitations(
     status_filter: Optional[str] = Query(None, alias="status"),
-    current_user: User = Depends(RequireRole([UserRole.org_admin, UserRole.manager, UserRole.owner])),
+    current_user: User = Depends(
+        RequireRole([UserRole.org_admin, UserRole.manager, UserRole.owner])
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     """List invitations for the current organization or platform-wide for Owner."""
     if current_user.role == UserRole.owner and not current_user.tenant_id:
-        stmt = select(Invitation, Tenant.name).outerjoin(Tenant, Invitation.tenant_id == Tenant.id)
+        stmt = select(Invitation, Tenant.name).outerjoin(
+            Tenant, Invitation.tenant_id == Tenant.id
+        )
         if status_filter:
             stmt = stmt.where(Invitation.status == status_filter)
         stmt = stmt.order_by(desc(Invitation.created_at))
     else:
-        stmt = select(Invitation, Tenant.name).outerjoin(Tenant, Invitation.tenant_id == Tenant.id).where(
-            Invitation.tenant_id == current_user.tenant_id
+        stmt = (
+            select(Invitation, Tenant.name)
+            .outerjoin(Tenant, Invitation.tenant_id == Tenant.id)
+            .where(Invitation.tenant_id == current_user.tenant_id)
         )
         if status_filter:
             stmt = stmt.where(Invitation.status == status_filter)
@@ -191,17 +211,26 @@ async def list_invitations(
 async def resend_invitation(
     invitation_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(RequireRole([UserRole.org_admin, UserRole.manager, UserRole.owner])),
+    current_user: User = Depends(
+        RequireRole([UserRole.org_admin, UserRole.manager, UserRole.owner])
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     """Renew expiration by 7 days, generate fresh token, resend invite email, and return new link."""
     if current_user.role == UserRole.owner and not current_user.tenant_id:
-        stmt = select(Invitation, Tenant.name).outerjoin(Tenant, Invitation.tenant_id == Tenant.id).where(
-            Invitation.id == invitation_id
+        stmt = (
+            select(Invitation, Tenant.name)
+            .outerjoin(Tenant, Invitation.tenant_id == Tenant.id)
+            .where(Invitation.id == invitation_id)
         )
     else:
-        stmt = select(Invitation, Tenant.name).outerjoin(Tenant, Invitation.tenant_id == Tenant.id).where(
-            Invitation.id == invitation_id, Invitation.tenant_id == current_user.tenant_id
+        stmt = (
+            select(Invitation, Tenant.name)
+            .outerjoin(Tenant, Invitation.tenant_id == Tenant.id)
+            .where(
+                Invitation.id == invitation_id,
+                Invitation.tenant_id == current_user.tenant_id,
+            )
         )
 
     result = await db.execute(stmt)
@@ -254,7 +283,9 @@ async def resend_invitation(
 async def revoke_invitation(
     invitation_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(RequireRole([UserRole.org_admin, UserRole.manager, UserRole.owner])),
+    current_user: User = Depends(
+        RequireRole([UserRole.org_admin, UserRole.manager, UserRole.owner])
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     """Revoke an active invitation."""
@@ -262,7 +293,8 @@ async def revoke_invitation(
         stmt = select(Invitation).where(Invitation.id == invitation_id)
     else:
         stmt = select(Invitation).where(
-            Invitation.id == invitation_id, Invitation.tenant_id == current_user.tenant_id
+            Invitation.id == invitation_id,
+            Invitation.tenant_id == current_user.tenant_id,
         )
 
     invitation = (await db.execute(stmt)).scalars().first()

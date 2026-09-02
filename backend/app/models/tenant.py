@@ -52,9 +52,15 @@ class Tenant(Base):
     max_ai_tokens_per_month: Mapped[int] = mapped_column(default=100_000)
 
     # Real-time usage tracking
-    current_storage_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
-    current_ai_tokens_used: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
-    quota_reset_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    current_storage_bytes: Mapped[int] = mapped_column(
+        BigInteger, default=0, nullable=False
+    )
+    current_ai_tokens_used: Mapped[int] = mapped_column(
+        BigInteger, default=0, nullable=False
+    )
+    quota_reset_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # White-label configuration
     white_label_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
@@ -67,8 +73,12 @@ class Tenant(Base):
 
     # Enterprise features
     sso_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    custom_domain: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True)
-    custom_domain_status: Mapped[str | None] = mapped_column(String(50), nullable=True)  # pending, verified, failed
+    custom_domain: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, unique=True
+    )
+    custom_domain_status: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )  # pending, verified, failed
 
     # Stripe billing
     stripe_customer_id: Mapped[str | None] = mapped_column(
@@ -77,18 +87,32 @@ class Tenant(Base):
     stripe_subscription_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
-    subscription_status: Mapped[str] = mapped_column(String(50), default="active", nullable=False)
-    current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    cancel_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    subscription_status: Mapped[str] = mapped_column(
+        String(50), default="active", nullable=False
+    )
+    current_period_end: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    cancel_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     seats_purchased: Mapped[int] = mapped_column(default=0, nullable=False)
-    billing_cycle: Mapped[str] = mapped_column(String(20), default="monthly")  # monthly, yearly
-    mrr: Mapped[float] = mapped_column(Float, default=0.0)  # cached Monthly Recurring Revenue
-    trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    billing_cycle: Mapped[str] = mapped_column(
+        String(20), default="monthly"
+    )  # monthly, yearly
+    mrr: Mapped[float] = mapped_column(
+        Float, default=0.0
+    )  # cached Monthly Recurring Revenue
+    trial_ends_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Provisioning (enterprise dedicated DB/storage)
     # Values: "none" | "pending" | "ready" | "failed"
     # The dedicated_db_url field is ALWAYS stored AES-256 Fernet encrypted
-    provisioning_status: Mapped[str] = mapped_column(String(20), default="none", nullable=False)
+    provisioning_status: Mapped[str] = mapped_column(
+        String(20), default="none", nullable=False
+    )
     provisioning_error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Status and Lifecycle

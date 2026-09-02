@@ -35,11 +35,11 @@ class Dashboard(Base):
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    
+
     # Store the complex layout and widgets directly in a JSONB column
     # This allows flexible drag-and-drop state without complex joins
     layout_json: Mapped[dict | None] = mapped_column(JSON, default=dict)
-    
+
     is_published: Mapped[bool] = mapped_column(Boolean, default=False)
     published_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

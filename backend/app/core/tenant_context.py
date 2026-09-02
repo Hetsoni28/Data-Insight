@@ -75,7 +75,9 @@ def require_tenant_id() -> uuid.UUID:
     """Return the active tenant_id or raise ForbiddenException if no tenant is bound."""
     tenant_id = get_current_tenant_id()
     if not tenant_id:
-        raise ForbiddenException("Active tenant context is required for this operation.")
+        raise ForbiddenException(
+            "Active tenant context is required for this operation."
+        )
     return tenant_id
 
 
@@ -92,9 +94,17 @@ async def tenant_scope(
         ctx = ctx_or_id
     else:
         tenant_id = ctx_or_id
-        tid = uuid.UUID(str(tenant_id)) if tenant_id and isinstance(tenant_id, (str, uuid.UUID)) else None
+        tid = (
+            uuid.UUID(str(tenant_id))
+            if tenant_id and isinstance(tenant_id, (str, uuid.UUID))
+            else None
+        )
         user_id = kwargs.get("user_id")
-        uid = uuid.UUID(str(user_id)) if user_id and isinstance(user_id, (str, uuid.UUID)) else None
+        uid = (
+            uuid.UUID(str(user_id))
+            if user_id and isinstance(user_id, (str, uuid.UUID))
+            else None
+        )
 
         ctx = TenantContext(
             tenant_id=tid,
@@ -136,8 +146,16 @@ def sync_tenant_scope(
     metadata: Optional[dict] = None,
 ):
     """Synchronous context manager for Celery workers and batch jobs."""
-    tid = uuid.UUID(str(tenant_id)) if tenant_id and isinstance(tenant_id, (str, uuid.UUID)) else None
-    uid = uuid.UUID(str(user_id)) if user_id and isinstance(user_id, (str, uuid.UUID)) else None
+    tid = (
+        uuid.UUID(str(tenant_id))
+        if tenant_id and isinstance(tenant_id, (str, uuid.UUID))
+        else None
+    )
+    uid = (
+        uuid.UUID(str(user_id))
+        if user_id and isinstance(user_id, (str, uuid.UUID))
+        else None
+    )
 
     ctx = TenantContext(
         tenant_id=tid,

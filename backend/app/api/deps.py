@@ -9,7 +9,11 @@ from jose import jwt, JWTError
 
 from app.db.session import AsyncSessionLocal as SharedAsyncSessionLocal
 from app.db.router import db_router
-from app.core.tenant_context import get_tenant_context, TenantContext, get_current_tenant_id
+from app.core.tenant_context import (
+    get_tenant_context,
+    TenantContext,
+    get_current_tenant_id,
+)
 from app.db.redis import get_redis_pool
 from app.core.config import settings
 from app.core.exceptions import UnauthorizedException
@@ -133,9 +137,12 @@ async def get_current_user(
     # Check brute-force account lockout
     if getattr(user, "locked_until", None):
         from datetime import datetime, timezone
+
         now_utc = datetime.now(timezone.utc)
         if user.locked_until > now_utc:
-            remaining_mins = max(1, int((user.locked_until - now_utc).total_seconds() / 60))
+            remaining_mins = max(
+                1, int((user.locked_until - now_utc).total_seconds() / 60)
+            )
             raise UnauthorizedException(
                 f"Account is temporarily locked. Please try again in {remaining_mins} minute(s)."
             )
@@ -157,7 +164,10 @@ async def get_current_user(
             existing_session.is_active = True
         else:
             user_agent = request.headers.get("user-agent", "")
-            client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
+            client_ip = request.headers.get(
+                "x-forwarded-for",
+                request.client.host if request.client else "127.0.0.1",
+            )
             if "," in client_ip:
                 client_ip = client_ip.split(",")[0].strip()
 
@@ -198,7 +208,8 @@ async def get_current_user(
                 ip_address=client_ip or "127.0.0.1",
                 user_agent=user_agent,
                 is_active=True,
-                expires_at=now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+                expires_at=now
+                + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
                 last_active_at=now,
             )
             db.add(new_session)
@@ -213,7 +224,11 @@ async def get_current_superuser(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Requires the user to be a platform super-admin or owner."""
-    if not (current_user.is_superuser or current_user.is_owner or current_user.role == "owner"):
+    if not (
+        current_user.is_superuser
+        or current_user.is_owner
+        or current_user.role == "owner"
+    ):
         from app.core.exceptions import ForbiddenException
 
         raise ForbiddenException("Super-admin or Owner access required.")
@@ -257,6 +272,7 @@ class RequireRole:
             )
         return current_user
 
+
 get_current_org_admin = RequireRole(["org_admin"])
 get_current_editor = RequireRole(["org_admin", "editor"])
 get_current_manager = RequireRole(["manager", "org_admin", "owner"])
@@ -265,44 +281,94 @@ get_current_viewer = RequireRole(["viewer"])
 # ─── Permission-Based RBAC ────────────────────────────────────────────────────
 ROLE_PERMISSIONS = {
     "org_admin": [
-        "DATASET_VIEW", "DATASET_QUERY", "DATASET_ANALYZE", "DATASET_AI_EXCEL", "DATASET_CREATE_REPORT", "DATASET_CREATE_DASHBOARD", "DATASET_DELETE", "DATASET_EXPORT", "DATASET_UPLOAD",
-        "REPORT_VIEW", "REPORT_CREATE", "REPORT_EDIT", "REPORT_DELETE", "REPORT_EXPORT", "REPORT_PUBLISH", "REPORT_SHARE", "REPORT_SCHEDULE", "REPORT_AI"
+        "DATASET_VIEW",
+        "DATASET_QUERY",
+        "DATASET_ANALYZE",
+        "DATASET_AI_EXCEL",
+        "DATASET_CREATE_REPORT",
+        "DATASET_CREATE_DASHBOARD",
+        "DATASET_DELETE",
+        "DATASET_EXPORT",
+        "DATASET_UPLOAD",
+        "REPORT_VIEW",
+        "REPORT_CREATE",
+        "REPORT_EDIT",
+        "REPORT_DELETE",
+        "REPORT_EXPORT",
+        "REPORT_PUBLISH",
+        "REPORT_SHARE",
+        "REPORT_SCHEDULE",
+        "REPORT_AI",
     ],
-    "manager":   [
-        "DATASET_VIEW", "DATASET_QUERY", "DATASET_ANALYZE", "DATASET_AI_EXCEL", "DATASET_CREATE_REPORT", "DATASET_CREATE_DASHBOARD", "DATASET_DELETE_OWN", "DATASET_EXPORT", "DATASET_UPLOAD",
-        "REPORT_VIEW", "REPORT_CREATE", "REPORT_EDIT", "REPORT_DELETE", "REPORT_EXPORT", "REPORT_PUBLISH", "REPORT_SHARE", "REPORT_SCHEDULE", "REPORT_AI"
+    "manager": [
+        "DATASET_VIEW",
+        "DATASET_QUERY",
+        "DATASET_ANALYZE",
+        "DATASET_AI_EXCEL",
+        "DATASET_CREATE_REPORT",
+        "DATASET_CREATE_DASHBOARD",
+        "DATASET_DELETE_OWN",
+        "DATASET_EXPORT",
+        "DATASET_UPLOAD",
+        "REPORT_VIEW",
+        "REPORT_CREATE",
+        "REPORT_EDIT",
+        "REPORT_DELETE",
+        "REPORT_EXPORT",
+        "REPORT_PUBLISH",
+        "REPORT_SHARE",
+        "REPORT_SCHEDULE",
+        "REPORT_AI",
     ],
-    "analyst":   [
-        "DATASET_VIEW", "DATASET_QUERY", "DATASET_ANALYZE", "DATASET_AI_EXCEL", "DATASET_CREATE_REPORT", "DATASET_CREATE_DASHBOARD", "DATASET_DELETE_OWN", "DATASET_UPLOAD",
-        "REPORT_VIEW", "REPORT_CREATE", "REPORT_EDIT", "REPORT_DELETE_OWN", "REPORT_EXPORT", "REPORT_PUBLISH", "REPORT_SHARE", "REPORT_SCHEDULE", "REPORT_AI"
+    "analyst": [
+        "DATASET_VIEW",
+        "DATASET_QUERY",
+        "DATASET_ANALYZE",
+        "DATASET_AI_EXCEL",
+        "DATASET_CREATE_REPORT",
+        "DATASET_CREATE_DASHBOARD",
+        "DATASET_DELETE_OWN",
+        "DATASET_UPLOAD",
+        "REPORT_VIEW",
+        "REPORT_CREATE",
+        "REPORT_EDIT",
+        "REPORT_DELETE_OWN",
+        "REPORT_EXPORT",
+        "REPORT_PUBLISH",
+        "REPORT_SHARE",
+        "REPORT_SCHEDULE",
+        "REPORT_AI",
     ],
-    "viewer":    [
-        "DATASET_VIEW", "DATASET_QUERY",
-        "REPORT_VIEW", "REPORT_EXPORT"
-    ]
+    "viewer": ["DATASET_VIEW", "DATASET_QUERY", "REPORT_VIEW", "REPORT_EXPORT"],
 }
+
 
 class RequirePermission:
     """
     Dependency that enforces fine-grained permissions based on the user's role.
     """
+
     def __init__(self, permission: str):
         self.permission = permission
 
     async def __call__(
         self, current_user: User = Depends(get_current_active_tenant_user)
     ) -> User:
-        if current_user.is_owner or current_user.role in ["owner", "org_admin", "organization-admin"]:
+        if current_user.is_owner or current_user.role in [
+            "owner",
+            "org_admin",
+            "organization-admin",
+        ]:
             return current_user
-            
+
         user_perms = ROLE_PERMISSIONS.get(current_user.role, [])
         if self.permission not in user_perms:
             from app.core.exceptions import ForbiddenException
+
             raise ForbiddenException(
                 f"You do not have the required permission ({self.permission}) to perform this action."
             )
         return current_user
-
 
 
 # ─── Workspace Dependencies ───────────────────────────────────────────────────
@@ -324,25 +390,29 @@ async def get_current_workspace(
     """
     if not workspace_id:
         return None
-        
+
     import uuid
+
     try:
         ws_uuid = uuid.UUID(workspace_id)
     except ValueError:
         from app.core.exceptions import BadRequestException
+
         raise BadRequestException("Invalid workspace ID format.")
-        
+
     from sqlalchemy import select
     from app.models.workspace import Workspace
     from app.core.exceptions import ForbiddenException, ResourceNotFoundException
 
-    stmt = select(Workspace).where(Workspace.id == ws_uuid, Workspace.is_deleted == False)
+    stmt = select(Workspace).where(
+        Workspace.id == ws_uuid, Workspace.is_deleted == False
+    )
     workspace = (await db.execute(stmt)).scalar_one_or_none()
-    
+
     if not workspace:
         raise ResourceNotFoundException("Workspace not found.")
-        
+
     if workspace.tenant_id != current_user.tenant_id:
         raise ForbiddenException("You do not have access to this workspace.")
-        
+
     return workspace

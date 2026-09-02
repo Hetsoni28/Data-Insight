@@ -5,6 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 
+
 class ViewerWelcomeInfo(BaseModel):
     avatar_url: Optional[str] = None
     greeting: str
@@ -16,6 +17,7 @@ class ViewerWelcomeInfo(BaseModel):
     today_date: str
     recent_login: Optional[str] = None
 
+
 class ViewerKpis(BaseModel):
     reports_shared: int
     dashboards_available: int
@@ -26,11 +28,13 @@ class ViewerKpis(BaseModel):
     unread_notifications: int
     recent_ai_conversations: int
 
+
 class ViewerDashboardOverview(BaseModel):
     welcome: ViewerWelcomeInfo
     kpis: ViewerKpis
     recent_activity: List[Dict[str, Any]]
     unread_notifications: List[Dict[str, Any]]
+
 
 class DashboardChartWidget(BaseModel):
     id: str
@@ -40,6 +44,7 @@ class DashboardChartWidget(BaseModel):
     y_axis_key: Optional[str] = None
     data: List[Dict[str, Any]]
     metrics: Optional[Dict[str, Any]] = None
+
 
 class ViewerDashboardResponse(BaseModel):
     id: uuid.UUID
@@ -52,13 +57,16 @@ class ViewerDashboardResponse(BaseModel):
     updated_at: datetime
     widgets: List[DashboardChartWidget]
 
+
 class ViewerBookmarkToggleRequest(BaseModel):
     report_id: uuid.UUID
+
 
 class ViewerBookmarkToggleResponse(BaseModel):
     report_id: uuid.UUID
     is_bookmarked: bool
     message: str
+
 
 class ViewerAiChatRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=4000)
@@ -66,9 +74,11 @@ class ViewerAiChatRequest(BaseModel):
     report_id: Optional[uuid.UUID] = None
     history: Optional[List[Dict[str, Any]]] = None
 
+
 class ViewerAiChatResponse(BaseModel):
     answer: str
     model: str
+
 
 class ViewerReportInsights(BaseModel):
     executive_summary: str
@@ -79,10 +89,12 @@ class ViewerReportInsights(BaseModel):
     opportunities: List[str] = []
     recommendations: List[str] = []
 
+
 class ViewerReportRelatedAsset(BaseModel):
     id: str
     name: str
-    type: str # 'dashboard', 'dataset', 'report', 'forecast'
+    type: str  # 'dashboard', 'dataset', 'report', 'forecast'
+
 
 class ViewerReportPreviewResponse(BaseModel):
     id: str
@@ -99,17 +111,20 @@ class ViewerReportPreviewResponse(BaseModel):
     output_url: Optional[str] = None
     widgets: List[DashboardChartWidget] = []
 
+
 class ViewerReportFiltersResponse(BaseModel):
     categories: List[str] = []
     departments: List[str] = []
     owners: List[str] = []
     statuses: List[str] = []
 
+
 class ViewerActivityResponse(BaseModel):
     entries: List[Any]
     total: int
     page: int
     size: int
+
 
 class ViewerReportListResponse(BaseModel):
     items: List[Dict[str, Any]]

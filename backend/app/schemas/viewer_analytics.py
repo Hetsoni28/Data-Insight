@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any, Union
 import uuid
 from datetime import datetime
 
+
 class ViewerAnalyticsKpi(BaseModel):
     id: str
     title: str
@@ -18,9 +19,11 @@ class ViewerAnalyticsKpi(BaseModel):
     class Config:
         extra = "allow"
 
+
 class ViewerAnalyticsKpisResponse(BaseModel):
     domain: str = "General Business"
     kpis: List[ViewerAnalyticsKpi]
+
 
 class ViewerAnalyticsTrend(BaseModel):
     id: str
@@ -34,8 +37,10 @@ class ViewerAnalyticsTrend(BaseModel):
     class Config:
         extra = "allow"
 
+
 class ViewerAnalyticsTrendsResponse(BaseModel):
     trends: List[ViewerAnalyticsTrend]
+
 
 class ViewerAnalyticsPerformanceItem(BaseModel):
     id: str
@@ -48,12 +53,15 @@ class ViewerAnalyticsPerformanceItem(BaseModel):
     class Config:
         extra = "allow"
 
+
 class ViewerAnalyticsPerformance(BaseModel):
     dimension: str
     items: List[ViewerAnalyticsPerformanceItem]
 
+
 class ViewerAnalyticsPerformanceResponse(BaseModel):
     performances: List[ViewerAnalyticsPerformance]
+
 
 class ViewerAnalyticsComparison(BaseModel):
     id: str
@@ -69,8 +77,10 @@ class ViewerAnalyticsComparison(BaseModel):
     class Config:
         extra = "allow"
 
+
 class ViewerAnalyticsComparisonsResponse(BaseModel):
     comparisons: List[ViewerAnalyticsComparison]
+
 
 class ViewerAnalyticsForecast(BaseModel):
     id: str
@@ -84,8 +94,10 @@ class ViewerAnalyticsForecast(BaseModel):
     class Config:
         extra = "allow"
 
+
 class ViewerAnalyticsForecastResponse(BaseModel):
     forecasts: List[ViewerAnalyticsForecast]
+
 
 class ViewerAnalyticsAnomaly(BaseModel):
     id: str
@@ -97,8 +109,10 @@ class ViewerAnalyticsAnomaly(BaseModel):
     severity: str
     possible_explanation: Optional[str] = None
 
+
 class ViewerAnalyticsAnomaliesResponse(BaseModel):
     anomalies: List[ViewerAnalyticsAnomaly]
+
 
 class ViewerAnalyticsInsight(BaseModel):
     id: str
@@ -108,9 +122,11 @@ class ViewerAnalyticsInsight(BaseModel):
     class Config:
         extra = "allow"
 
+
 class ViewerAnalyticsInsightsResponse(BaseModel):
     executive_summary: str = ""
     insights: List[ViewerAnalyticsInsight]
+
 
 class ViewerAnalyticsDataQuality(BaseModel):
     dataset_id: uuid.UUID
@@ -120,8 +136,10 @@ class ViewerAnalyticsDataQuality(BaseModel):
     duplicate_records: int
     quality_score: float
 
+
 class ViewerAnalyticsDataQualityResponse(BaseModel):
     quality_reports: List[ViewerAnalyticsDataQuality]
+
 
 class ViewerAnalyticsSavedView(BaseModel):
     id: str
@@ -129,16 +147,20 @@ class ViewerAnalyticsSavedView(BaseModel):
     filters: Dict[str, Any]
     created_at: datetime
 
+
 class ViewerAnalyticsSavedViewsResponse(BaseModel):
     views: List[ViewerAnalyticsSavedView]
+
 
 class ViewerAnalyticsSavedViewCreate(BaseModel):
     name: str
     filters: Dict[str, Any]
 
+
 class ViewerAnalyticsAIChatRequest(BaseModel):
     message: str
     context: Optional[Dict[str, Any]] = {}
+
 
 class ViewerAnalyticsAIChatResponse(BaseModel):
     response: str

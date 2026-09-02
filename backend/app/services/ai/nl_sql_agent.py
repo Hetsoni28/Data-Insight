@@ -8,7 +8,11 @@ import re
 from typing import Dict, Any, Optional, List
 import polars as pl
 
-from app.core.exceptions import AIServiceException, ValidationException, ForbiddenException
+from app.core.exceptions import (
+    AIServiceException,
+    ValidationException,
+    ForbiddenException,
+)
 from app.services.ai.router import LLMRouter
 from app.services.ingestion.duckdb_engine import DuckDBEngine
 
@@ -56,7 +60,11 @@ Rules:
     def __init__(self, router: LLMRouter):
         self.router = router
 
-    def _build_schema_context(self, schema_info: Dict[str, Any], preview_rows: Optional[List[Dict[str, Any]]] = None) -> str:
+    def _build_schema_context(
+        self,
+        schema_info: Dict[str, Any],
+        preview_rows: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
         """Format column types and sample rows into a clear context prompt."""
         context_lines = ["Table Name: `data`\nColumns & Types:"]
         for col_name, col_type in schema_info.items():
@@ -117,9 +125,13 @@ Generate the DuckDB SQL query to answer this question."""
 
         # 2. Execute SQL safely using DuckDBEngine
         try:
-            query_result = DuckDBEngine.execute_query(df=df, sql=generated_sql, table_name="data", limit=100)
+            query_result = DuckDBEngine.execute_query(
+                df=df, sql=generated_sql, table_name="data", limit=100
+            )
         except Exception as e:
-            logger.warning(f"[NLSQLAgent] SQL execution failed: {e}. Retrying with error feedback...")
+            logger.warning(
+                f"[NLSQLAgent] SQL execution failed: {e}. Retrying with error feedback..."
+            )
             # Self-healing retry
             fix_prompt = f"""The previous SQL query failed with error: {str(e)}
 Schema:
@@ -142,7 +154,9 @@ Please provide the corrected DuckDB SQL in JSON format."""
                 fix_json = re.sub(r"\s*```$", "", fix_json)
             parsed_fix = json.loads(fix_json)
             generated_sql = parsed_fix.get("sql", generated_sql)
-            query_result = DuckDBEngine.execute_query(df=df, sql=generated_sql, table_name="data", limit=100)
+            query_result = DuckDBEngine.execute_query(
+                df=df, sql=generated_sql, table_name="data", limit=100
+            )
 
         # 3. Synthesize the final grounded business answer
         cols = query_result.get("columns", [])
@@ -171,8 +185,12 @@ Provide an executive answer based on these findings."""
             temperature=0.2,
         )
 
-        total_prompt_tokens = sql_response.prompt_tokens + synthesis_response.prompt_tokens
-        total_completion_tokens = sql_response.completion_tokens + synthesis_response.completion_tokens
+        total_prompt_tokens = (
+            sql_response.prompt_tokens + synthesis_response.prompt_tokens
+        )
+        total_completion_tokens = (
+            sql_response.completion_tokens + synthesis_response.completion_tokens
+        )
         total_cost = round(sql_response.cost_usd + synthesis_response.cost_usd, 6)
 
         return {
@@ -184,7 +202,9 @@ Provide an executive answer based on these findings."""
             "completion_tokens": total_completion_tokens,
             "total_tokens": total_prompt_tokens + total_completion_tokens,
             "cost_usd": total_cost,
-            "latency_ms": round(sql_response.latency_ms + synthesis_response.latency_ms, 2),
+            "latency_ms": round(
+                sql_response.latency_ms + synthesis_response.latency_ms, 2
+            ),
             "provider": synthesis_response.provider,
             "model": synthesis_response.model,
         }

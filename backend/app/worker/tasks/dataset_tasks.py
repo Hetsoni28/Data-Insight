@@ -25,7 +25,12 @@ async def _profile_dataset(task, dataset_id: str):
     from app.db.session import AsyncSessionLocal, engine
     from app.repositories.dataset import DatasetRepository
     from app.models.dataset import DatasetStatus
-    from app.core.storage import get_signed_url, DATASETS_BUCKET, is_local_storage, LOCAL_UPLOADS_DIR
+    from app.core.storage import (
+        get_signed_url,
+        DATASETS_BUCKET,
+        is_local_storage,
+        LOCAL_UPLOADS_DIR,
+    )
     from app.services.ingestion.polars_engine import PolarsEngine
     from app.services.ingestion.profiler import DataProfiler
 
@@ -92,13 +97,13 @@ async def _profile_dataset(task, dataset_id: str):
                 raise task.retry(exc=exc)
 
     except Exception as exc:
-        logger.exception(f"Unhandled error in profile_dataset_task for {dataset_id}: {exc}")
+        logger.exception(
+            f"Unhandled error in profile_dataset_task for {dataset_id}: {exc}"
+        )
 
 
 @shared_task(bind=True, name="dataset.analyze", max_retries=2, default_retry_delay=60)
-def analyze_dataset_task(
-    self, dataset_id: str, user_id: str, provider: str = "groq"
-):
+def analyze_dataset_task(self, dataset_id: str, user_id: str, provider: str = "groq"):
     """AI deep analysis via Multi-Provider AI (Groq / Gemini) — runs in Celery."""
     import asyncio
 

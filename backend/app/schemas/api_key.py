@@ -2,11 +2,14 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 import uuid
 
+
 class ApiKeyBase(BaseModel):
     name: str
 
+
 class ApiKeyCreate(ApiKeyBase):
     pass
+
 
 class ApiKeyResponse(ApiKeyBase):
     id: uuid.UUID
@@ -17,6 +20,7 @@ class ApiKeyResponse(ApiKeyBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class ApiKeyCreateResponse(ApiKeyResponse):
     raw_key: str  # Only returned once upon creation!

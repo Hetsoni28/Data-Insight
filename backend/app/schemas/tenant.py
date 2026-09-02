@@ -30,7 +30,9 @@ class TenantUpdateRequest(BaseModel):
 
 class TenantDatabaseConfigRequest(BaseModel):
     db_connection_type: str = Field(..., pattern="^(shared|dedicated)$")
-    dedicated_db_url: Optional[str] = Field(None, description="PostgreSQL async connection string")
+    dedicated_db_url: Optional[str] = Field(
+        None, description="PostgreSQL async connection string"
+    )
 
 
 class DatabaseConnectionTestRequest(BaseModel):

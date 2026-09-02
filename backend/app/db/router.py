@@ -22,7 +22,10 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.tenant_context import get_tenant_context, TenantContext
-from app.db.session import engine as shared_engine, AsyncSessionLocal as SharedAsyncSessionLocal
+from app.db.session import (
+    engine as shared_engine,
+    AsyncSessionLocal as SharedAsyncSessionLocal,
+)
 
 
 def normalize_db_url(url: str) -> str:
@@ -81,7 +84,9 @@ class TenantDatabaseRouter:
             if key in self._dedicated_engines:
                 return self._dedicated_engines[key]
 
-            logger.info(f"[DB Router] Initializing dedicated engine pool for tenant: {tenant_id}")
+            logger.info(
+                f"[DB Router] Initializing dedicated engine pool for tenant: {tenant_id}"
+            )
             engine = self._build_engine(dedicated_url)
             session_factory = async_sessionmaker(
                 bind=engine,
@@ -119,13 +124,17 @@ class TenantDatabaseRouter:
                 self._dedicated_sessionmakers.pop(key, None)
                 self._engine_created_at.pop(key, None)
                 if engine:
-                    logger.info(f"[DB Router] Disposing dedicated engine pool for tenant: {tenant_id}")
+                    logger.info(
+                        f"[DB Router] Disposing dedicated engine pool for tenant: {tenant_id}"
+                    )
                     await engine.dispose()
 
     async def dispose_all(self) -> None:
         """Dispose all dedicated engines on server shutdown."""
         async with self._lock:
-            logger.info(f"[DB Router] Disposing {len(self._dedicated_engines)} dedicated connection pools...")
+            logger.info(
+                f"[DB Router] Disposing {len(self._dedicated_engines)} dedicated connection pools..."
+            )
             for key, engine in list(self._dedicated_engines.items()):
                 try:
                     await engine.dispose()
@@ -156,7 +165,11 @@ class TenantDatabaseRouter:
                 latency_ms = (time.perf_counter() - start_time) * 1000.0
                 if row == 1:
                     return True, None, round(latency_ms, 2)
-                return False, "Database test query returned unexpected result.", round(latency_ms, 2)
+                return (
+                    False,
+                    "Database test query returned unexpected result.",
+                    round(latency_ms, 2),
+                )
         except Exception as e:
             latency_ms = (time.perf_counter() - start_time) * 1000.0
             return False, str(e), round(latency_ms, 2)

@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, Dict, Any
 
+
 class AuditLogResponse(BaseModel):
     id: uuid.UUID
     tenant_id: Optional[uuid.UUID] = None

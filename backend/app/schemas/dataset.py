@@ -61,9 +61,11 @@ class StructuredQueryFilter(BaseModel):
     operator: str  # eq, neq, gt, lt, gte, lte, in, not_in, contains
     value: Any
 
+
 class StructuredQuerySort(BaseModel):
     column: str
     direction: str = "asc"
+
 
 class StructuredQueryRequest(BaseModel):
     dataset_id: str
@@ -73,6 +75,7 @@ class StructuredQueryRequest(BaseModel):
     filters: Optional[List[StructuredQueryFilter]] = []
     sort: Optional[List[StructuredQuerySort]] = []
     limit: int = Field(default=1000, ge=1, le=10000, description="Max rows to return")
+
 
 class DatasetQueryRequest(BaseModel):
     sql: str = Field(..., description="SQL query to execute over the dataset view")

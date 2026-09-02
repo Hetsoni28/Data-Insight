@@ -16,7 +16,10 @@ except Exception as e:
     logger.warning(f"Failed to initialize genai client: {e}")
     client = None
 
-def generate_structured_report(prompt: str, schema: dict, model_name: str = "gemini-3.5-flash") -> dict:
+
+def generate_structured_report(
+    prompt: str, schema: dict, model_name: str = "gemini-3.5-flash"
+) -> dict:
     """
     Generates a structured JSON response from Gemini using Structured Outputs.
     Args:
@@ -28,7 +31,7 @@ def generate_structured_report(prompt: str, schema: dict, model_name: str = "gem
     """
     if not client:
         raise ValueError("Gemini client is not initialized. Check GEMINI_API_KEY.")
-    
+
     response = client.models.generate_content(
         model=model_name,
         contents=prompt,
@@ -39,15 +42,15 @@ def generate_structured_report(prompt: str, schema: dict, model_name: str = "gem
             max_output_tokens=8192,
         ),
     )
-    
+
     text = response.text.strip()
-    
+
     # Robustly extract the JSON object
-    start_idx = text.find('{')
-    end_idx = text.rfind('}')
+    start_idx = text.find("{")
+    end_idx = text.rfind("}")
     if start_idx != -1 and end_idx != -1:
-        text = text[start_idx:end_idx+1]
-        
+        text = text[start_idx : end_idx + 1]
+
     try:
         return json.loads(text)
     except json.JSONDecodeError as e:
@@ -56,7 +59,7 @@ def generate_structured_report(prompt: str, schema: dict, model_name: str = "gem
         try:
             # Very basic attempt to close unclosed JSON object (often happens with truncation)
             if not text.endswith("}"):
-                text = text + '"}]}' # Try to close typical report structure
+                text = text + '"}]}'  # Try to close typical report structure
             return json.loads(text)
-        except:
+        except Exception:
             raise e

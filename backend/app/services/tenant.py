@@ -72,7 +72,7 @@ class TenantService:
             category="Organization",
             priority="Medium",
             notif_type="org.created",
-            icon="building"
+            icon="building",
         )
 
         await self.session.commit()

@@ -8,8 +8,10 @@ from typing import Optional, Dict, Any, List
 # Profile Header / Full Profile
 # ═══════════════════════════════════════════════
 
+
 class ViewerProfileResponse(BaseModel):
     """Full profile response for the viewer header and personal info sections."""
+
     # Identity
     id: uuid.UUID
     email: str
@@ -43,6 +45,7 @@ class ViewerProfileResponse(BaseModel):
 
 class ViewerProfileUpdateRequest(BaseModel):
     """Fields the viewer is allowed to edit themselves."""
+
     full_name: Optional[str] = None
     phone: Optional[str] = None
     location: Optional[str] = None
@@ -54,6 +57,7 @@ class ViewerProfileUpdateRequest(BaseModel):
 # ═══════════════════════════════════════════════
 # Security
 # ═══════════════════════════════════════════════
+
 
 class ViewerSecurityOverview(BaseModel):
     password_last_changed: Optional[str] = "Not available"
@@ -80,6 +84,7 @@ class ViewerPasswordChangeResponse(BaseModel):
 # Sessions
 # ═══════════════════════════════════════════════
 
+
 class ViewerSessionResponse(BaseModel):
     id: uuid.UUID
     device_name: Optional[str] = None
@@ -98,6 +103,7 @@ class ViewerSessionResponse(BaseModel):
 # ═══════════════════════════════════════════════
 # Login History
 # ═══════════════════════════════════════════════
+
 
 class ViewerLoginHistoryEntry(BaseModel):
     id: uuid.UUID
@@ -125,6 +131,7 @@ class ViewerLoginHistoryResponse(BaseModel):
 # Notification Preferences
 # ═══════════════════════════════════════════════
 
+
 class ViewerNotificationPreferences(BaseModel):
     email_notifications: bool = True
     push_notifications: bool = True
@@ -140,8 +147,10 @@ class ViewerNotificationPreferences(BaseModel):
 # Appearance, Language, AI Preferences
 # ═══════════════════════════════════════════════
 
+
 class ViewerPreferences(BaseModel):
     """All personal preferences stored in UserProfile.preferences JSON."""
+
     # Appearance
     theme: str = "system"  # "light", "dark", "system"
     density: str = "comfortable"  # "compact", "comfortable"
@@ -169,6 +178,7 @@ class ViewerPreferences(BaseModel):
 # Activity
 # ═══════════════════════════════════════════════
 
+
 class ViewerActivityEntry(BaseModel):
     id: uuid.UUID
     action: str
@@ -188,6 +198,7 @@ class ViewerActivityResponse(BaseModel):
 # ═══════════════════════════════════════════════
 # Data & Privacy
 # ═══════════════════════════════════════════════
+
 
 class ViewerDataExportResponse(BaseModel):
     status: str  # "requested", "processing", "ready"

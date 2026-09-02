@@ -68,7 +68,9 @@ class DuckDBEngine:
         # Ensure query starts with SELECT or WITH
         first_token = cleaned.split()[0].upper()
         if first_token not in ("SELECT", "WITH", "EXPLAIN", "DESCRIBE", "SHOW"):
-            raise ForbiddenException(f"Unsupported statement type: '{first_token}'. Only SELECT queries are permitted.")
+            raise ForbiddenException(
+                f"Unsupported statement type: '{first_token}'. Only SELECT queries are permitted."
+            )
 
     @classmethod
     def execute_query(
@@ -96,7 +98,9 @@ class DuckDBEngine:
 
             # Enforce pagination limit if not already limited
             user_sql = sql.strip().rstrip(";")
-            wrapped_sql = f"SELECT * FROM ({user_sql}) AS __q LIMIT {limit} OFFSET {offset}"
+            wrapped_sql = (
+                f"SELECT * FROM ({user_sql}) AS __q LIMIT {limit} OFFSET {offset}"
+            )
 
             cursor = conn.execute(wrapped_sql)
             description = cursor.description or []
@@ -146,10 +150,18 @@ class DuckDBEngine:
         numeric_cols = [
             col
             for col in df.columns
-            if df.schema[col] in (
-                pl.Int8, pl.Int16, pl.Int32, pl.Int64,
-                pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64,
-                pl.Float32, pl.Float64
+            if df.schema[col]
+            in (
+                pl.Int8,
+                pl.Int16,
+                pl.Int32,
+                pl.Int64,
+                pl.UInt8,
+                pl.UInt16,
+                pl.UInt32,
+                pl.UInt64,
+                pl.Float32,
+                pl.Float64,
             )
         ]
 
@@ -173,7 +185,9 @@ class DuckDBEngine:
                     if i <= j:
                         safe_col1 = f'"{col1}"'
                         safe_col2 = f'"{col2}"'
-                        select_clauses.append(f"CORR({safe_col1}, {safe_col2}) AS c_{i}_{j}")
+                        select_clauses.append(
+                            f"CORR({safe_col1}, {safe_col2}) AS c_{i}_{j}"
+                        )
 
             sql = f"SELECT {', '.join(select_clauses)} FROM df_num"
             row = conn.execute(sql).fetchone()
@@ -219,12 +233,14 @@ class DuckDBEngine:
         max_val = float(series.max())
 
         if min_val == max_val:
-            return [{
-                "bin_start": min_val,
-                "bin_end": max_val,
-                "count": len(series),
-                "pct": 100.0,
-            }]
+            return [
+                {
+                    "bin_start": min_val,
+                    "bin_end": max_val,
+                    "count": len(series),
+                    "pct": 100.0,
+                }
+            ]
 
         step = (max_val - min_val) / num_bins
         bins = []
@@ -246,12 +262,14 @@ class DuckDBEngine:
 
                 count = conn.execute(query).fetchone()[0]
                 pct = round((count / len(series)) * 100, 2)
-                bins.append({
-                    "bin_start": round(b_start, 3),
-                    "bin_end": round(b_end, 3),
-                    "count": count,
-                    "pct": pct,
-                })
+                bins.append(
+                    {
+                        "bin_start": round(b_start, 3),
+                        "bin_end": round(b_end, 3),
+                        "count": count,
+                        "pct": pct,
+                    }
+                )
             return bins
         except Exception as exc:
             logger.warning(f"Histogram calculation failed for {column_name}: {exc}")

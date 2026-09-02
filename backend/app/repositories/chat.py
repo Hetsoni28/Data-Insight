@@ -31,10 +31,14 @@ class ChatRepository(BaseRepository[ChatSession]):
         if isinstance(tenant_id, str):
             tenant_id = uuid.UUID(tenant_id)
 
-        stmt = select(ChatSession).where(
-            ChatSession.id == session_id,
-            ChatSession.tenant_id == tenant_id,
-        ).execution_options(populate_existing=True)
+        stmt = (
+            select(ChatSession)
+            .where(
+                ChatSession.id == session_id,
+                ChatSession.tenant_id == tenant_id,
+            )
+            .execution_options(populate_existing=True)
+        )
         if user_id:
             if isinstance(user_id, str):
                 user_id = uuid.UUID(user_id)
@@ -161,7 +165,9 @@ class ChatRepository(BaseRepository[ChatSession]):
         user_id: uuid.UUID | str,
     ) -> bool:
         """Delete a chat session and all cascade-deleted messages."""
-        chat_sess = await self.get_session(session_id, tenant_id, user_id, load_messages=False)
+        chat_sess = await self.get_session(
+            session_id, tenant_id, user_id, load_messages=False
+        )
         if not chat_sess:
             return False
 
@@ -194,8 +200,12 @@ class ChatRepository(BaseRepository[ChatSession]):
         sess_obj = res.scalars().first()
         if sess_obj:
             from datetime import datetime, timezone
+
             sess_obj.updated_at = datetime.now(timezone.utc)
-            if "messages" in sess_obj.__dict__ and sess_obj.__dict__["messages"] is not None:
+            if (
+                "messages" in sess_obj.__dict__
+                and sess_obj.__dict__["messages"] is not None
+            ):
                 if msg not in sess_obj.messages:
                     sess_obj.messages.append(msg)
 

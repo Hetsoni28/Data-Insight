@@ -1,4 +1,4 @@
-"\"\"AI Data Cleaning Agent - analyzes sample data to suggest Polars-based cleaning operations.\""\"
+"""AI Data Cleaning Agent - analyzes sample data to suggest Polars-based cleaning operations."""
 
 import json
 import logging
@@ -9,7 +9,7 @@ from app.services.ai.router import LLMRouter
 logger = logging.getLogger(__name__)
 
 class CleaningAgent:
-    SYSTEM_PROMPT = ""\"You are an expert Data Engineer. 
+    SYSTEM_PROMPT = """You are an expert Data Engineer. 
 Analyze the provided dataset schema and a random sample of rows.
 Suggest strict data cleaning operations to improve data quality.
 Valid operations are:
@@ -33,7 +33,7 @@ Output pure JSON only, as a list of operations:
     "reason": "Standard practice to remove duplicate rows."
   }
 ]
-""\"
+"""
 
     def __init__(self, router: LLMRouter):
         self.router = router

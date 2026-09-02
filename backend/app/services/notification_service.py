@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 from app.models.notification import Notification
 
+
 class NotificationService:
     @staticmethod
     async def create_notification(
@@ -17,7 +18,7 @@ class NotificationService:
         tenant_id: uuid.UUID = None,
         user_id: uuid.UUID = None,
         metadata_json: dict = None,
-        action_url: str = None
+        action_url: str = None,
     ) -> Notification:
         """
         Creates a new notification. If `tenant_id` and `user_id` are both None,

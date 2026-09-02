@@ -14,7 +14,11 @@ from app.models.tenant import Tenant
 from app.services.ai_service import AIService
 from app.services.entitlements import check_quota, BillingResource, get_usage
 from app.repositories.chat import ChatRepository
-from app.core.exceptions import ForbiddenException, ResourceNotFoundException, AIServiceException
+from app.core.exceptions import (
+    ForbiddenException,
+    ResourceNotFoundException,
+    AIServiceException,
+)
 from app.schemas.ai import (
     AIChatRequest,
     AIChatResponse,
@@ -35,15 +39,19 @@ from app.schemas.ai import (
 
 router = APIRouter(prefix="/ai", tags=["AI Copilot"])
 
+
 async def _ensure_ai_quota(tenant_id: uuid.UUID, db: AsyncSession, buffer: int = 100):
     from sqlalchemy import select
+
     tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
     usage = await get_usage(tenant, db)
     quota = check_quota(tenant, usage, BillingResource.AI_TOKENS, buffer=buffer)
     if not quota.allowed:
-        raise HTTPException(status_code=402, detail="AI Tokens quota exceeded for your organization's plan.")
+        raise HTTPException(
+            status_code=402,
+            detail="AI Tokens quota exceeded for your organization's plan.",
+        )
     return tenant
-
 
 
 @router.get(
@@ -77,7 +85,7 @@ async def copilot_chat(
 ):
     if not current_user.tenant_id:
         raise ForbiddenException("Organization required.")
-    
+
     await _ensure_ai_quota(current_user.tenant_id, db)
     svc = AIService(db)
     try:
@@ -108,7 +116,7 @@ async def copilot_chat_stream(
 ):
     if not current_user.tenant_id:
         raise ForbiddenException("Organization required.")
-    
+
     await _ensure_ai_quota(current_user.tenant_id, db)
     svc = AIService(db)
     history_dicts = [h.model_dump() for h in body.history] if body.history else []
@@ -208,6 +216,7 @@ async def get_job_status(job_id: str):
 # Phase 6: AI Copilot — Sessions, Multi-Turn Memory & Visual Artifacts
 # =========================================================================
 
+
 @router.get(
     "/suggestions/{dataset_id}",
     response_model=AICopilotSuggestionsResponse,
@@ -223,7 +232,9 @@ async def get_dataset_suggestions(
         raise ForbiddenException("Organization required.")
     svc = AIService(db)
     try:
-        suggestions = await svc.get_dataset_suggestions(dataset_id=dataset_id, actor=current_user)
+        suggestions = await svc.get_dataset_suggestions(
+            dataset_id=dataset_id, actor=current_user
+        )
         return {
             "dataset_id": dataset_id,
             "suggestions": suggestions,
@@ -231,7 +242,9 @@ async def get_dataset_suggestions(
     except ResourceNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate suggestions: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate suggestions: {str(e)}"
+        )
 
 
 @router.get(
@@ -473,9 +486,7 @@ async def send_session_message(
     except ResourceNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Copilot query failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Copilot query failed: {str(e)}")
 
 
 @router.post(
@@ -573,4 +584,3 @@ async def generate_ml_forecast(
         return forecast_result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
-

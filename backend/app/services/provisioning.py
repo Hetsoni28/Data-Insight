@@ -29,6 +29,7 @@ def _get_fernet() -> Fernet:
     then encode as urlsafe base64 — deterministic, no key rotation needed at this stage.
     """
     import base64
+
     raw = settings.SECRET_KEY.encode("utf-8")
     # Pad or truncate to exactly 32 bytes, then base64-url encode for Fernet
     key_bytes = (raw * 2)[:32]
@@ -105,11 +106,12 @@ async def provision_tenant_dedicated_db(
 
     # ── Step 3: Load and update the tenant record ─────────────────────────────
     from uuid import UUID
+
     tenant = await db.get(Tenant, UUID(tenant_id))
     if not tenant:
         raise ValueError("Tenant not found.")
 
-    tenant.dedicated_db_url = encrypted_url           # Encrypted, never plain
+    tenant.dedicated_db_url = encrypted_url  # Encrypted, never plain
     tenant.db_connection_type = "dedicated"
     tenant.provisioning_status = "ready"
     tenant.provisioning_error = None
@@ -165,6 +167,7 @@ async def deprovision_tenant(
     Clears the encrypted URL from the record.
     """
     from uuid import UUID
+
     tenant = await db.get(Tenant, UUID(tenant_id))
     if not tenant:
         raise ValueError("Tenant not found.")
@@ -182,6 +185,8 @@ async def deprovision_tenant(
     db.add(activity)
     await db.commit()
 
-    logger.info(f"[DEPROVISION] Tenant {tenant_id} reverted to shared. Actor: {actor_id}")
+    logger.info(
+        f"[DEPROVISION] Tenant {tenant_id} reverted to shared. Actor: {actor_id}"
+    )
 
     return {"status": "shared", "message": "Tenant reverted to shared database."}

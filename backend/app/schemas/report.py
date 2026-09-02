@@ -56,6 +56,7 @@ class ReportScheduleCreate(BaseModel):
     export_format: str = "pdf"
     email_recipients: list[str] = []
 
+
 class ReportScheduleResponse(BaseModel):
     id: uuid.UUID
     name: str

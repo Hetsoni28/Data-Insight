@@ -63,8 +63,12 @@ class LoginHistory(Base):
         nullable=False,
         index=True,
     )
-    ip_address: Mapped[str] = mapped_column(String(45), default="127.0.0.1", nullable=False)
-    browser: Mapped[str] = mapped_column(String(100), default="Unknown Browser", nullable=False)
+    ip_address: Mapped[str] = mapped_column(
+        String(45), default="127.0.0.1", nullable=False
+    )
+    browser: Mapped[str] = mapped_column(
+        String(100), default="Unknown Browser", nullable=False
+    )
     os: Mapped[str] = mapped_column(String(100), default="Unknown OS", nullable=False)
     device: Mapped[str] = mapped_column(String(100), default="Desktop", nullable=False)
     country: Mapped[str] = mapped_column(String(100), default="Unknown", nullable=False)

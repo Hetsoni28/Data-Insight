@@ -26,9 +26,7 @@ class ReportType:
 
 class Report(Base):
     __tablename__ = "reports"
-    __table_args__ = (
-        Index("ix_tenant_workspace_report", "tenant_id", "workspace_id"),
-    )
+    __table_args__ = (Index("ix_tenant_workspace_report", "tenant_id", "workspace_id"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4

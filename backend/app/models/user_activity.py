@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.session import Base
 
+
 class UserActivity(Base):
     __tablename__ = "user_activities"
 
@@ -16,16 +17,18 @@ class UserActivity(Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
-    
+
     # Event details
     action: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    module: Mapped[str] = mapped_column(String(100), nullable=False) # e.g., 'profile', 'dataset', 'report'
-    
+    module: Mapped[str] = mapped_column(
+        String(100), nullable=False
+    )  # e.g., 'profile', 'dataset', 'report'
+
     # Context (e.g., target ID, metadata)
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    
+
     # Environment
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -35,4 +38,4 @@ class UserActivity(Base):
     )
 
     # Relationships
-    user: Mapped["User"] = relationship("User", lazy="noload") # type: ignore[name-defined]
+    user: Mapped["User"] = relationship("User", lazy="noload")  # type: ignore[name-defined]

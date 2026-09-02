@@ -15,19 +15,21 @@ class WebhookDeliveryLog(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     webhook_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("webhooks.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("webhooks.id", ondelete="CASCADE"),
+        nullable=False,
     )
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
     )
-    
+
     status_code: Mapped[int] = mapped_column(Integer, nullable=True)
     success: Mapped[bool] = mapped_column(Boolean, default=False)
     latency_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    
+
     error_message: Mapped[str] = mapped_column(String(1000), nullable=True)
-    
+
     executed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

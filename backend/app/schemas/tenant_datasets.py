@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 import uuid
 
+
 class DatasetStatsResponse(BaseModel):
     total_datasets: int
     processing_jobs: int
@@ -17,9 +18,11 @@ class DatasetStatsResponse(BaseModel):
     dashboards_created: int
     avg_quality_score: float
 
+
 class OwnerInfo(BaseModel):
     name: str
     email: Optional[str]
+
 
 class DatasetItem(BaseModel):
     id: str
@@ -35,10 +38,12 @@ class DatasetItem(BaseModel):
     updated_at: datetime
     owner: OwnerInfo
 
+
 class DatasetDetailsItem(DatasetItem):
     original_filename: str
     error_message: Optional[str]
     profile: Optional[dict]
+
 
 class AuditLogItem(BaseModel):
     id: str
@@ -48,6 +53,7 @@ class AuditLogItem(BaseModel):
     actor_name: str
     type: str
 
+
 class AIActivityItem(BaseModel):
     id: str
     action: str
@@ -56,7 +62,7 @@ class AIActivityItem(BaseModel):
     created_at: datetime
     type: str
 
+
 class ActivitiesResponse(BaseModel):
     audit_logs: List[AuditLogItem]
     ai_activities: List[AIActivityItem]
-

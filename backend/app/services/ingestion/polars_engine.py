@@ -97,7 +97,9 @@ class PolarsEngine:
                 truncate_ragged_lines=True,
             )
         except Exception as exc:
-            logger.warning(f"Polars read_csv with {enc} failed, attempting latin1 fallback: {exc}")
+            logger.warning(
+                f"Polars read_csv with {enc} failed, attempting latin1 fallback: {exc}"
+            )
             return pl.read_csv(
                 io.BytesIO(file_bytes),
                 separator=separator,
@@ -129,7 +131,9 @@ class PolarsEngine:
             logger.warning(f"Polars read_excel failed, falling back to pandas: {exc}")
             import pandas as pd
 
-            pdf = pd.read_excel(io.BytesIO(file_bytes), sheet_name=sheet_name or 0, nrows=n_rows)
+            pdf = pd.read_excel(
+                io.BytesIO(file_bytes), sheet_name=sheet_name or 0, nrows=n_rows
+            )
             return pl.from_pandas(pdf)
 
     @classmethod
@@ -182,13 +186,17 @@ class PolarsEngine:
         elif ft in ("tsv", "tab"):
             df = cls.read_csv_from_bytes(file_bytes, separator="\t", n_rows=n_rows)
         elif ft in ("xlsx", "xls", "excel"):
-            df = cls.read_excel_from_bytes(file_bytes, sheet_name=sheet_name, n_rows=n_rows)
+            df = cls.read_excel_from_bytes(
+                file_bytes, sheet_name=sheet_name, n_rows=n_rows
+            )
         elif ft in ("json", "ndjson", "jsonl"):
             df = cls.read_json_from_bytes(file_bytes, n_rows=n_rows)
         elif ft in ("parquet", "pq"):
             df = cls.read_parquet_from_bytes(file_bytes, n_rows=n_rows)
         else:
-            raise ValidationException(f"Unsupported file format '{file_type}'. Supported: CSV, TSV, XLSX, JSON, Parquet.")
+            raise ValidationException(
+                f"Unsupported file format '{file_type}'. Supported: CSV, TSV, XLSX, JSON, Parquet."
+            )
 
         # Clean column names (strip whitespace, ensure non-empty unique names)
         clean_cols = []
@@ -222,7 +230,9 @@ class PolarsEngine:
         if not p.exists():
             raise ValidationException(f"File not found at path: {p}")
         ft = file_type or p.suffix.lstrip(".")
-        return cls.load_from_bytes(p.read_bytes(), file_type=ft, sheet_name=sheet_name, n_rows=n_rows)
+        return cls.load_from_bytes(
+            p.read_bytes(), file_type=ft, sheet_name=sheet_name, n_rows=n_rows
+        )
 
     @classmethod
     def read_file(
@@ -233,7 +243,9 @@ class PolarsEngine:
         n_rows: Optional[int] = None,
     ) -> pl.DataFrame:
         """Load dataframe from path or file URL."""
-        return cls.load_from_path(path_or_url, file_type=file_type, sheet_name=sheet_name, n_rows=n_rows)
+        return cls.load_from_path(
+            path_or_url, file_type=file_type, sheet_name=sheet_name, n_rows=n_rows
+        )
 
     @staticmethod
     def preview_rows(df: pl.DataFrame, n: int = 50) -> List[Dict[str, Any]]:

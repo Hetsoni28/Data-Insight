@@ -47,6 +47,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 # ── Additional Request Payload Schemas ────────────────────────────────────────
 
+
 class RequestAccessPayload(BaseModel):
     email: EmailStr
     password: str
@@ -104,6 +105,7 @@ class MessageResponse(BaseModel):
 
 # ── Authentication Routes ─────────────────────────────────────────────────────
 
+
 @router.post(
     "/login",
     response_model=LoginResponse,
@@ -117,7 +119,9 @@ async def login(
     redis: Redis = Depends(get_redis),
 ):
     auth_service = AuthService(db, redis)
-    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
+    client_ip = request.headers.get(
+        "x-forwarded-for", request.client.host if request.client else "127.0.0.1"
+    )
     user_agent = request.headers.get("user-agent", "")
 
     result = await auth_service.authenticate(
@@ -158,7 +162,9 @@ async def login_mfa(
     redis: Redis = Depends(get_redis),
 ):
     auth_service = AuthService(db, redis)
-    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
+    client_ip = request.headers.get(
+        "x-forwarded-for", request.client.host if request.client else "127.0.0.1"
+    )
     user_agent = request.headers.get("user-agent", "")
 
     result = await auth_service.verify_mfa_login(
@@ -192,7 +198,9 @@ async def refresh_tokens(
     redis: Redis = Depends(get_redis),
 ):
     auth_service = AuthService(db, redis)
-    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "127.0.0.1")
+    client_ip = request.headers.get(
+        "x-forwarded-for", request.client.host if request.client else "127.0.0.1"
+    )
     user_agent = request.headers.get("user-agent", "")
 
     result = await auth_service.rotate_refresh_token(
@@ -210,6 +218,7 @@ async def refresh_tokens(
 
 
 # ── Registration & Email Verification ─────────────────────────────────────────
+
 
 @router.post(
     "/register",
@@ -293,10 +302,13 @@ async def resend_otp(
 ):
     auth_service = AuthService(db, redis)
     await auth_service.resend_verification_otp(email=payload.email)
-    return MessageResponse(message="A new verification code has been sent to your email.")
+    return MessageResponse(
+        message="A new verification code has been sent to your email."
+    )
 
 
 # ── MFA Configuration ────────────────────────────────────────────────────────
+
 
 @router.post(
     "/mfa/setup",
@@ -330,7 +342,9 @@ async def enable_mfa(
         code=payload.code,
         recovery_codes=payload.recovery_codes,
     )
-    return MessageResponse(message="Two-factor authentication has been successfully enabled.")
+    return MessageResponse(
+        message="Two-factor authentication has been successfully enabled."
+    )
 
 
 @router.post(
@@ -350,6 +364,7 @@ async def disable_mfa(
 
 
 # ── Active Sessions & Device Management ──────────────────────────────────────
+
 
 @router.get(
     "/sessions",
@@ -418,6 +433,7 @@ async def get_login_history(
 
 # ── User Profile, Logout & Password Reset ────────────────────────────────────
 
+
 @router.get(
     "/me",
     response_model=UserResponse,
@@ -442,9 +458,12 @@ async def logout(
         t_hash = hash_token(token)
         from app.models.user_session import UserSession
         from sqlalchemy import update
+
         await db.execute(
             update(UserSession)
-            .where(UserSession.token_hash == t_hash, UserSession.user_id == current_user.id)
+            .where(
+                UserSession.token_hash == t_hash, UserSession.user_id == current_user.id
+            )
             .values(is_active=False)
         )
         await db.commit()
@@ -465,14 +484,15 @@ async def deactivate_account(
     auth_service = AuthService(db, redis)
     from app.core.security import verify_password
     from app.core.exceptions import AuthException
-    
+
     if not verify_password(payload.password, current_user.hashed_password):
         raise AuthException("Incorrect password.")
-        
+
     current_user.is_active = False
     await auth_service.revoke_all_sessions(current_user)
-    
+
     from app.models.audit_log import AuditLog
+
     audit = AuditLog(
         tenant_id=current_user.tenant_id,
         user_id=current_user.id,
@@ -480,11 +500,11 @@ async def deactivate_account(
         action="account.deactivated",
         module="auth",
         severity="Critical",
-        status="Success"
+        status="Success",
     )
     db.add(audit)
     await db.commit()
-    
+
     return MessageResponse(message="Account successfully deactivated.")
 
 
@@ -502,7 +522,9 @@ async def forgot_password(
 ):
     auth_service = AuthService(db, redis)
     await auth_service.request_password_reset(email=payload.email)
-    return MessageResponse(message="If an account exists with this email, a reset code has been sent.")
+    return MessageResponse(
+        message="If an account exists with this email, a reset code has been sent."
+    )
 
 
 @router.post(
@@ -521,10 +543,13 @@ async def reset_password(
         otp=payload.otp,
         new_password=payload.new_password,
     )
-    return MessageResponse(message="Password reset successfully. All sessions have been invalidated.")
+    return MessageResponse(
+        message="Password reset successfully. All sessions have been invalidated."
+    )
 
 
 # ── Invitation Lifecycle ─────────────────────────────────────────────────────
+
 
 @router.get(
     "/invite/{token}",
@@ -584,7 +609,11 @@ async def accept_invite(
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
 ):
-    from app.core.exceptions import ResourceNotFoundException, ValidationException, ConflictException
+    from app.core.exceptions import (
+        ResourceNotFoundException,
+        ValidationException,
+        ConflictException,
+    )
 
     stmt = select(Invitation).where(
         Invitation.token == payload.token, Invitation.status == InvitationStatus.PENDING

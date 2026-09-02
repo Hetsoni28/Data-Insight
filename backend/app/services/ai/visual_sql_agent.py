@@ -126,7 +126,11 @@ Guidelines:
                     "kpi_metrics": [
                         {
                             "label": label.replace("_", " ").title(),
-                            "value": f"{num_val:,.2f}" if isinstance(num_val, float) else f"{num_val:,}",
+                            "value": (
+                                f"{num_val:,.2f}"
+                                if isinstance(num_val, float)
+                                else f"{num_val:,}"
+                            ),
                             "raw_value": num_val,
                             "subtitle": "Direct DuckDB aggregation",
                         }
@@ -149,7 +153,11 @@ Guidelines:
 
         # Find first non-numeric or date column for X axis
         for c in cols:
-            if c != y_key and len(records) > 0 and not isinstance(records[0][c], (int, float)):
+            if (
+                c != y_key
+                and len(records) > 0
+                and not isinstance(records[0][c], (int, float))
+            ):
                 x_key = c
                 break
 
@@ -158,7 +166,10 @@ Guidelines:
             chart_type = "bar"
 
         # Auto-refine chart type based on column semantics
-        if any(term in x_key.lower() for term in ["date", "time", "month", "year", "quarter", "day"]):
+        if any(
+            term in x_key.lower()
+            for term in ["date", "time", "month", "year", "quarter", "day"]
+        ):
             if chart_type == "bar":
                 chart_type = "line"
         elif chart_type == "pie" and len(records) > 8:
@@ -167,26 +178,46 @@ Guidelines:
         # Calculate high-level summary KPIs
         kpi_metrics = []
         if len(records) > 0 and isinstance(records[0].get(y_key), (int, float)):
-            numeric_vals = [r[y_key] for r in records if isinstance(r.get(y_key), (int, float))]
+            numeric_vals = [
+                r[y_key] for r in records if isinstance(r.get(y_key), (int, float))
+            ]
             if numeric_vals:
                 total_sum = sum(numeric_vals)
                 avg_val = total_sum / len(numeric_vals)
                 max_val = max(numeric_vals)
-                kpi_metrics.append({
-                    "label": f"Total {y_key.replace('_', ' ').title()}",
-                    "value": f"{total_sum:,.2f}" if isinstance(total_sum, float) else f"{total_sum:,}",
-                    "raw_value": total_sum,
-                })
-                kpi_metrics.append({
-                    "label": f"Average per {x_key.replace('_', ' ').title()}",
-                    "value": f"{avg_val:,.2f}" if isinstance(avg_val, float) else f"{avg_val:,}",
-                    "raw_value": avg_val,
-                })
-                kpi_metrics.append({
-                    "label": f"Peak {y_key.replace('_', ' ').title()}",
-                    "value": f"{max_val:,.2f}" if isinstance(max_val, float) else f"{max_val:,}",
-                    "raw_value": max_val,
-                })
+                kpi_metrics.append(
+                    {
+                        "label": f"Total {y_key.replace('_', ' ').title()}",
+                        "value": (
+                            f"{total_sum:,.2f}"
+                            if isinstance(total_sum, float)
+                            else f"{total_sum:,}"
+                        ),
+                        "raw_value": total_sum,
+                    }
+                )
+                kpi_metrics.append(
+                    {
+                        "label": f"Average per {x_key.replace('_', ' ').title()}",
+                        "value": (
+                            f"{avg_val:,.2f}"
+                            if isinstance(avg_val, float)
+                            else f"{avg_val:,}"
+                        ),
+                        "raw_value": avg_val,
+                    }
+                )
+                kpi_metrics.append(
+                    {
+                        "label": f"Peak {y_key.replace('_', ' ').title()}",
+                        "value": (
+                            f"{max_val:,.2f}"
+                            if isinstance(max_val, float)
+                            else f"{max_val:,}"
+                        ),
+                        "raw_value": max_val,
+                    }
+                )
 
         return {
             "type": "chart",
@@ -250,9 +281,13 @@ Generate the DuckDB SQL query and recommended visualization in JSON."""
 
         # 2. Execute on DuckDB with self-healing retry
         try:
-            query_result = DuckDBEngine.execute_query(df=df, sql=generated_sql, table_name="data", limit=100)
+            query_result = DuckDBEngine.execute_query(
+                df=df, sql=generated_sql, table_name="data", limit=100
+            )
         except Exception as e:
-            logger.warning(f"[VisualSQLAgent] Query failed: {e}. Attempting self-healing query...")
+            logger.warning(
+                f"[VisualSQLAgent] Query failed: {e}. Attempting self-healing query..."
+            )
             fix_prompt = f"""SQL query failed with error: {str(e)}
 Schema:
 {schema_context}
@@ -272,16 +307,20 @@ Provide the corrected DuckDB SQL in JSON format."""
             if fix_json.startswith("```"):
                 fix_json = re.sub(r"^```(?:json)?\s*", "", fix_json)
                 fix_json = re.sub(r"\s*```$", "", fix_json)
-            
+
             try:
                 parsed_fix = json.loads(fix_json)
                 generated_sql = parsed_fix.get("sql", generated_sql)
-                recommended_chart = parsed_fix.get("recommended_chart", recommended_chart)
+                recommended_chart = parsed_fix.get(
+                    "recommended_chart", recommended_chart
+                )
             except Exception:
                 match = re.search(r"SELECT\s+.+;", fix_json, re.DOTALL | re.IGNORECASE)
                 generated_sql = match.group(0) if match else fix_json
 
-            query_result = DuckDBEngine.execute_query(df=df, sql=generated_sql, table_name="data", limit=100)
+            query_result = DuckDBEngine.execute_query(
+                df=df, sql=generated_sql, table_name="data", limit=100
+            )
 
         # 3. Construct In-Chat Visual Artifact Specification
         artifact_data = self._detect_visual_artifact(
@@ -317,8 +356,12 @@ Provide the executive business summary."""
             temperature=0.2,
         )
 
-        total_prompt_tokens = sql_response.prompt_tokens + synthesis_response.prompt_tokens
-        total_completion_tokens = sql_response.completion_tokens + synthesis_response.completion_tokens
+        total_prompt_tokens = (
+            sql_response.prompt_tokens + synthesis_response.prompt_tokens
+        )
+        total_completion_tokens = (
+            sql_response.completion_tokens + synthesis_response.completion_tokens
+        )
 
         return {
             "question": question,
@@ -329,7 +372,9 @@ Provide the executive business summary."""
             "completion_tokens": total_completion_tokens,
             "total_tokens": total_prompt_tokens + total_completion_tokens,
             "cost_usd": round(sql_response.cost_usd + synthesis_response.cost_usd, 6),
-            "latency_ms": round(sql_response.latency_ms + synthesis_response.latency_ms, 2),
+            "latency_ms": round(
+                sql_response.latency_ms + synthesis_response.latency_ms, 2
+            ),
             "provider": synthesis_response.provider,
             "model": synthesis_response.model,
         }

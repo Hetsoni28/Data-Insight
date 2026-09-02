@@ -20,13 +20,36 @@ class ForecastingEngine:
     """Production ML and statistical time-series forecasting engine."""
 
     DATE_CANDIDATES = [
-        "date", "timestamp", "created_at", "order_date", "datetime", "period",
-        "day", "month", "year", "time", "sale_date", "transaction_date", "event_date"
+        "date",
+        "timestamp",
+        "created_at",
+        "order_date",
+        "datetime",
+        "period",
+        "day",
+        "month",
+        "year",
+        "time",
+        "sale_date",
+        "transaction_date",
+        "event_date",
     ]
 
     METRIC_CANDIDATES = [
-        "revenue", "sales", "amount", "profit", "income", "total", "value",
-        "price", "units", "quantity", "users", "orders", "cost", "conversion"
+        "revenue",
+        "sales",
+        "amount",
+        "profit",
+        "income",
+        "total",
+        "value",
+        "price",
+        "units",
+        "quantity",
+        "users",
+        "orders",
+        "cost",
+        "conversion",
     ]
 
     @classmethod
@@ -69,7 +92,11 @@ class ForecastingEngine:
                     break
 
         if not metric_col:
-            numeric_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c]) and c != date_col]
+            numeric_cols = [
+                c
+                for c in df.columns
+                if pd.api.types.is_numeric_dtype(df[c]) and c != date_col
+            ]
             if numeric_cols:
                 # Pick numeric column with highest variance/mean (likely revenue or sales)
                 metric_col = numeric_cols[0]
@@ -90,14 +117,18 @@ class ForecastingEngine:
         Returns full forecast blueprint formatted for TrendForecastViewer.
         """
         if df.empty or len(df) < 3:
-            return cls._generate_fallback_forecast("Insufficient data points for forecasting.")
+            return cls._generate_fallback_forecast(
+                "Insufficient data points for forecasting."
+            )
 
         detected_date, detected_metric = cls.detect_columns(df)
         metric = target_column or detected_metric
         date_col = date_column or detected_date
 
         if not metric:
-            return cls._generate_fallback_forecast("No suitable numeric metric found for forecasting.")
+            return cls._generate_fallback_forecast(
+                "No suitable numeric metric found for forecasting."
+            )
 
         # Clean metric column
         series_df = df.copy()
@@ -111,12 +142,18 @@ class ForecastingEngine:
         is_temporal = False
         if date_col and date_col in series_df.columns:
             try:
-                series_df[date_col] = pd.to_datetime(series_df[date_col], errors="coerce")
+                series_df[date_col] = pd.to_datetime(
+                    series_df[date_col], errors="coerce"
+                )
                 series_df = series_df.dropna(subset=[date_col]).sort_values(by=date_col)
                 if len(series_df) >= 3:
                     # Group by month or day
-                    series_df["_period"] = series_df[date_col].dt.to_period("M").dt.to_timestamp()
-                    aggregated = series_df.groupby("_period")[metric].sum().reset_index()
+                    series_df["_period"] = (
+                        series_df[date_col].dt.to_period("M").dt.to_timestamp()
+                    )
+                    aggregated = (
+                        series_df.groupby("_period")[metric].sum().reset_index()
+                    )
                     if len(aggregated) >= 3:
                         is_temporal = True
                         periods = [p.strftime("%b %Y") for p in aggregated["_period"]]
@@ -130,7 +167,7 @@ class ForecastingEngine:
             if len(y) > 24:
                 # Downsample to 24 points for visual clarity
                 step = max(1, len(y) // 24)
-                y = np.array([np.mean(y[i:i + step]) for i in range(0, len(y), step)])
+                y = np.array([np.mean(y[i : i + step]) for i in range(0, len(y), step)])
             periods = [f"Period {i+1}" for i in range(len(y))]
 
         n = len(y)
@@ -139,12 +176,14 @@ class ForecastingEngine:
         # ── Machine Learning Model Fitting (Trend + Ridge Regularization) ──
         # Build features: linear trend + quadratic trend + cyclic components
         cycle_len = min(12, max(4, n))
-        X_feats = np.column_stack([
-            X,
-            (X ** 2) / float(max(1, n * n)),
-            np.sin(2 * np.pi * X / cycle_len),
-            np.cos(2 * np.pi * X / cycle_len)
-        ])
+        X_feats = np.column_stack(
+            [
+                X,
+                (X**2) / float(max(1, n * n)),
+                np.sin(2 * np.pi * X / cycle_len),
+                np.cos(2 * np.pi * X / cycle_len),
+            ]
+        )
 
         model = Ridge(alpha=1.0)
         model.fit(X_feats, y)
@@ -152,7 +191,11 @@ class ForecastingEngine:
 
         # Compute Model Diagnostics
         residuals = y - y_fitted
-        se = float(np.std(residuals)) if len(residuals) > 1 else float(np.mean(np.abs(residuals)))
+        se = (
+            float(np.std(residuals))
+            if len(residuals) > 1
+            else float(np.mean(np.abs(residuals)))
+        )
         r2 = float(max(0.0, r2_score(y, y_fitted)))
 
         # Historical Growth Rate
@@ -174,12 +217,14 @@ class ForecastingEngine:
 
         # ── Future Horizon Forecasting ──
         future_X = np.arange(n, n + horizon).reshape(-1, 1)
-        future_X_feats = np.column_stack([
-            future_X,
-            (future_X ** 2) / float(max(1, n * n)),
-            np.sin(2 * np.pi * future_X / cycle_len),
-            np.cos(2 * np.pi * future_X / cycle_len)
-        ])
+        future_X_feats = np.column_stack(
+            [
+                future_X,
+                (future_X**2) / float(max(1, n * n)),
+                np.sin(2 * np.pi * future_X / cycle_len),
+                np.cos(2 * np.pi * future_X / cycle_len),
+            ]
+        )
         future_y = model.predict(future_X_feats)
 
         # Future Period Labels
@@ -206,13 +251,15 @@ class ForecastingEngine:
         # 1. Historical Points
         for i in range(n):
             val = round(float(y[i]), 2)
-            trendline.append({
-                "period": periods[i],
-                "historicalValue": val,
-                "predictedValue": round(float(y_fitted[i]), 2),
-                "pessimisticBound": None,
-                "optimisticBound": None,
-            })
+            trendline.append(
+                {
+                    "period": periods[i],
+                    "historicalValue": val,
+                    "predictedValue": round(float(y_fitted[i]), 2),
+                    "pessimisticBound": None,
+                    "optimisticBound": None,
+                }
+            )
 
         # Connect bridge point
         trendline[-1]["predictedValue"] = round(float(y[-1]), 2)
@@ -227,16 +274,20 @@ class ForecastingEngine:
             optimistic = round(float(pred_val + margin), 2)
             pessimistic = round(float(max(0.0, pred_val - margin)), 2)
 
-            trendline.append({
-                "period": future_periods[j],
-                "historicalValue": None,
-                "predictedValue": round(pred_val, 2),
-                "optimisticBound": optimistic,
-                "pessimisticBound": pessimistic,
-            })
+            trendline.append(
+                {
+                    "period": future_periods[j],
+                    "historicalValue": None,
+                    "predictedValue": round(pred_val, 2),
+                    "optimisticBound": optimistic,
+                    "pessimisticBound": pessimistic,
+                }
+            )
 
         predicted_end_val = float(future_y[-1])
-        projected_total_growth = ((predicted_end_val - y[-1]) / max(1e-6, abs(y[-1]))) * 100.0
+        projected_total_growth = (
+            (predicted_end_val - y[-1]) / max(1e-6, abs(y[-1]))
+        ) * 100.0
 
         title_metric = metric.replace("_", " ").title()
 
@@ -258,12 +309,12 @@ class ForecastingEngine:
             "growthDrivers": [
                 f"Historical baseline momentum showing {growth_rate_pct:+.1f}% cumulative historical trajectory.",
                 f"Mean observed {title_metric} volume of {round(float(np.mean(y)), 2):,} per period.",
-                f"Predictive model indicates expected peak at {round(float(np.max(future_y)), 2):,} in future periods."
+                f"Predictive model indicates expected peak at {round(float(np.max(future_y)), 2):,} in future periods.",
             ],
             "riskFactors": [
                 f"Standard error of residuals estimated at ±{round(se, 2):,} ({round((se / max(1e-6, np.mean(y))) * 100, 1)}% volatility).",
                 "External market shifts or demand shocks not captured in historical time-series signals.",
-                "Wide uncertainty bounds in later forecast horizons requiring periodic model recalibration."
+                "Wide uncertainty bounds in later forecast horizons requiring periodic model recalibration.",
             ],
             "predictedTrendline": trendline,
         }
@@ -274,11 +325,38 @@ class ForecastingEngine:
             "forecastTitle": "Data Forecast (Preliminary Estimate)",
             "executiveSummary": f"Automated forecast generated. Note: {reason}",
             "growthDrivers": ["Initial baseline estimates", "Linear extrapolation"],
-            "riskFactors": ["Limited historical sample depth", "High estimation variance"],
+            "riskFactors": [
+                "Limited historical sample depth",
+                "High estimation variance",
+            ],
             "predictedTrendline": [
-                {"period": "Period 1", "historicalValue": 100, "predictedValue": 100, "pessimisticBound": None, "optimisticBound": None},
-                {"period": "Period 2", "historicalValue": 120, "predictedValue": 120, "pessimisticBound": None, "optimisticBound": None},
-                {"period": "Period 3 (Est)", "historicalValue": None, "predictedValue": 140, "pessimisticBound": 125, "optimisticBound": 155},
-                {"period": "Period 4 (Est)", "historicalValue": None, "predictedValue": 160, "pessimisticBound": 140, "optimisticBound": 180},
-            ]
+                {
+                    "period": "Period 1",
+                    "historicalValue": 100,
+                    "predictedValue": 100,
+                    "pessimisticBound": None,
+                    "optimisticBound": None,
+                },
+                {
+                    "period": "Period 2",
+                    "historicalValue": 120,
+                    "predictedValue": 120,
+                    "pessimisticBound": None,
+                    "optimisticBound": None,
+                },
+                {
+                    "period": "Period 3 (Est)",
+                    "historicalValue": None,
+                    "predictedValue": 140,
+                    "pessimisticBound": 125,
+                    "optimisticBound": 155,
+                },
+                {
+                    "period": "Period 4 (Est)",
+                    "historicalValue": None,
+                    "predictedValue": 160,
+                    "pessimisticBound": 140,
+                    "optimisticBound": 180,
+                },
+            ],
         }

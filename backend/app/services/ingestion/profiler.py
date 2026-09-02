@@ -71,7 +71,9 @@ class DataProfiler:
 
         total_cells = n_rows * n_cols
         total_nulls = sum(df[col].null_count() for col in df.columns)
-        sparsity_pct = round((total_nulls / total_cells) * 100, 2) if total_cells > 0 else 0.0
+        sparsity_pct = (
+            round((total_nulls / total_cells) * 100, 2) if total_cells > 0 else 0.0
+        )
 
         # 2. Column-level deep profiling
         columns_profile: Dict[str, Any] = {}
@@ -99,21 +101,25 @@ class DataProfiler:
 
             # Check for constant column anomaly
             if unique_count <= 1 and n_rows > 1:
-                anomalies.append({
-                    "column": col,
-                    "type": "constant_column",
-                    "severity": "medium",
-                    "message": f"Column '{col}' has only {unique_count} distinct value and provides zero variance."
-                })
+                anomalies.append(
+                    {
+                        "column": col,
+                        "type": "constant_column",
+                        "severity": "medium",
+                        "message": f"Column '{col}' has only {unique_count} distinct value and provides zero variance.",
+                    }
+                )
 
             # Check for high missingness
             if null_pct >= 50.0:
-                anomalies.append({
-                    "column": col,
-                    "type": "high_missingness",
-                    "severity": "high",
-                    "message": f"Column '{col}' has {null_pct}% missing values."
-                })
+                anomalies.append(
+                    {
+                        "column": col,
+                        "type": "high_missingness",
+                        "severity": "high",
+                        "message": f"Column '{col}' has {null_pct}% missing values.",
+                    }
+                )
 
             # Check primary key candidate
             if null_count == 0 and unique_count == n_rows and n_rows > 1:
@@ -128,18 +134,24 @@ class DataProfiler:
                 # Check for outliers anomaly
                 outlier_cnt = col_info.get("outlier_count", 0)
                 if outlier_cnt > 0 and (outlier_cnt / n_rows) > 0.05:
-                    anomalies.append({
-                        "column": col,
-                        "type": "high_outliers",
-                        "severity": "medium",
-                        "message": f"Column '{col}' contains {outlier_cnt} statistical outliers ({round(outlier_cnt/n_rows*100, 1)}% of rows)."
-                    })
+                    anomalies.append(
+                        {
+                            "column": col,
+                            "type": "high_outliers",
+                            "severity": "medium",
+                            "message": f"Column '{col}' contains {outlier_cnt} statistical outliers ({round(outlier_cnt/n_rows*100, 1)}% of rows).",
+                        }
+                    )
 
                 # Check potential numeric target variable
                 if unique_count > 10 and col not in primary_key_candidates:
                     target_candidates.append(col)
 
-            elif dtype.is_temporal() or str(dtype).startswith("Date") or str(dtype).startswith("Datetime"):
+            elif (
+                dtype.is_temporal()
+                or str(dtype).startswith("Date")
+                or str(dtype).startswith("Datetime")
+            ):
                 col_info["type"] = "datetime"
                 col_stats = cls._profile_datetime_column(series)
                 col_info.update(col_stats)
@@ -203,12 +215,24 @@ class DataProfiler:
         clean = series.drop_nulls()
         if len(clean) == 0:
             return {
-                "min": None, "max": None, "mean": None, "median": None,
-                "std": None, "variance": None, "skewness": None, "kurtosis": None,
-                "q25": None, "q75": None, "iqr": None,
-                "p05": None, "p95": None, "p99": None,
-                "zero_count": 0, "negative_count": 0,
-                "outlier_count": 0, "histogram": [],
+                "min": None,
+                "max": None,
+                "mean": None,
+                "median": None,
+                "std": None,
+                "variance": None,
+                "skewness": None,
+                "kurtosis": None,
+                "q25": None,
+                "q75": None,
+                "iqr": None,
+                "p05": None,
+                "p95": None,
+                "p99": None,
+                "zero_count": 0,
+                "negative_count": 0,
+                "outlier_count": 0,
+                "histogram": [],
             }
 
         arr = clean.to_numpy()
@@ -233,12 +257,13 @@ class DataProfiler:
         if len(arr) >= 3 and std_v and std_v > 0:
             try:
                 from scipy import stats
+
                 skew_v = _safe_float(stats.skew(arr))
                 kurt_v = _safe_float(stats.kurtosis(arr))
             except Exception:
                 # Fallback formula
                 m3 = np.mean((arr - mean_v) ** 3) if mean_v is not None else 0
-                skew_v = _safe_float(m3 / (std_v ** 3)) if std_v else None
+                skew_v = _safe_float(m3 / (std_v**3)) if std_v else None
 
         # Value polarity
         zero_count = int((clean == 0).sum())
@@ -278,14 +303,21 @@ class DataProfiler:
         }
 
     @classmethod
-    def _profile_categorical_column(cls, series: pl.Series, n_rows: int) -> Dict[str, Any]:
+    def _profile_categorical_column(
+        cls, series: pl.Series, n_rows: int
+    ) -> Dict[str, Any]:
         """Compute statistical breakdown for categorical or text column."""
         clean = series.drop_nulls()
         if len(clean) == 0:
             return {
-                "mode": None, "mode_frequency": 0, "mode_pct": 0.0,
-                "top_values": [], "min_length": 0, "max_length": 0,
-                "avg_length": 0.0, "blank_count": 0,
+                "mode": None,
+                "mode_frequency": 0,
+                "mode_pct": 0.0,
+                "top_values": [],
+                "min_length": 0,
+                "max_length": 0,
+                "avg_length": 0.0,
+                "blank_count": 0,
             }
 
         # Value counts
@@ -298,7 +330,13 @@ class DataProfiler:
         for row in val_counts.head(10).iter_rows():
             val, count = row[0], row[1]
             pct = round((count / n_rows) * 100, 2)
-            top_10.append({"value": str(val) if val is not None else "null", "count": count, "pct": pct})
+            top_10.append(
+                {
+                    "value": str(val) if val is not None else "null",
+                    "count": count,
+                    "pct": pct,
+                }
+            )
 
         if len(top_10) > 0:
             mode_val = top_10[0]["value"]
@@ -390,12 +428,23 @@ class DataProfiler:
             for col_info in columns_profile.values()
             if col_info.get("type") == "numeric"
         )
-        total_num_cells = max(1, n_rows * max(1, len([c for c in columns_profile.values() if c.get("type") == "numeric"])))
+        total_num_cells = max(
+            1,
+            n_rows
+            * max(
+                1,
+                len(
+                    [c for c in columns_profile.values() if c.get("type") == "numeric"]
+                ),
+            ),
+        )
         outlier_pct = (total_outliers / total_num_cells) * 100
         validity = max(0.0, 100.0 - (outlier_pct * 2.0))
 
         # 4. Consistency (penalty for anomalies)
-        anomaly_penalty = sum(10.0 if a.get("severity") == "high" else 5.0 for a in anomalies)
+        anomaly_penalty = sum(
+            10.0 if a.get("severity") == "high" else 5.0 for a in anomalies
+        )
         consistency = max(0.0, 100.0 - anomaly_penalty)
 
         # Weighted composite score

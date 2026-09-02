@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 import uuid
 
+
 class DashboardOverviewResponse(BaseModel):
     organization_name: str
     subscription_plan: str
@@ -13,9 +14,11 @@ class DashboardOverviewResponse(BaseModel):
     mrr: float = 0.0
     current_period_end: Optional[str] = None
 
+
 class GrowthMetric(BaseModel):
     total: int
     growth: float
+
 
 class DashboardKPIsResponse(BaseModel):
     active_users: int
@@ -26,6 +29,7 @@ class DashboardKPIsResponse(BaseModel):
     productivity_score: int
     data_quality_score: int
 
+
 class ChartDataPoint(BaseModel):
     date: str
     full_date: str
@@ -33,8 +37,10 @@ class ChartDataPoint(BaseModel):
     reports: int
     storage_mb: float
 
+
 class DashboardChartsResponse(BaseModel):
     __root__: List[ChartDataPoint]
+
 
 class RecentDataset(BaseModel):
     id: str
@@ -44,12 +50,14 @@ class RecentDataset(BaseModel):
     status: str
     created_at: datetime
 
+
 class RecentReport(BaseModel):
     id: str
     title: str
     type: str
     status: str
     created_at: datetime
+
 
 class ActivityFeedItem(BaseModel):
     id: str
@@ -58,6 +66,7 @@ class ActivityFeedItem(BaseModel):
     status: str
     created_at: datetime
 
+
 class ActiveSession(BaseModel):
     id: str
     device: Optional[str]
@@ -65,12 +74,13 @@ class ActiveSession(BaseModel):
     ip: Optional[str]
     last_active: Optional[datetime]
 
+
 class FailedLogin(BaseModel):
     id: str
     ip: Optional[str]
     created_at: Optional[datetime]
 
+
 class SecurityOverviewResponse(BaseModel):
     active_sessions: List[ActiveSession]
     failed_logins: List[FailedLogin]
-

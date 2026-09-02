@@ -20,12 +20,15 @@ def is_local_storage() -> bool:
 
 _supabase_client: Client | None = None
 
+
 def _client() -> Client:
     global _supabase_client
     if is_local_storage():
         raise Exception("Using local storage, do not initialize Supabase client.")
     if _supabase_client is None:
-        _supabase_client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
+        _supabase_client = create_client(
+            settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY
+        )
     return _supabase_client
 
 
@@ -37,6 +40,7 @@ LOCAL_UPLOADS_DIR = Path("uploads")
 
 import asyncio
 
+
 async def upload_file(
     bucket: str,
     file_bytes: bytes,
@@ -44,6 +48,7 @@ async def upload_file(
     content_type: str | None = None,
 ) -> str:
     """Upload file bytes to Supabase Storage (or local disk fallback). Returns the storage path."""
+
     def _sync():
         nonlocal content_type
         if not content_type:
@@ -72,6 +77,7 @@ async def upload_file(
 
 async def download_file_bytes(bucket: str, path: str) -> bytes:
     """Download a file's bytes from Supabase Storage (or local disk fallback)."""
+
     def _sync():
         if is_local_storage():
             local_path = LOCAL_UPLOADS_DIR / bucket / path
@@ -82,12 +88,13 @@ async def download_file_bytes(bucket: str, path: str) -> bytes:
         client = _client()
         response = client.storage.from_(bucket).download(path)
         return response
-    
+
     return await asyncio.to_thread(_sync)
 
 
 async def get_signed_url(bucket: str, path: str, expires_in: int = 3600) -> str:
     """Generate a signed download URL valid for `expires_in` seconds (or local URL fallback)."""
+
     def _sync():
         if is_local_storage():
             # Fallback to local API endpoint that serves the uploads directory
@@ -103,6 +110,7 @@ async def get_signed_url(bucket: str, path: str, expires_in: int = 3600) -> str:
 
 async def delete_file(bucket: str, path: str) -> None:
     """Delete a file from Supabase Storage (or local disk fallback)."""
+
     def _sync():
         if is_local_storage():
             local_path = LOCAL_UPLOADS_DIR / bucket / path

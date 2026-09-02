@@ -99,7 +99,11 @@ async def test_dedicated_db_connection(
     return DatabaseConnectionTestResponse(
         success=success,
         latency_ms=latency_ms,
-        message="Database connection verified successfully." if success else "Failed to connect to database.",
+        message=(
+            "Database connection verified successfully."
+            if success
+            else "Failed to connect to database."
+        ),
         error=error,
     )
 
@@ -123,12 +127,18 @@ async def configure_tenant_database(
 
     if body.db_connection_type == "dedicated":
         if not body.dedicated_db_url:
-            raise ValidationException("A dedicated database connection URL is required for dedicated mode.")
+            raise ValidationException(
+                "A dedicated database connection URL is required for dedicated mode."
+            )
         if tenant.plan not in ("enterprise", "custom") and not current_user.is_owner:
-            raise ForbiddenException("Dedicated database isolation is exclusively available on Enterprise plans.")
+            raise ForbiddenException(
+                "Dedicated database isolation is exclusively available on Enterprise plans."
+            )
 
         # Test connection health first
-        success, error, _ = await TenantDatabaseRouter.test_connection(body.dedicated_db_url)
+        success, error, _ = await TenantDatabaseRouter.test_connection(
+            body.dedicated_db_url
+        )
         if not success:
             raise ValidationException(f"Cannot activate dedicated database: {error}")
 

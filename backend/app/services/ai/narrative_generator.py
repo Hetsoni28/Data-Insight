@@ -55,10 +55,14 @@ CRITICAL RULES:
     def __init__(self, router: LLMRouter):
         self.router = router
 
-    def _prepare_profile_summary(self, profile: Dict[str, Any], correlations: Optional[Dict[str, Any]] = None) -> str:
+    def _prepare_profile_summary(
+        self, profile: Dict[str, Any], correlations: Optional[Dict[str, Any]] = None
+    ) -> str:
         """Create a compact, highly informative summary of the dataset profile for the prompt."""
-        overview = profile.get("overview", {}) # Note: profiler.py returns top-level row_count etc., let's handle both
-        
+        overview = profile.get(
+            "overview", {}
+        )  # Note: profiler.py returns top-level row_count etc., let's handle both
+
         # In the new DataProfiler, these are top-level keys. Fallback to overview dict if not found.
         row_count = profile.get("row_count", overview.get("row_count"))
         column_count = profile.get("column_count", overview.get("column_count"))
@@ -68,11 +72,11 @@ CRITICAL RULES:
         # In DataProfiler, quality metrics are top-level
         overall_score = profile.get("quality_score")
         grade = profile.get("quality_grade")
-        
+
         quality_breakdown = profile.get("quality_breakdown", {})
         completeness = quality_breakdown.get("completeness")
         uniqueness = quality_breakdown.get("uniqueness")
-        
+
         columns_profile = profile.get("columns", {})
 
         summary_dict = {
@@ -93,17 +97,24 @@ CRITICAL RULES:
 
         # Include summary stats for top columns
         for col_name, col_data in list(columns_profile.items())[:30]:
-            col_type = col_data.get("inferred_type") or col_data.get("type") or col_data.get("dtype")
+            col_type = (
+                col_data.get("inferred_type")
+                or col_data.get("type")
+                or col_data.get("dtype")
+            )
             stats = col_data.get("statistics", {})
             summary_dict["column_metrics"][col_name] = {
                 "type": col_type,
-                "null_percentage": col_data.get("null_percentage") or col_data.get("null_pct"),
+                "null_percentage": col_data.get("null_percentage")
+                or col_data.get("null_pct"),
                 "unique_count": col_data.get("unique_count"),
                 "summary": stats,
             }
 
         if correlations:
-            summary_dict["significant_correlations"] = correlations.get("significant_correlations", [])[:15]
+            summary_dict["significant_correlations"] = correlations.get(
+                "significant_correlations", []
+            )[:15]
 
         return json.dumps(summary_dict, indent=2, default=str)
 
@@ -142,7 +153,9 @@ Generate the comprehensive executive narrative analysis."""
         try:
             report_data = json.loads(raw_json)
         except Exception as e:
-            logger.warning(f"[NarrativeGenerator] JSON parsing failed: {e}. Fallback structure applied.")
+            logger.warning(
+                f"[NarrativeGenerator] JSON parsing failed: {e}. Fallback structure applied."
+            )
             report_data = {
                 "datasetSummary": response.content,
                 "companyOverview": "",
@@ -155,7 +168,7 @@ Generate the comprehensive executive narrative analysis."""
                 "potentialRisks": [],
                 "executiveConclusion": "",
                 "keyRecommendations": [],
-                "managementActionPlan": []
+                "managementActionPlan": [],
             }
 
         return {

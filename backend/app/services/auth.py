@@ -47,7 +47,9 @@ from app.services import email as email_service
 from app.services.notification_service import NotificationService
 
 
-def parse_client_metadata(user_agent: Optional[str], ip_address: Optional[str]) -> Dict[str, str]:
+def parse_client_metadata(
+    user_agent: Optional[str], ip_address: Optional[str]
+) -> Dict[str, str]:
     """Extract browser, OS, and device information from client headers."""
     client_ip = (ip_address or "127.0.0.1").split(",")[0].strip()
     device = "Desktop"
@@ -146,7 +148,10 @@ class AuthService:
 
     async def register(self, user_in: UserCreate) -> User:
         """Create a new user account with email verification OTP."""
-        if settings.OWNER_EMAIL and user_in.email.lower() == settings.OWNER_EMAIL.lower():
+        if (
+            settings.OWNER_EMAIL
+            and user_in.email.lower() == settings.OWNER_EMAIL.lower()
+        ):
             raise ConflictException("This email address is reserved.")
 
         existing = await self.user_repo.get_by_email(user_in.email)
@@ -169,7 +174,9 @@ class AuthService:
         verification_otp = await otp_service.create_email_verification_otp(
             self.redis, new_user.email
         )
-        logger.info(f"[Auth] New user registered: {new_user.email} | OTP: {verification_otp}")
+        logger.info(
+            f"[Auth] New user registered: {new_user.email} | OTP: {verification_otp}"
+        )
 
         await email_service.send_email_verification(
             to_email=new_user.email,
@@ -200,12 +207,18 @@ class AuthService:
         if not user or user.is_email_verified:
             return
 
-        allowed = await otp_service.check_resend_rate_limit(self.redis, email, max_per_hour=3)
+        allowed = await otp_service.check_resend_rate_limit(
+            self.redis, email, max_per_hour=3
+        )
         if not allowed:
-            raise ForbiddenException("Too many resend requests. Please wait before requesting a new code.")
+            raise ForbiddenException(
+                "Too many resend requests. Please wait before requesting a new code."
+            )
 
         new_otp = await otp_service.create_email_verification_otp(self.redis, email)
-        await email_service.send_email_verification(to_email=email, full_name=user.full_name, otp=new_otp)
+        await email_service.send_email_verification(
+            to_email=email, full_name=user.full_name, otp=new_otp
+        )
 
     # ── Enterprise Authentication & Lockout ──────────────────────────────────
 
@@ -226,7 +239,9 @@ class AuthService:
 
         # 1. User existence check with dummy password verification to prevent timing attacks
         if not user:
-            verify_password("dummy", "$2b$12$e8uq2Bv2uV7s/F6uQJ2N6e5Fj2z9N3XvK3Ew2yU1K9n.q3gV6Nq0S")
+            verify_password(
+                "dummy", "$2b$12$e8uq2Bv2uV7s/F6uQJ2N6e5Fj2z9N3XvK3Ew2yU1K9n.q3gV6Nq0S"
+            )
             raise UnauthorizedException("Incorrect email or password.")
 
         # 2. Check Account Lockout status
@@ -236,7 +251,9 @@ class AuthService:
             else user.locked_until
         )
         if locked_until_utc and locked_until_utc > now_utc:
-            remaining_mins = max(1, int((locked_until_utc - now_utc).total_seconds() / 60))
+            remaining_mins = max(
+                1, int((locked_until_utc - now_utc).total_seconds() / 60)
+            )
             await self._record_login_history(
                 user_id=user.id,
                 meta=meta,
@@ -281,10 +298,14 @@ class AuthService:
         await self.session.commit()
 
         if not user.is_email_verified:
-            raise ForbiddenException("Please verify your email address before logging in.")
+            raise ForbiddenException(
+                "Please verify your email address before logging in."
+            )
 
         if not user.is_active:
-            raise ForbiddenException("Your account is pending approval by the Platform Owner.")
+            raise ForbiddenException(
+                "Your account is pending approval by the Platform Owner."
+            )
 
         # 5. Check if Multi-Factor Authentication (TOTP) is enabled
         if getattr(user, "mfa_enabled", False):
@@ -297,7 +318,9 @@ class AuthService:
             }
 
         # 6. Issue full tokens & establish session
-        return await self._create_tokens_and_session(user=user, meta=meta, user_agent=user_agent)
+        return await self._create_tokens_and_session(
+            user=user, meta=meta, user_agent=user_agent
+        )
 
     # ── MFA Challenge Verification ───────────────────────────────────────────
 
@@ -315,7 +338,9 @@ class AuthService:
                 raise UnauthorizedException("Invalid MFA token type.")
             user_id = payload.get("sub")
         except Exception:
-            raise UnauthorizedException("MFA session expired. Please enter your password again.")
+            raise UnauthorizedException(
+                "MFA session expired. Please enter your password again."
+            )
 
         user = await self.user_repo.get_by_id(user_id)
         if not user or not user.is_active:
@@ -337,7 +362,9 @@ class AuthService:
             if consumed:
                 user.mfa_recovery_codes = remaining_codes
                 await self.session.commit()
-                logger.info(f"[Auth] Emergency recovery code consumed for user {user.email}")
+                logger.info(
+                    f"[Auth] Emergency recovery code consumed for user {user.email}"
+                )
             else:
                 await self._record_login_history(
                     user_id=user.id,
@@ -345,15 +372,22 @@ class AuthService:
                     success=False,
                     failure_reason="Invalid MFA TOTP/Recovery code",
                 )
-                raise ValidationException("Invalid two-factor authentication code or backup code.")
+                raise ValidationException(
+                    "Invalid two-factor authentication code or backup code."
+                )
 
         logger.info(f"[Auth] MFA login successful for {user.email}")
-        return await self._create_tokens_and_session(user=user, meta=meta, user_agent=user_agent)
+        return await self._create_tokens_and_session(
+            user=user, meta=meta, user_agent=user_agent
+        )
 
     # ── Refresh Token Rotation with Reuse Detection ──────────────────────────
 
     async def rotate_refresh_token(
-        self, refresh_token_str: str, ip_address: Optional[str] = None, user_agent: Optional[str] = None
+        self,
+        refresh_token_str: str,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Validate incoming refresh token, revoke it, and issue a fresh pair.
@@ -373,7 +407,9 @@ class AuthService:
             raise UnauthorizedException("User not found or inactive.")
 
         if getattr(user, "token_version", 1) != token_version:
-            raise UnauthorizedException("Session has been revoked. Please log in again.")
+            raise UnauthorizedException(
+                "Session has been revoked. Please log in again."
+            )
 
         incoming_hash = hash_token(refresh_token_str)
         stmt = select(RefreshToken).where(RefreshToken.token_hash == incoming_hash)
@@ -454,7 +490,9 @@ class AuthService:
     ) -> bool:
         """Verify the user's first 6-digit TOTP code and enable 2FA on their account."""
         if not MFAService.verify_totp_code(secret, code):
-            raise ValidationException("Invalid 6-digit confirmation code. Please try again.")
+            raise ValidationException(
+                "Invalid 6-digit confirmation code. Please try again."
+            )
 
         hashed_codes = [MFAService.hash_code(rc) for rc in recovery_codes]
         user.mfa_enabled = True
@@ -482,7 +520,9 @@ class AuthService:
 
     # ── Session & Device Management ──────────────────────────────────────────
 
-    async def list_user_sessions(self, user: User, current_token_hash: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def list_user_sessions(
+        self, user: User, current_token_hash: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """List active device sessions for the authenticated user."""
         stmt = (
             select(UserSession)
@@ -494,18 +534,24 @@ class AuthService:
 
         results = []
         for s in sessions:
-            results.append({
-                "id": str(s.id),
-                "device_name": s.device_name or "Desktop",
-                "browser": s.browser or "Chrome",
-                "os": s.os or "Windows",
-                "ip_address": s.ip_address or "127.0.0.1",
-                "country": getattr(s, "country", "Unknown") or "Unknown",
-                "city": getattr(s, "city", "Unknown") or "Unknown",
-                "is_current": (s.token_hash == current_token_hash) if current_token_hash else False,
-                "last_active_at": s.last_active_at,
-                "created_at": s.created_at,
-            })
+            results.append(
+                {
+                    "id": str(s.id),
+                    "device_name": s.device_name or "Desktop",
+                    "browser": s.browser or "Chrome",
+                    "os": s.os or "Windows",
+                    "ip_address": s.ip_address or "127.0.0.1",
+                    "country": getattr(s, "country", "Unknown") or "Unknown",
+                    "city": getattr(s, "city", "Unknown") or "Unknown",
+                    "is_current": (
+                        (s.token_hash == current_token_hash)
+                        if current_token_hash
+                        else False
+                    ),
+                    "last_active_at": s.last_active_at,
+                    "created_at": s.created_at,
+                }
+            )
         return results
 
     async def revoke_session(self, user: User, session_id: uuid.UUID) -> bool:
@@ -539,7 +585,9 @@ class AuthService:
         logger.info(f"[Auth] All sessions revoked globally for user {user.email}")
         return True
 
-    async def list_login_history(self, user: User, limit: int = 20) -> List[LoginHistory]:
+    async def list_login_history(
+        self, user: User, limit: int = 20
+    ) -> List[LoginHistory]:
         """Fetch recent login history audit records."""
         stmt = (
             select(LoginHistory)
@@ -561,7 +609,9 @@ class AuthService:
         reset_otp = await otp_service.create_password_reset_otp(self.redis, email)
         await email_service.send_password_reset(to_email=email, otp=reset_otp)
 
-    async def reset_password_with_otp(self, email: str, otp: str, new_password: str) -> None:
+    async def reset_password_with_otp(
+        self, email: str, otp: str, new_password: str
+    ) -> None:
         """Verify OTP, update password, and revoke existing sessions for security."""
         if len(new_password) < 8:
             raise ValidationException("Password must be at least 8 characters.")
@@ -577,7 +627,9 @@ class AuthService:
         user.hashed_password = get_password_hash(new_password)
         user.token_version = getattr(user, "token_version", 1) + 1
         await self.session.commit()
-        logger.info(f"[Auth] Password reset complete & all sessions invalidated for {email}")
+        logger.info(
+            f"[Auth] Password reset complete & all sessions invalidated for {email}"
+        )
 
     # ── Internal Helpers ──────────────────────────────────────────────────────
 

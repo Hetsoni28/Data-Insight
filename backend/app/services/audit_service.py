@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.audit_log import AuditLog
 
+
 class AuditService:
     @staticmethod
     async def log(

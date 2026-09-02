@@ -26,10 +26,7 @@ async def serve_local_file(bucket: str, path: str):
     file_path = LOCAL_UPLOADS_DIR / bucket / path
 
     if not file_path.exists() or not file_path.is_file():
-        raise HTTPException(
-            status_code=404,
-            detail=f"File not found: {bucket}/{path}"
-        )
+        raise HTTPException(status_code=404, detail=f"File not found: {bucket}/{path}")
 
     # Guess the media type from the file extension
     media_type, _ = mimetypes.guess_type(str(file_path))

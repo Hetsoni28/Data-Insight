@@ -48,7 +48,7 @@ celery_app.conf.update(
             "task": "app.worker.tasks.schedule_tasks.process_scheduled_reports",
             "schedule": 60.0,
         },
-    }
+    },
 )
 
 # Removed dangerous signal handlers that cause MissingGreenlet errors

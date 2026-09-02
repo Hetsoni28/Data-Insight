@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime, date
 from typing import List, Optional, Dict, Any
 
+
 # =======================
 # User Profile Schemas
 # =======================
@@ -31,8 +32,10 @@ class UserProfileBase(BaseModel):
     preferences: Optional[Dict[str, Any]] = None
     security_settings: Optional[Dict[str, Any]] = None
 
+
 class UserProfileUpdate(UserProfileBase):
     pass
+
 
 class UserProfileResponse(UserProfileBase):
     id: uuid.UUID
@@ -41,6 +44,7 @@ class UserProfileResponse(UserProfileBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 # =======================
 # User Activity Schemas
@@ -57,6 +61,7 @@ class UserActivityResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 # =======================
 # User Session Schemas
 # =======================
@@ -70,11 +75,12 @@ class UserSessionResponse(BaseModel):
     is_active: bool
     last_active_at: datetime
     created_at: datetime
-    
+
     # Indicate if this is the current session
     is_current: bool = False
 
     model_config = ConfigDict(from_attributes=True)
+
 
 # =======================
 # Profile Stats Schema
@@ -89,8 +95,9 @@ class ProfileStatsResponse(BaseModel):
     storage_used_mb: int
     profile_completion_percentage: int
     security_score: int
-    
+
+
 class FullProfileResponse(BaseModel):
-    user: Any # Dict from user schema
+    user: Any  # Dict from user schema
     profile: Optional[UserProfileResponse] = None
     stats: ProfileStatsResponse

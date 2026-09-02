@@ -11,6 +11,7 @@ from typing import AsyncIterator, Optional, Dict, Any
 @dataclass
 class LLMResponse:
     """Standardized response from any LLM provider."""
+
     content: str
     prompt_tokens: int
     completion_tokens: int
@@ -55,11 +56,15 @@ class BaseLLMProvider(ABC):
         """Stream response tokens from the LLM asynchronously."""
         pass
 
-    def calculate_cost(self, model: str, prompt_tokens: int, completion_tokens: int) -> float:
+    def calculate_cost(
+        self, model: str, prompt_tokens: int, completion_tokens: int
+    ) -> float:
         """Calculate call cost in USD based on model pricing per 1M tokens."""
         pricing = self.PRICING.get(model, {"prompt": 0.0, "completion": 0.0})
         prompt_cost = (prompt_tokens / 1_000_000.0) * pricing.get("prompt", 0.0)
-        completion_cost = (completion_tokens / 1_000_000.0) * pricing.get("completion", 0.0)
+        completion_cost = (completion_tokens / 1_000_000.0) * pricing.get(
+            "completion", 0.0
+        )
         return round(prompt_cost + completion_cost, 7)
 
     @abstractmethod

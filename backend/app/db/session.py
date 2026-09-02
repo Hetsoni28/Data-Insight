@@ -23,10 +23,7 @@ else:
     engine_kwargs["pool_size"] = 3
     engine_kwargs["max_overflow"] = 2
 
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    **engine_kwargs
-)
+engine = create_async_engine(settings.DATABASE_URL, **engine_kwargs)
 
 
 # ─── Session Factory ──────────────────────────────────────────────────────────

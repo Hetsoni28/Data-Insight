@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def _strip_thinking_tags(text: str) -> str:
     """Remove <think>...</think> internal reasoning blocks from model output.
-    
+
     Some reasoning models (e.g. openai/gpt-oss-120b) expose chain-of-thought
     in <think> tags. We strip these before returning to the user.
     """
@@ -38,7 +38,7 @@ class GroqProvider(BaseLLMProvider):
     # Pricing per 1M tokens in USD
     PRICING: Dict[str, Dict[str, float]] = {
         "openai/gpt-oss-120b": {"prompt": 0.59, "completion": 0.79},
-        "qwen/qwen3.8-27b": {"prompt": 0.59, "completion": 0.79},
+        "qwen/qwen3.6-27b": {"prompt": 0.59, "completion": 0.79},
         "llama-3.3-70b-versatile": {"prompt": 0.59, "completion": 0.79},
         "llama3-70b-8192": {"prompt": 0.59, "completion": 0.79},
         "deepseek-r1-distill-llama-70b": {"prompt": 0.59, "completion": 0.79},
@@ -102,8 +102,12 @@ class GroqProvider(BaseLLMProvider):
             content = _strip_thinking_tags(raw_content)
             usage = resp.usage
             prompt_tokens = usage.prompt_tokens if usage else int(len(prompt) / 4)
-            completion_tokens = usage.completion_tokens if usage else int(len(content) / 4)
-            total_tokens = usage.total_tokens if usage else (prompt_tokens + completion_tokens)
+            completion_tokens = (
+                usage.completion_tokens if usage else int(len(content) / 4)
+            )
+            total_tokens = (
+                usage.total_tokens if usage else (prompt_tokens + completion_tokens)
+            )
 
             cost = self.calculate_cost(target_model, prompt_tokens, completion_tokens)
 
@@ -120,8 +124,12 @@ class GroqProvider(BaseLLMProvider):
         except Exception as e:
             err_str = str(e)
             # Automatic fallback to llama-3.1-8b-instant on rate limits
-            if ("429" in err_str or "rate_limit" in err_str.lower()) and target_model != "llama-3.1-8b-instant":
-                logger.warning(f"[GroqProvider] {target_model} rate limited. Falling back to llama-3.1-8b-instant...")
+            if (
+                "429" in err_str or "rate_limit" in err_str.lower()
+            ) and target_model != "llama-3.1-8b-instant":
+                logger.warning(
+                    f"[GroqProvider] {target_model} rate limited. Falling back to llama-3.1-8b-instant..."
+                )
                 try:
                     kwargs["model"] = "llama-3.1-8b-instant"
                     resp = await client.chat.completions.create(**kwargs)
@@ -129,14 +137,20 @@ class GroqProvider(BaseLLMProvider):
                     raw_content = resp.choices[0].message.content or ""
                     content = _strip_thinking_tags(raw_content)
                     usage = resp.usage
-                    prompt_tokens = usage.prompt_tokens if usage else int(len(prompt) / 4)
-                    completion_tokens = usage.completion_tokens if usage else int(len(content) / 4)
+                    prompt_tokens = (
+                        usage.prompt_tokens if usage else int(len(prompt) / 4)
+                    )
+                    completion_tokens = (
+                        usage.completion_tokens if usage else int(len(content) / 4)
+                    )
                     return LLMResponse(
                         content=content,
                         prompt_tokens=prompt_tokens,
                         completion_tokens=completion_tokens,
                         total_tokens=prompt_tokens + completion_tokens,
-                        cost_usd=self.calculate_cost("llama-3.1-8b-instant", prompt_tokens, completion_tokens),
+                        cost_usd=self.calculate_cost(
+                            "llama-3.1-8b-instant", prompt_tokens, completion_tokens
+                        ),
                         latency_ms=round(latency_ms, 2),
                         provider=self.provider_name,
                         model="llama-3.1-8b-instant",
@@ -185,7 +199,7 @@ class GroqProvider(BaseLLMProvider):
                             end_idx = buffer.find("</think>")
                             if end_idx != -1:
                                 # Found closing tag — skip everything up to and including it
-                                buffer = buffer[end_idx + len("</think>"):]
+                                buffer = buffer[end_idx + len("</think>") :]
                                 inside_think = False
                             else:
                                 # Still inside think block — discard buffer, wait for more
@@ -197,7 +211,7 @@ class GroqProvider(BaseLLMProvider):
                                 # Yield anything before the think tag
                                 if start_idx > 0:
                                     yield buffer[:start_idx]
-                                buffer = buffer[start_idx + len("<think>"):]
+                                buffer = buffer[start_idx + len("<think>") :]
                                 inside_think = True
                             else:
                                 # No think tag — safe to yield everything except last few chars

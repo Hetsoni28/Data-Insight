@@ -183,7 +183,9 @@ async def revoke_user(
 
 
 class ChangeRoleRequest(BaseModel):
-    role: str = Field(..., description="New role to assign: org_admin, manager, analyst, viewer")
+    role: str = Field(
+        ..., description="New role to assign: org_admin, manager, analyst, viewer"
+    )
 
 
 @router.patch(
@@ -200,7 +202,12 @@ async def change_user_role(
     from app.models.user import UserRole
 
     # Validate requested role — owner cannot be assigned via this endpoint
-    allowed_roles = [UserRole.org_admin, UserRole.manager, UserRole.analyst, UserRole.viewer]
+    allowed_roles = [
+        UserRole.org_admin,
+        UserRole.manager,
+        UserRole.analyst,
+        UserRole.viewer,
+    ]
     if body.role not in allowed_roles:
         raise ValidationException(
             f"Invalid role '{body.role}'. Must be one of: {', '.join(allowed_roles)}"
@@ -222,4 +229,3 @@ async def change_user_role(
     await db.refresh(user)
 
     return user
-

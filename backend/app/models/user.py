@@ -47,8 +47,12 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
-    employee_id: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
-    department: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    employee_id: Mapped[str | None] = mapped_column(
+        String(50), nullable=True, index=True
+    )
+    department: Mapped[str | None] = mapped_column(
+        String(100), nullable=True, index=True
+    )
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     location: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
@@ -72,9 +76,15 @@ class User(Base):
     password_reset_expires: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    
+
     notification_preferences: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True, default=lambda: {"email_notifications": True, "slack_notifications": False, "push_notifications": True}
+        JSONB,
+        nullable=True,
+        default=lambda: {
+            "email_notifications": True,
+            "slack_notifications": False,
+            "push_notifications": True,
+        },
     )
 
     # Security & Enterprise Auth

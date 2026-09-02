@@ -33,7 +33,10 @@ class RentalContract(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
 
     contract_number: Mapped[str] = mapped_column(
@@ -47,7 +50,9 @@ class RentalContract(Base):
     )
 
     start_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
     end_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -56,16 +61,32 @@ class RentalContract(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    billing_cycle: Mapped[str] = mapped_column(String(20), default="annual", nullable=False)
-    base_price_monthly: Mapped[float] = mapped_column(Float, default=12500.0, nullable=False)
-    annual_contract_value: Mapped[float] = mapped_column(Float, default=150000.0, nullable=False)
-    annual_discount: Mapped[float] = mapped_column(Float, default=30000.0, nullable=False)
-    contracted_annual_amount: Mapped[float] = mapped_column(Float, default=120000.0, nullable=False)
+    billing_cycle: Mapped[str] = mapped_column(
+        String(20), default="annual", nullable=False
+    )
+    base_price_monthly: Mapped[float] = mapped_column(
+        Float, default=12500.0, nullable=False
+    )
+    annual_contract_value: Mapped[float] = mapped_column(
+        Float, default=150000.0, nullable=False
+    )
+    annual_discount: Mapped[float] = mapped_column(
+        Float, default=30000.0, nullable=False
+    )
+    contracted_annual_amount: Mapped[float] = mapped_column(
+        Float, default=120000.0, nullable=False
+    )
     currency: Mapped[str] = mapped_column(String(10), default="USD", nullable=False)
 
-    payment_terms: Mapped[str] = mapped_column(String(50), default="Annual Advance", nullable=False)
-    support_tier: Mapped[str] = mapped_column(String(50), default="24/7 Dedicated Engineering", nullable=False)
-    sla_guarantee: Mapped[str] = mapped_column(String(50), default="99.99% Uptime SLA", nullable=False)
+    payment_terms: Mapped[str] = mapped_column(
+        String(50), default="Annual Advance", nullable=False
+    )
+    support_tier: Mapped[str] = mapped_column(
+        String(50), default="24/7 Dedicated Engineering", nullable=False
+    )
+    sla_guarantee: Mapped[str] = mapped_column(
+        String(50), default="99.99% Uptime SLA", nullable=False
+    )
     deployment_model: Mapped[str] = mapped_column(
         String(100), default="Dedicated Single-Tenant VPC", nullable=False
     )

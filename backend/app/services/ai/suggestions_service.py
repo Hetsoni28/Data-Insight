@@ -52,7 +52,9 @@ Output pure JSON matching:
 
         for col, col_type in schema_info.items():
             t = str(col_type).lower()
-            if any(k in t for k in ["int", "float", "double", "decimal", "numeric", "real"]):
+            if any(
+                k in t for k in ["int", "float", "double", "decimal", "numeric", "real"]
+            ):
                 numeric_cols.append(col)
             elif any(k in t for k in ["date", "time", "timestamp"]):
                 date_cols.append(col)
@@ -65,68 +67,89 @@ Output pure JSON matching:
         if numeric_cols and categorical_cols:
             n_col = numeric_cols[0]
             c_col = categorical_cols[0]
-            suggestions.append({
-                "category": "performance",
-                "icon": "TrendingUp",
-                "title": f"Top {c_col.replace('_', ' ').title()}",
-                "question": f"What are the top 5 {c_col.replace('_', ' ')}s by total {n_col.replace('_', ' ')}?",
-            })
+            suggestions.append(
+                {
+                    "category": "performance",
+                    "icon": "TrendingUp",
+                    "title": f"Top {c_col.replace('_', ' ').title()}",
+                    "question": f"What are the top 5 {c_col.replace('_', ' ')}s by total {n_col.replace('_', ' ')}?",
+                }
+            )
         elif numeric_cols:
-            suggestions.append({
-                "category": "performance",
-                "icon": "TrendingUp",
-                "title": "Metric Summary",
-                "question": f"What is the total and average {numeric_cols[0].replace('_', ' ')} across all records?",
-            })
+            suggestions.append(
+                {
+                    "category": "performance",
+                    "icon": "TrendingUp",
+                    "title": "Metric Summary",
+                    "question": f"What is the total and average {numeric_cols[0].replace('_', ' ')} across all records?",
+                }
+            )
 
         # 2. Trend question (Time series / Temporal)
         if date_cols and numeric_cols:
             d_col = date_cols[0]
             n_col = numeric_cols[0]
-            suggestions.append({
-                "category": "trend",
-                "icon": "Calendar",
-                "title": f"{n_col.replace('_', ' ').title()} Over Time",
-                "question": f"How has {n_col.replace('_', ' ')} trended over time grouped by {d_col.replace('_', ' ')}?",
-            })
+            suggestions.append(
+                {
+                    "category": "trend",
+                    "icon": "Calendar",
+                    "title": f"{n_col.replace('_', ' ').title()} Over Time",
+                    "question": f"How has {n_col.replace('_', ' ')} trended over time grouped by {d_col.replace('_', ' ')}?",
+                }
+            )
         elif len(numeric_cols) >= 2:
-            suggestions.append({
-                "category": "trend",
-                "icon": "Sparkles",
-                "title": "Metric Comparison",
-                "question": f"Compare the total {numeric_cols[0].replace('_', ' ')} versus {numeric_cols[1].replace('_', ' ')}.",
-            })
+            suggestions.append(
+                {
+                    "category": "trend",
+                    "icon": "Sparkles",
+                    "title": "Metric Comparison",
+                    "question": f"Compare the total {numeric_cols[0].replace('_', ' ')} versus {numeric_cols[1].replace('_', ' ')}.",
+                }
+            )
 
         # 3. Segmentation question (Category breakdown)
         if categorical_cols:
-            cat = categorical_cols[1] if len(categorical_cols) > 1 else categorical_cols[0]
-            suggestions.append({
-                "category": "segmentation",
-                "icon": "PieChart",
-                "title": f"{cat.replace('_', ' ').title()} Distribution",
-                "question": f"What is the percentage breakdown of records by {cat.replace('_', ' ')}?",
-            })
+            cat = (
+                categorical_cols[1]
+                if len(categorical_cols) > 1
+                else categorical_cols[0]
+            )
+            suggestions.append(
+                {
+                    "category": "segmentation",
+                    "icon": "PieChart",
+                    "title": f"{cat.replace('_', ' ').title()} Distribution",
+                    "question": f"What is the percentage breakdown of records by {cat.replace('_', ' ')}?",
+                }
+            )
 
         # 4. Anomaly / Outliers question
         if numeric_cols:
             n_col = numeric_cols[-1]
-            suggestions.append({
-                "category": "anomaly",
-                "icon": "AlertTriangle",
-                "title": "Outliers & Extremes",
-                "question": f"Which records have the highest and lowest values for {n_col.replace('_', ' ')}?",
-            })
+            suggestions.append(
+                {
+                    "category": "anomaly",
+                    "icon": "AlertTriangle",
+                    "title": "Outliers & Extremes",
+                    "question": f"Which records have the highest and lowest values for {n_col.replace('_', ' ')}?",
+                }
+            )
 
         # 5. Additional categorical or distribution question
         if len(categorical_cols) >= 2:
             cat2 = categorical_cols[0]
-            if not any(s["question"].endswith(f"by {cat2.replace('_', ' ')}?") for s in suggestions):
-                suggestions.append({
-                    "category": "segmentation",
-                    "icon": "Layers",
-                    "title": f"{cat2.replace('_', ' ').title()} Breakdown",
-                    "question": f"Show the distribution of records grouped by {cat2.replace('_', ' ')}.",
-                })
+            if not any(
+                s["question"].endswith(f"by {cat2.replace('_', ' ')}?")
+                for s in suggestions
+            ):
+                suggestions.append(
+                    {
+                        "category": "segmentation",
+                        "icon": "Layers",
+                        "title": f"{cat2.replace('_', ' ').title()} Breakdown",
+                        "question": f"Show the distribution of records grouped by {cat2.replace('_', ' ')}.",
+                    }
+                )
 
         # Ensure at least 4 suggestions are always provided
         if len(suggestions) < 4:
@@ -194,6 +217,7 @@ Generate 4 to 6 proactive analytical business questions."""
             raw = resp.content.strip()
             if raw.startswith("```"):
                 import re
+
                 raw = re.sub(r"^```(?:json)?\s*", "", raw)
                 raw = re.sub(r"\s*```$", "", raw)
 
@@ -202,6 +226,8 @@ Generate 4 to 6 proactive analytical business questions."""
             if isinstance(suggestions, list) and len(suggestions) >= 3:
                 return suggestions
         except Exception as e:
-            logger.warning(f"[SuggestionsService] LLM suggestions failed: {e}. Using heuristics.")
+            logger.warning(
+                f"[SuggestionsService] LLM suggestions failed: {e}. Using heuristics."
+            )
 
         return heuristic

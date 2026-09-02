@@ -32,6 +32,7 @@ router = APIRouter()
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 async def _require_owner(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != UserRole.owner:
         raise HTTPException(status_code=403, detail="Not authorized.")
@@ -61,8 +62,12 @@ def _lead_to_dict(lead: Lead) -> dict:
         "ai_bi_requirements": lead.ai_bi_requirements,
         "preferred_contact_time": lead.preferred_contact_time,
         "message": lead.message,
-        "status": lead.status.value if hasattr(lead.status, "value") else str(lead.status),
-        "source": lead.source.value if hasattr(lead.source, "value") else str(lead.source),
+        "status": (
+            lead.status.value if hasattr(lead.status, "value") else str(lead.status)
+        ),
+        "source": (
+            lead.source.value if hasattr(lead.source, "value") else str(lead.source)
+        ),
         "internal_notes": lead.internal_notes,
         "assigned_to": lead.assigned_to,
         "tenant_id": str(lead.tenant_id) if lead.tenant_id else None,
@@ -77,20 +82,21 @@ def _lead_to_dict(lead: Lead) -> dict:
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
+
 class InquirySubmission(BaseModel):
-    company_name: str              = Field(..., min_length=2, max_length=200)
-    contact_person: str            = Field(..., min_length=2, max_length=200)
+    company_name: str = Field(..., min_length=2, max_length=200)
+    contact_person: str = Field(..., min_length=2, max_length=200)
     business_email: EmailStr
-    phone: Optional[str]           = Field(None, max_length=50)
-    company_size: Optional[str]    = None    # "1-10", "11-50", "51-200", "201-500", "500+"
-    industry: Optional[str]        = None
-    expected_users: Optional[int]  = None
+    phone: Optional[str] = Field(None, max_length=50)
+    company_size: Optional[str] = None  # "1-10", "11-50", "51-200", "201-500", "500+"
+    industry: Optional[str] = None
+    expected_users: Optional[int] = None
     expected_storage_gb: Optional[int] = None
     expected_data_volume: Optional[str] = None
-    ai_bi_requirements: Optional[str]   = None
+    ai_bi_requirements: Optional[str] = None
     preferred_contact_time: Optional[str] = None
-    message: Optional[str]         = None
-    source: Optional[str]          = "pricing_page"
+    message: Optional[str] = None
+    source: Optional[str] = "pricing_page"
 
 
 class UpdateStatusPayload(BaseModel):
@@ -105,6 +111,7 @@ class UpdateNotesPayload(BaseModel):
 
 
 # ── Public: Submit Inquiry ─────────────────────────────────────────────────────
+
 
 @router.post("/inquire", summary="Submit a demo / access request (public — no auth)")
 async def submit_inquiry(
@@ -154,7 +161,9 @@ async def submit_inquiry(
 
     # Fire emails in background — don't block the response
     frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
-    owner_email  = getattr(settings, "EMAIL_FROM", None) or getattr(settings, "OWNER_EMAIL", None)
+    owner_email = getattr(settings, "EMAIL_FROM", None) or getattr(
+        settings, "OWNER_EMAIL", None
+    )
     dashboard_url = f"{frontend_url}/owner/dashboard/leads"
 
     background_tasks.add_task(
@@ -188,6 +197,7 @@ async def submit_inquiry(
 
 # ── Owner: Pipeline Management ─────────────────────────────────────────────────
 
+
 @router.get("/", summary="List all leads (owner only)")
 async def list_leads(
     status: Optional[str] = Query(None),
@@ -210,12 +220,15 @@ async def list_leads(
     if search:
         like = f"%{search}%"
         from sqlalchemy import or_
-        q = q.where(or_(
-            Lead.company_name.ilike(like),
-            Lead.contact_person.ilike(like),
-            Lead.business_email.ilike(like),
-            Lead.lead_id.ilike(like),
-        ))
+
+        q = q.where(
+            or_(
+                Lead.company_name.ilike(like),
+                Lead.contact_person.ilike(like),
+                Lead.business_email.ilike(like),
+                Lead.lead_id.ilike(like),
+            )
+        )
 
     total_q = select(func.count()).select_from(q.subquery())
     total = await db.scalar(total_q) or 0
@@ -224,7 +237,7 @@ async def list_leads(
     leads = result.scalars().all()
 
     return {
-        "items": [_lead_to_dict(l) for l in leads],
+        "items": [_lead_to_dict(lead) for lead in leads],
         "total": total,
         "page": page,
         "pages": max(1, (total + limit - 1) // limit),
@@ -237,8 +250,7 @@ async def get_pipeline_stats(
     db: AsyncSession = Depends(get_shared_db),
 ):
     result = await db.execute(
-        select(Lead.status, func.count(Lead.id).label("count"))
-        .group_by(Lead.status)
+        select(Lead.status, func.count(Lead.id).label("count")).group_by(Lead.status)
     )
     rows = result.all()
     counts = {row.status.value: row.count for row in rows}
@@ -256,9 +268,7 @@ async def get_lead(
     current_user: User = Depends(_require_owner),
     db: AsyncSession = Depends(get_shared_db),
 ):
-    lead = await db.scalar(
-        select(Lead).where(Lead.lead_id == lead_id)
-    )
+    lead = await db.scalar(select(Lead).where(Lead.lead_id == lead_id))
     if not lead:
         # Also try by UUID
         try:

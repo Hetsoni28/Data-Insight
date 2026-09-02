@@ -33,20 +33,26 @@ class LLMRouter:
 
     def list_available_providers(self) -> List[Dict[str, Any]]:
         providers = []
-        providers.append({
-            "name": "groq",
-            "display_name": "Groq LPU (Ultra-Fast)",
-            "available": self.groq_provider.is_available(),
-            "default_model": settings.GROQ_DEFAULT_MODEL or self.groq_provider.default_model,
-            "models": list(self.groq_provider.PRICING.keys()),
-        })
-        providers.append({
-            "name": "gemini",
-            "display_name": "Google Gemini (Deep Context)",
-            "available": self.gemini_provider.is_available(),
-            "default_model": settings.GEMINI_DEFAULT_MODEL or self.gemini_provider.default_model,
-            "models": list(self.gemini_provider.PRICING.keys()),
-        })
+        providers.append(
+            {
+                "name": "groq",
+                "display_name": "Groq LPU (Ultra-Fast)",
+                "available": self.groq_provider.is_available(),
+                "default_model": settings.GROQ_DEFAULT_MODEL
+                or self.groq_provider.default_model,
+                "models": list(self.groq_provider.PRICING.keys()),
+            }
+        )
+        providers.append(
+            {
+                "name": "gemini",
+                "display_name": "Google Gemini (Deep Context)",
+                "available": self.gemini_provider.is_available(),
+                "default_model": settings.GEMINI_DEFAULT_MODEL
+                or self.gemini_provider.default_model,
+                "models": list(self.gemini_provider.PRICING.keys()),
+            }
+        )
         return providers
 
     def _determine_provider_chain(
@@ -67,11 +73,17 @@ class LLMRouter:
             # Groq first for ultra-low latency interactive responses
             if self.groq_provider.is_available() and self.groq_provider not in chain:
                 chain.append(self.groq_provider)
-            if self.gemini_provider.is_available() and self.gemini_provider not in chain:
+            if (
+                self.gemini_provider.is_available()
+                and self.gemini_provider not in chain
+            ):
                 chain.append(self.gemini_provider)
         else:
             # Gemini first for massive context, multi-table synthesis, deep narrative
-            if self.gemini_provider.is_available() and self.gemini_provider not in chain:
+            if (
+                self.gemini_provider.is_available()
+                and self.gemini_provider not in chain
+            ):
                 chain.append(self.gemini_provider)
             if self.groq_provider.is_available() and self.groq_provider not in chain:
                 chain.append(self.groq_provider)
@@ -98,27 +110,37 @@ class LLMRouter:
     ) -> LLMResponse:
         chain = self._determine_provider_chain(task_type, preferred_provider)
         if not chain:
-            raise AIServiceException("No AI providers configured. Please set GROQ_API_KEY or GEMINI_API_KEY.")
+            raise AIServiceException(
+                "No AI providers configured. Please set GROQ_API_KEY or GEMINI_API_KEY."
+            )
 
         last_error: Optional[Exception] = None
 
         for provider in chain:
             try:
-                logger.info(f"[LLMRouter] Routing request ({task_type}) to {provider.provider_name}")
+                logger.info(
+                    f"[LLMRouter] Routing request ({task_type}) to {provider.provider_name}"
+                )
                 response = await provider.generate(
                     prompt=prompt,
                     system_instruction=system_instruction,
                     temperature=temperature,
                     max_tokens=max_tokens,
                     json_mode=json_mode,
-                    model=model if preferred_provider == provider.provider_name else None,
+                    model=(
+                        model if preferred_provider == provider.provider_name else None
+                    ),
                 )
                 return response
             except Exception as e:
-                logger.warning(f"[LLMRouter] Provider {provider.provider_name} failed: {e}. Attempting failover...")
+                logger.warning(
+                    f"[LLMRouter] Provider {provider.provider_name} failed: {e}. Attempting failover..."
+                )
                 last_error = e
 
-        raise AIServiceException(f"All configured AI providers failed. Last error: {str(last_error)}")
+        raise AIServiceException(
+            f"All configured AI providers failed. Last error: {str(last_error)}"
+        )
 
     async def generate_stream(
         self,
@@ -136,7 +158,9 @@ class LLMRouter:
 
         primary_provider = chain[0]
         try:
-            logger.info(f"[LLMRouter] Streaming response using {primary_provider.provider_name}")
+            logger.info(
+                f"[LLMRouter] Streaming response using {primary_provider.provider_name}"
+            )
             async for token in primary_provider.generate_stream(
                 prompt=prompt,
                 system_instruction=system_instruction,
@@ -146,10 +170,14 @@ class LLMRouter:
             ):
                 yield token
         except Exception as e:
-            logger.warning(f"[LLMRouter] Primary streaming provider {primary_provider.provider_name} failed: {e}")
+            logger.warning(
+                f"[LLMRouter] Primary streaming provider {primary_provider.provider_name} failed: {e}"
+            )
             if len(chain) > 1:
                 fallback_provider = chain[1]
-                logger.info(f"[LLMRouter] Failing over stream to {fallback_provider.provider_name}")
+                logger.info(
+                    f"[LLMRouter] Failing over stream to {fallback_provider.provider_name}"
+                )
                 async for token in fallback_provider.generate_stream(
                     prompt=prompt,
                     system_instruction=system_instruction,

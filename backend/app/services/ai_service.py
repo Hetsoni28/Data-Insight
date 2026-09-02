@@ -12,7 +12,11 @@ import polars as pl
 from app.models.user import User
 from app.models.ai_token_usage import AITokenUsage
 from app.core.config import settings
-from app.core.exceptions import AIServiceException, ResourceNotFoundException, ValidationException
+from app.core.exceptions import (
+    AIServiceException,
+    ResourceNotFoundException,
+    ValidationException,
+)
 from app.services.ai.router import LLMRouter
 from app.services.ai.nl_sql_agent import NLSQLAgent
 from app.services.ai.visual_sql_agent import VisualSQLAgent
@@ -114,17 +118,25 @@ class AIService:
         dataset_context = ""
         if dataset_id and tenant_id:
             from app.repositories.dataset import DatasetRepository
+
             ds_repo = DatasetRepository(self.session)
             dataset = await ds_repo.get_tenant_dataset(tenant_id, dataset_id)
             if dataset and dataset.profile:
                 columns_meta = {
-                    k: {"type": v.get("inferred_type") or v.get("type"), "null_pct": v.get("null_percentage") or v.get("null_pct")}
+                    k: {
+                        "type": v.get("inferred_type") or v.get("type"),
+                        "null_pct": v.get("null_percentage") or v.get("null_pct"),
+                    }
                     for k, v in dataset.profile.get("columns", {}).items()
                 }
                 profile_summary = {
                     "dataset_name": dataset.name,
-                    "row_count": dataset.profile.get("overview", {}).get("row_count") or dataset.row_count,
-                    "column_count": dataset.profile.get("overview", {}).get("column_count") or dataset.column_count,
+                    "row_count": dataset.profile.get("overview", {}).get("row_count")
+                    or dataset.row_count,
+                    "column_count": dataset.profile.get("overview", {}).get(
+                        "column_count"
+                    )
+                    or dataset.column_count,
                     "columns": columns_meta,
                 }
                 dataset_context = (
@@ -144,8 +156,7 @@ class AIService:
             "You are professional but warm, clear but not technical unless asked. "
             "When users greet you or make small talk, respond naturally and helpfully. "
             "When users ask about their data, guide them toward asking specific data questions. "
-            "Never make up data or statistics. Be concise and direct."
-            + dataset_context
+            "Never make up data or statistics. Be concise and direct." + dataset_context
         )
 
         # Build conversation messages
@@ -167,7 +178,9 @@ class AIService:
                 if role in ["User", "Assistant"] and content:
                     history_block += f"{role}: {content}\n"
 
-        full_prompt = f"{system_prompt}\n\n{history_block}User: {clean_question}\nDataInsight AI:"
+        full_prompt = (
+            f"{system_prompt}\n\n{history_block}User: {clean_question}\nDataInsight AI:"
+        )
 
         response = await self.router.generate(
             prompt=full_prompt,
@@ -219,6 +232,7 @@ class AIService:
         dataset_context = ""
         if dataset_id and tenant_id:
             from app.repositories.dataset import DatasetRepository
+
             ds_repo = DatasetRepository(self.session)
             dataset = await ds_repo.get_tenant_dataset(tenant_id, dataset_id)
             if dataset and dataset.profile:
@@ -250,6 +264,7 @@ class AIService:
             await quota_svc.check_ai_quota(tenant_id, estimated_tokens=1500)
 
         from app.repositories.dataset import DatasetRepository
+
         ds_repo = DatasetRepository(self.session)
         dataset = await ds_repo.get_tenant_dataset(tenant_id, dataset_id)
         if not dataset:
@@ -298,13 +313,16 @@ class AIService:
             await quota_svc.check_ai_quota(tenant_id, estimated_tokens=3000)
 
         from app.repositories.dataset import DatasetRepository
+
         ds_repo = DatasetRepository(self.session)
         dataset = await ds_repo.get_tenant_dataset(tenant_id, dataset_id)
         if not dataset:
             raise ResourceNotFoundException("Dataset", str(dataset_id))
 
         if not dataset.profile:
-            raise AIServiceException("Dataset must be profiled before generating narrative analysis.")
+            raise AIServiceException(
+                "Dataset must be profiled before generating narrative analysis."
+            )
 
         result = await self.narrative_generator.generate_narrative(
             dataset_name=dataset.name,
@@ -391,7 +409,12 @@ Generate the executive workbook blueprint in valid JSON."""
                 {"name": "Aggregate Metric", "metric": "sum", "column": "value"},
             ],
             "recommended_charts": [
-                {"type": "column", "title": "Overview Distribution", "x_axis": "category", "y_axis": "value"}
+                {
+                    "type": "column",
+                    "title": "Overview Distribution",
+                    "x_axis": "category",
+                    "y_axis": "value",
+                }
             ],
             "pivot_tables": [],
         }
@@ -540,7 +563,9 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
                 "TIMELINE: Immediate (0-30d)"
             )
 
-    async def _load_dataset_df(self, dataset: Any, n_rows: Optional[int] = None) -> pl.DataFrame:
+    async def _load_dataset_df(
+        self, dataset: Any, n_rows: Optional[int] = None
+    ) -> pl.DataFrame:
         """Load Polars DataFrame for a dataset, supporting both local filesystem and MinIO object storage."""
         from pathlib import Path
         from app.core.storage import download_file_bytes, DATASETS_BUCKET
@@ -548,16 +573,24 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
 
         file_url = getattr(dataset, "file_url", "") or ""
         raw_type = getattr(dataset, "file_type", "csv")
-        file_type_str = str(raw_type.value if hasattr(raw_type, "value") else raw_type).lower().replace("datasetfiletype.", "")
+        file_type_str = (
+            str(raw_type.value if hasattr(raw_type, "value") else raw_type)
+            .lower()
+            .replace("datasetfiletype.", "")
+        )
 
         # 1. Try local filesystem path first
         if file_url and Path(file_url).exists() and Path(file_url).is_file():
-            return PolarsEngine.load_from_path(file_url, file_type=file_type_str, n_rows=n_rows)
+            return PolarsEngine.load_from_path(
+                file_url, file_type=file_type_str, n_rows=n_rows
+            )
 
         # 2. Download from MinIO / S3 object storage
         try:
             file_bytes = await download_file_bytes(DATASETS_BUCKET, file_url)
-            return PolarsEngine.load_from_bytes(file_bytes, file_type=file_type_str, n_rows=n_rows)
+            return PolarsEngine.load_from_bytes(
+                file_bytes, file_type=file_type_str, n_rows=n_rows
+            )
         except Exception as e:
             logger.error(f"[AIService] Failed to load dataset file ({file_url}): {e}")
             raise ValidationException(f"Could not load dataset file: {e}")
@@ -575,6 +608,7 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         """
         tenant_id = actor.tenant_id
         from app.repositories.dataset import DatasetRepository
+
         ds_repo = DatasetRepository(self.session)
         dataset = await ds_repo.get_tenant_dataset(tenant_id, dataset_id)
         if not dataset:
@@ -590,7 +624,11 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
             columns_meta = profile.get("columns", {})
             if isinstance(columns_meta, dict) and columns_meta:
                 schema_info = {
-                    col: (meta.get("dtype", "unknown") if isinstance(meta, dict) else str(meta))
+                    col: (
+                        meta.get("dtype", "unknown")
+                        if isinstance(meta, dict)
+                        else str(meta)
+                    )
                     for col, meta in columns_meta.items()
                 }
                 # Build preview rows from sample_values or top_values stored in profile
@@ -598,23 +636,38 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
                 for i in range(3):
                     row = {}
                     for col in sample_keys:
-                        meta = columns_meta[col] if isinstance(columns_meta[col], dict) else {}
+                        meta = (
+                            columns_meta[col]
+                            if isinstance(columns_meta[col], dict)
+                            else {}
+                        )
                         samples = meta.get("sample_values", [])
                         if not samples and meta.get("top_values"):
-                            samples = [tv.get("value") for tv in meta.get("top_values", []) if isinstance(tv, dict)]
-                        row[col] = samples[i] if i < len(samples) else (meta.get("min") if i == 0 else meta.get("max"))
+                            samples = [
+                                tv.get("value")
+                                for tv in meta.get("top_values", [])
+                                if isinstance(tv, dict)
+                            ]
+                        row[col] = (
+                            samples[i]
+                            if i < len(samples)
+                            else (meta.get("min") if i == 0 else meta.get("max"))
+                        )
                     preview_rows.append(row)
             elif isinstance(columns_meta, list) and columns_meta:
                 schema_info = {
                     item.get("name", f"col_{i}"): item.get("dtype", "unknown")
-                    for i, item in enumerate(columns_meta) if isinstance(item, dict)
+                    for i, item in enumerate(columns_meta)
+                    if isinstance(item, dict)
                 }
 
         # --- Fallback: read file from storage if schema_info is missing or has <= 1 column ---
         if not schema_info or len(schema_info) <= 1:
             try:
                 df = await self._load_dataset_df(dataset, n_rows=100)
-                schema_info = {col: str(dtype) for col, dtype in zip(df.columns, df.dtypes)}
+                schema_info = {
+                    col: str(dtype) for col, dtype in zip(df.columns, df.dtypes)
+                }
                 preview_rows = df.head(3).to_dicts()
                 row_count = dataset.row_count or df.height
             except Exception as file_err:
@@ -651,10 +704,14 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
 
         # 1. Save user message
         clean_question = _sanitize_prompt(question)
-        await chat_repo.add_message(session_id=session_id, role="user", content=clean_question)
+        await chat_repo.add_message(
+            session_id=session_id, role="user", content=clean_question
+        )
 
         # 2. Get conversation history for context
-        history_msgs = await chat_repo.get_session_messages(session_id, limit=MAX_HISTORY)
+        history_msgs = await chat_repo.get_session_messages(
+            session_id, limit=MAX_HISTORY
+        )
         history_payload = [
             {"role": m.role, "content": m.content}
             for m in history_msgs
@@ -673,40 +730,126 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
 
             # Explicit conversational signals — these are chat only
             CHAT_PATTERNS = [
-                q_lower in {"hi", "hello", "hey", "thanks", "thank you", "ok", "okay", "bye", "goodbye", "yes", "no", "yep", "nope", "sure", "cool", "great", "good", "nice"},
+                q_lower
+                in {
+                    "hi",
+                    "hello",
+                    "hey",
+                    "thanks",
+                    "thank you",
+                    "ok",
+                    "okay",
+                    "bye",
+                    "goodbye",
+                    "yes",
+                    "no",
+                    "yep",
+                    "nope",
+                    "sure",
+                    "cool",
+                    "great",
+                    "good",
+                    "nice",
+                },
                 q_lower.startswith(("hi ", "hey ", "hello ", "thanks ", "thank you")),
-                q_lower in {"what can you do", "who are you", "what are you", "help me"},
+                q_lower
+                in {"what can you do", "who are you", "what are you", "help me"},
             ]
 
             # Data/analytics signals — anything that sounds like a query
             DATA_KEYWORDS = [
-                "show", "chart", "graph", "plot", "visualize", "visualise",
-                "how many", "how much", "what is the total", "what is the average",
-                "count", "sum", "average", "mean", "median", "max", "min",
-                "percentage", "percent", "%", "ratio", "distribution",
-                "top", "bottom", "highest", "lowest", "most", "least",
-                "compare", "comparison", "trend", "over time", "by month", "by year", "by week",
-                "group by", "breakdown", "split by", "segment", "category",
-                "list", "table", "rows", "columns", "data",
-                "revenue", "sales", "customer", "user", "order", "product",
-                "status", "advance", "convert", "shortlist", "hired", "rejected",
-                "who", "which", "where", "when", "find", "filter", "select",
-                "correlation", "insight", "analyze", "analyse", "report",
-                "total", "number of", "amount", "value",
+                "show",
+                "chart",
+                "graph",
+                "plot",
+                "visualize",
+                "visualise",
+                "how many",
+                "how much",
+                "what is the total",
+                "what is the average",
+                "count",
+                "sum",
+                "average",
+                "mean",
+                "median",
+                "max",
+                "min",
+                "percentage",
+                "percent",
+                "%",
+                "ratio",
+                "distribution",
+                "top",
+                "bottom",
+                "highest",
+                "lowest",
+                "most",
+                "least",
+                "compare",
+                "comparison",
+                "trend",
+                "over time",
+                "by month",
+                "by year",
+                "by week",
+                "group by",
+                "breakdown",
+                "split by",
+                "segment",
+                "category",
+                "list",
+                "table",
+                "rows",
+                "columns",
+                "data",
+                "revenue",
+                "sales",
+                "customer",
+                "user",
+                "order",
+                "product",
+                "status",
+                "advance",
+                "convert",
+                "shortlist",
+                "hired",
+                "rejected",
+                "who",
+                "which",
+                "where",
+                "when",
+                "find",
+                "filter",
+                "select",
+                "correlation",
+                "insight",
+                "analyze",
+                "analyse",
+                "report",
+                "total",
+                "number of",
+                "amount",
+                "value",
             ]
 
             is_chat = any(CHAT_PATTERNS)
-            is_data_question = (not is_chat) and any(kw in q_lower for kw in DATA_KEYWORDS)
+            is_data_question = (not is_chat) and any(
+                kw in q_lower for kw in DATA_KEYWORDS
+            )
 
             # If not explicitly chat and no keyword match, default to data if dataset is bound
             # (Better to try SQL and get a graceful fallback than to refuse to query)
             if not is_chat and not is_data_question and len(q_lower) > 10:
                 is_data_question = True
 
-            logger.info(f"[AIService] Intent detection: '{clean_question[:60]}' → {'DATA' if is_data_question else 'CHAT'}")
+            logger.info(
+                f"[AIService] Intent detection: '{clean_question[:60]}' → {'DATA' if is_data_question else 'CHAT'}"
+            )
 
         if dataset_id and is_data_question:
             from app.repositories.dataset import DatasetRepository
+
             ds_repo = DatasetRepository(self.session)
             dataset = await ds_repo.get_tenant_dataset(tenant_id, dataset_id)
             if not dataset:
@@ -715,7 +858,9 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
             try:
                 # Load dataframe and execute NL-to-SQL pipeline
                 df = await self._load_dataset_df(dataset)
-                schema_info = {col: str(dtype) for col, dtype in zip(df.columns, df.dtypes)}
+                schema_info = {
+                    col: str(dtype) for col, dtype in zip(df.columns, df.dtypes)
+                }
                 preview_rows = df.head(3).to_dicts()
 
                 result = await self.visual_sql_agent.execute_and_synthesize(
@@ -736,7 +881,9 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
                 latency_ms = result["latency_ms"]
 
             except Exception as e:
-                logger.error(f"[AIService] Data pipeline failed for dataset {dataset_id}: {e}")
+                logger.error(
+                    f"[AIService] Data pipeline failed for dataset {dataset_id}: {e}"
+                )
                 # Return a friendly error message rather than hanging
                 assistant_content = (
                     f"⚠️ I wasn't able to query the dataset **{dataset.name}** right now. "
@@ -788,7 +935,9 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
             clean_title = clean_question[:40].strip()
             if len(clean_question) > 40:
                 clean_title += "..."
-            await chat_repo.update_session(session_id, tenant_id, user_id, title=clean_title)
+            await chat_repo.update_session(
+                session_id, tenant_id, user_id, title=clean_title
+            )
 
         # 5. Track tokens
         await self._track_tokens(
@@ -817,7 +966,9 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
             "total_tokens": prompt_tokens + completion_tokens,
             "cost_usd": cost_usd,
             "latency_ms": latency_ms,
-            "created_at": asst_msg.created_at.isoformat() if asst_msg.created_at else None,
+            "created_at": (
+                asst_msg.created_at.isoformat() if asst_msg.created_at else None
+            ),
         }
 
     async def chat_in_session_stream(
@@ -872,4 +1023,3 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
             "latency_ms": res["latency_ms"],
         }
         yield f"data: {json.dumps(done_event)}\n\n"
-

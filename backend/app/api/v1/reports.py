@@ -80,7 +80,12 @@ async def approve_report(
     return await svc.approve_report(report_id, current_user, notes=body.notes)
 
 
-@router.delete("/{report_id}", status_code=204, summary="Delete report", dependencies=[Depends(RequireRole(["org_admin"]))])
+@router.delete(
+    "/{report_id}",
+    status_code=204,
+    summary="Delete report",
+    dependencies=[Depends(RequireRole(["org_admin"]))],
+)
 async def delete_report(
     report_id: uuid.UUID,
     current_user: User = Depends(get_current_active_tenant_user),

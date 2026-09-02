@@ -13,10 +13,18 @@ class ChatMessage(BaseModel):
 
 
 class AIChatRequest(BaseModel):
-    question: str = Field(..., min_length=1, max_length=2000, description="Natural language question")
-    dataset_id: Optional[uuid.UUID] = Field(None, description="Optional dataset ID for context-grounded analysis")
-    history: Optional[List[ChatMessage]] = Field(default_factory=list, description="Previous conversation turns")
-    provider: Optional[str] = Field(None, description="Preferred provider: 'groq' | 'gemini'")
+    question: str = Field(
+        ..., min_length=1, max_length=2000, description="Natural language question"
+    )
+    dataset_id: Optional[uuid.UUID] = Field(
+        None, description="Optional dataset ID for context-grounded analysis"
+    )
+    history: Optional[List[ChatMessage]] = Field(
+        default_factory=list, description="Previous conversation turns"
+    )
+    provider: Optional[str] = Field(
+        None, description="Preferred provider: 'groq' | 'gemini'"
+    )
     stream: bool = Field(False, description="Whether to stream response via SSE")
 
 
@@ -34,7 +42,9 @@ class AIChatResponse(BaseModel):
 class AINLQueryRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=1000)
     dataset_id: uuid.UUID
-    provider: Optional[str] = Field(None, description="Preferred provider: 'groq' | 'gemini'")
+    provider: Optional[str] = Field(
+        None, description="Preferred provider: 'groq' | 'gemini'"
+    )
 
 
 class AINLQueryResponse(BaseModel):
@@ -76,6 +86,7 @@ class AIProvidersListResponse(BaseModel):
 
 
 # --- Phase 6: Copilot Sessions & Visual Artifacts Schemas ---
+
 
 class ChatMessageResponse(BaseModel):
     id: uuid.UUID
@@ -121,8 +132,12 @@ class ChatSessionListResponse(BaseModel):
 
 
 class AICopilotMessageRequest(BaseModel):
-    question: str = Field(..., min_length=1, max_length=2000, description="Natural language question")
-    provider: Optional[str] = Field(None, description="Preferred provider: 'groq' | 'gemini'")
+    question: str = Field(
+        ..., min_length=1, max_length=2000, description="Natural language question"
+    )
+    provider: Optional[str] = Field(
+        None, description="Preferred provider: 'groq' | 'gemini'"
+    )
     stream: bool = Field(False, description="Whether to stream response via SSE")
 
 
@@ -143,7 +158,9 @@ class AICopilotMessageResponse(BaseModel):
 
 
 class AICopilotSuggestionItem(BaseModel):
-    category: str = Field(..., description="'performance' | 'anomaly' | 'trend' | 'segmentation'")
+    category: str = Field(
+        ..., description="'performance' | 'anomaly' | 'trend' | 'segmentation'"
+    )
     icon: str = Field(..., description="Lucide icon name")
     title: str
     question: str
@@ -152,4 +169,3 @@ class AICopilotSuggestionItem(BaseModel):
 class AICopilotSuggestionsResponse(BaseModel):
     dataset_id: uuid.UUID
     suggestions: List[AICopilotSuggestionItem]
-

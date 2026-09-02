@@ -15,6 +15,7 @@ from email.mime.text import MIMEText
 from loguru import logger
 from app.core.config import settings
 
+
 # ── Brand Logo URL ──────────────────────────────────────────────────────────
 # Logo is served from the backend's /static/ endpoint.
 # Email clients BLOCK data: URIs — a real http:// URL is required.
@@ -375,10 +376,10 @@ async def send_lead_inquiry_confirmation(
 # ── Internal send ─────────────────────────────────────────────────────────────
 
 
-
 def _sync_send(to: str, subject: str, html: str) -> None:
     """Synchronous function to send multi-part (plain text + HTML) email via smtplib with RFC 5322 compliance."""
     import re
+
     plain_text = re.sub(r"<[^>]+>", "", html).strip()
 
     msg = MIMEMultipart("alternative")
@@ -407,9 +408,10 @@ async def _send(to: str, subject: str, html: str) -> None:
     if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
         # Dev mode — print OTP or URLs to console so developers can see it
         import re
+
         urls = re.findall(r'href=[\'"]?([^\'" >]+)', html)
         urls_str = "\n".join([f"Link:    {url}" for url in urls])
-        
+
         logger.warning(
             f"\n{'='*60}\n"
             f"DEV EMAIL (no SMTP credentials set)\n"

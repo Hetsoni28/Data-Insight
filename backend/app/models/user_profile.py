@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.session import Base
 
+
 class UserProfile(Base):
     __tablename__ = "user_profiles"
 
@@ -17,7 +18,7 @@ class UserProfile(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         unique=True,
         nullable=False,
-        index=True
+        index=True,
     )
 
     # Personal Information
@@ -27,8 +28,12 @@ class UserProfile(Base):
     country: Mapped[str | None] = mapped_column(String(100), nullable=True)
     state: Mapped[str | None] = mapped_column(String(100), nullable=True)
     city: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    timezone: Mapped[str | None] = mapped_column(String(100), nullable=True, default="UTC")
-    language: Mapped[str | None] = mapped_column(String(50), nullable=True, default="en")
+    timezone: Mapped[str | None] = mapped_column(
+        String(100), nullable=True, default="UTC"
+    )
+    language: Mapped[str | None] = mapped_column(
+        String(50), nullable=True, default="en"
+    )
     short_bio: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Professional Information
@@ -43,7 +48,7 @@ class UserProfile(Base):
     portfolio_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     experience_years: Mapped[int | None] = mapped_column(nullable=True)
 
-    # Preferences & Security settings 
+    # Preferences & Security settings
     # (Storing in JSON for flexibility, as they are strictly user-level prefs)
     preferences: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     security_settings: Mapped[dict | None] = mapped_column(JSON, nullable=True)
@@ -58,4 +63,4 @@ class UserProfile(Base):
     )
 
     # Relationships
-    user: Mapped["User"] = relationship("User", backref="profile", lazy="noload") # type: ignore[name-defined]
+    user: Mapped["User"] = relationship("User", backref="profile", lazy="noload")  # type: ignore[name-defined]

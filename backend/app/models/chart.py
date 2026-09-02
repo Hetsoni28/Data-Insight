@@ -39,10 +39,10 @@ class Chart(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     chart_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    
+
     # Stores specific chart config (metrics, dimensions, filters, sort, limit, styling)
     configuration_json: Mapped[dict] = mapped_column(JSON, default=dict)
-    
+
     # e.g., 'private', 'workspace', 'tenant'
     visibility: Mapped[str] = mapped_column(String(50), default="private")
     status: Mapped[str] = mapped_column(String(50), default="active")

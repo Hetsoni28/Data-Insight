@@ -84,7 +84,9 @@ class QuotaService:
         # Invalidate/update Redis cache if available
         if self.redis:
             try:
-                await self.redis.set(f"tenant:{tenant_id}:storage_bytes", new_total, ex=3600)
+                await self.redis.set(
+                    f"tenant:{tenant_id}:storage_bytes", new_total, ex=3600
+                )
             except Exception as e:
                 logger.debug(f"[Quota] Redis storage cache update skipped: {e}")
 
@@ -109,7 +111,9 @@ class QuotaService:
 
         if self.redis:
             try:
-                await self.redis.set(f"tenant:{tenant_id}:storage_bytes", new_total, ex=3600)
+                await self.redis.set(
+                    f"tenant:{tenant_id}:storage_bytes", new_total, ex=3600
+                )
             except Exception as e:
                 logger.debug(f"[Quota] Redis storage cache update skipped: {e}")
 
@@ -161,7 +165,9 @@ class QuotaService:
 
         if self.redis:
             try:
-                await self.redis.set(f"tenant:{tenant_id}:ai_tokens_used", new_total, ex=3600)
+                await self.redis.set(
+                    f"tenant:{tenant_id}:ai_tokens_used", new_total, ex=3600
+                )
             except Exception as e:
                 logger.debug(f"[Quota] Redis AI token cache update skipped: {e}")
 
@@ -217,7 +223,9 @@ class QuotaService:
         # AI Token calculations
         used_tokens = tenant.current_ai_tokens_used or 0
         max_tokens = tenant.max_ai_tokens_per_month
-        tokens_pct = round((used_tokens / max_tokens * 100), 2) if max_tokens > 0 else 0.0
+        tokens_pct = (
+            round((used_tokens / max_tokens * 100), 2) if max_tokens > 0 else 0.0
+        )
 
         # User seats count
         count_stmt = (
@@ -239,7 +247,8 @@ class QuotaService:
             "slug": tenant.slug,
             "plan": tenant.plan,
             "db_connection_type": tenant.db_connection_type,
-            "has_dedicated_db": tenant.db_connection_type == "dedicated" and bool(tenant.dedicated_db_url),
+            "has_dedicated_db": tenant.db_connection_type == "dedicated"
+            and bool(tenant.dedicated_db_url),
             "is_suspended": tenant.is_suspended,
             "suspension_reason": tenant.suspension_reason,
             "storage": {
@@ -258,7 +267,9 @@ class QuotaService:
                 "percentage": tokens_pct,
                 "is_near_limit": tokens_pct >= 85.0,
                 "is_exceeded": tokens_pct >= 100.0,
-                "resets_at": tenant.quota_reset_at.isoformat() if tenant.quota_reset_at else None,
+                "resets_at": (
+                    tenant.quota_reset_at.isoformat() if tenant.quota_reset_at else None
+                ),
             },
             "users": {
                 "active_count": active_users,

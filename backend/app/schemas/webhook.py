@@ -2,19 +2,23 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 import uuid
 
+
 class WebhookBase(BaseModel):
     name: str
     url: str
     events: list[str]
 
+
 class WebhookCreate(WebhookBase):
     pass
+
 
 class WebhookUpdate(BaseModel):
     name: str | None = None
     url: str | None = None
     events: list[str] | None = None
     is_active: bool | None = None
+
 
 class WebhookResponse(WebhookBase):
     id: uuid.UUID

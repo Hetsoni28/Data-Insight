@@ -72,10 +72,12 @@ async def _redis_is_ok(redis) -> bool:
     """
     global _redis_ok, _last_checked
     now = time.time()
-    
-    if _redis_ok is True or (_redis_ok is False and (now - _last_checked) < CHECK_INTERVAL):
+
+    if _redis_ok is True or (
+        _redis_ok is False and (now - _last_checked) < CHECK_INTERVAL
+    ):
         return _redis_ok
-        
+
     try:
         await asyncio.wait_for(redis.ping(), timeout=0.3)
         _redis_ok = True
@@ -85,7 +87,7 @@ async def _redis_is_ok(redis) -> bool:
         logger.warning(
             "[OTP] Redis not reachable — using in-memory fallback (dev mode)"
         )
-        
+
     _last_checked = now
     return _redis_ok
 

@@ -72,7 +72,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
                     token,
                     settings.SECRET_KEY,
                     algorithms=["HS256"],
-                    options={"verify_exp": False},  # Let get_current_user handle strict expiry
+                    options={
+                        "verify_exp": False
+                    },  # Let get_current_user handle strict expiry
                 )
                 user_id_str = payload.get("sub")
                 tenant_id_str = payload.get("tenant_id")
@@ -90,7 +92,13 @@ class TenantMiddleware(BaseHTTPMiddleware):
         tenant_slug: Optional[str] = request.headers.get("X-Tenant-Slug")
         if not tenant_id_str and not tenant_slug:
             host = request.headers.get("host", "").split(":")[0].lower()
-            if host and host not in ("localhost", "127.0.0.1", "0.0.0.0", "backend", "frontend"):
+            if host and host not in (
+                "localhost",
+                "127.0.0.1",
+                "0.0.0.0",
+                "backend",
+                "frontend",
+            ):
                 # Check for subdomain e.g. acme.datainsight.com
                 parts = host.split(".")
                 if len(parts) >= 3 and parts[0] not in ("www", "api", "app"):
@@ -102,7 +110,10 @@ class TenantMiddleware(BaseHTTPMiddleware):
         except ValueError:
             return JSONResponse(
                 status_code=400,
-                content={"error": "BAD_REQUEST", "message": "Invalid X-Tenant-ID format"}
+                content={
+                    "error": "BAD_REQUEST",
+                    "message": "Invalid X-Tenant-ID format",
+                },
             )
 
         if tenant_uuid or tenant_slug:
@@ -111,7 +122,11 @@ class TenantMiddleware(BaseHTTPMiddleware):
         # Check tenant suspension status
         if tenant_data and tenant_data.get("is_suspended") and not is_owner:
             # Allow billing, support, and logout routes for suspended tenants
-            allowed_suspended_routes = ("/api/v1/billing", "/api/v1/support", "/api/v1/auth/logout")
+            allowed_suspended_routes = (
+                "/api/v1/billing",
+                "/api/v1/support",
+                "/api/v1/auth/logout",
+            )
             if not any(path.startswith(p) for p in allowed_suspended_routes):
                 return JSONResponse(
                     status_code=403,
@@ -129,9 +144,17 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 tenant_id=uuid.UUID(tenant_data["id"]) if tenant_data else tenant_uuid,
                 tenant_slug=tenant_data.get("slug") if tenant_data else tenant_slug,
                 tenant_name=tenant_data.get("name") if tenant_data else None,
-                tenant_plan=tenant_data.get("plan", "starter") if tenant_data else "starter",
-                db_connection_type=tenant_data.get("db_connection_type", "shared") if tenant_data else "shared",
-                dedicated_db_url=tenant_data.get("dedicated_db_url") if tenant_data else None,
+                tenant_plan=(
+                    tenant_data.get("plan", "starter") if tenant_data else "starter"
+                ),
+                db_connection_type=(
+                    tenant_data.get("db_connection_type", "shared")
+                    if tenant_data
+                    else "shared"
+                ),
+                dedicated_db_url=(
+                    tenant_data.get("dedicated_db_url") if tenant_data else None
+                ),
                 user_id=uuid.UUID(user_id_str) if user_id_str else None,
                 user_role=user_role,
                 is_owner=is_owner,
@@ -140,7 +163,10 @@ class TenantMiddleware(BaseHTTPMiddleware):
         except ValueError:
             return JSONResponse(
                 status_code=400,
-                content={"error": "BAD_REQUEST", "message": "Invalid UUID format in context"}
+                content={
+                    "error": "BAD_REQUEST",
+                    "message": "Invalid UUID format in context",
+                },
             )
 
         request.state.tenant = tenant_data
@@ -160,7 +186,11 @@ class TenantMiddleware(BaseHTTPMiddleware):
         self, tenant_id: Optional[uuid.UUID], tenant_slug: Optional[str]
     ) -> Optional[Dict[str, Any]]:
         """Resolve tenant metadata with 60s Redis cache to maintain sub-millisecond overhead."""
-        cache_key = f"tenant:meta:id:{tenant_id}" if tenant_id else f"tenant:meta:slug:{tenant_slug}"
+        cache_key = (
+            f"tenant:meta:id:{tenant_id}"
+            if tenant_id
+            else f"tenant:meta:slug:{tenant_slug}"
+        )
 
         # 1. Try Redis cache
         try:
@@ -178,7 +208,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
             if tenant_id:
                 stmt = stmt.where(Tenant.id == tenant_id)
             elif tenant_slug:
-                stmt = stmt.where((Tenant.slug == tenant_slug) | (Tenant.custom_domain == tenant_slug))
+                stmt = stmt.where(
+                    (Tenant.slug == tenant_slug) | (Tenant.custom_domain == tenant_slug)
+                )
 
             result = await session.execute(stmt)
             tenant = result.scalars().first()
