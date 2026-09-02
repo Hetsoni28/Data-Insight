@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
@@ -123,19 +123,27 @@ export function RevenueAnalyticsCharts() {
           aiCostsLoading ? <Skeleton className="w-full h-full rounded-xl" /> :
           <div className="flex flex-col md:flex-row h-full gap-8">
             <div className="flex-1 h-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={aiCosts?.providers} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
-                  <XAxis type="number" axisLine={false} tickLine={false} tick={{fill: '#94a3b8'}} tickFormatter={(val) => `$${val}`} />
-                  <YAxis type="category" dataKey="name" width={140} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                  <RechartsTooltip cursor={{ fill: 'rgba(255, 255, 255, 0.05)', radius: 4 }} content={<CustomTooltip />} />
-                  <Bar dataKey="cost" name="Cost" radius={[0, 4, 4, 0]}>
-                    {aiCosts?.providers?.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {aiCosts?.providers?.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={aiCosts?.providers} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-white/10" />
+                    <XAxis type="number" axisLine={false} tickLine={false} tick={{fill: '#94a3b8'}} tickFormatter={(val) => `$${val}`} />
+                    <YAxis type="category" dataKey="name" width={140} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                    <RechartsTooltip cursor={{ fill: 'rgba(255, 255, 255, 0.05)', radius: 4 }} content={<CustomTooltip />} />
+                    <Bar dataKey="cost" name="Cost" radius={[0, 4, 4, 0]}>
+                      {aiCosts?.providers?.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 border border-dashed border-slate-200 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-white/5">
+                  <Cpu className="w-8 h-8 mb-3 opacity-20" />
+                  <p className="text-sm font-medium">No AI cost data recorded yet.</p>
+                  <p className="text-xs mt-1 opacity-70">API usage costs will appear here once users make requests.</p>
+                </div>
+              )}
             </div>
             <div className="w-full md:w-1/3 flex flex-col justify-between bg-slate-50/70 dark:bg-black/30 p-6 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-inner">
               <div className="space-y-2">
