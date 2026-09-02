@@ -224,7 +224,7 @@ export function SecuritySettingsCard({ user, onUpdate }: Props) {
                   </div>
                   
                   <div className="flex flex-col items-center gap-2 mt-4">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Can't scan the QR code? Use this secret key instead:</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Can&apos;t scan the QR code? Use this secret key instead:</p>
                     <button 
                       onClick={copyToClipboard}
                       className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors border border-slate-200 dark:border-slate-700"
