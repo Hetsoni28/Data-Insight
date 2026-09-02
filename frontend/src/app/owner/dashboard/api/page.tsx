@@ -26,7 +26,7 @@ export default function ApiGatewayPage() {
   })
 
   // Fetch Usage Trends
-  const { data: usage, isLoading: loadingUsage } = useQuery({
+  const { data: usage = [], isLoading: loadingUsage } = useQuery({
     queryKey: ['api-gateway', 'usage'],
     queryFn: gatewayService.getUsageTrends
   })

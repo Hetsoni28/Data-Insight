@@ -1,4 +1,4 @@
-﻿﻿"use client"
+"use client"
 import { motion } from "framer-motion"
 import {
   Home, Search, User, Edit3, Share2, Tag, Trash2, Bell, Settings,
