@@ -27,8 +27,8 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
     </div>
   );
 
-  const aiKpis = aiOverview.kpis;
-  const aiTrends = aiOverview.trends ?? {};
+  const aiKpis = aiOverview?.kpis ?? {};
+  const aiTrends = aiOverview?.trends ?? {};
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
@@ -60,7 +60,7 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
       />
       <MetricCard 
         title="AI Tokens Used" 
-        value={(aiKpis.monthly_tokens / 1000).toFixed(1) + "k"} 
+        value={((aiKpis?.monthly_tokens ?? 0) / 1000).toFixed(1) + "k"} 
         icon={<Zap className="h-5 w-5" />} 
         trend={aiTrends.tokens ?? 0}
         sparklineData={[]}
@@ -70,7 +70,7 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
       
       <MetricCard 
         title="AI Requests" 
-        value={aiKpis.monthly_requests.toLocaleString()} 
+        value={(aiKpis?.monthly_requests ?? 0).toLocaleString()} 
         icon={<Activity className="h-5 w-5" />} 
         trend={aiTrends.requests ?? 0}
         trendLabel="vs last 30d" 
@@ -97,7 +97,7 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
       />
       <MetricCard 
         title="Avg Response Time" 
-        value={`${aiKpis.avg_latency_ms}ms`} 
+        value={`${aiKpis?.avg_latency_ms ?? 0}ms`} 
         icon={<Clock className="h-5 w-5" />} 
         trend={aiTrends.latency ?? 0}
         trendLabel="vs last 30d"
@@ -108,13 +108,13 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
 
       <MetricCard 
         title="Active AI Models" 
-        value={aiKpis.available_models} 
+        value={aiKpis?.available_models ?? 0} 
         icon={<Layers className="h-5 w-5" />} 
         delay={0.5} 
       />
       <MetricCard 
         title="AI Cost" 
-        value={`$${aiKpis.monthly_cost_usd}`} 
+        value={`$${aiKpis?.monthly_cost_usd ?? 0}`} 
         icon={<DollarSign className="h-5 w-5" />} 
         trend={aiTrends.cost ?? 0}
         trendLabel="vs last 30d" 
@@ -124,7 +124,7 @@ export function LiveKpiGrid({ analytics, aiOverview }: LiveKpiGridProps) {
       />
       <MetricCard 
         title="Success Rate" 
-        value={`${aiKpis.success_rate}%`} 
+        value={`${aiKpis?.success_rate ?? 0}%`} 
         icon={<Code className="h-5 w-5" />} 
         trend={aiTrends.success_rate ?? 0}
         sparklineData={[]}
