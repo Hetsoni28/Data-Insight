@@ -74,7 +74,7 @@ export function DatasetComparisonView({ baseDatasetId }: DatasetComparisonViewPr
         <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md">Select another dataset from your workspace to view a side-by-side comparison of data quality, schemas, and metrics.</p>
         
         <div className="w-full max-w-sm mx-auto text-left">
-          <Select onValueChange={(v) => setSelectedCompareId(v || "")}>
+          <Select onValueChange={(v: any) => setSelectedCompareId(v as string)}>
             <SelectTrigger className="h-12 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
               <SelectValue placeholder="Select a dataset to compare..." />
             </SelectTrigger>
@@ -116,7 +116,7 @@ export function DatasetComparisonView({ baseDatasetId }: DatasetComparisonViewPr
       {/* Selector Row */}
       <div className="flex justify-end">
         <div className="w-72">
-          <Select value={selectedCompareId} onValueChange={(v) => setSelectedCompareId(v || "")}>
+          <Select value={selectedCompareId} onValueChange={(v: any) => setSelectedCompareId(v as string)}>
             <SelectTrigger className="bg-white dark:bg-slate-800">
               <SelectValue placeholder="Change dataset..." />
             </SelectTrigger>
