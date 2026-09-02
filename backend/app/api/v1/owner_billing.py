@@ -589,13 +589,14 @@ async def get_revenue_forecast(
     forecast = []
     current_forecast = float(total_mrr)
 
+    current_month = now.replace(day=1)
     for i in range(1, 7):
-        d = now + timedelta(days=30 * i)
+        current_month = (current_month + timedelta(days=32)).replace(day=1)
         current_forecast = current_forecast * (1 + avg_growth_rate)
 
         forecast.append(
             {
-                "name": d.strftime("%b"),
+                "name": current_month.strftime("%b"),
                 "expected": current_forecast,
                 "best_case": current_forecast * 1.05,
                 "worst_case": current_forecast * 0.95,
