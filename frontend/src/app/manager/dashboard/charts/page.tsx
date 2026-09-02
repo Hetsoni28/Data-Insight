@@ -1,14 +1,10 @@
+"use client"
 import dynamic from "next/dynamic"
 import React from "react"
 
 
 
 const AnalystChartsShell = dynamic(() => import('@/components/organisms/AnalystChartsShell').then(m => m.AnalystChartsShell), { ssr: false })
-
-export const metadata = {
-  title: "Charts - Data Insight",
-  description: "Create, explore, and manage visualizations from your authorized data."
-}
 
 export default function AnalystChartsPage() {
   return (

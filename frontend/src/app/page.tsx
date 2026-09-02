@@ -1,3 +1,4 @@
+"use client"
 import dynamic from "next/dynamic"
 
 
@@ -15,12 +16,6 @@ const PricingSection = dynamic(() => import('@/components/organisms/PricingSecti
 const FaqSection = dynamic(() => import('@/components/organisms/FaqSection').then(m => m.FaqSection), { ssr: false })
 const CtaSection = dynamic(() => import('@/components/organisms/CtaSection').then(m => m.CtaSection), { ssr: false })
 const Footer = dynamic(() => import('@/components/organisms/Footer').then(m => m.Footer), { ssr: false })
-
-export const metadata = {
-  title: "Enterprise AI Business Intelligence",
-  description:
-    "Turn-key enterprise AI Business Intelligence platform available for dedicated VPC rental and custom global whitelabel licensing. Living multi-tab Excel workbooks, 6-stage autonomous data ingestion, and zero-retention security.",
-}
 
 export default function LandingPage() {
   return (
