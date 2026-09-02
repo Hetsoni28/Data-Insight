@@ -90,7 +90,7 @@ export default function DashboardPage() {
           <AnalyticsGrid 
             analyticsData={{
               revenue: revenueTrend?.data,
-              organizations: revenueTrend?.data
+              organizations: usersTrend?.data
             }} 
           />
           <DynamicDashboardUsageChart initialData={dashboardData?.users} />

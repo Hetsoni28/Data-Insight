@@ -114,12 +114,12 @@ export function AnalyticsGrid({ analyticsData }: AnalyticsGridProps) {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={orgGrowthData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.2} />
-              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748B" }} dy={10} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748B" }} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748B" }} />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: '#334155', opacity: 0.1 }} />
               <Legend verticalAlign="top" height={36} iconType="circle" />
-              <Bar dataKey="active" name="Active Orgs" stackId="a" fill="#059669" radius={[0, 0, 4, 4]} />
-              <Bar dataKey="new" name="New Orgs" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="active_orgs" name="Active Orgs" stackId="a" fill="#059669" radius={[0, 0, 4, 4]} />
+              <Bar dataKey="new_orgs" name="New Orgs" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
