@@ -1,6 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PaginationControlsProps {
     currentPage: number;
@@ -19,7 +21,7 @@ export function PaginationControls({
     pageSize,
     onPageChange,
     onPageSizeChange,
-    pageSizeOptions = [10, 25, 50, 100]
+    pageSizeOptions = [5, 10, 25, 50, 100]
 }: PaginationControlsProps) {
     
     // Ensure we don't go out of bounds
@@ -57,57 +59,76 @@ export function PaginationControls({
     };
 
     return (
-        <div className="flex flex-wrap items-center justify-between gap-y-4 gap-x-6 py-4 px-4 sm:px-6 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 rounded-b-lg w-full">
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-y-6 gap-x-6 py-5 px-6 border-t border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-b-3xl w-full">
+            
+            {/* Left side: Page Size & Info */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm text-slate-500 dark:text-slate-400">
                 {pageSizeOptions.length > 1 && (
-                    <div className="flex items-center gap-2">
-                        <span className="whitespace-nowrap">Rows per page:</span>
-                        <select
-                            value={pageSize}
-                            onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                            className="h-8 w-16 rounded-md border border-slate-200 dark:border-white/10 bg-transparent px-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 py-1 px-3 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm">
+                        <span className="whitespace-nowrap font-medium text-xs">Rows per page</span>
+                        <Select 
+                            value={pageSize.toString()} 
+                            onValueChange={(val) => onPageSizeChange(Number(val))}
                         >
-                            {pageSizeOptions.map(size => (
-                                <option key={size} value={size} className="bg-white dark:bg-card text-slate-900 dark:text-slate-100">{size}</option>
-                            ))}
-                        </select>
+                            <SelectTrigger className="h-7 w-[70px] bg-white dark:bg-black/40 border-slate-200 dark:border-white/10 rounded-lg text-xs font-bold focus:ring-emerald-500">
+                                <SelectValue placeholder={pageSize.toString()} />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-200 dark:border-white/10 shadow-xl">
+                                {pageSizeOptions.map(size => (
+                                    <SelectItem key={size} value={size.toString()} className="text-xs font-medium cursor-pointer focus:bg-emerald-50 dark:focus:bg-emerald-500/20 focus:text-emerald-700 dark:focus:text-emerald-400">
+                                        {size}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 )}
-                <div className="whitespace-nowrap text-xs sm:text-sm">
-                    Showing <span className="font-medium text-slate-900 dark:text-slate-100">{totalItems === 0 ? 0 : startItem}</span> to <span className="font-medium text-slate-900 dark:text-slate-100">{endItem}</span> of <span className="font-medium text-slate-900 dark:text-slate-100">{totalItems}</span>
+                
+                <div className="whitespace-nowrap text-xs font-medium px-2">
+                    Showing <span className="font-bold text-slate-900 dark:text-white px-0.5">{totalItems === 0 ? 0 : startItem}</span> 
+                    to <span className="font-bold text-slate-900 dark:text-white px-0.5">{endItem}</span> 
+                    of <span className="font-bold text-slate-900 dark:text-white px-0.5">{totalItems}</span>
                 </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+            {/* Right side: Controls */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
                 <Button
                     variant="outline"
                     size="icon"
-                    className="h-8 w-8 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10"
+                    className="h-9 w-9 rounded-xl bg-white dark:bg-white/5 border-slate-200/80 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all shadow-sm active:scale-95 disabled:opacity-40"
                     onClick={handlePrev}
                     disabled={safeCurrentPage === 1}
                 >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-4 w-4 text-slate-700 dark:text-slate-300" />
                 </Button>
                 
-                <div className="hidden sm:flex items-center gap-1">
+                <div className="hidden sm:flex items-center gap-1.5 bg-slate-50/80 dark:bg-black/20 p-1 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-inner">
                     {getPageNumbers().map((num, i) => (
                         num === -1 ? (
-                            <span key={`ellipsis-${i}`} className="w-8 text-center text-slate-400">
-                                <MoreHorizontal className="h-4 w-4 mx-auto" />
+                            <span key={`ellipsis-${i}`} className="w-8 flex items-center justify-center text-slate-400">
+                                <MoreHorizontal className="h-4 w-4" />
                             </span>
                         ) : (
-                            <Button
-                                key={num}
-                                variant={safeCurrentPage === num ? "default" : "outline"}
-                                className={`h-8 w-8 rounded-md p-0 ${
-                                    safeCurrentPage === num 
-                                        ? "bg-emerald-600 hover:bg-emerald-700 text-white border-transparent" 
-                                        : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
-                                }`}
-                                onClick={() => onPageChange(num)}
-                            >
-                                {num}
-                            </Button>
+                            <div key={`page-${num}`} className="relative h-8 w-8">
+                                {safeCurrentPage === num && (
+                                    <motion.div
+                                        layoutId="activePageBubble"
+                                        className="absolute inset-0 bg-gradient-to-tr from-emerald-600 to-teal-500 rounded-lg shadow-md shadow-emerald-500/20"
+                                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                                    />
+                                )}
+                                <button
+                                    onClick={() => onPageChange(num)}
+                                    className={`relative z-10 w-full h-full flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${
+                                        safeCurrentPage === num 
+                                            ? "text-white" 
+                                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/10"
+                                    }`}
+                                >
+                                    {num}
+                                </button>
+                            </div>
                         )
                     ))}
                 </div>
@@ -115,11 +136,11 @@ export function PaginationControls({
                 <Button
                     variant="outline"
                     size="icon"
-                    className="h-8 w-8 rounded-md bg-white dark:bg-white/5 border-slate-200 dark:border-white/10"
+                    className="h-9 w-9 rounded-xl bg-white dark:bg-white/5 border-slate-200/80 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all shadow-sm active:scale-95 disabled:opacity-40"
                     onClick={handleNext}
                     disabled={safeCurrentPage === safeTotalPages || totalItems === 0}
                 >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4 text-slate-700 dark:text-slate-300" />
                 </Button>
             </div>
         </div>
