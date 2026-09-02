@@ -17,6 +17,7 @@ import { Loader2, Search, Eraser } from "lucide-react"
 import api from "@/lib/api"
 import { DynamicNLChart } from "./DynamicNLChart"
 import { DataCleaningTab } from "./DataCleaningTab"
+import { AIForecastTab } from "./AIForecastTab"
 
 interface DatasetDetailTabsProps {
   preview: any
@@ -81,7 +82,21 @@ export function DatasetDetailTabs({
               <ArrowRightLeft className="w-4 h-4 mr-2" /> Compare
             </TabsTrigger>
           )}
-        </TabsList>
+        
+            {!isViewer && (
+              <TabsTrigger value="clean" className="rounded-full px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow-lg shadow-amber-500/30 transition-all">
+                <Eraser className="w-4 h-4 mr-2" />
+                AI Clean
+              </TabsTrigger>
+            )}
+
+
+            <TabsTrigger value="forecast" className="rounded-full px-6 py-2.5 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg shadow-blue-500/30 transition-all">
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI Forecast
+            </TabsTrigger>
+
+</TabsList>
         
         {/* TAB: PREVIEW */}
         <TabsContent value="preview" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
@@ -378,6 +393,18 @@ export function DatasetDetailTabs({
             <DatasetComparisonView baseDatasetId={datasetId} />
           </TabsContent>
         )}
+      
+        {!isViewer && (
+          <TabsContent value="clean" className="focus-visible:outline-none focus-visible:ring-0 mt-0">
+            <DataCleaningTab datasetId={datasetId} schema={schema} />
+          </TabsContent>
+        )}
+
+
+        <TabsContent value="forecast" className="focus-visible:outline-none focus-visible:ring-0 mt-0">
+          <AIForecastTab datasetId={datasetId} schema={schema} />
+        </TabsContent>
+
       </Tabs>
     </motion.div>
   )

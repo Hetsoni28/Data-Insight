@@ -1,82 +1,96 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from "react"
 
-interface UseWebSocketProps {
-  onMessage: (message: any) => void;
+const defaultClientUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"
+const WS_URL = defaultClientUrl.replace("http", "ws") + "/ws/tenant-events"
+
+type WebSocketEvent = {
+  type: string
+  payload?: any
+  tenant_id?: string
 }
 
-export function useWebSocket({ onMessage }: UseWebSocketProps) {
-  const [isConnected, setIsConnected] = useState(false);
-  const ws = useRef<WebSocket | null>(null);
-  const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
-  
-  // Try to use HTTPS equivalent for WS (ws/wss) based on the API URL
-  const getWsUrl = () => {
-    const defaultClientUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-    const wsUrl = defaultClientUrl.replace('http://', 'ws://').replace('https://', 'wss://');
-    const token = localStorage.getItem('access_token');
-    return `${wsUrl}/ws/tenant-events?token=${token}`;
-  };
-
-  const connect = useCallback(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) return; // Wait for login
-
-    if (ws.current?.readyState === WebSocket.OPEN || ws.current?.readyState === WebSocket.CONNECTING) {
-      return;
-    }
-
-    try {
-      const url = getWsUrl();
-      ws.current = new WebSocket(url);
-
-      ws.current.onopen = () => {
-        setIsConnected(true);
-        console.log('[WebSocket] Connected to tenant events');
-        // Clear reconnect timeout if successful
-        if (reconnectTimeout.current) {
-          clearTimeout(reconnectTimeout.current);
-          reconnectTimeout.current = null;
-        }
-      };
-
-      ws.current.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          onMessage(data);
-        } catch (err) {
-          console.warn('[WebSocket] Message parsing error', err);
-        }
-      };
-
-      ws.current.onclose = (event) => {
-        setIsConnected(false);
-        console.log('[WebSocket] Disconnected', event.reason);
-        // Attempt reconnect after 3 seconds if it was an abnormal close
-        if (event.code !== 1000) {
-          reconnectTimeout.current = setTimeout(connect, 3000);
-        }
-      };
-
-      ws.current.onerror = (error) => {
-        // Use warn instead of error to prevent Next.js from throwing a fatal dev overlay
-        console.warn('[WebSocket] Error', error);
-      };
-
-    } catch (err) {
-      console.warn('[WebSocket] Connection failed', err);
-    }
-  }, [onMessage]);
+export function useWebSocket(onMessage?: (event: WebSocketEvent) => void) {
+  const [isConnected, setIsConnected] = useState(false)
+  const wsRef = useRef<WebSocket | null>(null)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    connect();
+    // Only run in the browser
+    if (typeof window === "undefined") return
+
+    let isUnmounted = false
+
+    const connect = () => {
+      const token = localStorage.getItem("access_token")
+      if (!token) {
+        console.log("[WebSocket] No auth token found, aborting connection.")
+        return
+      }
+
+      // Pass token as query parameter
+      const url = new URL(WS_URL)
+      url.searchParams.append("token", token)
+
+      const ws = new WebSocket(url.toString())
+      wsRef.current = ws
+
+      ws.onopen = () => {
+        if (!isUnmounted) {
+          console.log("[WebSocket] Connected successfully")
+          setIsConnected(true)
+        }
+      }
+
+      ws.onmessage = (event) => {
+        if (!isUnmounted) {
+          try {
+            if (event.data === "pong") return
+            const data = JSON.parse(event.data) as WebSocketEvent
+            console.log("[WebSocket] Message received:", data)
+            if (onMessage) onMessage(data)
+          } catch (err) {
+            console.error("[WebSocket] Failed to parse message:", err)
+          }
+        }
+      }
+
+      ws.onerror = (error) => {
+        if (!isUnmounted) {
+          console.error("[WebSocket] Error occurred:", error)
+        }
+      }
+
+      ws.onclose = (event) => {
+        if (!isUnmounted) {
+          console.log("[WebSocket] Connection closed", event.code, event.reason)
+          setIsConnected(false)
+          // Attempt to reconnect after 3 seconds
+          reconnectTimeoutRef.current = setTimeout(connect, 3000)
+        }
+      }
+    }
+
+    connect()
+
+    // Send a ping every 30 seconds to keep connection alive
+    const pingInterval = setInterval(() => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send("ping")
+      }
+    }, 30000)
 
     return () => {
-      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
-      if (ws.current) {
-        ws.current.close(1000, "Component unmounted");
+      isUnmounted = true
+      clearInterval(pingInterval)
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
       }
-    };
-  }, [connect]);
+      if (wsRef.current) {
+        wsRef.current.close(1000, "Unmounting")
+        wsRef.current = null
+      }
+    }
+  }, [onMessage])
 
-  return { isConnected };
+  return { isConnected }
 }

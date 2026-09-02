@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
+import { useWebSocket } from "@/hooks/useWebSocket"
 import api from "@/lib/api"
 import { ShieldCheck, Table as TableIcon, FileDigit, Info, Calendar, ArrowLeft, BrainCircuit, LineChart } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -48,6 +49,14 @@ export function DatasetDetailExplorer({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [reportCategory, setReportCategory] = useState("executive")
   const [activeTab, setActiveTab] = useState("preview")
+
+  useWebSocket((event) => {
+    if (event.type === "dataset_excel_ready" && event.payload?.dataset_id === params.id) {
+      console.log("Received dataset_excel_ready event, refreshing dataset...");
+      api.get(`/tenant-datasets/${params.id}`).then(res => setDataset(res.data.data)).catch(console.error);
+    }
+  });
+
 
   useEffect(() => {
     if (params.id) {
