@@ -58,8 +58,8 @@ async def list_notifications(
         conditions.append(
             or_(
                 Notification.user_id == current_user.id,
-                Notification.tenant_id != None,
-                Notification.tenant_id == None,
+                Notification.tenant_id is not None,
+                Notification.tenant_id is None,
             ),
         )
     elif current_user.tenant_id:
@@ -116,8 +116,8 @@ async def get_notification_stats(
         conditions.append(
             or_(
                 Notification.user_id == current_user.id,
-                Notification.tenant_id != None,
-                Notification.tenant_id == None,
+                Notification.tenant_id is not None,
+                Notification.tenant_id is None,
             ),
         )
     elif current_user.tenant_id:

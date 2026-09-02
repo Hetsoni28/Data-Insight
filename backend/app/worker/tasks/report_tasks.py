@@ -267,7 +267,7 @@ async def _run_excel_pipeline(task, report_id: str):
 
 
 def _load_dataframe(file_bytes: bytes, ext: str):
-    import pandas as pd
+    
 
     if ext == "csv":
         return pd.read_csv(io.BytesIO(file_bytes))
@@ -280,7 +280,7 @@ def _load_dataframe(file_bytes: bytes, ext: str):
 
 def _clean_dataframe(df):
     """Enterprise-grade data cleaning with full audit log."""
-    import pandas as pd
+    
 
     log = []
     original_rows = len(df)
@@ -1515,7 +1515,7 @@ def _build_workbook(
 
     if groupby_dim and groupby_dim in df_clean.columns and numeric_cols:
         try:
-            import pandas as pd
+            
 
             pivot_df = df_clean.groupby(groupby_dim)[numeric_cols[:6]].agg(
                 ["sum", "mean", "count"],
@@ -2187,7 +2187,7 @@ def _build_workbook(
         try:
             if "Time" in friendly_name and date_col and date_col in df_clean.columns:
                 # Time Analysis — monthly breakdown
-                import pandas as pd
+                
 
                 df_temp = df_clean.copy()
                 df_temp["_month"] = pd.to_datetime(

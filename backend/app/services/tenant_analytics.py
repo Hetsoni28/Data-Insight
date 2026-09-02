@@ -836,7 +836,7 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
             raw = response.text.strip()
 
             # Split into summary + bullet points
-            lines = [l.strip() for l in raw.split("\n") if l.strip()]
+            lines = [l.strip() for lead in raw.split("\n") if l.strip()]
             summary_lines = []
             in_bullets = False
             for line in lines:

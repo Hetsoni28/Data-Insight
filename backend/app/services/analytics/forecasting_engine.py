@@ -167,7 +167,7 @@ class ForecastingEngine:
             if len(y) > 24:
                 # Downsample to 24 points for visual clarity
                 step = max(1, len(y) // 24)
-                y = np.array([np.mean(y[i : i + step]) for i in range(0, len(y), step)])
+                y = np.array([np.mean(y[i: i + step]) for i in range(0, len(y), step)])
             periods = [f"Period {i+1}" for i in range(len(y))]
 
         n = len(y)

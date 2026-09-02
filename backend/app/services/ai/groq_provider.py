@@ -201,7 +201,7 @@ class GroqProvider(BaseLLMProvider):
                             end_idx = buffer.find("</think>")
                             if end_idx != -1:
                                 # Found closing tag — skip everything up to and including it
-                                buffer = buffer[end_idx + len("</think>") :]
+                                buffer = buffer[end_idx + len("</think>"):]
                                 inside_think = False
                             else:
                                 # Still inside think block — discard buffer, wait for more
@@ -213,7 +213,7 @@ class GroqProvider(BaseLLMProvider):
                                 # Yield anything before the think tag
                                 if start_idx > 0:
                                     yield buffer[:start_idx]
-                                buffer = buffer[start_idx + len("<think>") :]
+                                buffer = buffer[start_idx + len("<think>"):]
                                 inside_think = True
                             else:
                                 # No think tag — safe to yield everything except last few chars

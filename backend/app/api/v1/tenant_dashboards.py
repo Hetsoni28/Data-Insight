@@ -95,7 +95,7 @@ async def get_dashboards(
                     if hist:
                         return [
                             {
-                                "name": f"{round(item.get('bin_start', 0),1)}-{round(item.get('bin_end', 0),1)}",
+                                "name": f"{round(item.get('bin_start', 0), 1)}-{round(item.get('bin_end', 0), 1)}",
                                 "value": item.get("count", 0),
                             }
                             for item in hist[:10]
@@ -131,7 +131,9 @@ async def get_dashboards(
                 }
             elif w_type == "text":
                 metrics = {
-                    "text": config.get("text", "No insights available for this widget."),
+                    "text": config.get(
+                        "text", "No insights available for this widget."
+                    ),
                 }
 
             hydrated_widgets.append(
@@ -338,7 +340,10 @@ async def delete_dashboard(
 
 
 async def generate_dashboard_background_task(
-    dashboard_id: uuid.UUID, dataset_id: uuid.UUID, prompt: str, tenant_id: uuid.UUID,
+    dashboard_id: uuid.UUID,
+    dataset_id: uuid.UUID,
+    prompt: str,
+    tenant_id: uuid.UUID,
 ):
     import json
 
@@ -357,7 +362,8 @@ async def generate_dashboard_background_task(
         # Fetch dataset for schema
         dataset = await db.scalar(
             select(Dataset).where(
-                Dataset.id == dataset_id, Dataset.tenant_id == tenant_id,
+                Dataset.id == dataset_id,
+                Dataset.tenant_id == tenant_id,
             ),
         )
         if not dataset:
@@ -509,13 +515,18 @@ CRITICAL RULES:
                     cfg["dimension"] = cfg.pop("xAxis")
                 if "yAxis" in cfg and "metric" not in cfg:
                     cfg["metric"] = cfg.pop("yAxis")
-                if widget["type"] in (
-                    "kpi",
-                    "chart_bar",
-                    "chart_line",
-                    "chart_pie",
-                    "data_table",
-                ) and "metric" in cfg and "aggregation" not in cfg:
+                if (
+                    widget["type"]
+                    in (
+                        "kpi",
+                        "chart_bar",
+                        "chart_line",
+                        "chart_pie",
+                        "data_table",
+                    )
+                    and "metric" in cfg
+                    and "aggregation" not in cfg
+                ):
                     cfg["aggregation"] = "SUM"
 
         except Exception as e:

@@ -102,21 +102,27 @@ class AdvancedExcelBuilder:
         tabs.append(self._t03_exec())
         tabs.append(self._t04_insights())
         tabs.append(
-            self._t05_kpi()
-            if self.num_cols
-            else self._na("05 KPI Dashboard", "No numeric columns."),
+            (
+                self._t05_kpi()
+                if self.num_cols
+                else self._na("05 KPI Dashboard", "No numeric columns.")
+            ),
         )
         tabs.append(
-            self._t06_exec_dash()
-            if self.cat_cols
-            else self._na("06 Exec Dashboard", "No categorical columns."),
+            (
+                self._t06_exec_dash()
+                if self.cat_cols
+                else self._na("06 Exec Dashboard", "No categorical columns.")
+            ),
         )
         tabs.append(self._t07_data())
         tabs.append(self._t08_quality())
         tabs.append(
-            self._t09_pivot()
-            if (self.cat_cols and self.num_cols)
-            else self._na("09 Pivot", "Needs cat+numeric cols."),
+            (
+                self._t09_pivot()
+                if (self.cat_cols and self.num_cols)
+                else self._na("09 Pivot", "Needs cat+numeric cols.")
+            ),
         )
         if self.date_cols and len(self.df) >= 10:
             tabs.append(self._t10_trend())
@@ -546,7 +552,7 @@ class AdvancedExcelBuilder:
         items = [
             ("Total Rows", f"{rc:,}"),
             ("Total Columns", str(cc)),
-            ("Completeness", f"{round(100-mp,2):.2f}%"),
+            ("Completeness", f"{round(100-mp, 2):.2f}%"),
             ("Quality Score", f"{qs:.1f}/100"),
             ("Grade", qg),
             ("Duplicates", f"{dup:,}"),
@@ -744,7 +750,10 @@ class AdvancedExcelBuilder:
                 ie = ri % 2 == 0
                 ws.write(cr, 0, str(rd.get(col, "")), self.FE if ie else self.FO)
                 ws.write_number(
-                    cr, 1, int(rd.get("count", 0)), self.FNE if ie else self.FNO,
+                    cr,
+                    1,
+                    int(rd.get("count", 0)),
+                    self.FNE if ie else self.FNO,
                 )
                 cr += 1
                 rw += 1
@@ -780,7 +789,7 @@ class AdvancedExcelBuilder:
         self._write_rows(ws, 1, df, hdrs, nci)
         return (
             "07 Cleaned Data",
-            f"{min(len(self.df),MAX_DATA_ROWS):,} rows, frozen header+sidebar",
+            f"{min(len(self.df), MAX_DATA_ROWS):,} rows, frozen header+sidebar",
         )
 
     def _t08_quality(self):
@@ -954,7 +963,7 @@ class AdvancedExcelBuilder:
                             else self.FF if abs(corr) > 0.3 else self.FE
                         )
                         ws.write(4 + ri, 1 + ci, f"{corr:.3f}", cf)
-                except:
+                except Exception:
                     ws.write(4 + ri, 1 + ci, "N/A", self.FE)
         return (sn, "Pearson correlation matrix")
 

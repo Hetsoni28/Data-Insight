@@ -456,7 +456,7 @@ async def get_activity_feed(
                     "status": l.status,
                     "created_at": l.created_at,
                 }
-                for l in logs
+                for lead in logs
             ],
         }
     except Exception:

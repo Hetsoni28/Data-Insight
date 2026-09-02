@@ -52,7 +52,7 @@ def generate_structured_report(
     start_idx = text.find("{")
     end_idx = text.rfind("}")
     if start_idx != -1 and end_idx != -1:
-        text = text[start_idx : end_idx + 1]
+        text = text[start_idx: end_idx + 1]
 
     try:
         return json.loads(text)

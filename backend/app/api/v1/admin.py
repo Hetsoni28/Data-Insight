@@ -66,7 +66,7 @@ async def list_tenants(
     )
     storage_sq = (
         select(func.coalesce(func.sum(StorageFile.file_size_bytes), 0))
-        .where(StorageFile.tenant_id == Tenant.id, StorageFile.deleted_at == None)
+        .where(StorageFile.tenant_id == Tenant.id, StorageFile.deleted_at is None)
         .scalar_subquery()
     )
     ai_requests_sq = (

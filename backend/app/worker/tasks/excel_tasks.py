@@ -19,7 +19,10 @@ from loguru import logger
 
 
 @shared_task(
-    bind=True, name="dataset.generate_excel", max_retries=2, default_retry_delay=60,
+    bind=True,
+    name="dataset.generate_excel",
+    max_retries=2,
+    default_retry_delay=60,
 )
 def generate_ai_excel_task(self, dataset_id: str, user_id: str):
     """Celery task: generate real AI Excel file from dataset."""
@@ -39,7 +42,9 @@ def generate_ai_excel_task(self, dataset_id: str, user_id: str):
 
 
 def _build_excel_workbook(
-    df_cleaned, profile: dict[str, Any], dataset_name: str,
+    df_cleaned,
+    profile: dict[str, Any],
+    dataset_name: str,
 ) -> bytes:
     import math
 
@@ -331,7 +336,9 @@ def _build_excel_workbook(
 
 
 async def _get_ai_content(
-    df, profile: dict[str, Any], dataset_name: str,
+    df,
+    profile: dict[str, Any],
+    dataset_name: str,
 ) -> dict[str, Any]:
     """Call Groq AI to generate real insights from dataset statistics. Returns structured dict."""
     empty = {
@@ -379,7 +386,7 @@ async def _get_ai_content(
             if df[col].dtype in num_types:
                 s = df[col].drop_nulls()
                 if len(s):
-                    extras = f" mean={round(float(s.mean()),2)} min={round(float(s.min()),2)} max={round(float(s.max()),2)}"
+                    extras = f" mean={round(float(s.mean()), 2)} min={round(float(s.min()), 2)} max={round(float(s.max()), 2)}"
             elif df[col].dtype == pl.Utf8 and uc <= 20:
                 top = (
                     df[col]
@@ -502,7 +509,9 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                     file_bytes = local_path.read_bytes()
                 else:
                     signed_url = await get_signed_url(
-                        DATASETS_BUCKET, dataset.file_url, expires_in=300,
+                        DATASETS_BUCKET,
+                        dataset.file_url,
+                        expires_in=300,
                     )
                     async with httpx.AsyncClient() as client:
                         response = await client.get(signed_url)
@@ -662,7 +671,11 @@ async def _evaluate_single_alert(alert_id: str, user_id: str):
             import asyncio
 
             query_result = await asyncio.to_thread(
-                DuckDBEngine.execute_query, df, sql, "data", 100,
+                DuckDBEngine.execute_query,
+                df,
+                sql,
+                "data",
+                100,
             )
 
             breaches = 0
