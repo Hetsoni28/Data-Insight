@@ -351,7 +351,7 @@ async def get_revenue_analytics(
             {
                 "date": current_month.strftime("%b"),
                 "amount": round(rev, 2),
-                "target": round(rev * 1.2, 2) if rev > 0 else 1000,
+                "target": round(rev * 1.2, 2) if rev > 0 else 0,
                 "active": current_active,
                 "new": new_t,
             },
