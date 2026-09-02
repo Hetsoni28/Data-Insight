@@ -1,5 +1,5 @@
-import dynamic from "next/dynamic"
 "use client";
+import dynamic from "next/dynamic"
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";

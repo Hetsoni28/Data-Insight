@@ -1,5 +1,5 @@
-import dynamic from "next/dynamic"
 "use client";
+import dynamic from "next/dynamic"
 
 import { useState, useEffect } from "react";
 import { Save, Loader2, ImageIcon, Terminal, Copy, KeyRound } from "lucide-react";

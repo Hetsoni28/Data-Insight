@@ -1,5 +1,5 @@
-import dynamic from "next/dynamic"
 "use client";
+import dynamic from "next/dynamic"
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";

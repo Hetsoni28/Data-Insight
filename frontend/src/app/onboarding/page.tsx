@@ -1,5 +1,5 @@
-import dynamic from "next/dynamic"
 "use client"
+import dynamic from "next/dynamic"
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AnimatePresence } from "framer-motion"

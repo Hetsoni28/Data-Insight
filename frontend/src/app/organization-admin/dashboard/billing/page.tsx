@@ -1,5 +1,5 @@
-import dynamic from "next/dynamic"
 "use client"
+import dynamic from "next/dynamic"
 
 import { useState, Suspense } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"

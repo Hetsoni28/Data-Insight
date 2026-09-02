@@ -1,5 +1,5 @@
-import dynamic from "next/dynamic"
 "use client"
+import dynamic from "next/dynamic"
 import { useEffect } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/useAuth"

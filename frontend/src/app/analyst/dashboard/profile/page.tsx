@@ -1,5 +1,5 @@
-import dynamic from "next/dynamic"
 "use client";
+import dynamic from "next/dynamic"
 
 import React, { useState, useEffect } from "react";
 import { User as UserIcon, Shield, Laptop, Bell, Settings } from "lucide-react";

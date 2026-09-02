@@ -1,5 +1,5 @@
-import dynamic from "next/dynamic"
 "use client"
+import dynamic from "next/dynamic"
 
 import { useState, useEffect, useCallback } from "react"
 import api from "@/lib/api"
