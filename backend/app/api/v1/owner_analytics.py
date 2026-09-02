@@ -637,11 +637,12 @@ async def get_dashboard_aggregation(
     from app.api.v1.owner_health import get_platform_health
 
     # Run all heavy queries concurrently
+    # Note: get_platform_health no longer takes db — it uses engine.connect() directly
     analytics_task = get_analytics_overview(db, current_user)
     revenue_task = get_revenue_analytics(db, current_user)
     users_task = get_user_analytics(db, current_user)
     ai_task = get_ai_overview(db, current_user)
-    health_task = get_platform_health(db, current_user)
+    health_task = get_platform_health(current_user)
 
     results = await asyncio.gather(
         analytics_task,
@@ -651,7 +652,7 @@ async def get_dashboard_aggregation(
         health_task,
         return_exceptions=True
     )
-    
+
     def safe_data(res):
         if isinstance(res, Exception):
             return None
@@ -667,5 +668,3 @@ async def get_dashboard_aggregation(
             "health": safe_data(results[4]),
         }
     }
-
-
