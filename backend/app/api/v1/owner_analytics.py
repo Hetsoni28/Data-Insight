@@ -625,3 +625,46 @@ async def get_customer_health(
         )
 
     return {"status": "success", "data": health_data}
+
+
+@router.get("/dashboard-aggregation", summary="Aggregated Dashboard Data for Owner")
+async def get_dashboard_aggregation(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_owner),
+):
+    import asyncio
+    from app.api.v1.owner_ai import get_ai_overview
+    from app.api.v1.owner_health import get_platform_health
+
+    # Run all heavy queries concurrently
+    analytics_task = get_analytics_overview(db, current_user)
+    revenue_task = get_revenue_analytics(db, current_user)
+    users_task = get_user_analytics(db, current_user)
+    ai_task = get_ai_overview(db, current_user)
+    health_task = get_platform_health(db, current_user)
+
+    results = await asyncio.gather(
+        analytics_task,
+        revenue_task,
+        users_task,
+        ai_task,
+        health_task,
+        return_exceptions=True
+    )
+    
+    def safe_data(res):
+        if isinstance(res, Exception):
+            return None
+        return res.get("data") if isinstance(res, dict) else res
+
+    return {
+        "status": "success",
+        "data": {
+            "analytics_overview": safe_data(results[0]),
+            "revenue": safe_data(results[1]),
+            "users": safe_data(results[2]),
+            "ai_overview": safe_data(results[3]),
+            "health": safe_data(results[4]),
+        }
+    }
+

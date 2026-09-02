@@ -30,29 +30,22 @@ export default function DashboardPage() {
   
   const queryClient = useQueryClient();
 
-  const { data: analytics, isLoading: loadingAnalytics } = useQuery({
-    queryKey: ['owner-analytics-overview'],
+  const { data: dashboardData, isLoading: loadingDashboard } = useQuery({
+    queryKey: ['owner-dashboard-aggregation'],
     queryFn: async () => {
-      const res = await api.get(`/owner/analytics/overview`);
-      return res.data;
+      const res = await api.get(`/owner/analytics/dashboard-aggregation`);
+      return res.data.data;
     }
   });
+  
+  const analytics = { data: dashboardData?.analytics_overview };
+  const aiOverview = { data: dashboardData?.ai_overview };
+  const revenueTrend = { data: dashboardData?.revenue };
+  const usersTrend = { data: dashboardData?.users };
+  
+  const loadingAnalytics = loadingDashboard;
+  const loadingAi = loadingDashboard;
 
-  const { data: aiOverview, isLoading: loadingAi } = useQuery({
-    queryKey: ['owner-ai-overview'],
-    queryFn: async () => {
-      const res = await api.get(`/owner/ai/overview`);
-      return res.data;
-    }
-  });
-
-  const { data: revenueTrend, isLoading: loadingRevenue } = useQuery({
-    queryKey: ['owner-revenue-overview'],
-    queryFn: async () => {
-      const res = await api.get(`/owner/analytics/revenue`);
-      return res.data;
-    }
-  });
 
   if (loadingAnalytics || loadingAi) {
     return (
@@ -79,7 +72,7 @@ export default function DashboardPage() {
       }} />
 
       {/* 2. Platform Health Overview */}
-      <DynamicPlatformHealthOverview />
+      <DynamicPlatformHealthOverview initialData={dashboardData?.health} />
 
       {/* 3. Executive KPI Cards */}
       <div className="mt-8">
@@ -99,7 +92,7 @@ export default function DashboardPage() {
               organizations: revenueTrend?.data
             }} 
           />
-          <DynamicDashboardUsageChart />
+          <DynamicDashboardUsageChart initialData={dashboardData?.users} />
         </div>
         
         <div className="space-y-8">

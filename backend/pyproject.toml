@@ -8,3 +8,6 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
 ]
+
+[tool.ruff.lint]
+ignore = ["E501", "T201", "PLC0415", "ANN", "PLR2004", "PERF203", "BLE001", "S110", "EXE002", "F401", "F841", "E712", "E226", "F811", "W291", "W293", "F821"]

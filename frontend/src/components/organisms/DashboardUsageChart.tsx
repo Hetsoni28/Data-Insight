@@ -6,7 +6,7 @@ import { Activity, Loader2 } from "lucide-react"
 import api from "@/lib/api"
 import { ChartTooltip } from "@/components/molecules/ChartTooltip"
 
-export function DashboardUsageChart() {
+export function DashboardUsageChart({ initialData }: { initialData?: any }) {
   const [data, setData] = useState<any[]>([])
   const [growth, setGrowth] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -19,7 +19,7 @@ export function DashboardUsageChart() {
   useEffect(() => {
     const fetchUsage = async () => {
       try {
-        const { data: res } = await api.get("/owner/analytics/users")
+        const { data: res } = initialData ? { data: initialData } : await api.get("/owner/analytics/users")
         // Map daily_breakdown to the chart's expected `trends` shape
         const trends = (res.daily_breakdown || res.trends || []).map((d: any) => ({
           date: d.date,

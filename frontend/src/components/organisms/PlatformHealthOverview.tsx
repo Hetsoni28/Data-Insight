@@ -13,14 +13,14 @@ interface HealthItem {
   value: string;
 }
 
-export function PlatformHealthOverview() {
+export function PlatformHealthOverview({ initialData }: { initialData?: any }) {
   const [healthData, setHealthData] = useState<HealthItem[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchHealth = async () => {
       try {
-        const res = await api.get("/owner/health")
+        const res = initialData ? { data: { data: initialData } } : await api.get("/owner/health")
         
         // Map icon components to the incoming data IDs
         const iconMap: Record<string, React.ElementType> = {
