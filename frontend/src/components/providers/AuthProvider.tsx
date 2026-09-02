@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
   // Prevent hydration mismatch
-  // eslint-disable-next-line
+   
   useEffect(() => setMounted(true), [])
 
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname) || pathname.startsWith("/invite/")

@@ -17,7 +17,7 @@ export function BuilderChartWidget({ widget, data }: BuilderChartWidgetProps) {
   const xName = widget.config?.xAxis || 'Category';
   const yName = widget.config?.yAxis || 'Value';
 
-  let option: any = {
+  const option: any = {
     tooltip: { trigger: 'axis', confine: true },
     grid: { top: 30, right: 20, bottom: 30, left: 10, containLabel: true },
     xAxis: { type: 'category', data: xData, axisLine: { lineStyle: { color: '#94a3b8' } } },

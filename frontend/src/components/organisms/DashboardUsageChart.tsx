@@ -21,7 +21,7 @@ export function DashboardUsageChart() {
       try {
         const { data: res } = await api.get("/owner/analytics/users")
         // Map daily_breakdown to the chart's expected `trends` shape
-        let trends = (res.daily_breakdown || res.trends || []).map((d: any) => ({
+        const trends = (res.daily_breakdown || res.trends || []).map((d: any) => ({
           date: d.date,
           rows: d.active ?? d.count ?? d.rows ?? 0,
         }))
