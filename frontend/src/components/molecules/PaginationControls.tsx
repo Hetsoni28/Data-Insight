@@ -1,7 +1,6 @@
+"use client";
 import React from 'react';
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PaginationControlsProps {
@@ -24,7 +23,6 @@ export function PaginationControls({
     pageSizeOptions = [5, 10, 25, 50, 100]
 }: PaginationControlsProps) {
     
-    // Ensure we don't go out of bounds
     const safeTotalPages = Math.max(1, totalPages);
     const safeCurrentPage = Math.min(Math.max(1, currentPage), safeTotalPages);
     
@@ -39,9 +37,8 @@ export function PaginationControls({
         if (safeCurrentPage < safeTotalPages) onPageChange(safeCurrentPage + 1);
     };
 
-    // Calculate visible page numbers
     const getPageNumbers = () => {
-        const pages = [];
+        const pages: number[] = [];
         const maxVisible = 5;
         
         if (safeTotalPages <= maxVisible) {
@@ -58,24 +55,72 @@ export function PaginationControls({
         return pages;
     };
 
+    const NavButton = ({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) => (
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                border: '1px solid rgba(0,0,0,0.08)',
+                background: 'white',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                opacity: disabled ? 0.35 : 1,
+                transition: 'all 0.15s ease',
+                color: '#475569',
+            }}
+            onMouseEnter={e => { if (!disabled) { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'; (e.currentTarget as HTMLElement).style.borderColor = '#10b981'; } }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
+        >
+            {children}
+        </button>
+    );
+
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-y-6 gap-x-6 py-5 px-6 border-t border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-b-3xl w-full">
-            
-            {/* Left side: Page Size & Info */}
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm text-slate-500 dark:text-slate-400">
+        <div
+            style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '16px',
+                padding: '16px 20px',
+                borderTop: '1px solid rgba(0,0,0,0.06)',
+                background: 'rgba(248,250,252,0.8)',
+                backdropFilter: 'blur(8px)',
+                borderRadius: '0 0 20px 20px',
+                width: '100%',
+            }}
+        >
+            {/* Left: rows per page + info */}
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 {pageSizeOptions.length > 1 && (
-                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 py-1 px-3 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-sm">
-                        <span className="whitespace-nowrap font-medium text-xs">Rows per page</span>
-                        <Select 
-                            value={pageSize.toString()} 
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: 'white',
+                        padding: '4px 10px 4px 12px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    }}>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>Rows per page</span>
+                        <Select
+                            value={pageSize.toString()}
                             onValueChange={(val) => onPageSizeChange(Number(val))}
                         >
-                            <SelectTrigger className="h-7 w-[70px] bg-white dark:bg-black/40 border-slate-200 dark:border-white/10 rounded-lg text-xs font-bold focus:ring-emerald-500">
+                            <SelectTrigger className="h-7 w-[58px] border-0 shadow-none bg-transparent text-xs font-bold text-slate-700 focus:ring-0 focus:ring-offset-0 px-1">
                                 <SelectValue placeholder={pageSize.toString()} />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-slate-200 dark:border-white/10 shadow-xl">
+                            <SelectContent className="rounded-xl border-slate-200 shadow-2xl">
                                 {pageSizeOptions.map(size => (
-                                    <SelectItem key={size} value={size.toString()} className="text-xs font-medium cursor-pointer focus:bg-emerald-50 dark:focus:bg-emerald-500/20 focus:text-emerald-700 dark:focus:text-emerald-400">
+                                    <SelectItem key={size} value={size.toString()} className="text-xs font-semibold cursor-pointer focus:bg-emerald-50 focus:text-emerald-700">
                                         {size}
                                     </SelectItem>
                                 ))}
@@ -83,57 +128,88 @@ export function PaginationControls({
                         </Select>
                     </div>
                 )}
-                
-                <div className="whitespace-nowrap text-xs font-medium px-2">
-                    Showing <span className="font-bold text-slate-900 dark:text-white px-0.5">{totalItems === 0 ? 0 : startItem}</span> 
-                    to <span className="font-bold text-slate-900 dark:text-white px-0.5">{endItem}</span> 
-                    of <span className="font-bold text-slate-900 dark:text-white px-0.5">{totalItems}</span>
+
+                <div style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                    Showing{' '}
+                    <span style={{ fontWeight: 700, color: '#0f172a' }}>{totalItems === 0 ? 0 : startItem}</span>
+                    {' '}to{' '}
+                    <span style={{ fontWeight: 700, color: '#0f172a' }}>{endItem}</span>
+                    {' '}of{' '}
+                    <span style={{ fontWeight: 700, color: '#0f172a' }}>{totalItems}</span>
                 </div>
             </div>
 
-            {/* Right side: Controls */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 rounded-xl bg-white dark:bg-white/5 border-slate-200/80 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                    onClick={handlePrev}
-                    disabled={safeCurrentPage === 1}
-                >
-                    <ChevronLeft className="h-4 w-4 text-slate-700 dark:text-slate-300" />
-                </Button>
-                
-                <div className="hidden sm:flex items-center gap-1 bg-slate-100/80 dark:bg-black/40 p-1 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-inner">
-                    {getPageNumbers().map((num, i) => (
+            {/* Right: prev / pages / next */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <NavButton onClick={handlePrev} disabled={safeCurrentPage === 1}>
+                    <ChevronLeft size={16} />
+                </NavButton>
+
+                {/* Page pill track */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: 'rgba(241,245,249,0.9)',
+                    padding: '4px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(0,0,0,0.06)',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.07)',
+                }}>
+                    {getPageNumbers().map((num, i) =>
                         num === -1 ? (
-                            <span key={`ellipsis-${i}`} className="w-8 flex items-center justify-center text-slate-400">
-                                <MoreHorizontal className="h-4 w-4" />
+                            <span key={`ellipsis-${i}`} style={{ width: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                                <MoreHorizontal size={14} />
                             </span>
                         ) : (
                             <button
                                 key={`page-${num}`}
                                 onClick={() => onPageChange(num)}
-                                className={`relative h-8 w-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-300 ${
-                                    safeCurrentPage === num 
-                                        ? "bg-gradient-to-tr from-emerald-500 to-teal-400 text-white shadow-md shadow-emerald-500/30 scale-100" 
-                                        : "bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 hover:shadow-sm scale-95 hover:scale-100"
-                                }`}
+                                style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    fontSize: '13px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    background: safeCurrentPage === num
+                                        ? 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)'
+                                        : 'transparent',
+                                    color: safeCurrentPage === num ? 'white' : '#64748b',
+                                    boxShadow: safeCurrentPage === num
+                                        ? '0 4px 12px rgba(16,185,129,0.35), 0 1px 3px rgba(16,185,129,0.2)'
+                                        : 'none',
+                                    transform: safeCurrentPage === num ? 'scale(1.05)' : 'scale(1)',
+                                }}
+                                onMouseEnter={e => {
+                                    if (safeCurrentPage !== num) {
+                                        (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.9)';
+                                        (e.currentTarget as HTMLElement).style.color = '#0f172a';
+                                        (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.1)';
+                                    }
+                                }}
+                                onMouseLeave={e => {
+                                    if (safeCurrentPage !== num) {
+                                        (e.currentTarget as HTMLElement).style.background = 'transparent';
+                                        (e.currentTarget as HTMLElement).style.color = '#64748b';
+                                        (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+                                    }
+                                }}
                             >
                                 {num}
                             </button>
                         )
-                    ))}
+                    )}
                 </div>
 
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 rounded-xl bg-white dark:bg-white/5 border-slate-200/80 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                    onClick={handleNext}
-                    disabled={safeCurrentPage === safeTotalPages || totalItems === 0}
-                >
-                    <ChevronRight className="h-4 w-4 text-slate-700 dark:text-slate-300" />
-                </Button>
+                <NavButton onClick={handleNext} disabled={safeCurrentPage === safeTotalPages || totalItems === 0}>
+                    <ChevronRight size={16} />
+                </NavButton>
             </div>
         </div>
     );
