@@ -1,5 +1,5 @@
+"use client";
 import dynamic from "next/dynamic"
-﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Bell, Mail, MessageSquare, Smartphone } from "lucide-react";

@@ -1,5 +1,5 @@
+"use client"
 import dynamic from "next/dynamic"
-﻿"use client"
 
 import { Activity, Download, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"

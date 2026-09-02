@@ -1,5 +1,5 @@
+"use client"
 import dynamic from "next/dynamic"
-﻿"use client"
 import { Building2, Plus, Download, Command } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"

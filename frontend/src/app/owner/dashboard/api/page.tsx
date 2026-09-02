@@ -1,5 +1,5 @@
+"use client"
 import dynamic from "next/dynamic"
-﻿﻿"use client"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState, useCallback } from "react"
 

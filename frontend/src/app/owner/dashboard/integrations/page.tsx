@@ -1,7 +1,7 @@
+"use client";
 import dynamic from "next/dynamic"
 
 
-﻿"use client";
 
 
 const IntegrationsHeroBanner = dynamic(() => import('@/components/organisms/IntegrationsHeroBanner').then(m => m.IntegrationsHeroBanner), { ssr: false })

@@ -1,5 +1,5 @@
+'use client';
 import dynamic from "next/dynamic"
-﻿'use client';
 
 import { useQuery } from '@tanstack/react-query';
 import { featureOpsService } from '@/lib/featureOpsService';

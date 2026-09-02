@@ -1,5 +1,5 @@
+"use client";
 import dynamic from "next/dynamic"
-﻿"use client";
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";

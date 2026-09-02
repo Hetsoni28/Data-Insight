@@ -1,5 +1,5 @@
+"use client";
 import dynamic from "next/dynamic"
-﻿﻿"use client";
 
 import { toast } from "sonner";
 import api from "@/lib/api";
