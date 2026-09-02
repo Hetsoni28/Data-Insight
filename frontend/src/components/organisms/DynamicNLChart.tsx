@@ -61,7 +61,7 @@ export function DynamicNLChart({ data }: DynamicNLChartProps) {
             <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
             <Pie data={chartData} dataKey={y_key} nameKey={x_key} cx="50%" cy="50%" outerRadius={100} label>
               {chartData.map((_: any, index: number) => (
-                <Cell key={cell-$index} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
           </PieChart>

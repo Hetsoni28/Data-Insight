@@ -20,6 +20,8 @@ interface Overview {
   subscription_plan: string
   subscription_status: string
   current_ai_provider: string
+  mrr?: number
+  current_period_end?: string
 }
 
 export function OrganizationScoreCards({ kpis, overview }: { kpis: KPIs | null; overview: Overview | null }) {

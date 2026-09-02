@@ -396,7 +396,7 @@ export function DatasetDetailTabs({
       
         {!isViewer && (
           <TabsContent value="clean" className="focus-visible:outline-none focus-visible:ring-0 mt-0">
-            <DataCleaningTab datasetId={datasetId} schema={schema} />
+            <DataCleaningTab datasetId={datasetId} />
           </TabsContent>
         )}
 

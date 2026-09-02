@@ -74,7 +74,7 @@ export function DatasetComparisonView({ baseDatasetId }: DatasetComparisonViewPr
         <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md">Select another dataset from your workspace to view a side-by-side comparison of data quality, schemas, and metrics.</p>
         
         <div className="w-full max-w-sm mx-auto text-left">
-          <Select onValueChange={setSelectedCompareId}>
+          <Select onValueChange={(v) => setSelectedCompareId(v || "")}>
             <SelectTrigger className="h-12 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
               <SelectValue placeholder="Select a dataset to compare..." />
             </SelectTrigger>
@@ -116,7 +116,7 @@ export function DatasetComparisonView({ baseDatasetId }: DatasetComparisonViewPr
       {/* Selector Row */}
       <div className="flex justify-end">
         <div className="w-72">
-          <Select value={selectedCompareId} onValueChange={setSelectedCompareId}>
+          <Select value={selectedCompareId} onValueChange={(v) => setSelectedCompareId(v || "")}>
             <SelectTrigger className="bg-white dark:bg-slate-800">
               <SelectValue placeholder="Change dataset..." />
             </SelectTrigger>
@@ -197,7 +197,7 @@ export function DatasetComparisonView({ baseDatasetId }: DatasetComparisonViewPr
             <div className="text-sm font-semibold text-slate-500 mb-4">Only in {b.name || "Base"}</div>
             <div className="flex flex-wrap gap-2">
               {onlyB.length === 0 ? <span className="text-sm text-slate-400">None</span> : 
-               onlyB.map(col => <Badge key={col} variant="secondary" className="bg-white dark:bg-slate-900 border-slate-200">{col}</Badge>)}
+               onlyB.map((col: any) => <Badge key={col} variant="secondary" className="bg-white dark:bg-slate-900 border-slate-200">{col}</Badge>)}
             </div>
           </div>
 
@@ -205,7 +205,7 @@ export function DatasetComparisonView({ baseDatasetId }: DatasetComparisonViewPr
             <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 mb-4">Shared Columns ({sharedCols.length})</div>
             <div className="flex flex-wrap gap-2">
               {sharedCols.length === 0 ? <span className="text-sm text-indigo-400">No overlapping columns</span> : 
-               sharedCols.map(col => <Badge key={col} className="bg-indigo-100 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300">{col}</Badge>)}
+               sharedCols.map((col: any) => <Badge key={col} className="bg-indigo-100 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300">{col}</Badge>)}
             </div>
           </div>
 
@@ -213,7 +213,7 @@ export function DatasetComparisonView({ baseDatasetId }: DatasetComparisonViewPr
             <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-4">Only in {c.name || "Compare"}</div>
             <div className="flex flex-wrap gap-2">
               {onlyC.length === 0 ? <span className="text-sm text-emerald-400">None</span> : 
-               onlyC.map(col => <Badge key={col} className="bg-emerald-100 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900 dark:text-emerald-300">{col}</Badge>)}
+               onlyC.map((col: any) => <Badge key={col} className="bg-emerald-100 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900 dark:text-emerald-300">{col}</Badge>)}
             </div>
           </div>
         </div>

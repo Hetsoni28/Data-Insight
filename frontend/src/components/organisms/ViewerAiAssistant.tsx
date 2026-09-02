@@ -21,6 +21,8 @@ interface Message {
   content: string;
   model?: string;
   timestamp: Date;
+  chartData?: any;
+  sqlQuery?: string;
 }
 
 const PRESET_PROMPTS = [

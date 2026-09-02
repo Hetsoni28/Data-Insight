@@ -50,10 +50,12 @@ export function DatasetDetailExplorer({
   const [reportCategory, setReportCategory] = useState("executive")
   const [activeTab, setActiveTab] = useState("preview")
 
-  useWebSocket((event) => {
-    if (event.type === "dataset_excel_ready" && event.payload?.dataset_id === params.id) {
-      console.log("Received dataset_excel_ready event, refreshing dataset...");
-      api.get(`/tenant-datasets/${params.id}`).then(res => setDataset(res.data.data)).catch(console.error);
+  useWebSocket({
+    onMessage: (event: any) => {
+      if (event.type === "dataset_excel_ready" && event.payload?.dataset_id === params.id) {
+        console.log("Received dataset_excel_ready event, refreshing dataset...");
+        api.get(`/tenant-datasets/${params.id}`).then(res => setDataset(res.data.data)).catch(console.error);
+      }
     }
   });
 
@@ -241,10 +243,11 @@ export function DatasetDetailExplorer({
         onTabChange={setActiveTab}
       />
 
-            <ReportSchedulerModal
+      <ReportSchedulerModal
         open={isScheduleModalOpen}
         onOpenChange={setIsScheduleModalOpen}
-        datasetId={dataset.id}
+        initialDatasetId={dataset.id}
+        onScheduleCreated={() => {}}
       />
       <DatasetAlertsModal
         open={isAlertsModalOpen}

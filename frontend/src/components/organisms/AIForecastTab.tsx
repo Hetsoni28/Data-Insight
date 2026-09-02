@@ -4,7 +4,7 @@ import api from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { TrendForecastViewer } from "./TrendForecastViewer"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "react-hot-toast"
+import { toast } from "sonner"
 
 export function AIForecastTab({ datasetId, schema }: { datasetId: string, schema: any[] }) {
   const [dateCol, setDateCol] = useState<string>("")
@@ -70,7 +70,7 @@ export function AIForecastTab({ datasetId, schema }: { datasetId: string, schema
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Date/Time Column (Optional)</label>
-            <Select value={dateCol} onValueChange={setDateCol}>
+            <Select value={dateCol} onValueChange={(v) => setDateCol(v || "")}>
               <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800">
                 <SelectValue placeholder="Auto-detect or select..." />
               </SelectTrigger>
@@ -85,7 +85,7 @@ export function AIForecastTab({ datasetId, schema }: { datasetId: string, schema
           
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Target Metric (Required)</label>
-            <Select value={metricCol} onValueChange={setMetricCol}>
+            <Select value={metricCol} onValueChange={(v) => setMetricCol(v || "")}>
               <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800">
                 <SelectValue placeholder="Select metric to predict" />
               </SelectTrigger>
@@ -99,7 +99,7 @@ export function AIForecastTab({ datasetId, schema }: { datasetId: string, schema
 
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Forecast Horizon</label>
-            <Select value={horizon} onValueChange={setHorizon}>
+            <Select value={horizon} onValueChange={(v) => setHorizon(v || "6")}>
               <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800">
                 <SelectValue placeholder="Select periods" />
               </SelectTrigger>

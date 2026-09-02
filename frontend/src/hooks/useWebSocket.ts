@@ -9,7 +9,7 @@ type WebSocketEvent = {
   tenant_id?: string
 }
 
-export function useWebSocket(onMessage?: (event: WebSocketEvent) => void) {
+export function useWebSocket({ onMessage }: { onMessage?: (event: WebSocketEvent) => void } = {}) {
   const [isConnected, setIsConnected] = useState(false)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)

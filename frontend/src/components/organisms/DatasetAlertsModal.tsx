@@ -102,7 +102,7 @@ export function DatasetAlertsModal({ open, onOpenChange, datasetId, schema }: Da
               </div>
               <div className="col-span-2 md:col-span-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Metric Column</label>
-                <Select value={column} onValueChange={setColumn}>
+                <Select value={column} onValueChange={(v) => setColumn(v || "")}>
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Select column" /></SelectTrigger>
                   <SelectContent>
                     {numericColumns.map(c => (
@@ -114,7 +114,7 @@ export function DatasetAlertsModal({ open, onOpenChange, datasetId, schema }: Da
               <div className="col-span-2 md:col-span-1 grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase">Condition</label>
-                  <Select value={condition} onValueChange={setCondition}>
+                  <Select value={condition} onValueChange={(v) => setCondition(v || "")}>
                     <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value=">"> &gt; Greater than</SelectItem>
