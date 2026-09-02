@@ -2,9 +2,10 @@
 
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, List
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.workspace import Workspace
 from app.repositories.base import BaseRepository
 
@@ -13,7 +14,7 @@ class WorkspaceRepository(BaseRepository[Workspace]):
     def __init__(self, session: AsyncSession):
         super().__init__(Workspace, session)
 
-    async def get_tenant_workspaces(self, tenant_id: uuid.UUID) -> List[Workspace]:
+    async def get_tenant_workspaces(self, tenant_id: uuid.UUID) -> list[Workspace]:
         stmt = (
             select(Workspace)
             .where(Workspace.tenant_id == tenant_id, Workspace.is_deleted == False)
@@ -22,7 +23,7 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_slug(self, tenant_id: uuid.UUID, slug: str) -> Optional[Workspace]:
+    async def get_by_slug(self, tenant_id: uuid.UUID, slug: str) -> Workspace | None:
         stmt = select(Workspace).where(
             Workspace.tenant_id == tenant_id,
             Workspace.slug == slug,
@@ -32,8 +33,8 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         return result.scalars().first()
 
     async def get_tenant_workspace(
-        self, tenant_id: uuid.UUID, workspace_id: uuid.UUID
-    ) -> Optional[Workspace]:
+        self, tenant_id: uuid.UUID, workspace_id: uuid.UUID,
+    ) -> Workspace | None:
         """Get a workspace only if it belongs to the given tenant."""
         stmt = select(Workspace).where(
             Workspace.id == workspace_id,

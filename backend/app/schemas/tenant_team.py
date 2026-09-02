@@ -1,16 +1,15 @@
 from datetime import datetime
-from typing import List, Optional, Any
+
 from pydantic import BaseModel
-import uuid
 
 
 class TeamMember(BaseModel):
     id: str
     full_name: str
     email: str
-    avatar_url: Optional[str]
-    employee_id: Optional[str]
-    department: Optional[str]
+    avatar_url: str | None
+    employee_id: str | None
+    department: str | None
     role: str
     status: str
     created_at: datetime
@@ -27,7 +26,7 @@ class TeamStatsResponse(BaseModel):
 class RoleItem(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     permissions: dict
     is_system: bool
     created_at: datetime
@@ -36,7 +35,7 @@ class RoleItem(BaseModel):
 class DepartmentItem(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     created_at: datetime
 
 
@@ -51,20 +50,20 @@ class InvitationItem(BaseModel):
 
 class AuditLogActor(BaseModel):
     name: str
-    email: Optional[str]
+    email: str | None
 
 
 class AuditLogItemDetailed(BaseModel):
     id: str
     action: str
     resource_type: str
-    resource_id: Optional[str]
+    resource_id: str | None
     severity: str
     module: str
-    ip_address: Optional[str]
+    ip_address: str | None
     status: str
     created_at: datetime
-    extra_metadata: Optional[dict]
+    extra_metadata: dict | None
     actor: AuditLogActor
 
 
@@ -72,10 +71,10 @@ class ActiveSessionItem(BaseModel):
     id: str
     user_name: str
     user_email: str
-    device_name: Optional[str]
-    os: Optional[str]
-    browser: Optional[str]
-    location: Optional[str]
-    ip_address: Optional[str]
-    last_active_at: Optional[datetime]
+    device_name: str | None
+    os: str | None
+    browser: str | None
+    location: str | None
+    ip_address: str | None
+    last_active_at: datetime | None
     created_at: datetime

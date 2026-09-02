@@ -6,27 +6,28 @@ to resolve the active tenant context transparently without manual parameter prop
 """
 
 from __future__ import annotations
-import uuid
-from dataclasses import dataclass, field
-from contextvars import ContextVar, Token
-from typing import Optional, AsyncGenerator
-from contextlib import asynccontextmanager, contextmanager
 
-from app.core.exceptions import UnauthorizedException, ForbiddenException
+import uuid
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager, contextmanager
+from contextvars import ContextVar, Token
+from dataclasses import dataclass, field
+
+from app.core.exceptions import ForbiddenException
 
 
 @dataclass(frozen=True)
 class TenantContext:
     """Immutable snapshot of the active request / task tenant context."""
 
-    tenant_id: Optional[uuid.UUID] = None
-    tenant_slug: Optional[str] = None
-    tenant_name: Optional[str] = None
+    tenant_id: uuid.UUID | None = None
+    tenant_slug: str | None = None
+    tenant_name: str | None = None
     tenant_plan: str = "starter"
     db_connection_type: str = "shared"  # "shared" | "dedicated"
-    dedicated_db_url: Optional[str] = None
-    user_id: Optional[uuid.UUID] = None
-    user_role: Optional[str] = None
+    dedicated_db_url: str | None = None
+    user_id: uuid.UUID | None = None
+    user_role: str | None = None
     is_owner: bool = False
     is_superadmin: bool = False
     metadata: dict = field(default_factory=dict)
@@ -45,12 +46,12 @@ class TenantContext:
 
 
 # ─── ContextVar Storage ────────────────────────────────────────────────────────
-_current_tenant_ctx: ContextVar[Optional[TenantContext]] = ContextVar(
-    "current_tenant_ctx", default=None
+_current_tenant_ctx: ContextVar[TenantContext | None] = ContextVar(
+    "current_tenant_ctx", default=None,
 )
 
 
-def get_tenant_context() -> Optional[TenantContext]:
+def get_tenant_context() -> TenantContext | None:
     """Retrieve the current TenantContext from the active async context."""
     return _current_tenant_ctx.get()
 
@@ -65,7 +66,7 @@ def reset_tenant_context(token: Token) -> None:
     _current_tenant_ctx.reset(token)
 
 
-def get_current_tenant_id() -> Optional[uuid.UUID]:
+def get_current_tenant_id() -> uuid.UUID | None:
     """Convenience getter returning the active tenant_id or None."""
     ctx = get_tenant_context()
     return ctx.tenant_id if ctx else None
@@ -76,18 +77,17 @@ def require_tenant_id() -> uuid.UUID:
     tenant_id = get_current_tenant_id()
     if not tenant_id:
         raise ForbiddenException(
-            "Active tenant context is required for this operation."
+            "Active tenant context is required for this operation.",
         )
     return tenant_id
 
 
 @asynccontextmanager
 async def tenant_scope(
-    ctx_or_id: Optional[TenantContext | uuid.UUID | str] = None,
+    ctx_or_id: TenantContext | uuid.UUID | str | None = None,
     **kwargs,
 ) -> AsyncGenerator[TenantContext, None]:
-    """
-    Asynchronous context manager to bind a TenantContext to the current execution scope.
+    """Asynchronous context manager to bind a TenantContext to the current execution scope.
     Accepts either an existing TenantContext object or keyword arguments.
     """
     if isinstance(ctx_or_id, TenantContext):
@@ -133,17 +133,17 @@ async_tenant_scope = tenant_scope
 
 @contextmanager
 def sync_tenant_scope(
-    tenant_id: Optional[uuid.UUID | str] = None,
-    tenant_slug: Optional[str] = None,
-    tenant_name: Optional[str] = None,
+    tenant_id: uuid.UUID | str | None = None,
+    tenant_slug: str | None = None,
+    tenant_name: str | None = None,
     tenant_plan: str = "starter",
     db_connection_type: str = "shared",
-    dedicated_db_url: Optional[str] = None,
-    user_id: Optional[uuid.UUID | str] = None,
-    user_role: Optional[str] = None,
+    dedicated_db_url: str | None = None,
+    user_id: uuid.UUID | str | None = None,
+    user_role: str | None = None,
     is_owner: bool = False,
     is_superadmin: bool = False,
-    metadata: Optional[dict] = None,
+    metadata: dict | None = None,
 ):
     """Synchronous context manager for Celery workers and batch jobs."""
     tid = (

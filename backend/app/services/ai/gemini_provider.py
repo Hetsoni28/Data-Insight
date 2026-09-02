@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-import time
 import logging
-from typing import AsyncIterator, Optional, Dict, Any
+import time
+from collections.abc import AsyncIterator
+
 from google import genai
 from google.genai import types
 
@@ -24,7 +25,7 @@ class GeminiProvider(BaseLLMProvider):
     )
 
     # Pricing per 1M tokens in USD
-    PRICING: Dict[str, Dict[str, float]] = {
+    PRICING: dict[str, dict[str, float]] = {
         "gemini-2.5-flash": {"prompt": 0.075, "completion": 0.30},
         "gemini-2.5-flash-lite": {"prompt": 0.04, "completion": 0.15},
         "gemini-2.0-flash": {"prompt": 0.10, "completion": 0.40},
@@ -32,15 +33,15 @@ class GeminiProvider(BaseLLMProvider):
         "gemini-1.5-flash": {"prompt": 0.075, "completion": 0.30},
     }
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or settings.GEMINI_API_KEY
-        self._client: Optional[genai.Client] = None
+        self._client: genai.Client | None = None
         if self.api_key:
             try:
                 self._client = genai.Client(api_key=self.api_key)
             except Exception as e:
                 logger.error(
-                    f"[GeminiProvider] Failed to initialize Gemini client: {e}"
+                    f"[GeminiProvider] Failed to initialize Gemini client: {e}",
                 )
 
     def is_available(self) -> bool:
@@ -56,11 +57,11 @@ class GeminiProvider(BaseLLMProvider):
     async def generate(
         self,
         prompt: str,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         temperature: float = 0.2,
         max_tokens: int = 4096,
         json_mode: bool = False,
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> LLMResponse:
         client = self._get_client()
         target_model = model or settings.GEMINI_DEFAULT_MODEL or self.default_model
@@ -114,15 +115,15 @@ class GeminiProvider(BaseLLMProvider):
             )
         except Exception as e:
             logger.error(f"[GeminiProvider] Generation failed: {e}")
-            raise AIServiceException(f"Gemini generation failed: {str(e)}")
+            raise AIServiceException(f"Gemini generation failed: {e!s}")
 
     async def generate_stream(
         self,
         prompt: str,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         temperature: float = 0.2,
         max_tokens: int = 4096,
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> AsyncIterator[str]:
         client = self._get_client()
         target_model = model or settings.GEMINI_DEFAULT_MODEL or self.default_model
@@ -144,4 +145,4 @@ class GeminiProvider(BaseLLMProvider):
                     yield chunk.text
         except Exception as e:
             logger.error(f"[GeminiProvider] Streaming failed: {e}")
-            raise AIServiceException(f"Gemini streaming failed: {str(e)}")
+            raise AIServiceException(f"Gemini streaming failed: {e!s}")

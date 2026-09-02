@@ -1,7 +1,7 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Depends
-from typing import Optional
+
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from jose import jwt
 from loguru import logger
-from jose import jwt, JWTError
 
 from app.core.config import settings
 from app.core.websockets import manager
@@ -30,7 +30,7 @@ async def get_user_from_token(token: str):
 
 @router.websocket("/ws/tenant-events")
 async def websocket_tenant_events(
-    websocket: WebSocket, token: Optional[str] = Query(None)
+    websocket: WebSocket, token: str | None = Query(None),
 ):
     logger.info(f"Incoming WebSocket connection attempt. Token present: {bool(token)}")
     if not token:

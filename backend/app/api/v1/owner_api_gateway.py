@@ -1,20 +1,19 @@
-import uuid
-from typing import Any
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, desc
+from typing import Any
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User, UserRole
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import and_, desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
 from app.models.api_gateway import (
+    ApiIntegration,
     ApiRequestLog,
     OAuthClient,
-    ApiRateLimit,
-    ApiIntegration,
 )
 from app.models.api_key import ApiKey
 from app.models.security import ThreatIntelligence
+from app.models.user import User, UserRole
 
 router = APIRouter(tags=["owner-api-gateway"])
 
@@ -29,7 +28,7 @@ def require_owner(current_user: User = Depends(get_current_user)):
 
 @router.get("/overview")
 async def get_overview(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get live KPIs for the API Gateway."""
     now = datetime.now(timezone.utc)
@@ -39,14 +38,14 @@ async def get_overview(
     # Total requests in last 30 days
     total_req_result = await db.execute(
         select(func.count(ApiRequestLog.id)).where(
-            ApiRequestLog.created_at >= thirty_days_ago
-        )
+            ApiRequestLog.created_at >= thirty_days_ago,
+        ),
     )
     total_requests = total_req_result.scalar_one_or_none() or 0
 
     # Today's requests
     today_req_result = await db.execute(
-        select(func.count(ApiRequestLog.id)).where(ApiRequestLog.created_at >= today)
+        select(func.count(ApiRequestLog.id)).where(ApiRequestLog.created_at >= today),
     )
     today_requests = today_req_result.scalar_one_or_none() or 0
 
@@ -56,22 +55,22 @@ async def get_overview(
             and_(
                 ApiRequestLog.created_at >= thirty_days_ago,
                 ApiRequestLog.status_code >= 400,
-            )
-        )
+            ),
+        ),
     )
     error_requests = error_req_result.scalar_one_or_none() or 0
 
     # Average Latency
     avg_latency_result = await db.execute(
         select(func.avg(ApiRequestLog.latency_ms)).where(
-            ApiRequestLog.created_at >= thirty_days_ago
-        )
+            ApiRequestLog.created_at >= thirty_days_ago,
+        ),
     )
     avg_latency = float(avg_latency_result.scalar_one_or_none() or 0.0)
 
     # Active Keys
     active_keys_result = await db.execute(
-        select(func.count(ApiKey.id)).where(ApiKey.is_active == True)
+        select(func.count(ApiKey.id)).where(ApiKey.is_active == True),
     )
     active_keys = active_keys_result.scalar_one_or_none() or 0
 
@@ -100,13 +99,13 @@ async def get_overview(
 
 @router.get("/usage-trends")
 async def get_usage_trends(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get usage trends for the charts (last 30 days aggregated by day)."""
     thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
 
     # In postgres, we can use date_trunc. For sqlite compat in dev, we cast to date
-    from sqlalchemy import cast, Date
+    from sqlalchemy import Date, cast
 
     result = await db.execute(
         select(
@@ -115,7 +114,7 @@ async def get_usage_trends(
         )
         .where(ApiRequestLog.created_at >= thirty_days_ago)
         .group_by("date")
-        .order_by("date")
+        .order_by("date"),
     )
 
     trends = []
@@ -129,7 +128,7 @@ async def get_usage_trends(
 
 @router.get("/errors")
 async def get_error_analytics(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get error counts grouped by status code."""
     thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
@@ -140,9 +139,9 @@ async def get_error_analytics(
             and_(
                 ApiRequestLog.created_at >= thirty_days_ago,
                 ApiRequestLog.status_code >= 400,
-            )
+            ),
         )
-        .group_by(ApiRequestLog.status_code)
+        .group_by(ApiRequestLog.status_code),
     )
 
     errors = {}
@@ -160,7 +159,7 @@ async def get_live_requests(
 ) -> Any:
     """Get the most recent API requests."""
     result = await db.execute(
-        select(ApiRequestLog).order_by(desc(ApiRequestLog.created_at)).limit(limit)
+        select(ApiRequestLog).order_by(desc(ApiRequestLog.created_at)).limit(limit),
     )
     logs = result.scalars().all()
 
@@ -177,13 +176,13 @@ async def get_live_requests(
                 "timestamp": log.created_at.isoformat(),
             }
             for log in logs
-        ]
+        ],
     }
 
 
 @router.get("/keys")
 async def get_api_keys(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get all API keys across the platform."""
     result = await db.execute(select(ApiKey).order_by(desc(ApiKey.created_at)))
@@ -203,17 +202,17 @@ async def get_api_keys(
                 "usage_count": key.usage_count,
             }
             for key in keys
-        ]
+        ],
     }
 
 
 @router.get("/oauth-clients")
 async def get_oauth_clients(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get all OAuth clients (Developer Apps)."""
     result = await db.execute(
-        select(OAuthClient).order_by(desc(OAuthClient.created_at))
+        select(OAuthClient).order_by(desc(OAuthClient.created_at)),
     )
     clients = result.scalars().all()
 
@@ -228,13 +227,13 @@ async def get_oauth_clients(
                 "scopes": client.scopes,
             }
             for client in clients
-        ]
+        ],
     }
 
 
 @router.get("/integrations")
 async def get_integrations(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get status of all external API Integrations."""
     result = await db.execute(select(ApiIntegration))
@@ -252,13 +251,13 @@ async def get_integrations(
                 ),
             }
             for integ in integrations
-        ]
+        ],
     }
 
 
 @router.get("/security")
 async def get_security_overview(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get security events, threat detection, rate limit violations."""
     thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
@@ -269,8 +268,8 @@ async def get_security_overview(
             and_(
                 ApiRequestLog.created_at >= thirty_days_ago,
                 ApiRequestLog.status_code == 429,
-            )
-        )
+            ),
+        ),
     )
     rate_limit_violations = rate_limit_result.scalar_one_or_none() or 0
 
@@ -280,16 +279,16 @@ async def get_security_overview(
             and_(
                 ApiRequestLog.created_at >= thirty_days_ago,
                 ApiRequestLog.status_code.in_([401, 403]),
-            )
-        )
+            ),
+        ),
     )
     auth_failures = auth_failure_result.scalar_one_or_none() or 0
 
     # Query actual blocked IPs from ThreatIntelligence
     blocked_ips_result = await db.execute(
         select(func.count(ThreatIntelligence.id)).where(
-            ThreatIntelligence.is_blocked == True
-        )
+            ThreatIntelligence.is_blocked == True,
+        ),
     )
     blocked_ips_count = blocked_ips_result.scalar_one_or_none() or 0
 

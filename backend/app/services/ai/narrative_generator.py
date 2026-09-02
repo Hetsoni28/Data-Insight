@@ -5,9 +5,8 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Dict, Any, Optional
+from typing import Any
 
-from app.core.exceptions import AIServiceException
 from app.services.ai.router import LLMRouter
 
 logger = logging.getLogger(__name__)
@@ -56,11 +55,11 @@ CRITICAL RULES:
         self.router = router
 
     def _prepare_profile_summary(
-        self, profile: Dict[str, Any], correlations: Optional[Dict[str, Any]] = None
+        self, profile: dict[str, Any], correlations: dict[str, Any] | None = None,
     ) -> str:
         """Create a compact, highly informative summary of the dataset profile for the prompt."""
         overview = profile.get(
-            "overview", {}
+            "overview", {},
         )  # Note: profiler.py returns top-level row_count etc., let's handle both
 
         # In the new DataProfiler, these are top-level keys. Fallback to overview dict if not found.
@@ -113,7 +112,7 @@ CRITICAL RULES:
 
         if correlations:
             summary_dict["significant_correlations"] = correlations.get(
-                "significant_correlations", []
+                "significant_correlations", [],
             )[:15]
 
         return json.dumps(summary_dict, indent=2, default=str)
@@ -121,10 +120,10 @@ CRITICAL RULES:
     async def generate_narrative(
         self,
         dataset_name: str,
-        profile: Dict[str, Any],
-        correlations: Optional[Dict[str, Any]] = None,
-        preferred_provider: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        profile: dict[str, Any],
+        correlations: dict[str, Any] | None = None,
+        preferred_provider: str | None = None,
+    ) -> dict[str, Any]:
         """Generate comprehensive 5-tier business report narrative."""
         profile_summary = self._prepare_profile_summary(profile, correlations)
 
@@ -154,7 +153,7 @@ Generate the comprehensive executive narrative analysis."""
             report_data = json.loads(raw_json)
         except Exception as e:
             logger.warning(
-                f"[NarrativeGenerator] JSON parsing failed: {e}. Fallback structure applied."
+                f"[NarrativeGenerator] JSON parsing failed: {e}. Fallback structure applied.",
             )
             report_data = {
                 "datasetSummary": response.content,

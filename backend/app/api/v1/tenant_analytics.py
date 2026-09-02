@@ -1,38 +1,40 @@
 import uuid
-from typing import Optional
-from fastapi import APIRouter, Depends, Query, Path
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, RequirePermission
+from app.api.deps import RequirePermission, get_db
 from app.models.user import User
-from app.services.tenant_analytics import TenantAnalyticsService
 from app.schemas.viewer_analytics import (
-    ViewerAnalyticsKpisResponse,
-    ViewerAnalyticsTrendsResponse,
-    ViewerAnalyticsPerformanceResponse,
-    ViewerAnalyticsComparisonsResponse,
-    ViewerAnalyticsForecastResponse,
-    ViewerAnalyticsAnomaliesResponse,
-    ViewerAnalyticsInsightsResponse,
-    ViewerAnalyticsDataQualityResponse,
-    ViewerAnalyticsSavedViewsResponse,
-    ViewerAnalyticsSavedViewCreate,
-    ViewerAnalyticsSavedView,
     ViewerAnalyticsAIChatRequest,
     ViewerAnalyticsAIChatResponse,
+    ViewerAnalyticsAnomaliesResponse,
+    ViewerAnalyticsComparisonsResponse,
+    ViewerAnalyticsDataQualityResponse,
+    ViewerAnalyticsForecastResponse,
+    ViewerAnalyticsInsightsResponse,
+    ViewerAnalyticsKpisResponse,
+    ViewerAnalyticsPerformanceResponse,
+    ViewerAnalyticsSavedView,
+    ViewerAnalyticsSavedViewCreate,
+    ViewerAnalyticsSavedViewsResponse,
+    ViewerAnalyticsTrendsResponse,
 )
-from datetime import datetime, timezone
+from app.services.tenant_analytics import TenantAnalyticsService
 
 router = APIRouter(prefix="/tenant-analytics", tags=["Tenant Analytics"])
 
 import json
-from app.db.redis import get_redis_pool
+
 from redis.asyncio import Redis
+
+from app.db.redis import get_redis_pool
 
 
 @router.get("/kpis", response_model=ViewerAnalyticsKpisResponse)
 async def get_kpis(
-    dataset_id: Optional[uuid.UUID] = Query(None),
+    dataset_id: uuid.UUID | None = Query(None),
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -51,7 +53,7 @@ async def get_kpis(
 
 @router.get("/trends", response_model=ViewerAnalyticsTrendsResponse)
 async def get_trends(
-    dataset_id: Optional[uuid.UUID] = Query(None),
+    dataset_id: uuid.UUID | None = Query(None),
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -72,7 +74,7 @@ async def get_trends(
 
 @router.get("/performance", response_model=ViewerAnalyticsPerformanceResponse)
 async def get_performance(
-    dataset_id: Optional[uuid.UUID] = Query(None),
+    dataset_id: uuid.UUID | None = Query(None),
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -93,7 +95,7 @@ async def get_performance(
 
 @router.get("/anomalies", response_model=ViewerAnalyticsAnomaliesResponse)
 async def get_anomalies(
-    dataset_id: Optional[uuid.UUID] = Query(None),
+    dataset_id: uuid.UUID | None = Query(None),
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -114,7 +116,7 @@ async def get_anomalies(
 
 @router.get("/data-quality", response_model=ViewerAnalyticsDataQualityResponse)
 async def get_data_quality(
-    dataset_id: Optional[uuid.UUID] = Query(None),
+    dataset_id: uuid.UUID | None = Query(None),
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db),
 ):

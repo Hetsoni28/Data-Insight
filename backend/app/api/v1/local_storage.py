@@ -17,8 +17,7 @@ LOCAL_UPLOADS_DIR = Path("uploads")
     include_in_schema=True,
 )
 async def serve_local_file(bucket: str, path: str):
-    """
-    Streams a file from the local uploads directory.
+    """Streams a file from the local uploads directory.
     This endpoint is the fallback used when Supabase Storage is not configured.
     The path mirrors what get_signed_url() returns for local mode:
         /api/v1/storage/{bucket}/{path}

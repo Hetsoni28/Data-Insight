@@ -1,26 +1,26 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Path
+from datetime import datetime, timedelta
+from typing import Any
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func
-from typing import List, Dict, Any
-from uuid import UUID
-from datetime import datetime, timezone, timedelta
 
 from app.api.deps import get_current_user, get_db
-from app.models.user import User, UserRole
 from app.models.support import (
-    SupportTicket,
     PlatformIncident,
-    TicketStatus,
+    SupportTicket,
     TicketPriority,
+    TicketStatus,
 )
+from app.models.user import User, UserRole
 from app.schemas.support import (
-    SupportTicketCreate,
-    SupportTicketUpdate,
-    SupportTicketResponse,
     PlatformIncidentCreate,
-    PlatformIncidentUpdate,
     PlatformIncidentResponse,
+    SupportTicketCreate,
+    SupportTicketResponse,
+    SupportTicketUpdate,
 )
 from app.services.audit_service import AuditService
 
@@ -30,24 +30,24 @@ router = APIRouter()
 def check_owner(user: User):
     if user.role != UserRole.owner:
         raise HTTPException(
-            status_code=403, detail="Not authorized. Owner access required."
+            status_code=403, detail="Not authorized. Owner access required.",
         )
 
 
 @router.get("/dashboard")
 async def get_support_dashboard(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user),
+) -> dict[str, Any]:
     check_owner(current_user)
 
     # Calculate real KPIs from DB
     open_tickets_query = await db.execute(
-        select(func.count()).where(SupportTicket.status == TicketStatus.OPEN)
+        select(func.count()).where(SupportTicket.status == TicketStatus.OPEN),
     )
     open_tickets = open_tickets_query.scalar() or 0
 
     pending_tickets_query = await db.execute(
-        select(func.count()).where(SupportTicket.status == TicketStatus.IN_PROGRESS)
+        select(func.count()).where(SupportTicket.status == TicketStatus.IN_PROGRESS),
     )
     pending_tickets = pending_tickets_query.scalar() or 0
 
@@ -55,7 +55,7 @@ async def get_support_dashboard(
         select(func.count()).where(
             SupportTicket.priority == TicketPriority.CRITICAL,
             SupportTicket.status != TicketStatus.CLOSED,
-        )
+        ),
     )
     critical_issues = critical_query.scalar() or 0
 
@@ -64,12 +64,12 @@ async def get_support_dashboard(
         select(func.count()).where(
             SupportTicket.status == TicketStatus.RESOLVED,
             SupportTicket.resolved_at >= today,
-        )
+        ),
     )
     resolved_today = resolved_today_query.scalar() or 0
 
     active_incidents_query = await db.execute(
-        select(func.count()).where(PlatformIncident.status != "resolved")
+        select(func.count()).where(PlatformIncident.status != "resolved"),
     )
     active_incidents = active_incidents_query.scalar() or 0
 
@@ -101,7 +101,7 @@ async def get_support_dashboard(
     }
 
 
-@router.get("/tickets", response_model=List[SupportTicketResponse])
+@router.get("/tickets", response_model=list[SupportTicketResponse])
 async def list_tickets(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
@@ -161,7 +161,7 @@ async def update_ticket(
     current_user: User = Depends(get_current_user),
 ):
     result = await db.execute(
-        select(SupportTicket).where(SupportTicket.id == ticket_id)
+        select(SupportTicket).where(SupportTicket.id == ticket_id),
     )
     ticket = result.scalar_one_or_none()
     if not ticket:
@@ -172,7 +172,7 @@ async def update_ticket(
         and ticket.tenant_id != current_user.tenant_id
     ):
         raise HTTPException(
-            status_code=403, detail="Not authorized to update this ticket"
+            status_code=403, detail="Not authorized to update this ticket",
         )
 
     update_data = ticket_in.dict(exclude_unset=True)
@@ -186,7 +186,7 @@ async def update_ticket(
 
     for field, value in update_data.items():
         if field == "metadata_":
-            setattr(ticket, "metadata_", value)
+            ticket.metadata_ = value
         else:
             setattr(ticket, field, value)
 
@@ -213,7 +213,7 @@ async def delete_ticket(
     check_owner(current_user)
 
     result = await db.execute(
-        select(SupportTicket).where(SupportTicket.id == ticket_id)
+        select(SupportTicket).where(SupportTicket.id == ticket_id),
     )
     ticket = result.scalar_one_or_none()
     if not ticket:
@@ -233,9 +233,9 @@ async def delete_ticket(
     return {"status": "success", "message": "Ticket deleted successfully"}
 
 
-@router.get("/incidents", response_model=List[PlatformIncidentResponse])
+@router.get("/incidents", response_model=list[PlatformIncidentResponse])
 async def list_incidents(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user),
 ):
     query = select(PlatformIncident).order_by(PlatformIncident.created_at.desc())
     result = await db.execute(query)

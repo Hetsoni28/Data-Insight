@@ -1,9 +1,9 @@
 # app/core/exceptions.py
+import uuid
+from datetime import datetime, timezone
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from datetime import datetime, timezone
-import uuid
-
 
 # ═══════════════════════════════════════
 # CUSTOM EXCEPTION CLASSES
@@ -38,7 +38,7 @@ class UnauthorizedException(DataInsightException):
 
 class ForbiddenException(DataInsightException):
     def __init__(
-        self, message: str = "You do not have permission to perform this action."
+        self, message: str = "You do not have permission to perform this action.",
     ):
         super().__init__(message=message, code="DI-BE-AUTH-403")
 
@@ -68,8 +68,8 @@ class TenantQuotaExceededException(DataInsightException):
         self,
         message: str = "You have reached your plan limit. Please upgrade your subscription.",
         resource_type: str = "general",
-        current_usage: int | float | None = None,
-        max_limit: int | float | None = None,
+        current_usage: float | None = None,
+        max_limit: float | None = None,
         plan_name: str | None = None,
     ):
         self.resource_type = resource_type
@@ -93,7 +93,7 @@ class StorageQuotaExceededException(DataInsightException):
 
 class AIServiceException(DataInsightException):
     def __init__(
-        self, message: str = "AI service is temporarily unavailable. Please try again."
+        self, message: str = "AI service is temporarily unavailable. Please try again.",
     ):
         super().__init__(message=message, code="DI-AI-GLOBAL-001")
 
@@ -110,7 +110,7 @@ class JobNotFoundException(DataInsightException):
 
 
 def _error_response(
-    status_code: int, error_type: str, message: str, code: str, request_id: str
+    status_code: int, error_type: str, message: str, code: str, request_id: str,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status_code,
@@ -125,18 +125,18 @@ def _error_response(
 
 
 async def resource_not_found_handler(
-    request: Request, exc: ResourceNotFoundException
+    request: Request, exc: ResourceNotFoundException,
 ) -> JSONResponse:
     return _error_response(
-        404, "RESOURCE_NOT_FOUND", exc.message, exc.code, str(uuid.uuid4())
+        404, "RESOURCE_NOT_FOUND", exc.message, exc.code, str(uuid.uuid4()),
     )
 
 
 async def unauthorized_handler(
-    request: Request, exc: UnauthorizedException
+    request: Request, exc: UnauthorizedException,
 ) -> JSONResponse:
     return _error_response(
-        401, "UNAUTHORIZED", exc.message, exc.code, str(uuid.uuid4())
+        401, "UNAUTHORIZED", exc.message, exc.code, str(uuid.uuid4()),
     )
 
 
@@ -149,15 +149,15 @@ async def conflict_handler(request: Request, exc: ConflictException) -> JSONResp
 
 
 async def validation_handler(
-    request: Request, exc: ValidationException
+    request: Request, exc: ValidationException,
 ) -> JSONResponse:
     return _error_response(
-        422, "VALIDATION_ERROR", exc.message, exc.code, str(uuid.uuid4())
+        422, "VALIDATION_ERROR", exc.message, exc.code, str(uuid.uuid4()),
     )
 
 
 async def quota_exceeded_handler(
-    request: Request, exc: TenantQuotaExceededException
+    request: Request, exc: TenantQuotaExceededException,
 ) -> JSONResponse:
     request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
     return JSONResponse(
@@ -177,7 +177,7 @@ async def quota_exceeded_handler(
 
 
 async def storage_quota_handler(
-    request: Request, exc: StorageQuotaExceededException
+    request: Request, exc: StorageQuotaExceededException,
 ) -> JSONResponse:
     request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
     return JSONResponse(
@@ -196,5 +196,5 @@ async def storage_quota_handler(
 
 async def ai_service_handler(request: Request, exc: AIServiceException) -> JSONResponse:
     return _error_response(
-        502, "AI_SERVICE_ERROR", exc.message, exc.code, str(uuid.uuid4())
+        502, "AI_SERVICE_ERROR", exc.message, exc.code, str(uuid.uuid4()),
     )

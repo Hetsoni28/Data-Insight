@@ -1,14 +1,14 @@
 import io
+
 import pandas as pd
 from openpyxl import Workbook
-from openpyxl.chart import BarChart, LineChart, PieChart, AreaChart, Reference
-from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.chart import AreaChart, BarChart, LineChart, PieChart, Reference
+from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 
 def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
-    """
-    Takes an AI blueprint JSON and dynamically generates a rich, native Excel
+    """Takes an AI blueprint JSON and dynamically generates a rich, native Excel
     dashboard with charts using openpyxl, saving it to a BytesIO buffer.
     """
     output = io.BytesIO()
@@ -25,7 +25,7 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
         title_cell.value = blueprint.get("dashboardTitle", title)
         title_cell.font = Font(size=20, bold=True, color="FFFFFF")
         title_cell.fill = PatternFill(
-            start_color="10B981", end_color="10B981", fill_type="solid"
+            start_color="10B981", end_color="10B981", fill_type="solid",
         )  # Emerald Green
         title_cell.alignment = Alignment(horizontal="center", vertical="center")
         ws.row_dimensions[1].height = 40
@@ -73,14 +73,14 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
             ]
 
             for r_idx, row in enumerate(
-                dataframe_to_rows(df, index=False, header=True), start=4
+                dataframe_to_rows(df, index=False, header=True), start=4,
             ):
                 for c_idx, value in enumerate(row, start=1):
                     cell = c_ws.cell(row=r_idx, column=c_idx, value=value)
                     if r_idx == 4:  # Header
                         cell.font = Font(bold=True)
                         cell.fill = PatternFill(
-                            start_color="E5E7EB", end_color="E5E7EB", fill_type="solid"
+                            start_color="E5E7EB", end_color="E5E7EB", fill_type="solid",
                         )
 
             # Format column widths
@@ -89,14 +89,11 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
 
             # Create Native Excel Chart
             chart_type = chart.get("chartType", "bar").lower()
-            min_col = 1
-            max_col = 2
-            min_row = 4
             max_row = 4 + len(data)
 
             x_values = Reference(c_ws, min_col=1, min_row=5, max_row=max_row)
             y_values = Reference(
-                c_ws, min_col=2, min_row=4, max_row=max_row
+                c_ws, min_col=2, min_row=4, max_row=max_row,
             )  # includes header
 
             if chart_type == "bar":
@@ -125,7 +122,7 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
             c_ws.add_chart(xl_chart, "E4")
 
     elif "predictedTrendline" in blueprint and isinstance(
-        blueprint["predictedTrendline"], list
+        blueprint["predictedTrendline"], list,
     ):
         # ── ML Trend Forecast Report ──
         ws = wb.active
@@ -137,7 +134,7 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
         title_cell.value = blueprint.get("forecastTitle", title)
         title_cell.font = Font(size=18, bold=True, color="FFFFFF")
         title_cell.fill = PatternFill(
-            start_color="059669", end_color="059669", fill_type="solid"
+            start_color="059669", end_color="059669", fill_type="solid",
         )  # Emerald
         title_cell.alignment = Alignment(horizontal="center", vertical="center")
         ws.row_dimensions[1].height = 35
@@ -174,7 +171,7 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
             cell = c_ws.cell(row=3, column=c_idx, value=h)
             cell.font = Font(bold=True, color="FFFFFF")
             cell.fill = PatternFill(
-                start_color="1F2937", end_color="1F2937", fill_type="solid"
+                start_color="1F2937", end_color="1F2937", fill_type="solid",
             )
             cell.alignment = Alignment(horizontal="center")
         c_ws.row_dimensions[3].height = 25
@@ -204,10 +201,10 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
             chart.height = 12
 
             data_ref = Reference(
-                c_ws, min_col=2, min_row=3, max_col=5, max_row=3 + len(trend_data)
+                c_ws, min_col=2, min_row=3, max_col=5, max_row=3 + len(trend_data),
             )
             cats_ref = Reference(
-                c_ws, min_col=1, min_row=4, max_row=3 + len(trend_data)
+                c_ws, min_col=1, min_row=4, max_row=3 + len(trend_data),
             )
             chart.add_data(data_ref, titles_from_data=True)
             chart.set_categories(cats_ref)
@@ -223,7 +220,7 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
         title_cell.value = title
         title_cell.font = Font(size=18, bold=True, color="FFFFFF")
         title_cell.fill = PatternFill(
-            start_color="10B981", end_color="10B981", fill_type="solid"
+            start_color="10B981", end_color="10B981", fill_type="solid",
         )
         ws.row_dimensions[1].height = 30
 
@@ -231,7 +228,7 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
         for key, value in blueprint.items():
             if isinstance(value, dict):
                 ws.cell(row=row_num, column=1, value=str(key).title()).font = Font(
-                    bold=True
+                    bold=True,
                 )
                 row_num += 1
                 for k, v in value.items():
@@ -240,7 +237,7 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
                     row_num += 1
             elif isinstance(value, list):
                 ws.cell(row=row_num, column=1, value=str(key).title()).font = Font(
-                    bold=True
+                    bold=True,
                 )
                 row_num += 1
                 for item in value:
@@ -248,10 +245,10 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
                     row_num += 1
             else:
                 ws.cell(row=row_num, column=1, value=str(key).title()).font = Font(
-                    bold=True
+                    bold=True,
                 )
                 ws.cell(row=row_num, column=2, value=str(value)).alignment = Alignment(
-                    wrap_text=True
+                    wrap_text=True,
                 )
                 row_num += 1
             row_num += 1
@@ -271,7 +268,7 @@ def generate_excel_from_blueprint(blueprint: dict, title: str) -> io.BytesIO:
 
         df = pd.DataFrame(df_data)
         for r_idx, row in enumerate(
-            dataframe_to_rows(df, index=False, header=True), start=1
+            dataframe_to_rows(df, index=False, header=True), start=1,
         ):
             for c_idx, value in enumerate(row, start=1):
                 ws.cell(row=r_idx, column=c_idx, value=value)

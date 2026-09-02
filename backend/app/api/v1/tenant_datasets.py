@@ -1,39 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, or_
-from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any, Optional
 import uuid
-import asyncio
-import random
+from datetime import datetime, timezone
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
+from pydantic import BaseModel
+from sqlalchemy import desc, func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import (
-    get_db,
-    get_current_active_tenant_user,
-    RequireRole,
-    get_current_workspace,
     RequirePermission,
-    ROLE_PERMISSIONS,
+    get_current_active_tenant_user,
+    get_current_workspace,
+    get_db,
 )
-from app.models.user import User
-from app.models.workspace import Workspace
-from app.models.dataset import Dataset, DatasetStatus
-from app.models.ai_token_usage import AITokenUsage
-from app.models.audit_log import AuditLog
-from pydantic import BaseModel
 from app.core.rate_limit import limiter
 from app.core.websockets import manager as ws_manager
-from app.services.dataset_query_service import DatasetQueryService
+from app.models.ai_token_usage import AITokenUsage
+from app.models.audit_log import AuditLog
+from app.models.dataset import Dataset, DatasetStatus
+from app.models.user import User
+from app.models.workspace import Workspace
 from app.permissions.dataset_permissions import (
     ROLE_PERMISSIONS as DATASET_ROLE_PERMISSIONS,
 )
+from app.services.dataset_query_service import DatasetQueryService
 
 router = APIRouter()
 
 
 class UploadDatasetRequest(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     file_type: str
     file_url: str
     file_size_bytes: int
@@ -77,14 +74,14 @@ async def get_dataset_stats(
 
         # Completed datasets
         comp_stmt = select(func.count(Dataset.id)).where(
-            *base_conditions, Dataset.status == DatasetStatus.ready
+            *base_conditions, Dataset.status == DatasetStatus.ready,
         )
         comp_res = await db.execute(comp_stmt)
         completed_datasets = comp_res.scalar() or 0
 
         # Failed datasets
         err_stmt = select(func.count(Dataset.id)).where(
-            *base_conditions, Dataset.status == DatasetStatus.error
+            *base_conditions, Dataset.status == DatasetStatus.error,
         )
         err_res = await db.execute(err_stmt)
         failed_datasets = err_res.scalar() or 0
@@ -127,7 +124,7 @@ async def get_dataset_stats(
 
         # Avg Quality Score
         q_stmt = select(func.avg(Dataset.data_quality_score)).where(
-            *base_conditions, Dataset.data_quality_score.is_not(None)
+            *base_conditions, Dataset.data_quality_score.is_not(None),
         )
         q_res = await db.execute(q_stmt)
         avg_quality = float(q_res.scalar() or 0)
@@ -153,7 +150,7 @@ async def get_dataset_stats(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -163,7 +160,7 @@ async def get_dataset_stats(
     dependencies=[Depends(RequirePermission("DATASET_VIEW"))],
 )
 async def list_datasets(
-    search: Optional[str] = None,
+    search: str | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
@@ -210,7 +207,7 @@ async def list_datasets(
                 },
                 "uploaded_by_id": str(d.uploaded_by_id),
                 "schema_info": d.profile.get("columns", {}) if d.profile else {},
-            }
+            },
         )
 
     return {"status": "success", "data": datasets}
@@ -253,7 +250,7 @@ async def get_dataset_activities(
                     "created_at": log.created_at,
                     "actor_name": u.full_name if u else "System",
                     "type": "audit",
-                }
+                },
             )
 
         # Get recent AI tasks — tenant-scoped only (fast indexed query)
@@ -276,7 +273,7 @@ async def get_dataset_activities(
                     "tokens": log.total_tokens,
                     "created_at": log.created_at,
                     "type": "ai_activity",
-                }
+                },
             )
 
         return {
@@ -338,7 +335,7 @@ async def get_dataset_schema(
                         if val.get("top_values")
                         else "N/A"
                     ),
-                }
+                },
             )
         columns = mapped_columns
 
@@ -356,8 +353,9 @@ async def get_dataset_insights(
     workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    from app.services.ai_service import AIService
     import json
+
+    from app.services.ai_service import AIService
 
     try:
         ai = AIService(db)
@@ -369,7 +367,7 @@ async def get_dataset_insights(
   "opportunities": ["Opportunity 1", "Opportunity 2"]
 }"""
         res = await ai.copilot_chat(
-            question=prompt, dataset_id=dataset_id, actor=current_user
+            question=prompt, dataset_id=dataset_id, actor=current_user,
         )
 
         # Try to parse the answer as JSON
@@ -420,7 +418,7 @@ async def get_dataset_charts(
                 "title": "Total Records",
                 "type": "kpi",
                 "metrics": {"value": row_count, "median": "N/A"},
-            }
+            },
         )
 
         columns = dataset.profile.get("columns", {})
@@ -435,7 +433,7 @@ async def get_dataset_charts(
                                 {"name": v.get("value"), "value": v.get("count")}
                                 for v in col_data.get("top_values", [])
                             ],
-                        }
+                        },
                     )
                     if len(charts) >= 3:
                         break
@@ -477,7 +475,7 @@ async def get_dataset_preview(
         import traceback
 
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Failed to load preview: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load preview: {e!s}")
 
 
 @router.get(
@@ -557,9 +555,10 @@ async def upload_dataset(
         tenant_id = current_user.tenant_id
 
         # Phase 5: Quota Enforcement
-        from app.services.entitlements import check_quota, BillingResource, get_usage
-        from app.models.tenant import Tenant
         from sqlalchemy import select
+
+        from app.models.tenant import Tenant
+        from app.services.entitlements import BillingResource, check_quota, get_usage
 
         tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
         usage = await get_usage(tenant, db)
@@ -615,14 +614,14 @@ async def upload_dataset(
             import logging
 
             logging.getLogger(__name__).warning(
-                f"Could not queue AI Excel task: {task_err}"
+                f"Could not queue AI Excel task: {task_err}",
             )
 
         return {"status": "success", "data": {"id": str(d.id)}}
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -676,21 +675,21 @@ async def delete_dataset(
     await db.commit()
 
     await ws_manager.publish_tenant_event(
-        str(tenant_id), "dataset_deleted", {"dataset_id": str(d.id)}
+        str(tenant_id), "dataset_deleted", {"dataset_id": str(d.id)},
     )
 
     return {"status": "success"}
 
 
 async def simulate_ai_workflow(
-    tenant_id: uuid.UUID, dataset_id: uuid.UUID, workflow_type: str, user_id: uuid.UUID
+    tenant_id: uuid.UUID, dataset_id: uuid.UUID, workflow_type: str, user_id: uuid.UUID,
 ):
     """Background task to mock processing delay and reset status."""
     from app.db.session import AsyncSessionLocal
 
     async with AsyncSessionLocal() as db:
         stmt = select(Dataset).where(
-            Dataset.id == dataset_id, Dataset.tenant_id == tenant_id
+            Dataset.id == dataset_id, Dataset.tenant_id == tenant_id,
         )
         res = await db.execute(stmt)
         d = res.scalars().first()
@@ -789,13 +788,13 @@ async def analyze_dataset(
 
         await db.commit()
         background_tasks.add_task(
-            simulate_ai_workflow, tenant_id, dataset_id, "analyze", current_user.id
+            simulate_ai_workflow, tenant_id, dataset_id, "analyze", current_user.id,
         )
         return {"status": "success", "message": "Analysis started"}
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -816,9 +815,10 @@ async def generate_ai_excel(
     tenant_id = current_user.tenant_id
 
     # Phase 5: Quota Enforcement
-    from app.services.entitlements import can_use_feature, BillingFeature
-    from app.models.tenant import Tenant
     from sqlalchemy import select
+
+    from app.models.tenant import Tenant
+    from app.services.entitlements import BillingFeature, can_use_feature
 
     tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
     if not can_use_feature(tenant, BillingFeature.AI_EXCEL):
@@ -922,13 +922,13 @@ async def create_dashboard(
 
         await db.commit()
         background_tasks.add_task(
-            simulate_ai_workflow, tenant_id, dataset_id, "dashboard", current_user.id
+            simulate_ai_workflow, tenant_id, dataset_id, "dashboard", current_user.id,
         )
         return {"status": "success", "message": "Dashboard generation started"}
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -966,8 +966,8 @@ async def generate_nl_chart(
         if not d:
             raise HTTPException(status_code=404, detail="Dataset not found")
 
-        from app.services.ai.visual_sql_agent import VisualSQLAgent
         from app.services.ai.router import LLMRouter
+        from app.services.ai.visual_sql_agent import VisualSQLAgent
         from app.services.dataset import DatasetService
 
         # Get preview data and DF to feed into AI
@@ -991,13 +991,13 @@ async def generate_nl_chart(
 
         logging.getLogger(__name__).exception("Failed to generate NL chart")
         raise HTTPException(
-            status_code=500, detail=f"Failed to generate chart: {str(e)}"
+            status_code=500, detail=f"Failed to generate chart: {e!s}",
         )
 
 
 class QueryRequest(BaseModel):
-    dimensions: List[str] = []
-    metrics: List[str] = []
+    dimensions: list[str] = []
+    metrics: list[str] = []
 
 
 @router.post(
@@ -1038,7 +1038,7 @@ async def query_dataset(
         return {"status": "success", "data": results}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -1054,14 +1054,14 @@ async def clean_dataset_api(
     workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Scans the dataset for structural chaos, removes duplicates and null rows,
+    """Scans the dataset for structural chaos, removes duplicates and null rows,
     and saves the cleaned version over the original.
     """
+    import io
+
+    from app.core.storage import DATASETS_BUCKET, upload_file
     from app.services.dataset import DatasetService
     from app.services.ingestion.cleaner import DatasetCleaner
-    from app.core.storage import upload_file, DATASETS_BUCKET
-    import io
 
     try:
         tenant_id = current_user.tenant_id
@@ -1083,7 +1083,7 @@ async def clean_dataset_api(
         import asyncio
 
         df_cleaned, metrics = await asyncio.to_thread(
-            DatasetCleaner.clean_dataframe, df
+            DatasetCleaner.clean_dataframe, df,
         )
 
         # Write to bytes buffer (always export as xlsx for cleaning)
@@ -1139,7 +1139,7 @@ async def clean_dataset_api(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Cleaning failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Cleaning failed: {e!s}")
 
 
 @router.get("/{dataset_id}/excel-download", summary="Download AI Excel")
@@ -1149,8 +1149,7 @@ async def download_ai_excel(
     workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Returns the AI-generated Excel file as a streaming download.
+    """Returns the AI-generated Excel file as a streaming download.
     Works with both local storage (FileResponse) and Supabase (redirect).
     """
     tenant_id = current_user.tenant_id
@@ -1170,8 +1169,9 @@ async def download_ai_excel(
     from app.core.storage import is_local_storage
 
     if is_local_storage():
-        from app.core.storage import LOCAL_UPLOADS_DIR, DATASETS_BUCKET
         from fastapi.responses import FileResponse
+
+        from app.core.storage import DATASETS_BUCKET, LOCAL_UPLOADS_DIR
 
         local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / d.excel_url
         if not local_path.exists():
@@ -1182,12 +1182,12 @@ async def download_ai_excel(
             filename=safe_name,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
-    else:
-        from fastapi.responses import RedirectResponse
-        from app.core.storage import get_signed_url, DATASETS_BUCKET
+    from fastapi.responses import RedirectResponse
 
-        url = await get_signed_url(DATASETS_BUCKET, d.excel_url, expires_in=300)
-        return RedirectResponse(url)
+    from app.core.storage import DATASETS_BUCKET, get_signed_url
+
+    url = await get_signed_url(DATASETS_BUCKET, d.excel_url, expires_in=300)
+    return RedirectResponse(url)
 
 
 @router.get("/{dataset_id}/pdf-download", summary="Download AI PDF Report")
@@ -1215,22 +1215,23 @@ async def download_ai_pdf(
     from app.core.storage import is_local_storage
 
     if is_local_storage():
-        from app.core.storage import LOCAL_UPLOADS_DIR, DATASETS_BUCKET
         from fastapi.responses import FileResponse
+
+        from app.core.storage import DATASETS_BUCKET, LOCAL_UPLOADS_DIR
 
         local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / d.pdf_url
         if not local_path.exists():
             raise HTTPException(status_code=404, detail="PDF file missing on disk")
         safe_name = f"AI_Report_{d.name}.pdf".replace("/", "_")
         return FileResponse(
-            path=str(local_path), filename=safe_name, media_type="application/pdf"
+            path=str(local_path), filename=safe_name, media_type="application/pdf",
         )
-    else:
-        from fastapi.responses import RedirectResponse
-        from app.core.storage import get_signed_url, DATASETS_BUCKET
+    from fastapi.responses import RedirectResponse
 
-        url = await get_signed_url(DATASETS_BUCKET, d.pdf_url, expires_in=300)
-        return RedirectResponse(url)
+    from app.core.storage import DATASETS_BUCKET, get_signed_url
+
+    url = await get_signed_url(DATASETS_BUCKET, d.pdf_url, expires_in=300)
+    return RedirectResponse(url)
 
 
 # =================================================================================
@@ -1314,7 +1315,7 @@ async def delete_dataset_alert(
     from app.models.dataset_alert import DatasetAlert
 
     stmt = select(DatasetAlert).where(
-        DatasetAlert.id == alert_id, DatasetAlert.tenant_id == current_user.tenant_id
+        DatasetAlert.id == alert_id, DatasetAlert.tenant_id == current_user.tenant_id,
     )
     res = await db.execute(stmt)
     alert = res.scalars().first()
@@ -1330,7 +1331,7 @@ async def delete_dataset_alert(
 
 
 class CleanApplyRequest(BaseModel):
-    operations: List[Dict[str, Any]]
+    operations: list[dict[str, Any]]
 
 
 @router.post(
@@ -1346,22 +1347,22 @@ async def get_cleaning_suggestions(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Dataset).where(
-        Dataset.id == dataset_id, Dataset.tenant_id == current_user.tenant_id
+        Dataset.id == dataset_id, Dataset.tenant_id == current_user.tenant_id,
     )
     res = await db.execute(stmt)
     d = res.scalars().first()
     if not d:
         raise HTTPException(status_code=404, detail="Dataset not found")
 
-    from app.services.dataset import DatasetService
     from app.services.ai.cleaning_agent import CleaningAgent
     from app.services.ai.router import LLMRouter
+    from app.services.dataset import DatasetService
 
     ds_svc = DatasetService(db)
     df = await ds_svc.load_dataframe(d)
 
     router_instance = LLMRouter(
-        db=db, tenant_id=current_user.tenant_id, user_id=current_user.id
+        db=db, tenant_id=current_user.tenant_id, user_id=current_user.id,
     )
     agent = CleaningAgent(router_instance)
 
@@ -1385,17 +1386,18 @@ async def apply_cleaning_operations(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Dataset).where(
-        Dataset.id == dataset_id, Dataset.tenant_id == current_user.tenant_id
+        Dataset.id == dataset_id, Dataset.tenant_id == current_user.tenant_id,
     )
     res = await db.execute(stmt)
     d = res.scalars().first()
     if not d:
         raise HTTPException(status_code=404, detail="Dataset not found")
 
-    from app.services.dataset import DatasetService
-    from app.services.ai.cleaning_agent import CleaningAgent
-    from app.core.storage import upload_file, DATASETS_BUCKET
     import io
+
+    from app.core.storage import DATASETS_BUCKET, upload_file
+    from app.services.ai.cleaning_agent import CleaningAgent
+    from app.services.dataset import DatasetService
 
     ds_svc = DatasetService(db)
     df = await ds_svc.load_dataframe(d)

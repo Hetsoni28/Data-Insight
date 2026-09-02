@@ -5,25 +5,26 @@ with multi-tier caching (Redis + PostgreSQL) for ultra-fast, zero-overhead valid
 """
 
 from __future__ import annotations
-import uuid
-from typing import Dict, Any, Optional
-from datetime import datetime, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func
-from redis.asyncio import Redis
-from loguru import logger
 
-from app.models.tenant import Tenant, PlanType
-from app.models.user import User
+import uuid
+from typing import Any
+
+from loguru import logger
+from redis.asyncio import Redis
+from sqlalchemy import func, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.exceptions import (
-    TenantQuotaExceededException,
-    StorageQuotaExceededException,
     ResourceNotFoundException,
+    StorageQuotaExceededException,
+    TenantQuotaExceededException,
 )
+from app.models.tenant import Tenant
+from app.models.user import User
 
 
 class QuotaService:
-    def __init__(self, session: AsyncSession, redis: Optional[Redis] = None):
+    def __init__(self, session: AsyncSession, redis: Redis | None = None):
         self.session = session
         self.redis = redis
 
@@ -38,10 +39,9 @@ class QuotaService:
 
     # ─── Storage Quota ────────────────────────────────────────────────────────
     async def check_storage_quota(
-        self, tenant_id: uuid.UUID, additional_bytes: int = 0
+        self, tenant_id: uuid.UUID, additional_bytes: int = 0,
     ) -> bool:
-        """
-        Verify if tenant has sufficient storage capacity.
+        """Verify if tenant has sufficient storage capacity.
         Raises StorageQuotaExceededException if limit would be breached.
         """
         tenant = await self.get_tenant_record(tenant_id)
@@ -56,7 +56,7 @@ class QuotaService:
             max_mb = round(max_bytes / (1024 * 1024), 2)
             logger.warning(
                 f"[Quota] Tenant {tenant_id} exceeded storage quota: "
-                f"{current_mb}MB + {round(additional_bytes / (1024 * 1024), 2)}MB > {max_mb}MB"
+                f"{current_mb}MB + {round(additional_bytes / (1024 * 1024), 2)}MB > {max_mb}MB",
             )
             raise StorageQuotaExceededException(
                 message=f"Storage limit of {tenant.max_storage_gb} GB exceeded. Upgrade your plan to upload larger datasets.",
@@ -85,7 +85,7 @@ class QuotaService:
         if self.redis:
             try:
                 await self.redis.set(
-                    f"tenant:{tenant_id}:storage_bytes", new_total, ex=3600
+                    f"tenant:{tenant_id}:storage_bytes", new_total, ex=3600,
                 )
             except Exception as e:
                 logger.debug(f"[Quota] Redis storage cache update skipped: {e}")
@@ -112,7 +112,7 @@ class QuotaService:
         if self.redis:
             try:
                 await self.redis.set(
-                    f"tenant:{tenant_id}:storage_bytes", new_total, ex=3600
+                    f"tenant:{tenant_id}:storage_bytes", new_total, ex=3600,
                 )
             except Exception as e:
                 logger.debug(f"[Quota] Redis storage cache update skipped: {e}")
@@ -121,10 +121,9 @@ class QuotaService:
 
     # ─── AI Token Quota ───────────────────────────────────────────────────────
     async def check_ai_quota(
-        self, tenant_id: uuid.UUID, estimated_tokens: int = 1000
+        self, tenant_id: uuid.UUID, estimated_tokens: int = 1000,
     ) -> bool:
-        """
-        Verify tenant has remaining monthly AI tokens.
+        """Verify tenant has remaining monthly AI tokens.
         Raises TenantQuotaExceededException if budget is exhausted.
         """
         tenant = await self.get_tenant_record(tenant_id)
@@ -137,7 +136,7 @@ class QuotaService:
         if used_tokens + estimated_tokens > max_tokens:
             logger.warning(
                 f"[Quota] Tenant {tenant_id} exceeded AI token budget: "
-                f"{used_tokens} + {estimated_tokens} > {max_tokens}"
+                f"{used_tokens} + {estimated_tokens} > {max_tokens}",
             )
             raise TenantQuotaExceededException(
                 message=f"Monthly AI token budget of {max_tokens:,} tokens reached for {tenant.name}. Upgrade your plan to increase limits.",
@@ -166,7 +165,7 @@ class QuotaService:
         if self.redis:
             try:
                 await self.redis.set(
-                    f"tenant:{tenant_id}:ai_tokens_used", new_total, ex=3600
+                    f"tenant:{tenant_id}:ai_tokens_used", new_total, ex=3600,
                 )
             except Exception as e:
                 logger.debug(f"[Quota] Redis AI token cache update skipped: {e}")
@@ -175,8 +174,7 @@ class QuotaService:
 
     # ─── User Seat Quota ──────────────────────────────────────────────────────
     async def check_user_seats(self, tenant_id: uuid.UUID) -> bool:
-        """
-        Verify tenant has available user seats before inviting/creating new member.
+        """Verify tenant has available user seats before inviting/creating new member.
         Raises TenantQuotaExceededException if seat capacity is reached.
         """
         tenant = await self.get_tenant_record(tenant_id)
@@ -199,7 +197,7 @@ class QuotaService:
 
         if active_count >= max_users:
             logger.warning(
-                f"[Quota] Tenant {tenant_id} reached seat limit: {active_count} >= {max_users}"
+                f"[Quota] Tenant {tenant_id} reached seat limit: {active_count} >= {max_users}",
             )
             raise TenantQuotaExceededException(
                 message=f"User seat limit of {max_users} members reached for {tenant.name}. Upgrade your plan to invite more team members.",
@@ -211,7 +209,7 @@ class QuotaService:
         return True
 
     # ─── Full Usage Analytics Summary ─────────────────────────────────────────
-    async def get_usage_summary(self, tenant_id: uuid.UUID) -> Dict[str, Any]:
+    async def get_usage_summary(self, tenant_id: uuid.UUID) -> dict[str, Any]:
         """Comprehensive usage breakdown with percentage metrics and plan limits."""
         tenant = await self.get_tenant_record(tenant_id)
 

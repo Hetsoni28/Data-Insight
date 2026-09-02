@@ -1,19 +1,20 @@
-from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, or_, and_
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
+from typing import Any
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import desc, func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
 from app.models.audit_log import AuditLog
+from app.models.user import User
 
 router = APIRouter()
 
 
 async def require_owner(current_user: User = Depends(get_current_user)) -> User:
     if getattr(current_user, "role", "") != "owner" and not getattr(
-        current_user, "is_owner", False
+        current_user, "is_owner", False,
     ):
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
@@ -21,26 +22,26 @@ async def require_owner(current_user: User = Depends(get_current_user)) -> User:
 
 @router.get("/overview")
 async def get_overview(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     today_start = datetime.now(timezone.utc).replace(
-        hour=0, minute=0, second=0, microsecond=0
+        hour=0, minute=0, second=0, microsecond=0,
     )
 
     total_events = await db.scalar(select(func.count(AuditLog.id)))
     today_events = await db.scalar(
-        select(func.count(AuditLog.id)).where(AuditLog.created_at >= today_start)
+        select(func.count(AuditLog.id)).where(AuditLog.created_at >= today_start),
     )
     critical_events = await db.scalar(
-        select(func.count(AuditLog.id)).where(AuditLog.severity == "critical")
+        select(func.count(AuditLog.id)).where(AuditLog.severity == "critical"),
     )
     failed_events = await db.scalar(
-        select(func.count(AuditLog.id)).where(AuditLog.status == "failure")
+        select(func.count(AuditLog.id)).where(AuditLog.status == "failure"),
     )
 
     # Active modules calculation
     module_counts_res = await db.execute(
-        select(AuditLog.module, func.count(AuditLog.id)).group_by(AuditLog.module)
+        select(AuditLog.module, func.count(AuditLog.id)).group_by(AuditLog.module),
     )
     module_counts = {row[0]: row[1] for row in module_counts_res.all()}
 
@@ -51,7 +52,7 @@ async def get_overview(
             "critical_events": critical_events or 0,
             "failed_events": failed_events or 0,
             "module_counts": module_counts,
-        }
+        },
     }
 
 
@@ -59,9 +60,9 @@ async def get_overview(
 async def get_events(
     limit: int = Query(50, le=100),
     offset: int = Query(0, ge=0),
-    module: Optional[str] = None,
-    severity: Optional[str] = None,
-    search: Optional[str] = None,
+    module: str | None = None,
+    severity: str | None = None,
+    search: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner),
 ) -> Any:
@@ -77,7 +78,7 @@ async def get_events(
                 AuditLog.action.ilike(f"%{search}%"),
                 AuditLog.ip_address.ilike(f"%{search}%"),
                 AuditLog.correlation_id.ilike(f"%{search}%"),
-            )
+            ),
         )
 
     # Count total matching
@@ -139,7 +140,7 @@ async def get_timeline(
             or_(
                 AuditLog.severity.in_(["warning", "critical"]),
                 AuditLog.module.in_(["authentication", "billing", "security"]),
-            )
+            ),
         )
         .order_by(desc(AuditLog.created_at))
         .limit(limit)
@@ -162,5 +163,5 @@ async def get_timeline(
                 "created_at": e.AuditLog.created_at.isoformat(),
             }
             for e in rows
-        ]
+        ],
     }

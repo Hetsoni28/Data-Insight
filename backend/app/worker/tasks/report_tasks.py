@@ -1,21 +1,21 @@
 """Celery task — Full AI Excel Intelligence Engine (World-Class 15-Sheet Pipeline)."""
 
-import uuid
 import io
-from loguru import logger
+import uuid
+
 from celery import shared_task
+from loguru import logger
 
 
 @shared_task(
-    bind=True, name="report.generate_excel", max_retries=2, default_retry_delay=120
+    bind=True, name="report.generate_excel", max_retries=2, default_retry_delay=120,
 )
 def generate_excel_report_task(self, report_id: str):
-    """
-    AI Excel Generation Pipeline — 22 steps:
-      Phase 1 (Steps 1-5):   Load data, validate, profile, clean
-      Phase 2 (Steps 6-10):  AI blueprint + executive summary + insights + recommendations
-      Phase 3 (Steps 11-20): XlsxWriter builds all 15+ sheets
-      Phase 4 (Steps 21-22): Upload to storage, update report record
+    """AI Excel Generation Pipeline — 22 steps:
+    Phase 1 (Steps 1-5):   Load data, validate, profile, clean
+    Phase 2 (Steps 6-10):  AI blueprint + executive summary + insights + recommendations
+    Phase 3 (Steps 11-20): XlsxWriter builds all 15+ sheets
+    Phase 4 (Steps 21-22): Upload to storage, update report record
     """
     import asyncio
 
@@ -23,21 +23,21 @@ def generate_excel_report_task(self, report_id: str):
 
 
 async def _run_excel_pipeline(task, report_id: str):
-    import xlsxwriter
     import httpx
-    from app.db.session import AsyncSessionLocal
-    from app.repositories.report import ReportRepository
-    from app.repositories.dataset import DatasetRepository
-    from app.repositories.user import UserRepository
-    from app.models.report import ReportStatus
-    from app.services.ai_service import AIService
+    import xlsxwriter
+
     from app.core.storage import (
-        get_signed_url,
-        upload_file,
-        report_storage_path,
         DATASETS_BUCKET,
         REPORTS_BUCKET,
+        get_signed_url,
+        report_storage_path,
+        upload_file,
     )
+    from app.db.session import AsyncSessionLocal
+    from app.models.report import ReportStatus
+    from app.repositories.dataset import DatasetRepository
+    from app.repositories.report import ReportRepository
+    from app.services.ai_service import AIService
 
     async with AsyncSessionLocal() as session:
         report_repo = ReportRepository(session)
@@ -55,14 +55,14 @@ async def _run_excel_pipeline(task, report_id: str):
 
             # ── STEP 2: Load dataset file ────────────────────────────────────
             dataset = await ds_repo.get_by_id(report.dataset_id)
-            from app.core.storage import is_local_storage, LOCAL_UPLOADS_DIR
+            from app.core.storage import LOCAL_UPLOADS_DIR, is_local_storage
 
             if is_local_storage():
                 local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
                 file_bytes = local_path.read_bytes()
             else:
                 signed_url = await get_signed_url(
-                    DATASETS_BUCKET, dataset.file_url, expires_in=600
+                    DATASETS_BUCKET, dataset.file_url, expires_in=600,
                 )
                 async with httpx.AsyncClient() as client:
                     response = await client.get(signed_url)
@@ -77,14 +77,14 @@ async def _run_excel_pipeline(task, report_id: str):
             ext = ext.lower().strip()
             df_raw = _load_dataframe(file_bytes, ext)
             await report_repo.update_status(
-                report, ReportStatus.generating, progress=10
+                report, ReportStatus.generating, progress=10,
             )
             await session.commit()
 
             # ── STEP 4: Deep clean ───────────────────────────────────────────
             df_clean, cleaning_log = _clean_dataframe(df_raw.copy())
             await report_repo.update_status(
-                report, ReportStatus.generating, progress=18
+                report, ReportStatus.generating, progress=18,
             )
             await session.commit()
 
@@ -110,7 +110,7 @@ async def _run_excel_pipeline(task, report_id: str):
             report.ai_blueprint = blueprint
             await session.commit()
             await report_repo.update_status(
-                report, ReportStatus.generating, progress=30
+                report, ReportStatus.generating, progress=30,
             )
             await session.commit()
 
@@ -136,7 +136,7 @@ async def _run_excel_pipeline(task, report_id: str):
                 )
             await session.commit()
             await report_repo.update_status(
-                report, ReportStatus.generating, progress=42
+                report, ReportStatus.generating, progress=42,
             )
             await session.commit()
 
@@ -159,7 +159,7 @@ async def _run_excel_pipeline(task, report_id: str):
                 )
             await session.commit()
             await report_repo.update_status(
-                report, ReportStatus.generating, progress=52
+                report, ReportStatus.generating, progress=52,
             )
             await session.commit()
 
@@ -185,14 +185,14 @@ async def _run_excel_pipeline(task, report_id: str):
                 )
             await session.commit()
             await report_repo.update_status(
-                report, ReportStatus.generating, progress=60
+                report, ReportStatus.generating, progress=60,
             )
             await session.commit()
 
             # ── STEPS 10-20: Build Excel Workbook ───────────────────────────
             output = io.BytesIO()
             wb = xlsxwriter.Workbook(
-                output, {"in_memory": True, "strings_to_urls": False}
+                output, {"in_memory": True, "strings_to_urls": False},
             )
             _build_workbook(
                 wb,
@@ -209,14 +209,14 @@ async def _run_excel_pipeline(task, report_id: str):
             wb.close()
             excel_bytes = output.getvalue()
             await report_repo.update_status(
-                report, ReportStatus.generating, progress=82
+                report, ReportStatus.generating, progress=82,
             )
             await session.commit()
 
             # ── STEP 21: Upload / Save Excel file ───────────────────────────
             filename = f"{report.title[:50].replace(' ', '_')}.xlsx"
             storage_path = report_storage_path(
-                report.tenant_id, uuid.UUID(report_id), filename
+                report.tenant_id, uuid.UUID(report_id), filename,
             )
 
             if is_local_storage():
@@ -232,7 +232,7 @@ async def _run_excel_pipeline(task, report_id: str):
                     content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 )
                 output_url = await get_signed_url(
-                    REPORTS_BUCKET, storage_path, expires_in=86400
+                    REPORTS_BUCKET, storage_path, expires_in=86400,
                 )
 
             # ── STEP 22: Finalize report record ─────────────────────────────
@@ -247,15 +247,15 @@ async def _run_excel_pipeline(task, report_id: str):
             logger.success(
                 f"[AI Excel Engine] Report {report_id} complete — "
                 f"{len(excel_bytes):,} bytes | {len(df_clean)} rows | "
-                f"domain={blueprint.get('domain', 'Unknown')}"
+                f"domain={blueprint.get('domain', 'Unknown')}",
             )
 
         except Exception as exc:
             logger.exception(
-                f"[AI Excel Engine] Pipeline failed for {report_id}: {exc}"
+                f"[AI Excel Engine] Pipeline failed for {report_id}: {exc}",
             )
             await report_repo.update_status(
-                report, ReportStatus.error, error_message=str(exc)[:500]
+                report, ReportStatus.error, error_message=str(exc)[:500],
             )
             await session.commit()
             raise task.retry(exc=exc)
@@ -271,9 +271,9 @@ def _load_dataframe(file_bytes: bytes, ext: str):
 
     if ext == "csv":
         return pd.read_csv(io.BytesIO(file_bytes))
-    elif ext == "xlsx":
+    if ext == "xlsx":
         return pd.read_excel(io.BytesIO(file_bytes), engine="openpyxl")
-    elif ext == "json":
+    if ext == "json":
         return pd.read_json(io.BytesIO(file_bytes))
     raise ValueError(f"Unsupported format: {ext}")
 
@@ -360,7 +360,7 @@ def _extract_deep_insights(df, profile_summary: str) -> str:
             lines.append(
                 f"- {col}: total={total:,.2f}, mean={mean:,.2f}, "
                 f"median={med:,.2f}, min={mn:,.2f}, max={mx:,.2f}, "
-                f"null%={null_pct:.1f}%"
+                f"null%={null_pct:.1f}%",
             )
         except Exception:
             pass
@@ -384,7 +384,7 @@ def _extract_deep_insights(df, profile_summary: str) -> str:
             if first_half and first_half != 0:
                 growth = ((second_half - first_half) / first_half) * 100
                 lines.append(
-                    f"- Period-over-period growth ({numeric_cols[0]}): {growth:+.1f}%"
+                    f"- Period-over-period growth ({numeric_cols[0]}): {growth:+.1f}%",
                 )
         except Exception:
             pass
@@ -409,8 +409,7 @@ def _build_workbook(
     report,
     dataset,
 ):
-    """
-    Data Insight AI Excel Intelligence Engine.
+    """Data Insight AI Excel Intelligence Engine.
     Builds a 15+ sheet Enterprise BI Workbook using the website brand palette.
 
     Brand Palette (from globals.css):
@@ -429,13 +428,13 @@ def _build_workbook(
       Info:       #3B82F6  (Blue 500)
       Success:    #10B981  (same as primary)
     """
-    import numpy as np
     from datetime import datetime, timezone
+
+    import numpy as np
     from xlsxwriter.utility import xl_col_to_name
 
     # ── Brand Palette ────────────────────────────────────────────────────────
     C_PRIMARY = "#10B981"  # Emerald 500 — signature
-    C_DEEP = "#059669"  # Emerald 600
     C_DARK = "#064e3b"  # Emerald 900
     C_DARKEST = "#022c22"  # Emerald 950
     C_MINT = "#ECFDF5"  # Emerald 50
@@ -443,7 +442,6 @@ def _build_workbook(
     C_CHARCOAL = "#0F172A"  # Slate 900
     C_SLATE_600 = "#475569"  # Slate 600
     C_SLATE_400 = "#94a3b8"  # Slate 400
-    C_SLATE_200 = "#e2e8f0"  # Slate 200
     C_TEAL_900 = "#134e4a"  # Teal 900
     C_WARNING = "#F59E0B"  # Amber 500
     C_DANGER = "#EF4444"  # Red 500
@@ -459,7 +457,7 @@ def _build_workbook(
 
     numeric_cols = df_clean.select_dtypes(include="number").columns.tolist()
     cat_cols = df_clean.select_dtypes(exclude="number").columns.tolist()
-    all_cols = df_clean.columns.tolist()
+    df_clean.columns.tolist()
 
     primary_metric = blueprint.get("primary_metric_column") or (
         numeric_cols[0] if numeric_cols else None
@@ -487,7 +485,7 @@ def _build_workbook(
             valign="vcenter",
         ),
         "sidebar_nav": F(
-            bg_color=C_DARKEST, font_color=C_SLATE_400, bold=True, font_size=8, indent=1
+            bg_color=C_DARKEST, font_color=C_SLATE_400, bold=True, font_size=8, indent=1,
         ),
         "sidebar_link": F(
             bg_color=C_DARKEST,
@@ -547,7 +545,7 @@ def _build_workbook(
         "pct": F(font_size=10, border=1, num_format="0.00%", valign="vcenter"),
         "cur": F(font_size=10, border=1, num_format='"$"#,##0.00', valign="vcenter"),
         "date_fmt": F(
-            font_size=10, border=1, num_format="dd/mm/yyyy", valign="vcenter"
+            font_size=10, border=1, num_format="dd/mm/yyyy", valign="vcenter",
         ),
         # KPI cards
         "kpi_label": F(
@@ -662,7 +660,7 @@ def _build_workbook(
             border=1,
         ),
         "outlier_tag": F(
-            bold=True, bg_color=C_DANGER, font_color=C_WHITE, border=1, align="center"
+            bold=True, bg_color=C_DANGER, font_color=C_WHITE, border=1, align="center",
         ),
         # Footer / meta
         "footer": F(
@@ -786,10 +784,10 @@ def _build_workbook(
         ws.set_footer(
             f"&L&8◆ Data Insight AI — {domain}"
             f"&C&8CONFIDENTIAL — Generated {now_short}"
-            f"&R&8AI Generation ID: {gen_id} | Page {page_num}/{total_pages}"
+            f"&R&8AI Generation ID: {gen_id} | Page {page_num}/{total_pages}",
         )
         ws.set_header(
-            f"&L&8{report.title[:60]}" f"&R&8Data Insight AI · Enterprise BI Report"
+            f"&L&8{report.title[:60]}&R&8Data Insight AI · Enterprise BI Report",
         )
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -973,7 +971,7 @@ def _build_workbook(
     ws_toc.set_row(toc_header_row, 24)
     ws_toc.write(toc_header_row, 2, "#", fmt["table_header"])
     ws_toc.merge_range(
-        toc_header_row, 3, toc_header_row, 9, "Sheet Name", fmt["table_header"]
+        toc_header_row, 3, toc_header_row, 9, "Sheet Name", fmt["table_header"],
     )
     ws_toc.write(toc_header_row, 10, "Description", fmt["table_header"])
 
@@ -1037,7 +1035,7 @@ def _build_workbook(
     ws_exec.hide_gridlines(2)
     add_sidebar(ws_exec, "03 Executive Summary")
     add_page_header(
-        ws_exec, "Executive Summary", "CEO-Level Business Intelligence Narrative"
+        ws_exec, "Executive Summary", "CEO-Level Business Intelligence Narrative",
     )
 
     ws_exec.set_column("B:B", 2)
@@ -1062,7 +1060,7 @@ def _build_workbook(
     ws_exec.set_row(6, 500)
     ws_exec.merge_range(
         "C7:N7",
-        exec_summary if exec_summary else "Executive summary not available.",
+        exec_summary or "Executive summary not available.",
         F(
             font_size=11,
             text_wrap=True,
@@ -1104,7 +1102,7 @@ def _build_workbook(
     ws_insights.set_column("B:B", 2)
     ws_insights.set_column("C:N", 13)
 
-    insights_text = ai_insights if ai_insights else "AI insights not available."
+    insights_text = ai_insights or "AI insights not available."
 
     # Parse & render insights as cards
     insight_blocks = insights_text.split("INSIGHT ")
@@ -1118,7 +1116,7 @@ def _build_workbook(
 
         ws_insights.set_row(row, 24)
         ws_insights.merge_range(
-            row, 2, row, 13, f"  ▸ {title_line}", fmt["insight_head"]
+            row, 2, row, 13, f"  ▸ {title_line}", fmt["insight_head"],
         )
         row += 1
         ws_insights.set_row(row, max(60, len(body_lines) // 3))
@@ -1153,7 +1151,7 @@ def _build_workbook(
     ws_kpi.set_column("O:O", 2)  # gap
     ws_kpi.set_column("P:R", 12)  # card 4
 
-    detected_kpis = blueprint.get("detected_kpis", [])
+    blueprint.get("detected_kpis", [])
 
     # Build KPI cards from numeric columns using live formulas
     kpi_items = []
@@ -1166,7 +1164,7 @@ def _build_workbook(
                 "avg_formula": f"=AVERAGE('07 Cleaned Data'!{col_letter}5:{col_letter}9999)",
                 "max_formula": f"=MAX('07 Cleaned Data'!{col_letter}5:{col_letter}9999)",
                 "min_formula": f"=MIN('07 Cleaned Data'!{col_letter}5:{col_letter}9999)",
-            }
+            },
         )
 
     kpi_positions = [
@@ -1194,11 +1192,11 @@ def _build_workbook(
         ws_kpi.write_formula(r + 1, c, kpi["sum_formula"], fmt["kpi_value"])
         ws_kpi.merge_range(r + 2, c, r + 2, c + 2, "", fmt["kpi_sub"])
         ws_kpi.write_formula(
-            r + 2, c, f'="Avg: "&ROUND({kpi["avg_formula"][1:]},2)', fmt["kpi_sub"]
+            r + 2, c, f'="Avg: "&ROUND({kpi["avg_formula"][1:]},2)', fmt["kpi_sub"],
         )
         ws_kpi.merge_range(r + 3, c, r + 3, c + 2, "", fmt["kpi_sub"])
         ws_kpi.write_formula(
-            r + 3, c, f'="Max: "&{kpi["max_formula"][1:]}', fmt["kpi_sub"]
+            r + 3, c, f'="Max: "&{kpi["max_formula"][1:]}', fmt["kpi_sub"],
         )
 
     add_page_footer(ws_kpi, 5, len(SHEETS))
@@ -1230,7 +1228,7 @@ def _build_workbook(
                     "values": f"='07 Cleaned Data'!${c1_letter}$5:${c1_letter}$51",
                     "fill": {"color": C_PRIMARY},
                     "gap": 60,
-                }
+                },
             )
         else:
             chart1.add_series(
@@ -1238,7 +1236,7 @@ def _build_workbook(
                     "name": f"='07 Cleaned Data'!${c1_letter}$4",
                     "values": f"='07 Cleaned Data'!${c1_letter}$5:${c1_letter}$51",
                     "fill": {"color": C_PRIMARY},
-                }
+                },
             )
 
         chart_title1 = rec_charts[0]["title"] if rec_charts else f"{col1} Breakdown"
@@ -1264,7 +1262,7 @@ def _build_workbook(
                         "size": 4,
                         "fill": {"color": C_PRIMARY},
                     },
-                }
+                },
             )
             chart_title2 = (
                 rec_charts[1]["title"] if len(rec_charts) > 1 else f"{col2} Trend"
@@ -1287,7 +1285,7 @@ def _build_workbook(
                     "values": f"='07 Cleaned Data'!${c3_letter}$5:${c3_letter}$51",
                     "fill": {"color": C_MINT},
                     "line": {"color": C_PRIMARY, "width": 2},
-                }
+                },
             )
             chart_title3 = (
                 rec_charts[2]["title"]
@@ -1347,7 +1345,7 @@ def _build_workbook(
     ws_qual.hide_gridlines(2)
     add_sidebar(ws_qual, "08 Data Quality")
     add_page_header(
-        ws_qual, "Data Quality Report", "Cleaning Audit, Quality Score & Dataset Health"
+        ws_qual, "Data Quality Report", "Cleaning Audit, Quality Score & Dataset Health",
     )
 
     ws_qual.set_column("B:B", 2)
@@ -1479,7 +1477,7 @@ def _build_workbook(
     ws_qual.set_row(20, 24)
     ws_qual.merge_range("C21:G21", "  AI Data Cleaning Log", fmt["table_header"])
     for i, log_entry in enumerate(
-        cleaning_log or ["No cleaning operations performed."]
+        cleaning_log or ["No cleaning operations performed."],
     ):
         row = 21 + i
         ws_qual.set_row(row, 20)
@@ -1508,7 +1506,7 @@ def _build_workbook(
     ws_pivot.hide_gridlines(2)
     add_sidebar(ws_pivot, "09 Pivot Analysis")
     add_page_header(
-        ws_pivot, "Pivot Analysis", "Cross-Tabulation & Aggregated Performance Metrics"
+        ws_pivot, "Pivot Analysis", "Cross-Tabulation & Aggregated Performance Metrics",
     )
 
     ws_pivot.set_column("B:B", 2)
@@ -1520,7 +1518,7 @@ def _build_workbook(
             import pandas as pd
 
             pivot_df = df_clean.groupby(groupby_dim)[numeric_cols[:6]].agg(
-                ["sum", "mean", "count"]
+                ["sum", "mean", "count"],
             )
             pivot_df.columns = [f"{col}_{agg}" for col, agg in pivot_df.columns]
             pivot_df = pivot_df.reset_index().head(50)
@@ -1543,14 +1541,14 @@ def _build_workbook(
                 ws_pivot.set_row(r, 20)
                 is_alt = ri % 2 == 0
                 ws_pivot.write(
-                    r, 2, str(row_data[0]), fmt["cell_alt"] if is_alt else fmt["cell"]
+                    r, 2, str(row_data[0]), fmt["cell_alt"] if is_alt else fmt["cell"],
                 )
                 for ci, val in enumerate(row_data[1:]):
                     ws_pivot.write(
-                        r, 3 + ci, val, fmt["num_alt"] if is_alt else fmt["num"]
+                        r, 3 + ci, val, fmt["num_alt"] if is_alt else fmt["num"],
                     )
         except Exception as e:
-            ws_pivot.write(5, 2, f"Pivot analysis error: {str(e)}", fmt["body"])
+            ws_pivot.write(5, 2, f"Pivot analysis error: {e!s}", fmt["body"])
     else:
         ws_pivot.write(
             5,
@@ -1673,10 +1671,10 @@ def _build_workbook(
                     ws_trend.write(r, 5, "—", fmt["cell_alt" if is_alt else "cell"])
                     ws_trend.write(r, 6, "—", fmt["cell_alt" if is_alt else "cell"])
         except Exception as e:
-            ws_trend.write(5, 2, f"Trend analysis error: {str(e)}", fmt["body"])
+            ws_trend.write(5, 2, f"Trend analysis error: {e!s}", fmt["body"])
     else:
         ws_trend.write(
-            5, 2, "No numeric data available for trend analysis.", fmt["body"]
+            5, 2, "No numeric data available for trend analysis.", fmt["body"],
         )
 
     add_page_footer(ws_trend, 10, len(SHEETS))
@@ -1688,7 +1686,7 @@ def _build_workbook(
     ws_fc.hide_gridlines(2)
     add_sidebar(ws_fc, "11 Forecasting")
     add_page_header(
-        ws_fc, "Forecasting", "Linear Regression — 20-Period Statistical Forecast"
+        ws_fc, "Forecasting", "Linear Regression — 20-Period Statistical Forecast",
     )
 
     ws_fc.set_column("B:B", 2)
@@ -1773,12 +1771,12 @@ def _build_workbook(
                         "fill": {"color": C_WARNING},
                         "border": {"color": C_WARNING},
                     },
-                }
+                },
             )
             fc_chart.set_title({"name": f"{target_col} — 20-Period Forecast"})
             fc_chart.set_style(2)
             fc_chart.set_chartarea(
-                {"border": {"none": True}, "fill": {"color": C_WHITE}}
+                {"border": {"none": True}, "fill": {"color": C_WHITE}},
             )
             fc_chart.set_plotarea({"border": {"none": True}})
             ws_fc.insert_chart("F6", fc_chart, {"x_scale": 2.2, "y_scale": 1.8})
@@ -1948,7 +1946,7 @@ def _build_workbook(
 
     if not check_cols:
         ws_risk.write(
-            5, 2, "No numeric columns available for anomaly detection.", fmt["body"]
+            5, 2, "No numeric columns available for anomaly detection.", fmt["body"],
         )
 
     add_page_footer(ws_risk, 12, len(SHEETS))
@@ -1969,9 +1967,7 @@ def _build_workbook(
     ws_rec.set_column("C:N", 12)
 
     recs_text = (
-        recommendations
-        if recommendations
-        else "Strategic recommendations not available."
+        recommendations or "Strategic recommendations not available."
     )
     rec_blocks = recs_text.split("RECOMMENDATION ")
 
@@ -2195,7 +2191,7 @@ def _build_workbook(
 
                 df_temp = df_clean.copy()
                 df_temp["_month"] = pd.to_datetime(
-                    df_temp[date_col], errors="coerce"
+                    df_temp[date_col], errors="coerce",
                 ).dt.to_period("M")
                 if primary_metric and primary_metric in df_temp.columns:
                     monthly = (
@@ -2433,7 +2429,7 @@ def _build_workbook(
                 )
 
         except Exception as e:
-            ws_extra.write(5, 2, f"Analysis error: {str(e)}", fmt["body"])
+            ws_extra.write(5, 2, f"Analysis error: {e!s}", fmt["body"])
             logger.warning(f"Extra sheet '{xls_name}' failed: {e}")
 
         add_page_footer(ws_extra, 15 + sheet_num + 1, len(SHEETS))
@@ -2449,5 +2445,5 @@ def _build_workbook(
             "company": "Data Insight",
             "comments": f"Generated by Data Insight AI on {now_str}. AI Generation ID: {gen_id}.",
             "keywords": f"BI, Analytics, {domain}, Executive Report, Data Insight AI",
-        }
+        },
     )

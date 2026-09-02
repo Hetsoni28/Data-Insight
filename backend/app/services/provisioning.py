@@ -1,5 +1,4 @@
-"""
-TenantProvisioningService — Secure manual provisioning for enterprise tenants.
+"""TenantProvisioningService — Secure manual provisioning for enterprise tenants.
 
 Security guarantees:
   - dedicated_db_url is ALWAYS stored AES-256 Fernet encrypted at rest
@@ -9,21 +8,21 @@ Security guarantees:
   - Only owner-role users can call the provision endpoint
 """
 
+import logging
+
 import asyncpg
 from cryptography.fernet import Fernet
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.models.tenant import Tenant
-from app.models.billing_activity import BillingActivity
+
 from app.core.config import settings
-import logging
+from app.models.billing_activity import BillingActivity
+from app.models.tenant import Tenant
 
 logger = logging.getLogger(__name__)
 
 
 def _get_fernet() -> Fernet:
-    """
-    Build a Fernet cipher from the SECRET_KEY.
+    """Build a Fernet cipher from the SECRET_KEY.
     Fernet = AES-128-CBC + HMAC-SHA256. Keys must be 32 bytes → base64-url.
     We derive a fixed 32-byte key from SECRET_KEY using its first 32 chars,
     then encode as urlsafe base64 — deterministic, no key rotation needed at this stage.
@@ -50,8 +49,7 @@ def decrypt_db_url(encrypted_token: str) -> str:
 
 
 async def validate_db_connection(db_url: str) -> tuple[bool, str]:
-    """
-    Validate that the provided PostgreSQL URL actually connects.
+    """Validate that the provided PostgreSQL URL actually connects.
     Uses asyncpg raw connection — does NOT use SQLAlchemy to avoid
     polluting the connection pool.
     Returns (success: bool, error_message: str)
@@ -72,7 +70,7 @@ async def validate_db_connection(db_url: str) -> tuple[bool, str]:
     except OSError as e:
         return False, f"Cannot reach host: {e}"
     except Exception as e:
-        return False, f"Connection failed: {str(e)}"
+        return False, f"Connection failed: {e!s}"
 
 
 async def provision_tenant_dedicated_db(
@@ -83,8 +81,7 @@ async def provision_tenant_dedicated_db(
     bucket_name: str | None,
     actor_id: str,
 ) -> dict:
-    """
-    Securely provision a dedicated database for an enterprise tenant.
+    """Securely provision a dedicated database for an enterprise tenant.
 
     Steps:
       1. Validate the DB connection (fail fast, no write yet)
@@ -144,7 +141,7 @@ async def provision_tenant_dedicated_db(
 
     logger.info(
         f"[PROVISION] Tenant {tenant_id} provisioned successfully. "
-        f"Bucket: {bucket_name or 'none'}. Actor: {actor_id}"
+        f"Bucket: {bucket_name or 'none'}. Actor: {actor_id}",
     )
 
     # ── Step 6: Return status only — raw URL is never sent to client ──────────
@@ -162,8 +159,7 @@ async def deprovision_tenant(
     tenant_id: str,
     actor_id: str,
 ) -> dict:
-    """
-    Revert a tenant back to shared database mode.
+    """Revert a tenant back to shared database mode.
     Clears the encrypted URL from the record.
     """
     from uuid import UUID
@@ -186,7 +182,7 @@ async def deprovision_tenant(
     await db.commit()
 
     logger.info(
-        f"[DEPROVISION] Tenant {tenant_id} reverted to shared. Actor: {actor_id}"
+        f"[DEPROVISION] Tenant {tenant_id} reverted to shared. Actor: {actor_id}",
     )
 
     return {"status": "shared", "message": "Tenant reverted to shared database."}

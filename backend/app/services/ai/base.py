@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import time
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from typing import AsyncIterator, Optional, Dict, Any
+from typing import Any
 
 
 @dataclass
@@ -20,7 +20,7 @@ class LLMResponse:
     latency_ms: float
     provider: str
     model: str
-    raw_response: Optional[Dict[str, Any]] = None
+    raw_response: dict[str, Any] | None = None
 
 
 class BaseLLMProvider(ABC):
@@ -29,45 +29,42 @@ class BaseLLMProvider(ABC):
     provider_name: str = "base"
 
     # Pricing per 1M tokens in USD
-    PRICING: Dict[str, Dict[str, float]] = {}
+    PRICING: dict[str, dict[str, float]] = {}
 
     @abstractmethod
     async def generate(
         self,
         prompt: str,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         temperature: float = 0.2,
         max_tokens: int = 4096,
         json_mode: bool = False,
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> LLMResponse:
         """Generate a complete response from the LLM."""
-        pass
 
     @abstractmethod
     async def generate_stream(
         self,
         prompt: str,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         temperature: float = 0.2,
         max_tokens: int = 4096,
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> AsyncIterator[str]:
         """Stream response tokens from the LLM asynchronously."""
-        pass
 
     def calculate_cost(
-        self, model: str, prompt_tokens: int, completion_tokens: int
+        self, model: str, prompt_tokens: int, completion_tokens: int,
     ) -> float:
         """Calculate call cost in USD based on model pricing per 1M tokens."""
         pricing = self.PRICING.get(model, {"prompt": 0.0, "completion": 0.0})
         prompt_cost = (prompt_tokens / 1_000_000.0) * pricing.get("prompt", 0.0)
         completion_cost = (completion_tokens / 1_000_000.0) * pricing.get(
-            "completion", 0.0
+            "completion", 0.0,
         )
         return round(prompt_cost + completion_cost, 7)
 
     @abstractmethod
     def is_available(self) -> bool:
         """Check whether the provider has valid credentials and is ready."""
-        pass

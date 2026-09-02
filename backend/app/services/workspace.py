@@ -2,17 +2,17 @@
 
 import re
 import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.workspace import Workspace
-from app.models.user import User, UserRole
-from app.repositories.workspace import WorkspaceRepository
-from app.repositories.audit_log import AuditLogRepository
 from app.core.exceptions import (
-    ConflictException,
-    ResourceNotFoundException,
     ForbiddenException,
+    ResourceNotFoundException,
 )
+from app.models.user import User, UserRole
+from app.models.workspace import Workspace
+from app.repositories.audit_log import AuditLogRepository
+from app.repositories.workspace import WorkspaceRepository
 
 
 def _slugify(name: str) -> str:
@@ -38,7 +38,7 @@ class WorkspaceService:
     ) -> Workspace:
         if not actor.tenant_id:
             raise ForbiddenException(
-                "You must belong to an organization to create a workspace."
+                "You must belong to an organization to create a workspace.",
             )
         # All non-viewer org members can create workspaces during onboarding.
         # viewers (read-only accounts) cannot create workspaces.
@@ -49,7 +49,7 @@ class WorkspaceService:
             UserRole.analyst,
         ):
             raise ForbiddenException(
-                "Your role does not have permission to create workspaces."
+                "Your role does not have permission to create workspaces.",
             )
 
         base_slug = _slugify(name)
@@ -85,7 +85,7 @@ class WorkspaceService:
     async def get_workspace(self, workspace_id: uuid.UUID, actor: User) -> Workspace:
         if not actor.tenant_id:
             raise ForbiddenException(
-                "You must belong to an organization to access this workspace."
+                "You must belong to an organization to access this workspace.",
             )
         ws = await self.ws_repo.get_tenant_workspace(actor.tenant_id, workspace_id)
         if not ws:
@@ -93,7 +93,7 @@ class WorkspaceService:
         return ws
 
     async def update_workspace(
-        self, workspace_id: uuid.UUID, updates: dict, actor: User
+        self, workspace_id: uuid.UUID, updates: dict, actor: User,
     ) -> Workspace:
         ws = await self.get_workspace(workspace_id, actor)
         if actor.role not in (UserRole.owner, UserRole.org_admin):
@@ -128,27 +128,28 @@ class WorkspaceService:
         )
 
     async def get_workspace_stats(self, workspace_id: uuid.UUID, actor: User) -> dict:
-        ws = await self.get_workspace(workspace_id, actor)
+        await self.get_workspace(workspace_id, actor)
+        from sqlalchemy import func, select
+
         from app.models.dataset import Dataset
         from app.models.report import Report
         from app.models.user import User as UserModel
-        from sqlalchemy import select, func
 
         # Count datasets
         ds_query = select(func.count(Dataset.id)).where(
-            Dataset.workspace_id == workspace_id, Dataset.is_deleted == False
+            Dataset.workspace_id == workspace_id, Dataset.is_deleted == False,
         )
         ds_count = await self.session.scalar(ds_query) or 0
 
         # Count reports
         rp_query = select(func.count(Report.id)).where(
-            Report.workspace_id == workspace_id, Report.is_deleted == False
+            Report.workspace_id == workspace_id, Report.is_deleted == False,
         )
         rp_count = await self.session.scalar(rp_query) or 0
 
         # Count members (all users in the tenant)
         mem_query = select(func.count(UserModel.id)).where(
-            UserModel.tenant_id == actor.tenant_id, UserModel.is_active == True
+            UserModel.tenant_id == actor.tenant_id, UserModel.is_active == True,
         )
         mem_count = await self.session.scalar(mem_query) or 0
 

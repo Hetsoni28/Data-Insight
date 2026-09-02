@@ -1,5 +1,4 @@
-"""
-Billing service — Stripe integration.
+"""Billing service — Stripe integration.
 
 Handles:
 - Checkout session creation (Starter / Business plans)
@@ -11,9 +10,10 @@ In development without keys, methods log a warning and return safe stubs.
 """
 
 import asyncio
+from datetime import datetime, timezone
+
 import stripe
 from loguru import logger
-from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -41,20 +41,19 @@ PLAN_NAMES: dict[str, str] = {
 
 
 async def create_checkout_session(tenant: Tenant, user_email: str, plan: str) -> str:
-    """
-    Create a Stripe Checkout session for the given plan.
+    """Create a Stripe Checkout session for the given plan.
     Returns the Stripe session URL to redirect the user to.
     Raises ValueError for unknown plans.
     """
     if plan not in PLAN_PRICE_IDS:
         raise ValueError(
-            f"Unknown plan '{plan}'. Valid options: {list(PLAN_PRICE_IDS)}"
+            f"Unknown plan '{plan}'. Valid options: {list(PLAN_PRICE_IDS)}",
         )
 
     if not settings.STRIPE_SECRET_KEY:
         logger.warning(
             f"[Billing] STRIPE_SECRET_KEY not set — returning stub checkout URL "
-            f"for tenant={tenant.name} plan={plan}"
+            f"for tenant={tenant.name} plan={plan}",
         )
         return f"{settings.FRONTEND_URL}/dashboard?billing=stub&plan={plan}"
 
@@ -67,7 +66,7 @@ async def create_checkout_session(tenant: Tenant, user_email: str, plan: str) ->
                 {
                     "price": PLAN_PRICE_IDS[plan],
                     "quantity": 1,
-                }
+                },
             ],
             mode="subscription",
             success_url=f"{settings.FRONTEND_URL}/dashboard?billing=success&plan={plan}",
@@ -80,33 +79,32 @@ async def create_checkout_session(tenant: Tenant, user_email: str, plan: str) ->
                 "metadata": {
                     "tenant_id": str(tenant.id),
                     "plan": plan,
-                }
+                },
             },
         )
         logger.info(
             f"[Billing] ✅ Checkout session created | tenant={tenant.name} "
-            f"plan={plan} session_id={session.id}"
+            f"plan={plan} session_id={session.id}",
         )
         if not session.url:
             raise RuntimeError("Failed to generate Stripe checkout session URL")
         return session.url
     except stripe.StripeError as exc:
         logger.error(
-            f"[Billing] ❌ Checkout session failed | tenant={tenant.name} | error: {exc}"
+            f"[Billing] ❌ Checkout session failed | tenant={tenant.name} | error: {exc}",
         )
         raise
 
 
 async def create_invoice_checkout_session(
-    tenant: Tenant, user_email: str, invoice
+    tenant: Tenant, user_email: str, invoice,
 ) -> str:
-    """
-    Create a one-off Stripe Checkout session for a specific invoice payment.
+    """Create a one-off Stripe Checkout session for a specific invoice payment.
     """
     if not settings.STRIPE_SECRET_KEY:
         logger.warning(
             f"[Billing] STRIPE_SECRET_KEY not set — returning stub invoice checkout URL "
-            f"for tenant={tenant.name} invoice={invoice.id}"
+            f"for tenant={tenant.name} invoice={invoice.id}",
         )
         return f"{settings.FRONTEND_URL}/organization-admin/dashboard/billing?payment=success&invoice={invoice.id}"
 
@@ -127,7 +125,7 @@ async def create_invoice_checkout_session(
                         "unit_amount": amount_cents,
                     },
                     "quantity": 1,
-                }
+                },
             ],
             mode="payment",
             success_url=f"{settings.FRONTEND_URL}/organization-admin/dashboard/billing?payment=success&invoice={invoice.id}",
@@ -140,7 +138,7 @@ async def create_invoice_checkout_session(
         )
         logger.info(
             f"[Billing] ✅ Invoice payment session created | tenant={tenant.name} "
-            f"invoice={invoice.id} session_id={session.id}"
+            f"invoice={invoice.id} session_id={session.id}",
         )
         return (
             session.url
@@ -148,20 +146,19 @@ async def create_invoice_checkout_session(
         )
     except stripe.StripeError as exc:
         logger.error(
-            f"[Billing] ❌ Invoice payment session failed | tenant={tenant.name} | error: {exc}"
+            f"[Billing] ❌ Invoice payment session failed | tenant={tenant.name} | error: {exc}",
         )
         raise
 
 
 async def get_customer_portal_url(tenant: Tenant, user_email: str) -> str:
-    """
-    Create a Stripe Customer Portal session so the user can manage
+    """Create a Stripe Customer Portal session so the user can manage
     their subscription, update payment method, or cancel.
     Returns the portal URL.
     """
     if not settings.STRIPE_SECRET_KEY:
         logger.warning(
-            "[Billing] STRIPE_SECRET_KEY not set — returning stub portal URL"
+            "[Billing] STRIPE_SECRET_KEY not set — returning stub portal URL",
         )
         return f"{settings.FRONTEND_URL}/dashboard?billing=portal_stub"
 
@@ -178,21 +175,20 @@ async def get_customer_portal_url(tenant: Tenant, user_email: str) -> str:
         return session.url
     except stripe.StripeError as exc:
         logger.error(
-            f"[Billing] ❌ Portal session failed | tenant={tenant.name} | error: {exc}"
+            f"[Billing] ❌ Portal session failed | tenant={tenant.name} | error: {exc}",
         )
         raise
 
 
 async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> dict:
-    """
-    Verify and process a Stripe webhook event idempotently.
+    """Verify and process a Stripe webhook event idempotently.
 
     Returns a dict with the processed event type and relevant data.
     Raises stripe.SignatureVerificationError if signature is invalid.
     """
     if not settings.STRIPE_WEBHOOK_SECRET:
         logger.warning(
-            "[Billing] STRIPE_WEBHOOK_SECRET not set — skipping webhook verification"
+            "[Billing] STRIPE_WEBHOOK_SECRET not set — skipping webhook verification",
         )
         return {"status": "webhook_secret_not_configured"}
 
@@ -211,18 +207,20 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
     logger.info(f"[Billing] 📨 Webhook received: {event_type} ({stripe_event_id})")
 
     # ── Idempotency Check ─────────────────────────────────────────────────────
-    from sqlalchemy import select
-    from app.models.stripe_event import StripeEvent
-    from app.repositories.tenant import TenantRepository
-    from app.models.tenant import PlanType
     import json
 
+    from sqlalchemy import select
+
+    from app.models.stripe_event import StripeEvent
+    from app.models.tenant import PlanType
+    from app.repositories.tenant import TenantRepository
+
     existing_event = await db.scalar(
-        select(StripeEvent).where(StripeEvent.stripe_event_id == stripe_event_id)
+        select(StripeEvent).where(StripeEvent.stripe_event_id == stripe_event_id),
     )
     if existing_event:
         logger.info(
-            f"[Billing] ⏭️ Webhook {stripe_event_id} already processed. Skipping."
+            f"[Billing] ⏭️ Webhook {stripe_event_id} already processed. Skipping.",
         )
         return {"event": event_type, "status": "already_processed"}
 
@@ -241,21 +239,22 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
         subscription_id = session.get("subscription")
 
         logger.info(
-            f"[Billing] 💳 Checkout completed | tenant_id={tenant_id} plan={plan} invoice_id={invoice_id}"
+            f"[Billing] 💳 Checkout completed | tenant_id={tenant_id} plan={plan} invoice_id={invoice_id}",
         )
 
         if tenant_id:
             tenant = await tenant_repo.get_by_id(tenant_id)
             if tenant:
                 if payment_type == "invoice_settlement" and invoice_id:
-                    from app.models.invoice import Invoice, InvoiceStatus
-                    from app.models.billing_activity import BillingActivity
                     import uuid as _uuid
+
+                    from app.models.billing_activity import BillingActivity
+                    from app.models.invoice import Invoice, InvoiceStatus
 
                     try:
                         inv_uuid = _uuid.UUID(str(invoice_id))
                         inv = await db.scalar(
-                            select(Invoice).where(Invoice.id == inv_uuid)
+                            select(Invoice).where(Invoice.id == inv_uuid),
                         )
                         if inv:
                             inv.status = InvoiceStatus.paid
@@ -272,13 +271,11 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                             db.add(activity)
                     except Exception as e:
                         logger.error(
-                            f"[Billing] Error updating invoice {invoice_id}: {e}"
+                            f"[Billing] Error updating invoice {invoice_id}: {e}",
                         )
 
                 if plan:
-                    if plan in [p.value for p in PlanType]:
-                        tenant.plan = PlanType(plan)
-                    elif plan in ["enterprise", "custom"]:
+                    if plan in [p.value for p in PlanType] or plan in ["enterprise", "custom"]:
                         tenant.plan = PlanType(plan)
 
                 tenant.stripe_customer_id = customer_id or tenant.stripe_customer_id
@@ -297,7 +294,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
         cancel_at = sub.get("cancel_at")
 
         logger.info(
-            f"[Billing] 🔄 Subscription updated | tenant_id={tenant_id} status={status}"
+            f"[Billing] 🔄 Subscription updated | tenant_id={tenant_id} status={status}",
         )
 
         if tenant_id:
@@ -306,11 +303,11 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                 tenant.subscription_status = status or "active"
                 if current_period_end:
                     tenant.current_period_end = datetime.fromtimestamp(
-                        current_period_end, tz=timezone.utc
+                        current_period_end, tz=timezone.utc,
                     )
                 if cancel_at:
                     tenant.cancel_at = datetime.fromtimestamp(
-                        cancel_at, tz=timezone.utc
+                        cancel_at, tz=timezone.utc,
                     )
                 else:
                     tenant.cancel_at = None
@@ -330,14 +327,14 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
             if tenant:
                 tenant.plan = PlanType.starter
                 tenant.stripe_subscription_id = None
-                setattr(tenant, "subscription_status", "canceled")
+                tenant.subscription_status = "canceled"
                 await tenant_repo.save(tenant)
 
     elif event_type.startswith("invoice."):
         invoice = event["data"]["object"]
         if hasattr(invoice, "to_dict"):
             invoice = invoice.to_dict()
-        customer_email = invoice.get("customer_email")
+        invoice.get("customer_email")
         stripe_invoice_id = invoice.get("id")
         sub_id = invoice.get("subscription")
         amount = invoice.get("total", 0) / 100.0  # Convert cents to dollars
@@ -360,16 +357,16 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
             from sqlalchemy import select
 
             tenant = await db.scalar(
-                select(Tenant).where(Tenant.stripe_subscription_id == sub_id)
+                select(Tenant).where(Tenant.stripe_subscription_id == sub_id),
             )
 
         if tenant:
-            from app.models.invoice import Invoice, InvoiceStatus
             from app.models.billing_activity import BillingActivity
+            from app.models.invoice import Invoice, InvoiceStatus
 
             # Find existing invoice
             existing_invoice = await db.scalar(
-                select(Invoice).where(Invoice.stripe_invoice_id == stripe_invoice_id)
+                select(Invoice).where(Invoice.stripe_invoice_id == stripe_invoice_id),
             )
 
             if event_type == "invoice.created":
@@ -387,7 +384,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                     )
                     db.add(new_invoice)
                     logger.info(
-                        f"[Billing] 📄 Draft Invoice Created | tenant={tenant.name} amount={amount}"
+                        f"[Billing] 📄 Draft Invoice Created | tenant={tenant.name} amount={amount}",
                     )
 
             elif event_type == "invoice.finalized":
@@ -409,7 +406,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                     )
                     db.add(new_invoice)
                 logger.info(
-                    f"[Billing] 📄 Invoice Finalized | tenant={tenant.name} amount={amount}"
+                    f"[Billing] 📄 Invoice Finalized | tenant={tenant.name} amount={amount}",
                 )
 
             elif event_type == "invoice.paid":
@@ -430,7 +427,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                 )
                 db.add(activity)
                 logger.info(
-                    f"[Billing] 💰 Invoice Paid | tenant={tenant.name} amount={amount}"
+                    f"[Billing] 💰 Invoice Paid | tenant={tenant.name} amount={amount}",
                 )
 
             elif event_type == "invoice.payment_failed":
@@ -448,7 +445,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
                 )
                 db.add(activity)
                 logger.warning(
-                    f"[Billing] ⚠️ Payment Failed | tenant={tenant.name} amount={amount}"
+                    f"[Billing] ⚠️ Payment Failed | tenant={tenant.name} amount={amount}",
                 )
 
     elif event_type.startswith("payment_intent."):
@@ -464,7 +461,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
             from sqlalchemy import select
 
             tenant = await db.scalar(
-                select(Tenant).where(Tenant.stripe_customer_id == customer_id)
+                select(Tenant).where(Tenant.stripe_customer_id == customer_id),
             )
             if tenant:
                 from app.models.billing_activity import BillingActivity
@@ -508,8 +505,7 @@ async def handle_webhook(payload: bytes, sig_header: str, db: AsyncSession) -> d
 
 
 async def _get_or_create_customer(tenant: Tenant, user_email: str) -> str:
-    """
-    Look up a Stripe customer by email or create one if they don't exist.
+    """Look up a Stripe customer by email or create one if they don't exist.
     Returns the Stripe customer ID.
     """
     if tenant.stripe_customer_id:
@@ -528,6 +524,6 @@ async def _get_or_create_customer(tenant: Tenant, user_email: str) -> str:
         metadata={"tenant_id": str(tenant.id)},
     )
     logger.info(
-        f"[Billing] ✅ Stripe customer created | tenant={tenant.name} id={customer.id}"
+        f"[Billing] ✅ Stripe customer created | tenant={tenant.name} id={customer.id}",
     )
     return customer.id

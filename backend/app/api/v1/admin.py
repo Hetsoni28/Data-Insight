@@ -1,22 +1,22 @@
 """Super-admin panel endpoints."""
 
-import uuid
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from pydantic import BaseModel
 import time
+import uuid
+
 import psutil
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 APP_STARTUP_TIME = time.time()
 
-from app.api.deps import get_db, get_current_superuser
-from app.models.user import User
-from app.models.tenant import Tenant
+from app.api.deps import get_current_superuser, get_current_user, get_db
 from app.models.ai_token_usage import AITokenUsage
-from app.repositories.tenant import TenantRepository
+from app.models.tenant import Tenant
+from app.models.user import User
 from app.repositories.audit_log import AuditLogRepository
-from app.api.deps import get_current_user
+from app.repositories.tenant import TenantRepository
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -26,7 +26,7 @@ async def require_superuser_or_owner(
 ) -> User:
     """Allows access to platform owners and superusers."""
     is_owner = getattr(current_user, "role", "") == "owner" or getattr(
-        current_user, "is_owner", False
+        current_user, "is_owner", False,
     )
     if not current_user.is_superuser and not is_owner:
         from app.core.exceptions import ForbiddenException
@@ -46,12 +46,12 @@ async def list_tenants(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_superuser_or_owner),
 ):
+
+    from app.models.ai_token_usage import AITokenUsage
     from app.models.dataset import Dataset
     from app.models.storage import StorageFile
-    from app.models.ai_token_usage import AITokenUsage
-    from app.models.user_session import UserSession
     from app.models.user import User
-    import hashlib
+    from app.models.user_session import UserSession
 
     # Subqueries for counts
     user_count_sq = (
@@ -135,13 +135,13 @@ async def list_tenants(
             "active_users": t.active_users_count or 0,
             "datasets_count": t.datasets_count or 0,
             "storage_used": round(
-                (t.storage_bytes or 0) / 1073741824, 2
+                (t.storage_bytes or 0) / 1073741824, 2,
             ),  # bytes to GB
             "storage_limit": t.Tenant.max_storage_gb,
             "ai_requests": t.ai_requests_count or 0,
             "security_score": 100 if t.Tenant.is_active else 50,
             "health_score": calculate_health(
-                t.users_count or 0, t.datasets_count or 0, t.Tenant.is_active
+                t.users_count or 0, t.datasets_count or 0, t.Tenant.is_active,
             ),
             "mrr": t.Tenant.mrr or 0.0,
             "current_period_end": (
@@ -184,10 +184,11 @@ async def global_kpis(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
+    from datetime import datetime, timezone
+
     from app.models.dataset import Dataset
     from app.models.report import Report
     from app.models.user_session import UserSession
-    from datetime import datetime, timezone, timedelta
 
     now = datetime.now(timezone.utc)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -195,21 +196,21 @@ async def global_kpis(
     # 1. Organization Stats
     total_orgs = (
         await db.execute(
-            select(func.count(Tenant.id)).where(Tenant.is_deleted == False)
+            select(func.count(Tenant.id)).where(Tenant.is_deleted == False),
         )
     ).scalar_one()
     active_orgs = (
         await db.execute(
             select(func.count(Tenant.id)).where(
-                Tenant.is_deleted == False, Tenant.is_active == True
-            )
+                Tenant.is_deleted == False, Tenant.is_active == True,
+            ),
         )
     ).scalar_one()
     trial_orgs = (
         await db.execute(
             select(func.count(Tenant.id)).where(
-                Tenant.is_deleted == False, Tenant.plan == "free"
-            )
+                Tenant.is_deleted == False, Tenant.plan == "free",
+            ),
         )
     ).scalar_one()
 
@@ -220,26 +221,26 @@ async def global_kpis(
 
     # Logins today (count distinct users in user_sessions created today)
     logins_today_stmt = select(func.count(func.distinct(UserSession.user_id))).where(
-        UserSession.created_at >= today_start
+        UserSession.created_at >= today_start,
     )
     logins_today = (await db.execute(logins_today_stmt)).scalar_one()
 
     # Active sessions (expires_at > now)
     active_sessions = (
         await db.execute(
-            select(func.count(UserSession.id)).where(UserSession.expires_at > now)
+            select(func.count(UserSession.id)).where(UserSession.expires_at > now),
         )
     ).scalar_one()
 
     # 3. Data & Usage Stats
     total_datasets = (
         await db.execute(
-            select(func.count(Dataset.id)).where(Dataset.is_deleted == False)
+            select(func.count(Dataset.id)).where(Dataset.is_deleted == False),
         )
     ).scalar_one()
     total_reports = (
         await db.execute(
-            select(func.count(Report.id)).where(Report.is_deleted == False)
+            select(func.count(Report.id)).where(Report.is_deleted == False),
         )
     ).scalar_one()
 
@@ -247,7 +248,7 @@ async def global_kpis(
     from app.models.storage import StorageFile
 
     storage_result = await db.scalar(
-        select(func.coalesce(func.sum(StorageFile.file_size_bytes), 0))
+        select(func.coalesce(func.sum(StorageFile.file_size_bytes), 0)),
     )
     storage_bytes = storage_result or 0
 
@@ -260,7 +261,7 @@ async def global_kpis(
 
     # AI Requests today
     ai_requests_today_stmt = select(func.count(AITokenUsage.id)).where(
-        AITokenUsage.created_at >= today_start
+        AITokenUsage.created_at >= today_start,
     )
     ai_requests_today = (await db.execute(ai_requests_today_stmt)).scalar_one()
 
@@ -268,7 +269,7 @@ async def global_kpis(
 
     active_models_count = (
         await db.scalar(
-            select(func.count(AIProvider.id)).where(AIProvider.is_active == True)
+            select(func.count(AIProvider.id)).where(AIProvider.is_active == True),
         )
         or 0
     )
@@ -276,8 +277,8 @@ async def global_kpis(
     # 5. Billing (Mocked for now until Stripe integration)
     mrr_result = await db.scalar(
         select(func.coalesce(func.sum(Tenant.mrr), 0.0)).where(
-            Tenant.is_active == True, Tenant.is_deleted == False
-        )
+            Tenant.is_active == True, Tenant.is_deleted == False,
+        ),
     )
     mrr = mrr_result or 0.0
     arr = mrr * 12
@@ -286,7 +287,7 @@ async def global_kpis(
 
     pending_invites = (
         await db.scalar(
-            select(func.count(Invitation.id)).where(Invitation.status == "pending")
+            select(func.count(Invitation.id)).where(Invitation.status == "pending"),
         )
         or 0
     )
@@ -330,7 +331,8 @@ async def usage_trends(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta, timezone
+
     from sqlalchemy import func
 
     now = datetime.now(timezone.utc)
@@ -407,19 +409,19 @@ async def tenant_stats(
 
     # User count
     user_count_stmt = select(func.count(User.id)).where(
-        User.tenant_id == tenant_id, User.is_active == True
+        User.tenant_id == tenant_id, User.is_active == True,
     )
     user_count = (await db.execute(user_count_stmt)).scalar_one()
 
     # Dataset count
     ds_count_stmt = select(func.count(Dataset.id)).where(
-        Dataset.tenant_id == tenant_id, Dataset.is_deleted == False
+        Dataset.tenant_id == tenant_id, Dataset.is_deleted == False,
     )
     ds_count = (await db.execute(ds_count_stmt)).scalar_one()
 
     # Report count
     rp_count_stmt = select(func.count(Report.id)).where(
-        Report.tenant_id == tenant_id, Report.is_deleted == False
+        Report.tenant_id == tenant_id, Report.is_deleted == False,
     )
     rp_count = (await db.execute(rp_count_stmt)).scalar_one()
 
@@ -434,7 +436,7 @@ async def tenant_stats(
             AITokenUsage.tenant_id == tenant_id,
             func.extract("month", AITokenUsage.created_at) == now.month,
             func.extract("year", AITokenUsage.created_at) == now.year,
-        )
+        ),
     )
     tokens_used = (await db.execute(token_stmt)).scalar_one()
 
@@ -444,7 +446,7 @@ async def tenant_stats(
             AITokenUsage.tenant_id == tenant_id,
             func.extract("month", AITokenUsage.created_at) == now.month,
             func.extract("year", AITokenUsage.created_at) == now.year,
-        )
+        ),
     )
     cost_usd = (await db.execute(cost_stmt)).scalar_one()
 
@@ -474,9 +476,10 @@ async def impersonate_user(
     admin: User = Depends(get_current_superuser),
 ):
     audit_repo = AuditLogRepository(db)
-    from app.repositories.user import UserRepository
-    from app.core.security import create_access_token
     from datetime import timedelta
+
+    from app.core.security import create_access_token
+    from app.repositories.user import UserRepository
 
     user_repo = UserRepository(db)
     target_user = await user_repo.get_by_id(user_id)
@@ -613,7 +616,8 @@ async def tenant_analytics(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta, timezone
+
     from sqlalchemy import func
 
     # 1. Plan Distribution
@@ -685,14 +689,15 @@ async def get_tenant_activity(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    from app.models.audit_log import AuditLog
     from sqlalchemy import desc
+
+    from app.models.audit_log import AuditLog
 
     result = await db.execute(
         select(AuditLog)
         .where(AuditLog.tenant_id == tenant_id)
         .order_by(desc(AuditLog.created_at))
-        .limit(limit)
+        .limit(limit),
     )
     logs = result.scalars().all()
     return [
@@ -715,15 +720,15 @@ async def get_revenue_metrics(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
+    from datetime import datetime, timedelta, timezone
+
     from app.models.invoice import Invoice
-    from sqlalchemy import desc
-    from datetime import datetime, timezone, timedelta
 
     total_mrr = (
         await db.scalar(
             select(func.coalesce(func.sum(Tenant.mrr), 0.0)).where(
-                Tenant.is_active == True, Tenant.is_deleted == False
-            )
+                Tenant.is_active == True, Tenant.is_deleted == False,
+            ),
         )
         or 0.0
     )
@@ -731,8 +736,8 @@ async def get_revenue_metrics(
     active_count = (
         await db.scalar(
             select(func.count(Tenant.id)).where(
-                Tenant.is_active == True, Tenant.is_deleted == False
-            )
+                Tenant.is_active == True, Tenant.is_deleted == False,
+            ),
         )
         or 0
     )
@@ -744,19 +749,19 @@ async def get_revenue_metrics(
                 Tenant.is_active == False,
                 Tenant.updated_at >= thirty_days_ago,
                 Tenant.is_deleted == False,
-            )
+            ),
         )
         or 0
     )
     churn_rate = round(
-        (cancelled_count / max(active_count + cancelled_count, 1)) * 100, 2
+        (cancelled_count / max(active_count + cancelled_count, 1)) * 100, 2,
     )
 
     total_invoice_revenue = (
         await db.scalar(
             select(func.coalesce(func.sum(Invoice.amount), 0.0)).where(
-                Invoice.status == "paid"
-            )
+                Invoice.status == "paid",
+            ),
         )
         or 0.0
     )
@@ -779,7 +784,6 @@ async def get_monitoring(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    import random
     from datetime import datetime
 
     # Calculate real uptime percentage (simulated based on elapsed since start)
@@ -801,7 +805,7 @@ async def get_monitoring(
         from sqlalchemy import text
 
         result = await db.execute(
-            text("SELECT count(*) FROM pg_stat_activity WHERE state = 'active'")
+            text("SELECT count(*) FROM pg_stat_activity WHERE state = 'active'"),
         )
         active_connections = result.scalar()
     except Exception:
@@ -833,8 +837,9 @@ async def list_subscriptions(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    from app.models.invoice import Invoice
     from sqlalchemy import desc
+
+    from app.models.invoice import Invoice
 
     # Note: The following loop executes an N+1 query (one per tenant).
     # This is acceptable for an admin dashboard with small limits.
@@ -886,6 +891,6 @@ async def list_subscriptions(
                     if last_inv and hasattr(last_inv.status, "value")
                     else (last_inv.status if last_inv else None)
                 ),
-            }
+            },
         )
     return {"data": data, "total": total}

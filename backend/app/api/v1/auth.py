@@ -10,37 +10,35 @@ Provides:
 - Invitation Acceptance
 """
 
-import uuid
 import datetime
-from typing import List, Optional
+import uuid
+
 from fastapi import APIRouter, Depends, Header, Request, status
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from redis.asyncio import Redis
-from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from app.api.deps import get_db, get_redis, get_current_user
-from app.models.user import User
+from app.api.deps import get_current_user, get_db, get_redis
+from app.core.rate_limit import limiter
+from app.core.security import get_password_hash, hash_token
 from app.models.invitation import Invitation, InvitationStatus
-from app.models.tenant import Tenant
 from app.models.notification import Notification as NotifModel
-from app.schemas.user import UserCreate, UserResponse
-from app.schemas.token import Token
+from app.models.tenant import Tenant
+from app.models.user import User
 from app.schemas.auth import (
+    LoginHistoryResponse,
     LoginRequest,
     LoginResponse,
+    MFADisableRequest,
     MFALoginRequest,
     MFASetupResponse,
-    MFAVerifyRequest,
-    MFADisableRequest,
     RefreshTokenRequest,
     UserSessionResponse,
-    LoginHistoryResponse,
 )
 from app.schemas.invitation import AcceptInvitationRequest, ValidateInviteResponse
+from app.schemas.user import UserCreate, UserResponse
 from app.services.auth import AuthService
-from app.core.rate_limit import limiter
-from app.core.security import hash_token, get_password_hash
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -92,7 +90,7 @@ class ResetPasswordPayload(BaseModel):
 class MFAEnablePayload(BaseModel):
     secret: str
     code: str = Field(..., min_length=6, max_length=6)
-    recovery_codes: List[str]
+    recovery_codes: list[str]
 
 
 class DeactivateAccountPayload(BaseModel):
@@ -120,7 +118,7 @@ async def login(
 ):
     auth_service = AuthService(db, redis)
     client_ip = request.headers.get(
-        "x-forwarded-for", request.client.host if request.client else "127.0.0.1"
+        "x-forwarded-for", request.client.host if request.client else "127.0.0.1",
     )
     user_agent = request.headers.get("user-agent", "")
 
@@ -163,7 +161,7 @@ async def login_mfa(
 ):
     auth_service = AuthService(db, redis)
     client_ip = request.headers.get(
-        "x-forwarded-for", request.client.host if request.client else "127.0.0.1"
+        "x-forwarded-for", request.client.host if request.client else "127.0.0.1",
     )
     user_agent = request.headers.get("user-agent", "")
 
@@ -199,7 +197,7 @@ async def refresh_tokens(
 ):
     auth_service = AuthService(db, redis)
     client_ip = request.headers.get(
-        "x-forwarded-for", request.client.host if request.client else "127.0.0.1"
+        "x-forwarded-for", request.client.host if request.client else "127.0.0.1",
     )
     user_agent = request.headers.get("user-agent", "")
 
@@ -258,7 +256,7 @@ async def request_access(
         requested_role=payload.requested_role,
     )
     return MessageResponse(
-        message="Your access request has been submitted and is pending approval from the Platform Owner."
+        message="Your access request has been submitted and is pending approval from the Platform Owner.",
     )
 
 
@@ -303,7 +301,7 @@ async def resend_otp(
     auth_service = AuthService(db, redis)
     await auth_service.resend_verification_otp(email=payload.email)
     return MessageResponse(
-        message="A new verification code has been sent to your email."
+        message="A new verification code has been sent to your email.",
     )
 
 
@@ -343,7 +341,7 @@ async def enable_mfa(
         recovery_codes=payload.recovery_codes,
     )
     return MessageResponse(
-        message="Two-factor authentication has been successfully enabled."
+        message="Two-factor authentication has been successfully enabled.",
     )
 
 
@@ -368,7 +366,7 @@ async def disable_mfa(
 
 @router.get(
     "/sessions",
-    response_model=List[UserSessionResponse],
+    response_model=list[UserSessionResponse],
     summary="List all active device sessions for authenticated user",
 )
 async def list_sessions(
@@ -419,7 +417,7 @@ async def logout_all(
 
 @router.get(
     "/login-history",
-    response_model=List[LoginHistoryResponse],
+    response_model=list[LoginHistoryResponse],
     summary="Get recent login attempts audit history",
 )
 async def get_login_history(
@@ -456,15 +454,16 @@ async def logout(
     if authorization and authorization.startswith("Bearer "):
         token = authorization.removeprefix("Bearer ").strip()
         t_hash = hash_token(token)
-        from app.models.user_session import UserSession
         from sqlalchemy import update
+
+        from app.models.user_session import UserSession
 
         await db.execute(
             update(UserSession)
             .where(
-                UserSession.token_hash == t_hash, UserSession.user_id == current_user.id
+                UserSession.token_hash == t_hash, UserSession.user_id == current_user.id,
             )
-            .values(is_active=False)
+            .values(is_active=False),
         )
         await db.commit()
     return MessageResponse(message="Logged out successfully.")
@@ -482,8 +481,8 @@ async def deactivate_account(
     redis: Redis = Depends(get_redis),
 ):
     auth_service = AuthService(db, redis)
-    from app.core.security import verify_password
     from app.core.exceptions import AuthException
+    from app.core.security import verify_password
 
     if not verify_password(payload.password, current_user.hashed_password):
         raise AuthException("Incorrect password.")
@@ -523,7 +522,7 @@ async def forgot_password(
     auth_service = AuthService(db, redis)
     await auth_service.request_password_reset(email=payload.email)
     return MessageResponse(
-        message="If an account exists with this email, a reset code has been sent."
+        message="If an account exists with this email, a reset code has been sent.",
     )
 
 
@@ -544,7 +543,7 @@ async def reset_password(
         new_password=payload.new_password,
     )
     return MessageResponse(
-        message="Password reset successfully. All sessions have been invalidated."
+        message="Password reset successfully. All sessions have been invalidated.",
     )
 
 
@@ -610,13 +609,13 @@ async def accept_invite(
     redis: Redis = Depends(get_redis),
 ):
     from app.core.exceptions import (
+        ConflictException,
         ResourceNotFoundException,
         ValidationException,
-        ConflictException,
     )
 
     stmt = select(Invitation).where(
-        Invitation.token == payload.token, Invitation.status == InvitationStatus.PENDING
+        Invitation.token == payload.token, Invitation.status == InvitationStatus.PENDING,
     )
     invitation = (await db.execute(stmt)).scalars().first()
 

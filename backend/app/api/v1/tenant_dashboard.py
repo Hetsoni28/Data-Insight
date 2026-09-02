@@ -1,26 +1,26 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import desc, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, or_, text
-from datetime import datetime, timezone, timedelta
-from typing import List
 
 from app.api.deps import (
-    get_db,
-    get_current_active_tenant_user,
-    RequireRole,
     RequirePermission,
+    RequireRole,
+    get_current_active_tenant_user,
+    get_db,
 )
-from app.models.user import User
-from app.models.tenant import Tenant
 from app.models.ai_token_usage import AITokenUsage
-from app.models.dataset import Dataset
-from app.models.report import Report
-from app.models.user_session import UserSession
 from app.models.audit_log import AuditLog
-from app.models.integration import IntegrationConnection
 from app.models.dashboard import Dashboard
+from app.models.dataset import Dataset
+from app.models.integration import IntegrationConnection
+from app.models.report import Report
 from app.models.report_activity import ReportActivity
 from app.models.report_bookmark import ReportBookmark
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.models.user_session import UserSession
 
 # Re-using dict return types to avoid breaking the frontend which expects {"status": "success", "data": ...}
 # but adding try/except and dynamic status logic.
@@ -37,7 +37,7 @@ async def get_dashboard_overview(
     """Context for the top Welcome Banner."""
     try:
         tenant = await db.scalar(
-            select(Tenant).where(Tenant.id == current_user.tenant_id)
+            select(Tenant).where(Tenant.id == current_user.tenant_id),
         )
         if not tenant:
             raise HTTPException(status_code=404, detail="Organization not found")
@@ -47,7 +47,7 @@ async def get_dashboard_overview(
             select(IntegrationConnection).where(
                 IntegrationConnection.provider == "gemini",
                 IntegrationConnection.is_active == True,
-            )
+            ),
         )
         current_ai = (
             "Gemini (Custom)" if ai_integration else "Gemini (Platform Default)"
@@ -72,9 +72,9 @@ async def get_dashboard_overview(
         }
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail="An error occurred while fetching the overview."
+            status_code=500, detail="An error occurred while fetching the overview.",
         )
 
 
@@ -95,8 +95,8 @@ async def get_dashboard_kpis(
         total_users = (
             await db.scalar(
                 select(func.count(User.id)).where(
-                    User.tenant_id == tenant_id, User.is_active == True
-                )
+                    User.tenant_id == tenant_id, User.is_active == True,
+                ),
             )
             or 0
         )
@@ -105,8 +105,8 @@ async def get_dashboard_kpis(
         total_datasets = (
             await db.scalar(
                 select(func.count(Dataset.id)).where(
-                    Dataset.tenant_id == tenant_id, Dataset.is_deleted == False
-                )
+                    Dataset.tenant_id == tenant_id, Dataset.is_deleted == False,
+                ),
             )
             or 0
         )
@@ -116,7 +116,7 @@ async def get_dashboard_kpis(
                     Dataset.tenant_id == tenant_id,
                     Dataset.is_deleted == False,
                     Dataset.created_at < thirty_days_ago,
-                )
+                ),
             )
             or 0
         )
@@ -127,15 +127,15 @@ async def get_dashboard_kpis(
         # 3. Reports
         total_reports = (
             await db.scalar(
-                select(func.count(Report.id)).where(Report.tenant_id == tenant_id)
+                select(func.count(Report.id)).where(Report.tenant_id == tenant_id),
             )
             or 0
         )
         prev_reports = (
             await db.scalar(
                 select(func.count(Report.id)).where(
-                    Report.tenant_id == tenant_id, Report.created_at < thirty_days_ago
-                )
+                    Report.tenant_id == tenant_id, Report.created_at < thirty_days_ago,
+                ),
             )
             or 0
         )
@@ -145,8 +145,8 @@ async def get_dashboard_kpis(
         storage_used_bytes = (
             await db.scalar(
                 select(func.sum(Dataset.file_size_bytes)).where(
-                    Dataset.tenant_id == tenant_id, Dataset.is_deleted == False
-                )
+                    Dataset.tenant_id == tenant_id, Dataset.is_deleted == False,
+                ),
             )
             or 0
         )
@@ -158,7 +158,7 @@ async def get_dashboard_kpis(
                 select(func.count(AITokenUsage.id)).where(
                     AITokenUsage.tenant_id == tenant_id,
                     AITokenUsage.created_at >= thirty_days_ago,
-                )
+                ),
             )
             or 0
         )
@@ -168,7 +168,7 @@ async def get_dashboard_kpis(
                     AITokenUsage.tenant_id == tenant_id,
                     AITokenUsage.created_at >= sixty_days_ago,
                     AITokenUsage.created_at < thirty_days_ago,
-                )
+                ),
             )
             or 0
         )
@@ -179,8 +179,8 @@ async def get_dashboard_kpis(
         total_dashboards = (
             await db.scalar(
                 select(func.count(Dashboard.id)).where(
-                    Dashboard.tenant_id == tenant_id, Dashboard.is_deleted == False
-                )
+                    Dashboard.tenant_id == tenant_id, Dashboard.is_deleted == False,
+                ),
             )
             or 0
         )
@@ -190,7 +190,7 @@ async def get_dashboard_kpis(
                     ReportActivity.user_id == current_user.id,
                     ReportActivity.action == "viewed",
                     ReportActivity.created_at >= start_of_day,
-                )
+                ),
             )
             or 0
         )
@@ -199,22 +199,22 @@ async def get_dashboard_kpis(
                 select(func.count(ReportActivity.id)).where(
                     ReportActivity.user_id == current_user.id,
                     ReportActivity.action == "exported",
-                )
+                ),
             )
             or 0
         )
         bookmarks_count = (
             await db.scalar(
                 select(func.count(ReportBookmark.id)).where(
-                    ReportBookmark.user_id == current_user.id
-                )
+                    ReportBookmark.user_id == current_user.id,
+                ),
             )
             or 0
         )
 
         # Dynamic productivity and data quality score based on actual usage
         productivity_score = min(
-            100, max(0, int(70 + (ai_growth / 10) + (reports_growth / 10)))
+            100, max(0, int(70 + (ai_growth / 10) + (reports_growth / 10))),
         )
         data_quality_score = min(100, max(0, int(75 + (datasets_growth / 5))))
 
@@ -237,9 +237,9 @@ async def get_dashboard_kpis(
                 "data_quality_score": data_quality_score,
             },
         }
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail="An error occurred while fetching KPIs."
+            status_code=500, detail="An error occurred while fetching KPIs.",
         )
 
 
@@ -339,15 +339,15 @@ async def get_dashboard_charts(
                     "ai_usage": ai_map.get(date_str, 0),
                     "reports": reports_map.get(date_str, 0),
                     "storage_mb": round(
-                        storage_map.get(date_str, 0) / (1024 * 1024), 2
+                        storage_map.get(date_str, 0) / (1024 * 1024), 2,
                     ),
-                }
+                },
             )
 
         return {"status": "success", "data": chart_data}
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail="An error occurred while fetching chart data."
+            status_code=500, detail="An error occurred while fetching chart data.",
         )
 
 
@@ -363,7 +363,7 @@ async def get_recent_datasets(
         stmt = (
             select(Dataset)
             .where(
-                Dataset.tenant_id == current_user.tenant_id, Dataset.is_deleted == False
+                Dataset.tenant_id == current_user.tenant_id, Dataset.is_deleted == False,
             )
             .order_by(desc(Dataset.created_at))
             .offset(skip)
@@ -385,9 +385,9 @@ async def get_recent_datasets(
                 for d in datasets
             ],
         }
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail="An error occurred while fetching datasets."
+            status_code=500, detail="An error occurred while fetching datasets.",
         )
 
 
@@ -422,9 +422,9 @@ async def get_recent_reports(
                 for r in reports
             ],
         }
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail="An error occurred while fetching reports."
+            status_code=500, detail="An error occurred while fetching reports.",
         )
 
 
@@ -459,9 +459,9 @@ async def get_activity_feed(
                 for l in logs
             ],
         }
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail="An error occurred while fetching activity logs."
+            status_code=500, detail="An error occurred while fetching activity logs.",
         )
 
 
@@ -481,7 +481,7 @@ async def get_security_overview(
             select(UserSession)
             .join(User)
             .where(
-                User.tenant_id == current_user.tenant_id, UserSession.is_active == True
+                User.tenant_id == current_user.tenant_id, UserSession.is_active == True,
             )
             .order_by(desc(UserSession.last_active_at))
             .limit(5)
@@ -520,7 +520,7 @@ async def get_security_overview(
                 ],
             },
         }
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail="An error occurred while fetching security data."
+            status_code=500, detail="An error occurred while fetching security data.",
         )

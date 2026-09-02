@@ -1,19 +1,20 @@
 """Workspace CRUD endpoints."""
 
 import uuid
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, get_current_user, get_current_active_tenant_user
+from app.api.deps import get_current_active_tenant_user, get_current_user, get_db
 from app.models.user import User
-from app.schemas.workspace import WorkspaceCreate, WorkspaceUpdate, WorkspaceResponse
+from app.schemas.workspace import WorkspaceCreate, WorkspaceResponse, WorkspaceUpdate
 from app.services.workspace import WorkspaceService
 
 router = APIRouter(prefix="/workspaces", tags=["Workspaces"])
 
 
 @router.post(
-    "", response_model=WorkspaceResponse, status_code=201, summary="Create workspace"
+    "", response_model=WorkspaceResponse, status_code=201, summary="Create workspace",
 )
 async def create_workspace(
     body: WorkspaceCreate,
@@ -40,7 +41,7 @@ async def list_workspaces(
 
 
 @router.get(
-    "/{workspace_id}", response_model=WorkspaceResponse, summary="Get workspace"
+    "/{workspace_id}", response_model=WorkspaceResponse, summary="Get workspace",
 )
 async def get_workspace(
     workspace_id: uuid.UUID,
@@ -52,7 +53,7 @@ async def get_workspace(
 
 
 @router.patch(
-    "/{workspace_id}", response_model=WorkspaceResponse, summary="Update workspace"
+    "/{workspace_id}", response_model=WorkspaceResponse, summary="Update workspace",
 )
 async def update_workspace(
     workspace_id: uuid.UUID,
@@ -62,7 +63,7 @@ async def update_workspace(
 ):
     svc = WorkspaceService(db)
     return await svc.update_workspace(
-        workspace_id, body.model_dump(exclude_none=True), current_user
+        workspace_id, body.model_dump(exclude_none=True), current_user,
     )
 
 

@@ -3,19 +3,20 @@
 from __future__ import annotations
 
 import uuid
-from fastapi import APIRouter, Depends, UploadFile, File, Form, Query, BackgroundTasks
+
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, get_current_active_tenant_user
+from app.api.deps import get_current_active_tenant_user, get_db
 from app.models.user import User
 from app.schemas.dataset import (
-    DatasetResponse,
-    DatasetProfileResponse,
-    DatasetUploadResponse,
-    DatasetPreviewResponse,
     DatasetCorrelationsResponse,
+    DatasetPreviewResponse,
+    DatasetProfileResponse,
     DatasetQueryRequest,
     DatasetQueryResponse,
+    DatasetResponse,
+    DatasetUploadResponse,
     StructuredQueryRequest,
 )
 from app.services.dataset import DatasetService

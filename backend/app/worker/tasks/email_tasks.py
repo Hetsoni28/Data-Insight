@@ -1,6 +1,5 @@
 # app/worker/tasks/email_tasks.py
-"""
-Celery email tasks — background email delivery.
+"""Celery email tasks — background email delivery.
 
 These tasks delegate to app.services.email which handles the actual
 Resend API call. Running email sends in a Celery worker means a slow
@@ -11,8 +10,10 @@ Usage:
     send_verification_email_task.delay(to_email, full_name, otp)
 """
 import asyncio
-from app.worker.celery_app import celery_app
+
 from loguru import logger
+
+from app.worker.celery_app import celery_app
 
 
 @celery_app.task(
@@ -76,7 +77,7 @@ def send_welcome_email_task(self, to_email: str, full_name: str | None):
     default_retry_delay=30,
 )
 def send_report_ready_task(
-    self, to_email: str, full_name: str | None, report_name: str, report_url: str
+    self, to_email: str, full_name: str | None, report_name: str, report_url: str,
 ):
     """Notify user when their AI report is ready (background)."""
     try:
@@ -84,7 +85,7 @@ def send_report_ready_task(
 
         asyncio.run(send_report_ready(to_email, full_name, report_name, report_url))
         logger.info(
-            f"[Task: send_report_ready] ✅ Sent to {to_email} | report={report_name}"
+            f"[Task: send_report_ready] ✅ Sent to {to_email} | report={report_name}",
         )
     except Exception as exc:
         logger.error(f"[Task: send_report_ready] ❌ Failed: {exc}")
@@ -98,7 +99,7 @@ def send_report_ready_task(
     default_retry_delay=30,
 )
 def send_team_invite_task(
-    self, to_email: str, invited_by: str, org_name: str, invite_url: str
+    self, to_email: str, invited_by: str, org_name: str, invite_url: str,
 ):
     """Send team invitation email (background)."""
     try:

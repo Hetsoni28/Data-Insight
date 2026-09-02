@@ -1,22 +1,22 @@
+import enum
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
+
 from sqlalchemy import (
-    Column,
-    String,
     Boolean,
+    Column,
     DateTime,
+    Enum,
+    Float,
     ForeignKey,
     Integer,
     Numeric,
+    String,
     Text,
-    JSON,
-    Enum,
-    Float,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
-import enum
 
 from app.db.session import Base
 
@@ -36,7 +36,7 @@ class AIProvider(Base):
     logo_url = Column(String, nullable=True)
     base_url = Column(String, nullable=False)
     api_key_secret = Column(
-        String, nullable=True
+        String, nullable=True,
     )  # Will store standard string for MVP, can upgrade to Fernet later
     status = Column(Enum(ProviderStatus), default=ProviderStatus.ONLINE)
     health_score = Column(Float, default=100.0)
@@ -44,7 +44,7 @@ class AIProvider(Base):
     is_active = Column(Boolean, default=True)
     environment = Column(String, default="production")
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
     updated_at = Column(
         DateTime(timezone=True),
@@ -53,7 +53,7 @@ class AIProvider(Base):
     )
 
     models = relationship(
-        "AIModel", back_populates="provider", cascade="all, delete-orphan"
+        "AIModel", back_populates="provider", cascade="all, delete-orphan",
     )
 
 
@@ -87,7 +87,7 @@ class AIModel(Base):
     quality_score = Column(Float, default=0.0)  # 0 to 100 benchmark score
     is_active = Column(Boolean, default=True)
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
 
     provider = relationship("AIProvider", back_populates="models")
@@ -108,7 +108,7 @@ class AIRoutingRule(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     task_type = Column(
-        String, nullable=False, unique=True
+        String, nullable=False, unique=True,
     )  # e.g., 'default_chat', 'excel_generation', 'vision_tasks'
     primary_model_id = Column(
         UUID(as_uuid=True),
@@ -124,7 +124,7 @@ class AIRoutingRule(Base):
     retry_count = Column(Integer, default=3)
     is_active = Column(Boolean, default=True)
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
     updated_at = Column(
         DateTime(timezone=True),
@@ -155,7 +155,7 @@ class AIPromptTemplate(Base):
     variables = Column(JSONB, default=list)  # List of expected variable names
     is_active = Column(Boolean, default=True)
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
     updated_at = Column(
         DateTime(timezone=True),
@@ -169,7 +169,7 @@ class AIUsageLog(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     tenant_id = Column(
-        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False,
     )
     model_id = Column(
         UUID(as_uuid=True),
@@ -190,5 +190,5 @@ class AIUsageLog(Base):
     status_code = Column(Integer, default=200)  # 200, 429, 500 etc
     error_message = Column(Text, nullable=True)
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True,
     )

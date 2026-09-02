@@ -1,6 +1,6 @@
 # app/core/config.py
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
 
 
 class Settings(BaseSettings):
@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Data Insight"
     APP_VERSION: str = "1.0.0"
     SECRET_KEY: str
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
 
     # Master Database (Platform Registry)
     DATABASE_URL: str

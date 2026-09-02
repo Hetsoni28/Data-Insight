@@ -1,21 +1,22 @@
 """Organization Dashboards API (Enterprise Builder)."""
 
 import uuid
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from typing import Any
 
-from app.api.deps import get_db, get_current_active_tenant_user, get_current_workspace
-from app.models.user import User
-from app.models.workspace import Workspace
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_active_tenant_user, get_current_workspace, get_db
 from app.models.dashboard import Dashboard
 from app.models.dataset import Dataset
+from app.models.user import User
+from app.models.workspace import Workspace
 
 router = APIRouter()
 
 
-@router.get("", response_model=List[dict])
+@router.get("", response_model=list[dict])
 async def get_dashboards(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_tenant_user),
@@ -107,7 +108,7 @@ async def get_dashboards(
 
                 # Fallback: use any column that has valid top_values or histogram
                 if not chart_data:
-                    for col_name, col_info in col_profiles.items():
+                    for col_info in col_profiles.values():
                         extracted = extract_data(col_info)
                         if (
                             extracted
@@ -130,7 +131,7 @@ async def get_dashboards(
                 }
             elif w_type == "text":
                 metrics = {
-                    "text": config.get("text", "No insights available for this widget.")
+                    "text": config.get("text", "No insights available for this widget."),
                 }
 
             hydrated_widgets.append(
@@ -142,7 +143,7 @@ async def get_dashboards(
                     "y_axis_key": y_axis,
                     "data": chart_data,
                     "metrics": metrics,
-                }
+                },
             )
 
         dashboards.append(
@@ -158,7 +159,7 @@ async def get_dashboards(
                 "is_published": d.is_published,
                 "updated_at": d.updated_at,
                 "view_count": d.view_count,
-            }
+            },
         )
 
     return dashboards
@@ -176,9 +177,10 @@ async def create_dashboard(
         raise HTTPException(status_code=400, detail="User not assigned to a tenant")
 
     # Phase 5: Quota Enforcement
-    from app.services.entitlements import check_quota, BillingResource, get_usage
-    from app.models.tenant import Tenant
     from sqlalchemy import select
+
+    from app.models.tenant import Tenant
+    from app.services.entitlements import BillingResource, check_quota, get_usage
 
     tenant = await db.scalar(select(Tenant).where(Tenant.id == current_user.tenant_id))
     usage = await get_usage(tenant, db)
@@ -336,12 +338,14 @@ async def delete_dashboard(
 
 
 async def generate_dashboard_background_task(
-    dashboard_id: uuid.UUID, dataset_id: uuid.UUID, prompt: str, tenant_id: uuid.UUID
+    dashboard_id: uuid.UUID, dataset_id: uuid.UUID, prompt: str, tenant_id: uuid.UUID,
 ):
-    from app.db.session import AsyncSessionLocal
-    from app.core.config import settings
     import json
+
     from groq import AsyncGroq
+
+    from app.core.config import settings
+    from app.db.session import AsyncSessionLocal
 
     if not settings.GROQ_API_KEY:
         print("Groq API Key is not configured for background task")
@@ -353,8 +357,8 @@ async def generate_dashboard_background_task(
         # Fetch dataset for schema
         dataset = await db.scalar(
             select(Dataset).where(
-                Dataset.id == dataset_id, Dataset.tenant_id == tenant_id
-            )
+                Dataset.id == dataset_id, Dataset.tenant_id == tenant_id,
+            ),
         )
         if not dataset:
             return
@@ -511,9 +515,8 @@ CRITICAL RULES:
                     "chart_line",
                     "chart_pie",
                     "data_table",
-                ):
-                    if "metric" in cfg and "aggregation" not in cfg:
-                        cfg["aggregation"] = "SUM"
+                ) and "metric" in cfg and "aggregation" not in cfg:
+                    cfg["aggregation"] = "SUM"
 
         except Exception as e:
             print(f"LLM Generation Failed: {e}")
@@ -536,7 +539,7 @@ CRITICAL RULES:
                             "metric": fallback_metric,
                             "aggregation": "SUM",
                         },
-                    }
+                    },
                 )
             if fallback_dim and fallback_metric:
                 fallback_widgets.append(
@@ -554,7 +557,7 @@ CRITICAL RULES:
                             "metric": fallback_metric,
                             "aggregation": "SUM",
                         },
-                    }
+                    },
                 )
             if fallback_dim and fallback_metric:
                 fallback_widgets.append(
@@ -572,7 +575,7 @@ CRITICAL RULES:
                             "metric": fallback_metric,
                             "aggregation": "SUM",
                         },
-                    }
+                    },
                 )
 
             if not fallback_widgets:
@@ -586,17 +589,17 @@ CRITICAL RULES:
                         "w": 12,
                         "h": 4,
                         "config": {
-                            "text": f"Dashboard generation encountered an issue: {str(e)}\n\nDataset **{dataset.name}** has been connected. Please configure widgets manually.",
+                            "text": f"Dashboard generation encountered an issue: {e!s}\n\nDataset **{dataset.name}** has been connected. Please configure widgets manually.",
                             "dataset_id": str(dataset_id),
                         },
-                    }
+                    },
                 )
 
             generated_layout = {"widgets": fallback_widgets}
 
         # Update dashboard
         dashboard = await db.scalar(
-            select(Dashboard).where(Dashboard.id == dashboard_id)
+            select(Dashboard).where(Dashboard.id == dashboard_id),
         )
         if dashboard:
             dashboard.layout_json = generated_layout
@@ -612,8 +615,7 @@ async def ai_generate_dashboard(
     current_user: User = Depends(get_current_active_tenant_user),
     workspace: Workspace | None = Depends(get_current_workspace),
 ) -> Any:
-    """
-    Generate a full dashboard layout using AI based on a dataset and a prompt.
+    """Generate a full dashboard layout using AI based on a dataset and a prompt.
     Offloads LLM work to BackgroundTasks.
     """
     if not current_user.tenant_id:

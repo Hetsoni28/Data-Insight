@@ -1,19 +1,19 @@
 """ReportService — AI Excel generation pipeline orchestration."""
 
 import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import (
+    ForbiddenException,
+    ResourceNotFoundException,
+)
 from app.models.report import Report, ReportStatus, ReportType
 from app.models.user import User, UserRole
-from app.repositories.report import ReportRepository
-from app.repositories.dataset import DatasetRepository
-from app.repositories.workspace import WorkspaceRepository
 from app.repositories.audit_log import AuditLogRepository
-from app.core.exceptions import (
-    ResourceNotFoundException,
-    ForbiddenException,
-    TenantQuotaExceededException,
-)
+from app.repositories.dataset import DatasetRepository
+from app.repositories.report import ReportRepository
+from app.repositories.workspace import WorkspaceRepository
 
 
 class ReportService:
@@ -37,7 +37,7 @@ class ReportService:
 
         # Validate dataset access
         dataset = await self.dataset_repo.get_tenant_dataset(
-            actor.tenant_id, dataset_id
+            actor.tenant_id, dataset_id,
         )
         if not dataset:
             raise ResourceNotFoundException("Dataset", str(dataset_id))
@@ -46,15 +46,14 @@ class ReportService:
 
         if dataset.status != DatasetStatus.ready:
             raise ForbiddenException(
-                "Dataset must finish profiling before generating a report."
+                "Dataset must finish profiling before generating a report.",
             )
 
         # Check AI token quota
         from app.repositories.tenant import TenantRepository
-        from app.repositories.ai_token import AITokenRepository
 
         tenant_repo = TenantRepository(self.session)
-        tenant = await tenant_repo.get_by_id(actor.tenant_id)
+        await tenant_repo.get_by_id(actor.tenant_id)
 
         report = Report(
             tenant_id=actor.tenant_id,
@@ -89,7 +88,7 @@ class ReportService:
         if not actor.tenant_id:
             return []
         return await self.report_repo.get_workspace_reports(
-            actor.tenant_id, workspace_id
+            actor.tenant_id, workspace_id,
         )
 
     async def get_report(self, report_id: uuid.UUID, actor: User) -> Report:
@@ -99,7 +98,7 @@ class ReportService:
         return report
 
     async def approve_report(
-        self, report_id: uuid.UUID, actor: User, notes: str | None = None
+        self, report_id: uuid.UUID, actor: User, notes: str | None = None,
     ) -> Report:
         if actor.role not in (UserRole.owner, UserRole.org_admin):
             raise ForbiddenException("Only Owners and Admins can approve reports.")

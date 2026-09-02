@@ -6,9 +6,8 @@ Create Date: 2026-09-01 18:55:48.719970+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "a4126d4b6cef"
@@ -42,7 +41,7 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_index(
-        op.f("ix_dataset_alerts_id"), "dataset_alerts", ["id"], unique=False
+        op.f("ix_dataset_alerts_id"), "dataset_alerts", ["id"], unique=False,
     )
     op.create_index(
         op.f("ix_dataset_alerts_tenant_id"),

@@ -1,7 +1,9 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
 import uuid
 from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+
 from app.db.session import Base
 
 
@@ -34,5 +36,5 @@ class ReportActivity(Base):
     metadata_json = Column(JSONB, nullable=True)  # e.g. {"export_format": "pdf"}
 
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )

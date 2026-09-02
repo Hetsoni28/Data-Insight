@@ -6,24 +6,23 @@ Zero fake data policy enforced.
 """
 
 from __future__ import annotations
+
 import asyncio
 import io
 import json
 import re
 import uuid
-from datetime import datetime
-from typing import Any, Dict
-from loguru import logger
+from typing import Any
+
 from celery import shared_task
+from loguru import logger
 
 
 @shared_task(
-    bind=True, name="dataset.generate_excel", max_retries=2, default_retry_delay=60
+    bind=True, name="dataset.generate_excel", max_retries=2, default_retry_delay=60,
 )
 def generate_ai_excel_task(self, dataset_id: str, user_id: str):
     """Celery task: generate real AI Excel file from dataset."""
-    import asyncio
-
     # Must create fresh loop each time
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -40,10 +39,11 @@ def generate_ai_excel_task(self, dataset_id: str, user_id: str):
 
 
 def _build_excel_workbook(
-    df_cleaned, profile: Dict[str, Any], dataset_name: str
+    df_cleaned, profile: dict[str, Any], dataset_name: str,
 ) -> bytes:
-    import xlsxwriter
     import math
+
+    import xlsxwriter
 
     buf = io.BytesIO()
     workbook = xlsxwriter.Workbook(buf, {"in_memory": True})
@@ -57,15 +57,15 @@ def _build_excel_workbook(
             "font_size": 12,
             "align": "center",
             "valign": "vcenter",
-        }
+        },
     )
     row_even_format_green = workbook.add_format({"bg_color": "#F0FDF4"})
     row_odd_format_green = workbook.add_format({"bg_color": "#FFFFFF"})
     num_format_even_green = workbook.add_format(
-        {"bg_color": "#F0FDF4", "num_format": "#,##0.00"}
+        {"bg_color": "#F0FDF4", "num_format": "#,##0.00"},
     )
     num_format_odd_green = workbook.add_format(
-        {"bg_color": "#FFFFFF", "num_format": "#,##0.00"}
+        {"bg_color": "#FFFFFF", "num_format": "#,##0.00"},
     )
     # Sticky sidebar column A — visually distinct emerald stripe
     sidebar_even_fmt = workbook.add_format(
@@ -77,7 +77,7 @@ def _build_excel_workbook(
             "left_color": "#10B981",
             "right": 1,
             "right_color": "#D1FAE5",
-        }
+        },
     )
     sidebar_odd_fmt = workbook.add_format(
         {
@@ -88,7 +88,7 @@ def _build_excel_workbook(
             "left_color": "#10B981",
             "right": 1,
             "right_color": "#A7F3D0",
-        }
+        },
     )
     sidebar_num_even_fmt = workbook.add_format(
         {
@@ -98,7 +98,7 @@ def _build_excel_workbook(
             "num_format": "#,##0.00",
             "left": 2,
             "left_color": "#10B981",
-        }
+        },
     )
     sidebar_num_odd_fmt = workbook.add_format(
         {
@@ -108,7 +108,7 @@ def _build_excel_workbook(
             "num_format": "#,##0.00",
             "left": 2,
             "left_color": "#10B981",
-        }
+        },
     )
 
     # TAB 1: Clean Data
@@ -164,7 +164,7 @@ def _build_excel_workbook(
 
     title_fmt = workbook.add_format({"bold": True, "font_size": 16})
     section_fmt = workbook.add_format(
-        {"bold": True, "font_size": 14, "bg_color": "#E0E7FF"}
+        {"bold": True, "font_size": 14, "bg_color": "#E0E7FF"},
     )
     kpi_label_fmt = workbook.add_format({"bold": True})
     kpi_val_fmt = workbook.add_format({"align": "left"})
@@ -198,7 +198,7 @@ def _build_excel_workbook(
     ws3.freeze_panes(1, 1)
 
     ws3_header_fmt = workbook.add_format(
-        {"bg_color": "#1E293B", "font_color": "#FFFFFF", "bold": True}
+        {"bg_color": "#1E293B", "font_color": "#FFFFFF", "bold": True},
     )
     ws3_headers = [
         "Column Name",
@@ -244,7 +244,7 @@ def _build_excel_workbook(
     ws4.set_tab_color("#14B8A6")
 
     ws4_header_fmt = workbook.add_format(
-        {"bg_color": "#1E293B", "font_color": "#FFFFFF", "bold": True}
+        {"bg_color": "#1E293B", "font_color": "#FFFFFF", "bold": True},
     )
     ws4_pass_fmt = workbook.add_format({"bg_color": "#D1FAE5"})
     ws4_fail_fmt = workbook.add_format({"bg_color": "#FEF3C7"})
@@ -264,7 +264,7 @@ def _build_excel_workbook(
             "status": "PASS" if dup_rows == 0 else "FAIL",
             "value": f"{dup_rows} duplicates",
             "rec": "Good" if dup_rows == 0 else "Consider removing duplicate rows",
-        }
+        },
     )
 
     miss_pct = profile.get("missing_cells_pct", 0)
@@ -274,7 +274,7 @@ def _build_excel_workbook(
             "status": "PASS" if miss_pct < 5 else "FAIL",
             "value": f"{miss_pct:.2f}%",
             "rec": "Good" if miss_pct < 5 else "Investigate missing values",
-        }
+        },
     )
 
     high_null_cols = [
@@ -290,7 +290,7 @@ def _build_excel_workbook(
                 if not high_null_cols
                 else "Consider dropping columns with >50% missing data"
             ),
-        }
+        },
     )
 
     const_cols = [
@@ -304,7 +304,7 @@ def _build_excel_workbook(
             "status": "PASS" if not const_cols else "FAIL",
             "value": f"{len(const_cols)} columns",
             "rec": "Good" if not const_cols else "Consider dropping constant columns",
-        }
+        },
     )
 
     outliers_ratio = profile.get("outliers_pct", 0)
@@ -316,7 +316,7 @@ def _build_excel_workbook(
             "rec": (
                 "Good" if outliers_ratio < 5 else "Review outliers in numeric columns"
             ),
-        }
+        },
     )
 
     for i, check in enumerate(checks):
@@ -331,8 +331,8 @@ def _build_excel_workbook(
 
 
 async def _get_ai_content(
-    df, profile: Dict[str, Any], dataset_name: str
-) -> Dict[str, Any]:
+    df, profile: dict[str, Any], dataset_name: str,
+) -> dict[str, Any]:
     """Call Groq AI to generate real insights from dataset statistics. Returns structured dict."""
     empty = {
         "executive_summary": "",
@@ -343,6 +343,7 @@ async def _get_ai_content(
     }
     try:
         import polars as pl
+
         from app.core.config import settings
         from app.services.ai.router import LLMRouter
 
@@ -390,7 +391,7 @@ async def _get_ai_content(
                 vals = [str(r[0]) for r in top.iter_rows()]
                 extras = f" top_values=[{', '.join(vals)}]"
             col_summary_lines.append(
-                f"  - {col} ({dtype}): null={np_}% unique={uc}{extras}"
+                f"  - {col} ({dtype}): null={np_}% unique={uc}{extras}",
             )
 
         col_summary = "\n".join(col_summary_lines)
@@ -445,7 +446,7 @@ Write column_descriptions for ALL {col_count} columns. Return ONLY valid JSON.""
         match = re.search(r"\{.*\}", text, re.DOTALL)
         if not match:
             logger.warning(
-                "[AI Excel] No JSON found in AI response — using empty content"
+                "[AI Excel] No JSON found in AI response — using empty content",
             )
             return empty
 
@@ -471,19 +472,20 @@ Write column_descriptions for ALL {col_count} columns. Return ONLY valid JSON.""
 
 async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
     import httpx
-    from app.db.session import AsyncSessionLocal
-    from app.repositories.dataset import DatasetRepository
-    from app.models.dataset import DatasetStatus
+
     from app.core.storage import (
-        get_signed_url,
         DATASETS_BUCKET,
-        is_local_storage,
         LOCAL_UPLOADS_DIR,
+        get_signed_url,
+        is_local_storage,
     )
-    from app.services.ingestion.polars_engine import PolarsEngine
-    from app.services.ingestion.cleaner import DatasetCleaner
-    from app.services.ingestion.profiler import DataProfiler
     from app.core.websockets import manager as ws_manager
+    from app.db.session import AsyncSessionLocal
+    from app.models.dataset import DatasetStatus
+    from app.repositories.dataset import DatasetRepository
+    from app.services.ingestion.cleaner import DatasetCleaner
+    from app.services.ingestion.polars_engine import PolarsEngine
+    from app.services.ingestion.profiler import DataProfiler
 
     try:
         async with AsyncSessionLocal() as session:
@@ -500,7 +502,7 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                     file_bytes = local_path.read_bytes()
                 else:
                     signed_url = await get_signed_url(
-                        DATASETS_BUCKET, dataset.file_url, expires_in=300
+                        DATASETS_BUCKET, dataset.file_url, expires_in=300,
                     )
                     async with httpx.AsyncClient() as client:
                         response = await client.get(signed_url)
@@ -600,7 +602,7 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                         "dataset_excel_ready",
                         {"dataset_id": str(dataset.id)},
                     )
-                except Exception as e:
+                except Exception:
                     pass
 
             except Exception as exc:
@@ -625,17 +627,16 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
 
 @shared_task(bind=True, max_retries=3)
 def evaluate_single_alert_task(self, alert_id: str, user_id: str):
-    import asyncio
 
     asyncio.run(_evaluate_single_alert(alert_id, user_id))
 
 
 async def _evaluate_single_alert(alert_id: str, user_id: str):
-    from sqlalchemy.ext.asyncio import AsyncSession
-    from app.db.session import AsyncSessionLocal
     from sqlalchemy import select
-    from app.models.dataset_alert import DatasetAlert
+
+    from app.db.session import AsyncSessionLocal
     from app.models.dataset import Dataset
+    from app.models.dataset_alert import DatasetAlert
     from app.models.notification import Notification
     from app.services.dataset import DatasetService
     from app.services.ingestion.duckdb_engine import DuckDBEngine
@@ -661,7 +662,7 @@ async def _evaluate_single_alert(alert_id: str, user_id: str):
             import asyncio
 
             query_result = await asyncio.to_thread(
-                DuckDBEngine.execute_query, df, sql, "data", 100
+                DuckDBEngine.execute_query, df, sql, "data", 100,
             )
 
             breaches = 0
@@ -680,7 +681,7 @@ async def _evaluate_single_alert(alert_id: str, user_id: str):
                 )
                 db.add(notif)
                 await db.commit()
-        except Exception as e:
+        except Exception:
             import logging
 
             logging.getLogger(__name__).exception("Failed to evaluate alert")

@@ -3,9 +3,11 @@
 import uuid
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
-from sqlalchemy import String, Text, DateTime, Integer, Enum
-from sqlalchemy.orm import Mapped, mapped_column
+
+from sqlalchemy import DateTime, Enum, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app.db.session import Base
 
 
@@ -31,7 +33,7 @@ class Lead(Base):
     __tablename__ = "leads"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
 
     # ── Contact Info ──────────────────────────────────────────────────────────
@@ -42,19 +44,19 @@ class Lead(Base):
 
     # ── Organisation Context ──────────────────────────────────────────────────
     company_size: Mapped[str | None] = mapped_column(
-        String(50), nullable=True
+        String(50), nullable=True,
     )  # "1-10", "11-50" ...
     industry: Mapped[str | None] = mapped_column(String(100), nullable=True)
     expected_users: Mapped[int | None] = mapped_column(Integer, nullable=True)
     expected_storage_gb: Mapped[int | None] = mapped_column(Integer, nullable=True)
     expected_data_volume: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
+        String(100), nullable=True,
     )  # "< 10GB", "10–100GB" ...
 
     # ── Requirements ──────────────────────────────────────────────────────────
     ai_bi_requirements: Mapped[str | None] = mapped_column(Text, nullable=True)
     preferred_contact_time: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
+        String(100), nullable=True,
     )
     message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -71,19 +73,19 @@ class Lead(Base):
         nullable=False,
     )
     lead_id: Mapped[str] = mapped_column(
-        String(30), nullable=False, unique=True
+        String(30), nullable=False, unique=True,
     )  # e.g. LEAD-2026-0001
     internal_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     assigned_to: Mapped[str | None] = mapped_column(
-        String(200), nullable=True
+        String(200), nullable=True,
     )  # sales rep name
     tenant_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
+        UUID(as_uuid=True), nullable=True,
     )  # set when provisioned
 
     # ── Timestamps ────────────────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -91,14 +93,14 @@ class Lead(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
     contacted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True,
     )
     demo_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True,
     )
     approved_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True,
     )
     rejected_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True,
     )

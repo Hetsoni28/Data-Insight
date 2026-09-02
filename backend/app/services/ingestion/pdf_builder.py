@@ -1,8 +1,9 @@
 from __future__ import annotations
-import io
+
 import math
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 import polars as pl
 import weasyprint
 
@@ -19,9 +20,9 @@ class AdvancedPdfBuilder:
     def __init__(
         self,
         df: pl.DataFrame,
-        profile: Dict[str, Any],
+        profile: dict[str, Any],
         dataset_name: str,
-        ai_content: Dict[str, Any],
+        ai_content: dict[str, Any],
     ):
         self.df = df
         self.profile = profile or {}
@@ -76,7 +77,7 @@ class AdvancedPdfBuilder:
         col_count = ov.get("column_count") or len(self.df.columns)
         qs = float(ov.get("quality_score") or self.profile.get("quality_score") or 0)
         miss_pct = float(
-            ov.get("missing_cells_pct") or self.profile.get("missing_cells_pct") or 0
+            ov.get("missing_cells_pct") or self.profile.get("missing_cells_pct") or 0,
         )
         dupes = int(ov.get("duplicate_rows") or 0)
 
@@ -84,7 +85,7 @@ class AdvancedPdfBuilder:
         logo_html = (
             f'<img src="{logo_uri}" class="logo" />'
             if logo_uri
-            else f"<h1>Data Insight</h1>"
+            else "<h1>Data Insight</h1>"
         )
 
         # Extract AI Content safely
@@ -104,7 +105,7 @@ class AdvancedPdfBuilder:
             ]
             if miss_pct > 5:
                 recs.append(
-                    f"Missing data at {miss_pct:.1f}% \u2014 apply imputation strategies (mean/median/mode) before analysis."
+                    f"Missing data at {miss_pct:.1f}% \u2014 apply imputation strategies (mean/median/mode) before analysis.",
                 )
 
         html_content = f"""
@@ -338,12 +339,11 @@ class AdvancedPdfBuilder:
 
 
 if __name__ == "__main__":
-    import sys
 
     # Quick test logic
     print("Testing PDF builder...")
     df = pl.DataFrame(
-        {"CustomerID": [1, 2, 3], "Age": [25, 30, None], "Segment": ["A", "B", "A"]}
+        {"CustomerID": [1, 2, 3], "Age": [25, 30, None], "Segment": ["A", "B", "A"]},
     )
     prof = {
         "overview": {

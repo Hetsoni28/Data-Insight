@@ -1,41 +1,41 @@
 # app/main.py
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from loguru import logger
-import uuid
 import sys
+import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from app.core.config import settings
-from app.core.exceptions import (
-    ResourceNotFoundException,
-    resource_not_found_handler,
-    UnauthorizedException,
-    unauthorized_handler,
-    ForbiddenException,
-    forbidden_handler,
-    ConflictException,
-    conflict_handler,
-    ValidationException,
-    validation_handler,
-    TenantQuotaExceededException,
-    quota_exceeded_handler,
-    StorageQuotaExceededException,
-    storage_quota_handler,
-    AIServiceException,
-    ai_service_handler,
-)
-from app.api.v1.router import api_router
-from app.db.session import engine
-from app.core.rate_limit import limiter
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from loguru import logger
+from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from prometheus_fastapi_instrumentator import Instrumentator
-from app.worker.celery_app import celery_app  # Initialize Celery app
+
+from app.api.v1.router import api_router
+from app.core.config import settings
+from app.core.exceptions import (
+    AIServiceException,
+    ConflictException,
+    ForbiddenException,
+    ResourceNotFoundException,
+    StorageQuotaExceededException,
+    TenantQuotaExceededException,
+    UnauthorizedException,
+    ValidationException,
+    ai_service_handler,
+    conflict_handler,
+    forbidden_handler,
+    quota_exceeded_handler,
+    resource_not_found_handler,
+    storage_quota_handler,
+    unauthorized_handler,
+    validation_handler,
+)
+from app.core.rate_limit import limiter
 from app.core.websockets import manager as ws_manager
+from app.db.session import engine
 
 # ─── Loguru Configuration ─────────────────────────────────────────────────────
 logger.remove()
@@ -62,13 +62,12 @@ from app.middleware.tenant_middleware import TenantMiddleware
 # ─── Application Lifespan ─────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Application startup and shutdown lifecycle.
+    """Application startup and shutdown lifecycle.
     - Startup: Initialize connections, warm caches
     - Shutdown: Close DB + Redis connections cleanly
     """
     logger.info(
-        f"Starting {settings.APP_NAME} v{settings.APP_VERSION} [{settings.APP_ENV}]"
+        f"Starting {settings.APP_NAME} v{settings.APP_VERSION} [{settings.APP_ENV}]",
     )
     await ws_manager.start_listener()
     yield
@@ -131,7 +130,7 @@ def create_app() -> FastAPI:
     # ─── Pydantic Validation Error Handler ───────────────────────────────────
     @app.exception_handler(RequestValidationError)
     async def pydantic_validation_handler(
-        request: Request, exc: RequestValidationError
+        request: Request, exc: RequestValidationError,
     ):
         errors = []
         for error in exc.errors():
@@ -178,10 +177,11 @@ def create_app() -> FastAPI:
 
     # ─── Local Storage Fallback Mount ─────────────────────────────────────
     import os
+
     from fastapi.staticfiles import StaticFiles
 
     uploads_dir = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads"
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads",
     )
     os.makedirs(uploads_dir, exist_ok=True)
     app.mount(
@@ -211,8 +211,7 @@ def create_app() -> FastAPI:
     # ─── Health Check Endpoint ────────────────────────────────────────────────
     @app.get("/health", tags=["System"], summary="Health Check")
     async def health_check():
-        """
-        Platform health check endpoint.
+        """Platform health check endpoint.
         Used by Docker, load balancers, and monitoring systems.
         Returns 200 if the API is running correctly.
         """

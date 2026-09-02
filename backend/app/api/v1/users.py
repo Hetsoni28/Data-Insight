@@ -1,21 +1,21 @@
 """User profile endpoints."""
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User
-from app.schemas.user import UserResponse
-from app.repositories.user import UserRepository
-from app.core.security import verify_password, get_password_hash
+from app.api.deps import get_current_user, get_db
 from app.core.exceptions import (
-    ValidationException,
-    UnauthorizedException,
     ForbiddenException,
     ResourceNotFoundException,
+    UnauthorizedException,
+    ValidationException,
 )
-from sqlalchemy import select
+from app.core.security import get_password_hash, verify_password
+from app.models.user import User
+from app.repositories.user import UserRepository
+from app.schemas.user import UserResponse
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -149,7 +149,7 @@ async def reject_user(
 
     if user.is_active:
         raise ValidationException(
-            "Cannot reject an already active user. Use /revoke instead."
+            "Cannot reject an already active user. Use /revoke instead.",
         )
 
     await db.delete(user)
@@ -184,7 +184,7 @@ async def revoke_user(
 
 class ChangeRoleRequest(BaseModel):
     role: str = Field(
-        ..., description="New role to assign: org_admin, manager, analyst, viewer"
+        ..., description="New role to assign: org_admin, manager, analyst, viewer",
     )
 
 
@@ -210,7 +210,7 @@ async def change_user_role(
     ]
     if body.role not in allowed_roles:
         raise ValidationException(
-            f"Invalid role '{body.role}'. Must be one of: {', '.join(allowed_roles)}"
+            f"Invalid role '{body.role}'. Must be one of: {', '.join(allowed_roles)}",
         )
 
     stmt = select(User).where(User.id == user_id)
@@ -223,7 +223,6 @@ async def change_user_role(
     if user.is_owner:
         raise ForbiddenException("Cannot change the Platform Owner's role.")
 
-    old_role = user.role
     user.role = body.role
     await db.commit()
     await db.refresh(user)

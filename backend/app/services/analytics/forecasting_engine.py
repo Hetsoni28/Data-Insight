@@ -7,7 +7,8 @@ and predictive modeling (Holt-Winters / Ridge Linear Trend with confidence inter
 from __future__ import annotations
 
 import logging
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any
+
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import Ridge
@@ -53,7 +54,7 @@ class ForecastingEngine:
     ]
 
     @classmethod
-    def detect_columns(cls, df: pd.DataFrame) -> Tuple[Optional[str], Optional[str]]:
+    def detect_columns(cls, df: pd.DataFrame) -> tuple[str | None, str | None]:
         """Automatically identify the best date/time column and numeric metric column."""
         date_col = None
         metric_col = None
@@ -107,18 +108,17 @@ class ForecastingEngine:
     def fit_and_forecast(
         cls,
         df: pd.DataFrame,
-        target_column: Optional[str] = None,
-        date_column: Optional[str] = None,
+        target_column: str | None = None,
+        date_column: str | None = None,
         horizon: int = 6,
         confidence_level: float = 0.95,
-    ) -> Dict[str, Any]:
-        """
-        Runs ML forecasting on dataset.
+    ) -> dict[str, Any]:
+        """Runs ML forecasting on dataset.
         Returns full forecast blueprint formatted for TrendForecastViewer.
         """
         if df.empty or len(df) < 3:
             return cls._generate_fallback_forecast(
-                "Insufficient data points for forecasting."
+                "Insufficient data points for forecasting.",
             )
 
         detected_date, detected_metric = cls.detect_columns(df)
@@ -127,7 +127,7 @@ class ForecastingEngine:
 
         if not metric:
             return cls._generate_fallback_forecast(
-                "No suitable numeric metric found for forecasting."
+                "No suitable numeric metric found for forecasting.",
             )
 
         # Clean metric column
@@ -143,7 +143,7 @@ class ForecastingEngine:
         if date_col and date_col in series_df.columns:
             try:
                 series_df[date_col] = pd.to_datetime(
-                    series_df[date_col], errors="coerce"
+                    series_df[date_col], errors="coerce",
                 )
                 series_df = series_df.dropna(subset=[date_col]).sort_values(by=date_col)
                 if len(series_df) >= 3:
@@ -182,7 +182,7 @@ class ForecastingEngine:
                 (X**2) / float(max(1, n * n)),
                 np.sin(2 * np.pi * X / cycle_len),
                 np.cos(2 * np.pi * X / cycle_len),
-            ]
+            ],
         )
 
         model = Ridge(alpha=1.0)
@@ -223,7 +223,7 @@ class ForecastingEngine:
                 (future_X**2) / float(max(1, n * n)),
                 np.sin(2 * np.pi * future_X / cycle_len),
                 np.cos(2 * np.pi * future_X / cycle_len),
-            ]
+            ],
         )
         future_y = model.predict(future_X_feats)
 
@@ -246,7 +246,7 @@ class ForecastingEngine:
         z = 1.96 if confidence_level >= 0.95 else 1.28
 
         # Assemble Trendline Points
-        trendline: List[Dict[str, Any]] = []
+        trendline: list[dict[str, Any]] = []
 
         # 1. Historical Points
         for i in range(n):
@@ -258,7 +258,7 @@ class ForecastingEngine:
                     "predictedValue": round(float(y_fitted[i]), 2),
                     "pessimisticBound": None,
                     "optimisticBound": None,
-                }
+                },
             )
 
         # Connect bridge point
@@ -281,7 +281,7 @@ class ForecastingEngine:
                     "predictedValue": round(pred_val, 2),
                     "optimisticBound": optimistic,
                     "pessimisticBound": pessimistic,
-                }
+                },
             )
 
         predicted_end_val = float(future_y[-1])
@@ -320,7 +320,7 @@ class ForecastingEngine:
         }
 
     @staticmethod
-    def _generate_fallback_forecast(reason: str) -> Dict[str, Any]:
+    def _generate_fallback_forecast(reason: str) -> dict[str, Any]:
         return {
             "forecastTitle": "Data Forecast (Preliminary Estimate)",
             "executiveSummary": f"Automated forecast generated. Note: {reason}",

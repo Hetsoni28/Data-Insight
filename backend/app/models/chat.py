@@ -1,13 +1,14 @@
 import uuid
 from datetime import datetime, timezone
+
 from sqlalchemy import (
     Column,
-    String,
-    Text,
     DateTime,
     ForeignKey,
+    String,
+    Text,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
@@ -18,10 +19,10 @@ class ChatSession(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     tenant_id = Column(
-        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False,
     )
     user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False,
     )
     dataset_id = Column(
         UUID(as_uuid=True),
@@ -31,7 +32,7 @@ class ChatSession(Base):
     )
     title = Column(String, nullable=False, default="New Chat")
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
     updated_at = Column(
         DateTime(timezone=True),
@@ -62,7 +63,7 @@ class ChatMessage(Base):
     content = Column(Text, nullable=False)
     artifact_data = Column(JSONB, nullable=True)
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
 
     session = relationship("ChatSession", back_populates="messages", lazy="selectin")

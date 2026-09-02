@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional, List, Dict, Any
+from typing import Any
+
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
 from sqlalchemy.orm import selectinload
 
-from app.models.chat import ChatSession, ChatMessage
+from app.models.chat import ChatMessage, ChatSession
 from app.repositories.base import BaseRepository
 
 
@@ -22,9 +23,9 @@ class ChatRepository(BaseRepository[ChatSession]):
         self,
         session_id: uuid.UUID | str,
         tenant_id: uuid.UUID | str,
-        user_id: Optional[uuid.UUID | str] = None,
+        user_id: uuid.UUID | str | None = None,
         load_messages: bool = True,
-    ) -> Optional[ChatSession]:
+    ) -> ChatSession | None:
         """Fetch a specific chat session with optional message eager loading."""
         if isinstance(session_id, str):
             session_id = uuid.UUID(session_id)
@@ -51,10 +52,10 @@ class ChatRepository(BaseRepository[ChatSession]):
         self,
         tenant_id: uuid.UUID | str,
         user_id: uuid.UUID | str,
-        dataset_id: Optional[uuid.UUID | str] = None,
+        dataset_id: uuid.UUID | str | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> List[ChatSession]:
+    ) -> list[ChatSession]:
         """List chat sessions for a specific user within a tenant ordered by latest activity."""
         if isinstance(tenant_id, str):
             tenant_id = uuid.UUID(tenant_id)
@@ -88,7 +89,7 @@ class ChatRepository(BaseRepository[ChatSession]):
         self,
         tenant_id: uuid.UUID | str,
         user_id: uuid.UUID | str,
-        dataset_id: Optional[uuid.UUID | str] = None,
+        dataset_id: uuid.UUID | str | None = None,
     ) -> int:
         """Count total chat sessions for pagination."""
         if isinstance(tenant_id, str):
@@ -113,7 +114,7 @@ class ChatRepository(BaseRepository[ChatSession]):
         tenant_id: uuid.UUID | str,
         user_id: uuid.UUID | str,
         title: str = "New Chat",
-        dataset_id: Optional[uuid.UUID | str] = None,
+        dataset_id: uuid.UUID | str | None = None,
     ) -> ChatSession:
         """Create a new chat session."""
         if isinstance(tenant_id, str):
@@ -139,9 +140,9 @@ class ChatRepository(BaseRepository[ChatSession]):
         session_id: uuid.UUID | str,
         tenant_id: uuid.UUID | str,
         user_id: uuid.UUID | str,
-        title: Optional[str] = None,
-        dataset_id: Optional[uuid.UUID | str] = None,
-    ) -> Optional[ChatSession]:
+        title: str | None = None,
+        dataset_id: uuid.UUID | str | None = None,
+    ) -> ChatSession | None:
         """Update a chat session's title or bound dataset."""
         chat_sess = await self.get_session(session_id, tenant_id, user_id)
         if not chat_sess:
@@ -166,7 +167,7 @@ class ChatRepository(BaseRepository[ChatSession]):
     ) -> bool:
         """Delete a chat session and all cascade-deleted messages."""
         chat_sess = await self.get_session(
-            session_id, tenant_id, user_id, load_messages=False
+            session_id, tenant_id, user_id, load_messages=False,
         )
         if not chat_sess:
             return False
@@ -180,7 +181,7 @@ class ChatRepository(BaseRepository[ChatSession]):
         session_id: uuid.UUID | str,
         role: str,
         content: str,
-        artifact_data: Optional[Dict[str, Any]] = None,
+        artifact_data: dict[str, Any] | None = None,
     ) -> ChatMessage:
         """Add a message to a session and touch the session updated_at."""
         if isinstance(session_id, str):
@@ -205,9 +206,8 @@ class ChatRepository(BaseRepository[ChatSession]):
             if (
                 "messages" in sess_obj.__dict__
                 and sess_obj.__dict__["messages"] is not None
-            ):
-                if msg not in sess_obj.messages:
-                    sess_obj.messages.append(msg)
+            ) and msg not in sess_obj.messages:
+                sess_obj.messages.append(msg)
 
         await self.session.flush()
         return msg
@@ -216,7 +216,7 @@ class ChatRepository(BaseRepository[ChatSession]):
         self,
         session_id: uuid.UUID | str,
         limit: int = 100,
-    ) -> List[ChatMessage]:
+    ) -> list[ChatMessage]:
         """Fetch all messages in order for a session."""
         if isinstance(session_id, str):
             session_id = uuid.UUID(session_id)

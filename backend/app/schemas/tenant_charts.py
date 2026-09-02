@@ -1,14 +1,15 @@
-from pydantic import BaseModel, UUID4, Field
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any
+
+from pydantic import UUID4, BaseModel, Field
 
 
 class ChartBase(BaseModel):
     name: str = Field(..., max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     chart_type: str = Field(..., max_length=50)
     dataset_id: UUID4
-    configuration_json: Dict[str, Any] = Field(default_factory=dict)
+    configuration_json: dict[str, Any] = Field(default_factory=dict)
     visibility: str = Field("private", max_length=50)
     status: str = Field("active", max_length=50)
 
@@ -18,19 +19,19 @@ class ChartCreate(ChartBase):
 
 
 class ChartUpdate(BaseModel):
-    name: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    chart_type: Optional[str] = Field(None, max_length=50)
-    configuration_json: Optional[Dict[str, Any]] = None
-    visibility: Optional[str] = Field(None, max_length=50)
-    status: Optional[str] = Field(None, max_length=50)
+    name: str | None = Field(None, max_length=255)
+    description: str | None = None
+    chart_type: str | None = Field(None, max_length=50)
+    configuration_json: dict[str, Any] | None = None
+    visibility: str | None = Field(None, max_length=50)
+    status: str | None = Field(None, max_length=50)
 
 
 class ChartResponse(ChartBase):
     id: UUID4
     tenant_id: UUID4
-    workspace_id: Optional[UUID4]
-    created_by_id: Optional[UUID4]
+    workspace_id: UUID4 | None
+    created_by_id: UUID4 | None
     view_count: int
     is_deleted: bool
     created_at: datetime
@@ -41,5 +42,5 @@ class ChartResponse(ChartBase):
 
 
 class ChartListResponse(BaseModel):
-    items: List[ChartResponse]
+    items: list[ChartResponse]
     total: int

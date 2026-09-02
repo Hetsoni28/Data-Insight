@@ -1,6 +1,8 @@
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.audit_log import AuditLog
 
 
@@ -9,18 +11,17 @@ class AuditService:
     async def log(
         db: AsyncSession,
         action: str,
-        user_id: Optional[uuid.UUID] = None,
-        tenant_id: Optional[uuid.UUID] = None,
-        resource_type: Optional[str] = None,
-        resource_id: Optional[str] = None,
-        actor_user_id: Optional[uuid.UUID] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        extra_metadata: Optional[Dict[str, Any]] = None,
+        user_id: uuid.UUID | None = None,
+        tenant_id: uuid.UUID | None = None,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
+        actor_user_id: uuid.UUID | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        extra_metadata: dict[str, Any] | None = None,
         status: str = "success",
     ):
-        """
-        Logs an action to the audit_logs table.
+        """Logs an action to the audit_logs table.
         """
         audit_log = AuditLog(
             action=action,

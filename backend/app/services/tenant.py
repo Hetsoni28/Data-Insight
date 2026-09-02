@@ -2,19 +2,19 @@
 
 import re
 import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.tenant import Tenant, PlanType
-from app.models.user import User, UserRole
-from app.repositories.tenant import TenantRepository
-from app.repositories.user import UserRepository
-from app.repositories.audit_log import AuditLogRepository
-from app.services.notification_service import NotificationService
 from app.core.exceptions import (
     ConflictException,
     ResourceNotFoundException,
-    ForbiddenException,
 )
+from app.models.tenant import PlanType, Tenant
+from app.models.user import User, UserRole
+from app.repositories.audit_log import AuditLogRepository
+from app.repositories.tenant import TenantRepository
+from app.repositories.user import UserRepository
+from app.services.notification_service import NotificationService
 
 
 def _slugify(name: str) -> str:

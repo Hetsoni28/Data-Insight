@@ -6,9 +6,8 @@ Create Date: 2026-08-07 18:37:00.000000+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "e2a19b8409ee"
@@ -32,7 +31,7 @@ def upgrade() -> None:
     op.add_column(
         "tenants",
         sa.Column(
-            "current_storage_bytes", sa.BigInteger(), server_default="0", nullable=False
+            "current_storage_bytes", sa.BigInteger(), server_default="0", nullable=False,
         ),
     )
     op.add_column(
@@ -53,7 +52,7 @@ def upgrade() -> None:
         sa.Column("is_suspended", sa.Boolean(), server_default="false", nullable=False),
     )
     op.add_column(
-        "tenants", sa.Column("suspension_reason", sa.String(length=255), nullable=True)
+        "tenants", sa.Column("suspension_reason", sa.String(length=255), nullable=True),
     )
 
 

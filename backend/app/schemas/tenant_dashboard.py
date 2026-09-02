@@ -1,7 +1,6 @@
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+
 from pydantic import BaseModel
-import uuid
 
 
 class DashboardOverviewResponse(BaseModel):
@@ -12,7 +11,7 @@ class DashboardOverviewResponse(BaseModel):
     current_ai_provider: str
     greeting: str
     mrr: float = 0.0
-    current_period_end: Optional[str] = None
+    current_period_end: str | None = None
 
 
 class GrowthMetric(BaseModel):
@@ -39,7 +38,7 @@ class ChartDataPoint(BaseModel):
 
 
 class DashboardChartsResponse(BaseModel):
-    __root__: List[ChartDataPoint]
+    __root__: list[ChartDataPoint]
 
 
 class RecentDataset(BaseModel):
@@ -69,18 +68,18 @@ class ActivityFeedItem(BaseModel):
 
 class ActiveSession(BaseModel):
     id: str
-    device: Optional[str]
-    browser: Optional[str]
-    ip: Optional[str]
-    last_active: Optional[datetime]
+    device: str | None
+    browser: str | None
+    ip: str | None
+    last_active: datetime | None
 
 
 class FailedLogin(BaseModel):
     id: str
-    ip: Optional[str]
-    created_at: Optional[datetime]
+    ip: str | None
+    created_at: datetime | None
 
 
 class SecurityOverviewResponse(BaseModel):
-    active_sessions: List[ActiveSession]
-    failed_logins: List[FailedLogin]
+    active_sessions: list[ActiveSession]
+    failed_logins: list[FailedLogin]

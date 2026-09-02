@@ -6,8 +6,8 @@ Create Date: 2026-08-08 07:33:30.315342+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("description", sa.String(length=1024), nullable=True),
         sa.Column("trigger_type", sa.String(length=100), nullable=False),
         sa.Column(
-            "trigger_config", postgresql.JSONB(astext_type=sa.Text()), nullable=False
+            "trigger_config", postgresql.JSONB(astext_type=sa.Text()), nullable=False,
         ),
         sa.Column("actions", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("status", sa.String(length=50), nullable=False),
@@ -163,7 +163,7 @@ def upgrade() -> None:
         sa.Column("latency_ms", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["integration_id"], ["integration_connections.id"], ondelete="CASCADE"
+            ["integration_id"], ["integration_connections.id"], ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -196,7 +196,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_login_history_user_id"), "login_history", ["user_id"], unique=False
+        op.f("ix_login_history_user_id"), "login_history", ["user_id"], unique=False,
     )
     op.create_table(
         "refresh_tokens",
@@ -216,18 +216,18 @@ def upgrade() -> None:
         unique=True,
     )
     op.create_index(
-        op.f("ix_refresh_tokens_user_id"), "refresh_tokens", ["user_id"], unique=False
+        op.f("ix_refresh_tokens_user_id"), "refresh_tokens", ["user_id"], unique=False,
     )
     op.add_column(
-        "audit_logs", sa.Column("severity", sa.String(length=50), nullable=False)
+        "audit_logs", sa.Column("severity", sa.String(length=50), nullable=False),
     )
     op.add_column(
-        "audit_logs", sa.Column("module", sa.String(length=100), nullable=False)
+        "audit_logs", sa.Column("module", sa.String(length=100), nullable=False),
     )
     op.add_column("audit_logs", sa.Column("old_value", sa.JSON(), nullable=True))
     op.add_column("audit_logs", sa.Column("new_value", sa.JSON(), nullable=True))
     op.add_column(
-        "audit_logs", sa.Column("correlation_id", sa.String(length=255), nullable=True)
+        "audit_logs", sa.Column("correlation_id", sa.String(length=255), nullable=True),
     )
     op.create_index(
         op.f("ix_audit_logs_correlation_id"),
@@ -236,7 +236,7 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_index(
-        op.f("ix_audit_logs_module"), "audit_logs", ["module"], unique=False
+        op.f("ix_audit_logs_module"), "audit_logs", ["module"], unique=False,
     )
     # op.alter_column('tenants', 'db_connection_type',
     #            existing_type=sa.VARCHAR(length=20),
@@ -255,10 +255,10 @@ def upgrade() -> None:
     #            server_default=None,
     #            existing_nullable=False)
     op.add_column(
-        "user_sessions", sa.Column("country", sa.String(length=100), nullable=True)
+        "user_sessions", sa.Column("country", sa.String(length=100), nullable=True),
     )
     op.add_column(
-        "user_sessions", sa.Column("city", sa.String(length=100), nullable=True)
+        "user_sessions", sa.Column("city", sa.String(length=100), nullable=True),
     )
     op.add_column(
         "users",
@@ -269,22 +269,22 @@ def upgrade() -> None:
         sa.Column("mfa_enabled", sa.Boolean(), server_default="false", nullable=False),
     )
     op.add_column(
-        "users", sa.Column("mfa_secret", sa.String(length=255), nullable=True)
+        "users", sa.Column("mfa_secret", sa.String(length=255), nullable=True),
     )
     op.add_column(
         "users",
         sa.Column(
-            "mfa_recovery_codes", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+            "mfa_recovery_codes", postgresql.JSONB(astext_type=sa.Text()), nullable=True,
         ),
     )
     op.add_column(
         "users",
         sa.Column(
-            "failed_login_attempts", sa.Integer(), server_default="0", nullable=False
+            "failed_login_attempts", sa.Integer(), server_default="0", nullable=False,
         ),
     )
     op.add_column(
-        "users", sa.Column("locked_until", sa.DateTime(timezone=True), nullable=True)
+        "users", sa.Column("locked_until", sa.DateTime(timezone=True), nullable=True),
     )
     # ### end Alembic commands ###
 
@@ -340,14 +340,14 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_login_history_user_id"), table_name="login_history")
     op.drop_table("login_history")
     op.drop_index(
-        op.f("ix_integration_logs_integration_id"), table_name="integration_logs"
+        op.f("ix_integration_logs_integration_id"), table_name="integration_logs",
     )
     op.drop_index(op.f("ix_integration_logs_created_at"), table_name="integration_logs")
     op.drop_table("integration_logs")
     op.drop_table("feature_rollouts")
     op.drop_table("feature_experiments")
     op.drop_index(
-        op.f("ix_threat_intelligence_indicator_value"), table_name="threat_intelligence"
+        op.f("ix_threat_intelligence_indicator_value"), table_name="threat_intelligence",
     )
     op.drop_table("threat_intelligence")
     op.drop_index(op.f("ix_security_events_ip_address"), table_name="security_events")

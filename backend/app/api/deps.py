@@ -1,22 +1,20 @@
 """FastAPI dependency injection — auth, DB session, Redis, current user."""
 
-from typing import AsyncGenerator
-from contextlib import asynccontextmanager
-from fastapi import Depends, Header, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from redis.asyncio import Redis
-from jose import jwt, JWTError
+from collections.abc import AsyncGenerator
 
-from app.db.session import AsyncSessionLocal as SharedAsyncSessionLocal
-from app.db.router import db_router
-from app.core.tenant_context import (
-    get_tenant_context,
-    TenantContext,
-    get_current_tenant_id,
-)
-from app.db.redis import get_redis_pool
+from fastapi import Depends, Header, Request
+from jose import JWTError, jwt
+from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 from app.core.exceptions import UnauthorizedException
+from app.core.tenant_context import (
+    get_tenant_context,
+)
+from app.db.redis import get_redis_pool
+from app.db.router import db_router
+from app.db.session import AsyncSessionLocal as SharedAsyncSessionLocal
 from app.models.user import User
 from app.repositories.user import UserRepository
 
@@ -52,14 +50,13 @@ async def get_shared_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """
-    FastAPI dependency that provides a scoped AsyncSession dynamically routed
+    """FastAPI dependency that provides a scoped AsyncSession dynamically routed
     to either the shared database or dedicated tenant database.
     """
     ctx = get_tenant_context()
     if ctx and ctx.has_dedicated_db:
         session_factory = await db_router.get_sessionmaker_for_tenant(
-            tenant_id=ctx.tenant_id, dedicated_url=ctx.dedicated_db_url
+            tenant_id=ctx.tenant_id, dedicated_url=ctx.dedicated_db_url,
         )
     else:
         session_factory = SharedAsyncSessionLocal
@@ -76,14 +73,13 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def get_tenant_db(
     request: Request,
 ) -> AsyncGenerator[AsyncSession, None]:
-    """
-    Explicit tenant-routed DB session. Ensures tenant context is present and routes appropriately.
+    """Explicit tenant-routed DB session. Ensures tenant context is present and routes appropriately.
     """
     ctx = get_tenant_context()
     tenant_id = ctx.tenant_id if ctx else getattr(request.state, "tenant_id", None)
     dedicated_url = ctx.dedicated_db_url if ctx else None
     session_factory = await db_router.get_sessionmaker_for_tenant(
-        tenant_id=tenant_id, dedicated_url=dedicated_url
+        tenant_id=tenant_id, dedicated_url=dedicated_url,
     )
     async with session_factory() as session:
         try:
@@ -100,8 +96,7 @@ async def get_current_user(
     authorization: str | None = Header(default=None),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """
-    Decodes the Bearer JWT and returns the authenticated User.
+    """Decodes the Bearer JWT and returns the authenticated User.
     Raises UnauthorizedException if token is missing, invalid, or user not found.
     """
     if not authorization or not authorization.startswith("Bearer "):
@@ -131,7 +126,7 @@ async def get_current_user(
     # Validate token version for instant global session revocation
     if getattr(user, "token_version", 1) != token_version:
         raise UnauthorizedException(
-            "Session has expired or was revoked. Please log in again."
+            "Session has expired or was revoked. Please log in again.",
         )
 
     # Check brute-force account lockout
@@ -141,17 +136,19 @@ async def get_current_user(
         now_utc = datetime.now(timezone.utc)
         if user.locked_until > now_utc:
             remaining_mins = max(
-                1, int((user.locked_until - now_utc).total_seconds() / 60)
+                1, int((user.locked_until - now_utc).total_seconds() / 60),
             )
             raise UnauthorizedException(
-                f"Account is temporarily locked. Please try again in {remaining_mins} minute(s)."
+                f"Account is temporarily locked. Please try again in {remaining_mins} minute(s).",
             )
 
     # Record or touch real active user session
     try:
         import hashlib
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta, timezone
+
         from sqlalchemy import select
+
         from app.models.user_session import UserSession
 
         token_hash = hashlib.sha256(token.encode()).hexdigest()
@@ -243,14 +240,13 @@ async def get_current_active_tenant_user(
         from app.core.exceptions import ForbiddenException
 
         raise ForbiddenException(
-            "You must belong to an organization to access this resource."
+            "You must belong to an organization to access this resource.",
         )
     return current_user
 
 
 class RequireRole:
-    """
-    Dependency that enforces RBAC.
+    """Dependency that enforces RBAC.
     Checks if the user's role is within the allowed roles.
     The platform OWNER always passes — they have unrestricted access.
     """
@@ -259,7 +255,7 @@ class RequireRole:
         self.allowed_roles = allowed_roles
 
     async def __call__(
-        self, current_user: User = Depends(get_current_active_tenant_user)
+        self, current_user: User = Depends(get_current_active_tenant_user),
     ) -> User:
         # Platform OWNER bypasses all role checks
         if current_user.is_owner:
@@ -268,7 +264,7 @@ class RequireRole:
             from app.core.exceptions import ForbiddenException
 
             raise ForbiddenException(
-                "You do not have permission to perform this action."
+                "You do not have permission to perform this action.",
             )
         return current_user
 
@@ -344,15 +340,14 @@ ROLE_PERMISSIONS = {
 
 
 class RequirePermission:
-    """
-    Dependency that enforces fine-grained permissions based on the user's role.
+    """Dependency that enforces fine-grained permissions based on the user's role.
     """
 
     def __init__(self, permission: str):
         self.permission = permission
 
     async def __call__(
-        self, current_user: User = Depends(get_current_active_tenant_user)
+        self, current_user: User = Depends(get_current_active_tenant_user),
     ) -> User:
         if current_user.is_owner or current_user.role in [
             "owner",
@@ -366,14 +361,14 @@ class RequirePermission:
             from app.core.exceptions import ForbiddenException
 
             raise ForbiddenException(
-                f"You do not have the required permission ({self.permission}) to perform this action."
+                f"You do not have the required permission ({self.permission}) to perform this action.",
             )
         return current_user
 
 
 # ─── Workspace Dependencies ───────────────────────────────────────────────────
 async def get_workspace_id_header(
-    x_workspace_id: str | None = Header(default=None, alias="x-workspace-id")
+    x_workspace_id: str | None = Header(default=None, alias="x-workspace-id"),
 ) -> str | None:
     """Extracts the optional x-workspace-id header from requests."""
     return x_workspace_id
@@ -384,8 +379,7 @@ async def get_current_workspace(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Validates that the workspace exists and belongs to the current user's tenant.
+    """Validates that the workspace exists and belongs to the current user's tenant.
     Returns the Workspace object or raises Forbidden/Not Found.
     """
     if not workspace_id:
@@ -401,11 +395,12 @@ async def get_current_workspace(
         raise BadRequestException("Invalid workspace ID format.")
 
     from sqlalchemy import select
-    from app.models.workspace import Workspace
+
     from app.core.exceptions import ForbiddenException, ResourceNotFoundException
+    from app.models.workspace import Workspace
 
     stmt = select(Workspace).where(
-        Workspace.id == ws_uuid, Workspace.is_deleted == False
+        Workspace.id == ws_uuid, Workspace.is_deleted == False,
     )
     workspace = (await db.execute(stmt)).scalar_one_or_none()
 

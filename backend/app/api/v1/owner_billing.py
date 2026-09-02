@@ -1,24 +1,25 @@
+from datetime import datetime, timedelta, timezone
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, text, desc
-from datetime import datetime, timezone, timedelta
 
-from app.api.deps import get_db, get_current_user
-from app.models.tenant import Tenant, PlanType
-from app.models.invoice import Invoice, InvoiceStatus
-from app.models.billing_activity import BillingActivity
-from app.models.user import User
-from app.models.operating_expense import OperatingExpense
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import desc, func, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
 from app.models.ai_token_usage import AITokenUsage
+from app.models.billing_activity import BillingActivity
+from app.models.invoice import Invoice, InvoiceStatus
+from app.models.operating_expense import OperatingExpense
 from app.models.storage import StorageFile
+from app.models.tenant import PlanType, Tenant
+from app.models.user import User
 
 router = APIRouter()
 
 
 async def require_owner(current_user: User = Depends(get_current_user)) -> User:
     if getattr(current_user, "role", "") != "owner" and not getattr(
-        current_user, "is_owner", False
+        current_user, "is_owner", False,
     ):
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
@@ -26,15 +27,15 @@ async def require_owner(current_user: User = Depends(get_current_user)) -> User:
 
 @router.get("/kpis")
 async def get_kpis(
-    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner),
 ) -> Any:
     """Get high-level revenue and subscription KPIs."""
     # Active subscriptions
     active_subs_count = (
         await db.scalar(
             select(func.count(Tenant.id)).where(
-                Tenant.is_active == True, Tenant.is_deleted == False
-            )
+                Tenant.is_active == True, Tenant.is_deleted == False,
+            ),
         )
         or 0
     )
@@ -42,8 +43,8 @@ async def get_kpis(
     trial_subs_count = (
         await db.scalar(
             select(func.count(Tenant.id)).where(
-                Tenant.plan == PlanType.starter, Tenant.is_active == True
-            )
+                Tenant.plan == PlanType.starter, Tenant.is_active == True,
+            ),
         )
         or 0
     )
@@ -52,8 +53,8 @@ async def get_kpis(
     total_mrr = (
         await db.scalar(
             select(func.sum(Tenant.mrr)).where(
-                Tenant.is_active == True, Tenant.is_deleted == False
-            )
+                Tenant.is_active == True, Tenant.is_deleted == False,
+            ),
         )
         or 0.0
     )
@@ -63,7 +64,7 @@ async def get_kpis(
     # Revenue data
     total_revenue = (
         await db.scalar(
-            select(func.sum(Invoice.amount)).where(Invoice.status == InvoiceStatus.paid)
+            select(func.sum(Invoice.amount)).where(Invoice.status == InvoiceStatus.paid),
         )
         or 0.0
     )
@@ -71,8 +72,8 @@ async def get_kpis(
     failed_payments = (
         await db.scalar(
             select(func.sum(Invoice.amount)).where(
-                Invoice.status == InvoiceStatus.failed
-            )
+                Invoice.status == InvoiceStatus.failed,
+            ),
         )
         or 0.0
     )
@@ -87,7 +88,7 @@ async def get_kpis(
                 Tenant.is_active == False,
                 Tenant.updated_at >= thirty_days_ago,
                 Tenant.is_deleted == False,
-            )
+            ),
         )
         or 0
     )
@@ -168,7 +169,7 @@ async def get_kpis(
 
 @router.get("/revenue-trends")
 async def get_revenue_trends(
-    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner),
 ) -> Any:
     """Get revenue charts and plan distribution."""
     # Group by plan
@@ -176,14 +177,14 @@ async def get_revenue_trends(
         await db.execute(
             select(Tenant.plan, func.count(Tenant.id), func.sum(Tenant.mrr))
             .where(Tenant.is_active == True, Tenant.is_deleted == False)
-            .group_by(Tenant.plan)
+            .group_by(Tenant.plan),
         )
     ).all()
 
     distribution = []
     for plan, count, revenue in plan_dist:
         distribution.append(
-            {"plan": plan.title(), "count": count, "revenue": float(revenue or 0)}
+            {"plan": plan.title(), "count": count, "revenue": float(revenue or 0)},
         )
 
     # Group revenue by month for the last 6 months (simplification)
@@ -218,7 +219,7 @@ async def get_revenue_trends(
             {
                 "name": current_month.strftime("%b"),
                 "revenue": rev_by_month.get(key, 0.0),
-            }
+            },
         )
         current_month = (current_month + timedelta(days=32)).replace(day=1)
 
@@ -240,7 +241,7 @@ async def get_subscription_organizations(
                 .where(Tenant.is_deleted == False)
                 .order_by(desc(Tenant.created_at))
                 .offset(skip)
-                .limit(limit)
+                .limit(limit),
             )
         )
         .scalars()
@@ -259,8 +260,8 @@ async def get_subscription_organizations(
         storage_bytes = (
             await db.scalar(
                 select(func.sum(StorageFile.file_size_bytes)).where(
-                    StorageFile.tenant_id == t.id
-                )
+                    StorageFile.tenant_id == t.id,
+                ),
             )
             or 0
         )
@@ -277,7 +278,7 @@ async def get_subscription_organizations(
                 "users": user_count,
                 "storage_used": round(storage_gb, 2),
                 "created_at": t.created_at.isoformat(),
-            }
+            },
         )
     return {"data": result}
 
@@ -317,7 +318,7 @@ async def get_invoices(
                 "currency": inv.currency,
                 "status": inv.status.value,
                 "date": inv.invoice_date.isoformat(),
-            }
+            },
         )
 
     return {"data": result}
@@ -381,8 +382,10 @@ async def cancel_subscription(
 # The raw DB URL is NEVER returned to the client — only provisioning status.
 # All URLs are AES-256 Fernet encrypted before writing to the database.
 
-from pydantic import BaseModel as PydanticModel, field_validator
 import re
+
+from pydantic import BaseModel as PydanticModel
+from pydantic import field_validator
 
 
 class ProvisionRequest(PydanticModel):
@@ -397,7 +400,7 @@ class ProvisionRequest(PydanticModel):
         if not re.match(pattern, v):
             raise ValueError(
                 "Invalid database URL format. "
-                "Expected: postgresql://user:pass@host:port/dbname"
+                "Expected: postgresql://user:pass@host:port/dbname",
             )
         return v
 
@@ -409,8 +412,7 @@ async def provision_dedicated_db(
     db: AsyncSession = Depends(get_db),
     current_user: Any = Depends(require_owner),
 ) -> Any:
-    """
-    Securely provision a dedicated database for an enterprise tenant.
+    """Securely provision a dedicated database for an enterprise tenant.
 
     Security:
     - Validates connection BEFORE writing anything
@@ -433,7 +435,7 @@ async def provision_dedicated_db(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Provisioning failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Provisioning failed: {e!s}")
 
 
 @router.get("/{tenant_id}/provisioning-status")
@@ -442,8 +444,7 @@ async def get_provisioning_status(
     db: AsyncSession = Depends(get_db),
     current_user: Any = Depends(require_owner),
 ) -> Any:
-    """
-    Return only the provisioning status of a tenant.
+    """Return only the provisioning status of a tenant.
     The dedicated_db_url is NEVER included in the response — only metadata.
     """
     from uuid import UUID
@@ -466,7 +467,7 @@ async def get_provisioning_status(
         # ❌ dedicated_db_url is intentionally EXCLUDED
         "has_dedicated_db": bool(tenant.dedicated_db_url),
         "has_dedicated_bucket": bool(
-            (tenant.advanced_config or {}).get("dedicated_storage_bucket")
+            (tenant.advanced_config or {}).get("dedicated_storage_bucket"),
         ),
     }
 
@@ -477,8 +478,7 @@ async def deprovision_tenant_db(
     db: AsyncSession = Depends(get_db),
     current_user: Any = Depends(require_owner),
 ) -> Any:
-    """
-    Revert a tenant back to shared database mode.
+    """Revert a tenant back to shared database mode.
     Clears the encrypted dedicated_db_url from the record.
     """
     from app.services.provisioning import deprovision_tenant
@@ -496,15 +496,15 @@ async def deprovision_tenant_db(
 
 @router.get("/analytics/ai-costs")
 async def get_ai_costs(
-    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner),
 ) -> Any:
     """Real AI provider costs dynamically calculated from token usage."""
     # Group costs by model
     costs = (
         await db.execute(
             select(AITokenUsage.model, func.sum(AITokenUsage.cost_usd)).group_by(
-                AITokenUsage.model
-            )
+                AITokenUsage.model,
+            ),
         )
     ).all()
 
@@ -513,8 +513,8 @@ async def get_ai_costs(
     total_mrr = (
         await db.scalar(
             select(func.sum(Tenant.mrr)).where(
-                Tenant.is_active == True, Tenant.is_deleted == False
-            )
+                Tenant.is_active == True, Tenant.is_deleted == False,
+            ),
         )
         or 0.0
     )
@@ -529,7 +529,7 @@ async def get_ai_costs(
                 "cost": c,
                 "percentage": (c / total_cost * 100) if total_cost > 0 else 0,
                 "color": colors[i % len(colors)],
-            }
+            },
         )
 
     return {
@@ -541,14 +541,14 @@ async def get_ai_costs(
 
 @router.get("/analytics/forecast")
 async def get_revenue_forecast(
-    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner),
 ) -> Any:
     """Generate a revenue forecast based on historical Invoice data trend."""
     total_mrr = (
         await db.scalar(
             select(func.sum(Tenant.mrr)).where(
-                Tenant.is_active == True, Tenant.is_deleted == False
-            )
+                Tenant.is_active == True, Tenant.is_deleted == False,
+            ),
         )
         or 0.0
     )
@@ -560,7 +560,7 @@ async def get_revenue_forecast(
     # We'll calculate total revenue for the 6 previous months
     for i in range(6, 0, -1):
         month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
+            day=1, hour=0, minute=0, second=0, microsecond=0,
         )
         next_month_start = (month_start + timedelta(days=32)).replace(day=1)
         month_rev = (
@@ -569,7 +569,7 @@ async def get_revenue_forecast(
                     Invoice.status == InvoiceStatus.paid,
                     Invoice.invoice_date >= month_start,
                     Invoice.invoice_date < next_month_start,
-                )
+                ),
             )
             or 0.0
         )
@@ -599,7 +599,7 @@ async def get_revenue_forecast(
                 "expected": current_forecast,
                 "best_case": current_forecast * 1.05,
                 "worst_case": current_forecast * 0.95,
-            }
+            },
         )
 
     return {"forecast": forecast}
@@ -607,22 +607,22 @@ async def get_revenue_forecast(
 
 @router.get("/analytics/health")
 async def get_financial_health(
-    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner),
 ) -> Any:
     """Calculate platform financial health score dynamically from actuals."""
     active_subs = (
         await db.scalar(
             select(func.count(Tenant.id)).where(
-                Tenant.is_active == True, Tenant.is_deleted == False
-            )
+                Tenant.is_active == True, Tenant.is_deleted == False,
+            ),
         )
         or 0
     )
     total_mrr = (
         await db.scalar(
             select(func.sum(Tenant.mrr)).where(
-                Tenant.is_active == True, Tenant.is_deleted == False
-            )
+                Tenant.is_active == True, Tenant.is_deleted == False,
+            ),
         )
         or 0.0
     )
@@ -655,7 +655,7 @@ async def get_financial_health(
 
 @router.get("/activity")
 async def get_global_billing_activity(
-    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: Any = Depends(require_owner),
 ) -> Any:
     """Fetch recent global billing events."""
     activities = (
@@ -663,7 +663,7 @@ async def get_global_billing_activity(
             select(BillingActivity, Tenant.name)
             .join(Tenant, BillingActivity.tenant_id == Tenant.id)
             .order_by(desc(BillingActivity.created_at))
-            .limit(10)
+            .limit(10),
         )
     ).all()
 
@@ -676,7 +676,7 @@ async def get_global_billing_activity(
                 "type": act.event_type,
                 "description": act.description,
                 "date": act.created_at.isoformat(),
-            }
+            },
         )
 
     return {"data": result}

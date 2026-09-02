@@ -1,20 +1,21 @@
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any, Union
 import uuid
 from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel
 
 
 class ViewerAnalyticsKpi(BaseModel):
     id: str
     title: str
     value: Any
-    previous_value: Optional[Any] = None
-    percentage_change: Optional[float] = None
-    change_pct: Optional[float] = None
-    trend_direction: Optional[str] = None
-    trend: Optional[str] = None
-    sparkline: List[float] = []
-    is_currency: Optional[bool] = None
+    previous_value: Any | None = None
+    percentage_change: float | None = None
+    change_pct: float | None = None
+    trend_direction: str | None = None
+    trend: str | None = None
+    sparkline: list[float] = []
+    is_currency: bool | None = None
 
     class Config:
         extra = "allow"
@@ -22,33 +23,33 @@ class ViewerAnalyticsKpi(BaseModel):
 
 class ViewerAnalyticsKpisResponse(BaseModel):
     domain: str = "General Business"
-    kpis: List[ViewerAnalyticsKpi]
+    kpis: list[ViewerAnalyticsKpi]
 
 
 class ViewerAnalyticsTrend(BaseModel):
     id: str
     title: str
-    metric: Optional[str] = None
-    type: Optional[str] = "line"
-    x_axis_key: Optional[str] = "date"
-    y_axis_key: Optional[str] = "value"
-    data: List[Dict[str, Any]] = []
+    metric: str | None = None
+    type: str | None = "line"
+    x_axis_key: str | None = "date"
+    y_axis_key: str | None = "value"
+    data: list[dict[str, Any]] = []
 
     class Config:
         extra = "allow"
 
 
 class ViewerAnalyticsTrendsResponse(BaseModel):
-    trends: List[ViewerAnalyticsTrend]
+    trends: list[ViewerAnalyticsTrend]
 
 
 class ViewerAnalyticsPerformanceItem(BaseModel):
     id: str
     name: str
     value: float
-    growth: Optional[float] = 0.0
-    contribution: Optional[float] = 0.0
-    trend: Optional[str] = "neutral"
+    growth: float | None = 0.0
+    contribution: float | None = 0.0
+    trend: str | None = "neutral"
 
     class Config:
         extra = "allow"
@@ -56,11 +57,11 @@ class ViewerAnalyticsPerformanceItem(BaseModel):
 
 class ViewerAnalyticsPerformance(BaseModel):
     dimension: str
-    items: List[ViewerAnalyticsPerformanceItem]
+    items: list[ViewerAnalyticsPerformanceItem]
 
 
 class ViewerAnalyticsPerformanceResponse(BaseModel):
-    performances: List[ViewerAnalyticsPerformance]
+    performances: list[ViewerAnalyticsPerformance]
 
 
 class ViewerAnalyticsComparison(BaseModel):
@@ -79,24 +80,24 @@ class ViewerAnalyticsComparison(BaseModel):
 
 
 class ViewerAnalyticsComparisonsResponse(BaseModel):
-    comparisons: List[ViewerAnalyticsComparison]
+    comparisons: list[ViewerAnalyticsComparison]
 
 
 class ViewerAnalyticsForecast(BaseModel):
     id: str
     title: str
     metric: str
-    historical_data: List[Dict[str, Any]] = []
-    predicted_data: List[Dict[str, Any]] = []
-    confidence_interval: List[Dict[str, Any]] = []
-    model_accuracy: Optional[float] = None
+    historical_data: list[dict[str, Any]] = []
+    predicted_data: list[dict[str, Any]] = []
+    confidence_interval: list[dict[str, Any]] = []
+    model_accuracy: float | None = None
 
     class Config:
         extra = "allow"
 
 
 class ViewerAnalyticsForecastResponse(BaseModel):
-    forecasts: List[ViewerAnalyticsForecast]
+    forecasts: list[ViewerAnalyticsForecast]
 
 
 class ViewerAnalyticsAnomaly(BaseModel):
@@ -107,11 +108,11 @@ class ViewerAnalyticsAnomaly(BaseModel):
     actual_value: float
     magnitude: float
     severity: str
-    possible_explanation: Optional[str] = None
+    possible_explanation: str | None = None
 
 
 class ViewerAnalyticsAnomaliesResponse(BaseModel):
-    anomalies: List[ViewerAnalyticsAnomaly]
+    anomalies: list[ViewerAnalyticsAnomaly]
 
 
 class ViewerAnalyticsInsight(BaseModel):
@@ -125,7 +126,7 @@ class ViewerAnalyticsInsight(BaseModel):
 
 class ViewerAnalyticsInsightsResponse(BaseModel):
     executive_summary: str = ""
-    insights: List[ViewerAnalyticsInsight]
+    insights: list[ViewerAnalyticsInsight]
 
 
 class ViewerAnalyticsDataQuality(BaseModel):
@@ -138,28 +139,28 @@ class ViewerAnalyticsDataQuality(BaseModel):
 
 
 class ViewerAnalyticsDataQualityResponse(BaseModel):
-    quality_reports: List[ViewerAnalyticsDataQuality]
+    quality_reports: list[ViewerAnalyticsDataQuality]
 
 
 class ViewerAnalyticsSavedView(BaseModel):
     id: str
     name: str
-    filters: Dict[str, Any]
+    filters: dict[str, Any]
     created_at: datetime
 
 
 class ViewerAnalyticsSavedViewsResponse(BaseModel):
-    views: List[ViewerAnalyticsSavedView]
+    views: list[ViewerAnalyticsSavedView]
 
 
 class ViewerAnalyticsSavedViewCreate(BaseModel):
     name: str
-    filters: Dict[str, Any]
+    filters: dict[str, Any]
 
 
 class ViewerAnalyticsAIChatRequest(BaseModel):
     message: str
-    context: Optional[Dict[str, Any]] = {}
+    context: dict[str, Any] | None = {}
 
 
 class ViewerAnalyticsAIChatResponse(BaseModel):

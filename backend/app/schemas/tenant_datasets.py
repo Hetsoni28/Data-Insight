@@ -1,7 +1,6 @@
 from datetime import datetime
-from typing import List, Optional
+
 from pydantic import BaseModel
-import uuid
 
 
 class DatasetStatsResponse(BaseModel):
@@ -21,19 +20,19 @@ class DatasetStatsResponse(BaseModel):
 
 class OwnerInfo(BaseModel):
     name: str
-    email: Optional[str]
+    email: str | None
 
 
 class DatasetItem(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     file_type: str
     file_size_bytes: int
     status: str
-    row_count: Optional[int]
-    column_count: Optional[int]
-    data_quality_score: Optional[int]
+    row_count: int | None
+    column_count: int | None
+    data_quality_score: int | None
     created_at: datetime
     updated_at: datetime
     owner: OwnerInfo
@@ -41,14 +40,14 @@ class DatasetItem(BaseModel):
 
 class DatasetDetailsItem(DatasetItem):
     original_filename: str
-    error_message: Optional[str]
-    profile: Optional[dict]
+    error_message: str | None
+    profile: dict | None
 
 
 class AuditLogItem(BaseModel):
     id: str
     action: str
-    resource_id: Optional[str]
+    resource_id: str | None
     created_at: datetime
     actor_name: str
     type: str
@@ -64,5 +63,5 @@ class AIActivityItem(BaseModel):
 
 
 class ActivitiesResponse(BaseModel):
-    audit_logs: List[AuditLogItem]
-    ai_activities: List[AIActivityItem]
+    audit_logs: list[AuditLogItem]
+    ai_activities: list[AIActivityItem]

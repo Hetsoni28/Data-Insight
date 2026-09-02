@@ -6,8 +6,8 @@ Create Date: 2026-08-10 14:57:48.857512+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -153,11 +153,11 @@ def upgrade() -> None:
         existing_nullable=False,
     )
     op.add_column(
-        "tenants", sa.Column("data_connections_config", sa.JSON(), nullable=True)
+        "tenants", sa.Column("data_connections_config", sa.JSON(), nullable=True),
     )
     op.add_column("tenants", sa.Column("integrations_config", sa.JSON(), nullable=True))
     op.add_column(
-        "tenants", sa.Column("notifications_config", sa.JSON(), nullable=True)
+        "tenants", sa.Column("notifications_config", sa.JSON(), nullable=True),
     )
     op.add_column("tenants", sa.Column("advanced_config", sa.JSON(), nullable=True))
     op.alter_column(

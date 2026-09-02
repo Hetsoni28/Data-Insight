@@ -4,13 +4,13 @@ Provides secure TOTP secret generation, QR Code image encoding,
 6-digit code verification, and emergency single-use recovery code management.
 """
 
-import io
 import base64
-import secrets
 import hashlib
+import io
+import secrets
+
 import pyotp
 import qrcode
-from typing import Tuple, List, Optional
 
 
 class MFAService:
@@ -58,7 +58,7 @@ class MFAService:
         return totp.verify(clean_code, valid_window=1)
 
     @staticmethod
-    def generate_recovery_codes(count: int = 10) -> List[str]:
+    def generate_recovery_codes(count: int = 10) -> list[str]:
         """Generate human-readable 12-character emergency backup recovery codes."""
         codes = []
         for _ in range(count):
@@ -76,10 +76,9 @@ class MFAService:
 
     @classmethod
     def verify_and_consume_recovery_code(
-        cls, hashed_codes: Optional[List[str]], plain_code: str
-    ) -> Tuple[bool, List[str]]:
-        """
-        Verify if a provided plain recovery code matches one in the hashed list.
+        cls, hashed_codes: list[str] | None, plain_code: str,
+    ) -> tuple[bool, list[str]]:
+        """Verify if a provided plain recovery code matches one in the hashed list.
         If valid, removes the consumed code and returns (True, updated_hashed_codes).
         """
         if not hashed_codes or not plain_code:

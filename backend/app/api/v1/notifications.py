@@ -1,45 +1,43 @@
 import uuid
-import random
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+
 from pydantic import BaseModel
 
 
 class NotificationPreferences(BaseModel):
-    email_notifications: Optional[bool] = None
-    push_notifications: Optional[bool] = None
-    slack_notifications: Optional[bool] = None
-    security_alerts: Optional[bool] = None
-    billing_alerts: Optional[bool] = None
-    ai_alerts: Optional[bool] = None
-    system_alerts: Optional[bool] = None
-    digest_frequency: Optional[str] = None  # 'realtime', 'daily', 'weekly'
+    email_notifications: bool | None = None
+    push_notifications: bool | None = None
+    slack_notifications: bool | None = None
+    security_alerts: bool | None = None
+    billing_alerts: bool | None = None
+    ai_alerts: bool | None = None
+    system_alerts: bool | None = None
+    digest_frequency: str | None = None  # 'realtime', 'daily', 'weekly'
 
 
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, desc, func, or_
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User
+from app.api.deps import get_current_user, get_db
 from app.models.notification import Notification
+from app.models.user import User
 from app.schemas.notification import (
     NotificationResponse,
-    NotificationUpdate,
     NotificationStatsResponse,
+    NotificationUpdate,
 )
 
 router = APIRouter()
 
 
-@router.get("", response_model=List[NotificationResponse])
+@router.get("", response_model=list[NotificationResponse])
 async def list_notifications(
-    category: Optional[str] = None,
-    priority: Optional[str] = None,
-    is_read: Optional[bool] = None,
-    is_archived: Optional[bool] = False,
-    is_pinned: Optional[bool] = None,
-    search: Optional[str] = None,
+    category: str | None = None,
+    priority: str | None = None,
+    is_read: bool | None = None,
+    is_archived: bool | None = False,
+    is_pinned: bool | None = None,
+    search: str | None = None,
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -60,9 +58,9 @@ async def list_notifications(
         conditions.append(
             or_(
                 Notification.user_id == current_user.id,
-                Notification.tenant_id != None,  # noqa: E711
-                Notification.tenant_id == None,  # noqa: E711 — platform-wide
-            )
+                Notification.tenant_id != None,
+                Notification.tenant_id == None,
+            ),
         )
     elif current_user.tenant_id:
         # Org users see their own + their tenant-wide notifications
@@ -70,7 +68,7 @@ async def list_notifications(
             or_(
                 Notification.user_id == current_user.id,
                 Notification.tenant_id == current_user.tenant_id,
-            )
+            ),
         )
     else:
         conditions.append(Notification.user_id == current_user.id)
@@ -90,7 +88,7 @@ async def list_notifications(
     if search:
         stmt = stmt.where(
             Notification.title.ilike(f"%{search}%")
-            | Notification.message.ilike(f"%{search}%")
+            | Notification.message.ilike(f"%{search}%"),
         )
 
     # Order by pinned first, then newest
@@ -103,7 +101,7 @@ async def list_notifications(
 
 @router.get("/stats", response_model=NotificationStatsResponse)
 async def get_notification_stats(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user),
 ):
     """Get aggregated statistics for notifications."""
     conditions = []
@@ -118,16 +116,16 @@ async def get_notification_stats(
         conditions.append(
             or_(
                 Notification.user_id == current_user.id,
-                Notification.tenant_id != None,  # noqa: E711
-                Notification.tenant_id == None,  # noqa: E711 — platform-wide
-            )
+                Notification.tenant_id != None,
+                Notification.tenant_id == None,
+            ),
         )
     elif current_user.tenant_id:
         conditions.append(
             or_(
                 Notification.user_id == current_user.id,
                 Notification.tenant_id == current_user.tenant_id,
-            )
+            ),
         )
     else:
         conditions.append(Notification.user_id == current_user.id)
@@ -138,45 +136,45 @@ async def get_notification_stats(
     total = await db.scalar(select(func.count()).where(*base_where)) or 0
     unread = (
         await db.scalar(
-            select(func.count()).where(*base_where, Notification.is_read == False)
+            select(func.count()).where(*base_where, Notification.is_read == False),
         )
         or 0
     )
     critical = (
         await db.scalar(
-            select(func.count()).where(*base_where, Notification.priority == "Critical")
+            select(func.count()).where(*base_where, Notification.priority == "Critical"),
         )
         or 0
     )
     security = (
         await db.scalar(
-            select(func.count()).where(*base_where, Notification.category == "Security")
+            select(func.count()).where(*base_where, Notification.category == "Security"),
         )
         or 0
     )
     ai = (
         await db.scalar(
-            select(func.count()).where(*base_where, Notification.category == "AI")
+            select(func.count()).where(*base_where, Notification.category == "AI"),
         )
         or 0
     )
     billing = (
         await db.scalar(
-            select(func.count()).where(*base_where, Notification.category == "Billing")
+            select(func.count()).where(*base_where, Notification.category == "Billing"),
         )
         or 0
     )
     system = (
         await db.scalar(
-            select(func.count()).where(*base_where, Notification.category == "System")
+            select(func.count()).where(*base_where, Notification.category == "System"),
         )
         or 0
     )
     organization = (
         await db.scalar(
             select(func.count()).where(
-                *base_where, Notification.category == "Organization"
-            )
+                *base_where, Notification.category == "Organization",
+            ),
         )
         or 0
     )
@@ -216,7 +214,7 @@ async def update_notification(
         raise HTTPException(status_code=403, detail="Not authorized")
 
     update_dict = update_data.model_dump(exclude_unset=True)
-    if "is_read" in update_dict and update_dict["is_read"]:
+    if update_dict.get("is_read"):
         notification.status = "Read"
     elif "is_read" in update_dict and not update_dict["is_read"]:
         notification.status = "Unread"
@@ -242,7 +240,7 @@ async def bulk_action_notifications(
             or_(
                 Notification.user_id == current_user.id,
                 Notification.tenant_id == current_user.tenant_id,
-            )
+            ),
         )
     else:
         conditions.append(Notification.user_id == current_user.id)

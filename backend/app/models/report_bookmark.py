@@ -1,7 +1,9 @@
-from sqlalchemy import Column, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
+
 from app.db.session import Base
 
 
@@ -31,5 +33,5 @@ class ReportBookmark(Base):
     )
 
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )

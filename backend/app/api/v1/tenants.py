@@ -1,32 +1,31 @@
 """Tenant (organization) management, DB routing, and quota usage endpoints."""
 
-import uuid
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends
 from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import (
+    RequireRole,
+    get_current_active_tenant_user,
+    get_current_user,
     get_db,
     get_redis,
-    get_current_user,
-    get_current_active_tenant_user,
-    RequireRole,
 )
-from app.models.user import User
+from app.core.exceptions import ForbiddenException, ValidationException
+from app.db.router import TenantDatabaseRouter, db_router
 from app.models.tenant import DBConnectionType
+from app.models.user import User
 from app.schemas.tenant import (
-    TenantCreateRequest,
-    TenantUpdateRequest,
-    TenantResponse,
-    TenantUsageResponse,
     DatabaseConnectionTestRequest,
     DatabaseConnectionTestResponse,
+    TenantCreateRequest,
     TenantDatabaseConfigRequest,
+    TenantResponse,
+    TenantUpdateRequest,
+    TenantUsageResponse,
 )
-from app.services.tenant import TenantService
 from app.services.quota_service import QuotaService
-from app.db.router import TenantDatabaseRouter, db_router
-from app.core.exceptions import ForbiddenException, ValidationException
+from app.services.tenant import TenantService
 
 router = APIRouter(prefix="/tenants", tags=["Tenants"])
 
@@ -64,7 +63,7 @@ async def update_my_tenant(
     svc = TenantService(db)
     tenant = await svc.get_tenant(current_user.tenant_id)
     return await svc.update_tenant(
-        tenant, body.model_dump(exclude_none=True), actor=current_user
+        tenant, body.model_dump(exclude_none=True), actor=current_user,
     )
 
 
@@ -118,8 +117,7 @@ async def configure_tenant_database(
     current_user: User = Depends(RequireRole(["owner", "org_admin"])),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Switch tenant database routing between shared pool and dedicated enterprise VPC.
+    """Switch tenant database routing between shared pool and dedicated enterprise VPC.
     Tests connection before activating dedicated routing.
     """
     svc = TenantService(db)
@@ -128,16 +126,16 @@ async def configure_tenant_database(
     if body.db_connection_type == "dedicated":
         if not body.dedicated_db_url:
             raise ValidationException(
-                "A dedicated database connection URL is required for dedicated mode."
+                "A dedicated database connection URL is required for dedicated mode.",
             )
         if tenant.plan not in ("enterprise", "custom") and not current_user.is_owner:
             raise ForbiddenException(
-                "Dedicated database isolation is exclusively available on Enterprise plans."
+                "Dedicated database isolation is exclusively available on Enterprise plans.",
             )
 
         # Test connection health first
         success, error, _ = await TenantDatabaseRouter.test_connection(
-            body.dedicated_db_url
+            body.dedicated_db_url,
         )
         if not success:
             raise ValidationException(f"Cannot activate dedicated database: {error}")

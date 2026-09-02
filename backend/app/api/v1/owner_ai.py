@@ -1,24 +1,23 @@
-from typing import Any, List, Dict
+import json
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from fastapi import APIRouter, Depends, HTTPException, Query, Form, File, UploadFile
-import json
-from typing import Optional
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, desc, asc, case
+from typing import Any
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+from sqlalchemy import asc, case, desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
 from app.models.ai_ops import (
-    AIProvider,
     AIModel,
+    AIProvider,
     AIRoutingRule,
-    AIPromptTemplate,
     AIUsageLog,
     ProviderStatus,
 )
-from app.models.chat import ChatSession, ChatMessage
+from app.models.chat import ChatMessage, ChatSession
+from app.models.user import User
 from app.services.gemini_service import gemini_service
 
 router = APIRouter()
@@ -26,7 +25,7 @@ router = APIRouter()
 
 def require_owner(current_user: User = Depends(get_current_user)):
     if getattr(current_user, "role", "") != "owner" and not getattr(
-        current_user, "is_owner", False
+        current_user, "is_owner", False,
     ):
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
@@ -34,10 +33,9 @@ def require_owner(current_user: User = Depends(get_current_user)):
 
 @router.get("/overview")
 async def get_ai_overview(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get high-level AI Ops KPIs for the dashboard."""
-
     # Provider KPIs
     providers_result = await db.execute(select(AIProvider))
     providers = providers_result.scalars().all()
@@ -51,7 +49,7 @@ async def get_ai_overview(
 
     # Models
     models_count = await db.scalar(
-        select(func.count(AIModel.id)).where(AIModel.is_active == True)
+        select(func.count(AIModel.id)).where(AIModel.is_active == True),
     )
 
     # Usage / Cost KPIs (Last 30 days)
@@ -65,7 +63,7 @@ async def get_ai_overview(
             func.sum(AIUsageLog.cost_usd),
             func.avg(AIUsageLog.latency_ms),
             func.sum(case((AIUsageLog.status_code != 200, 1), else_=0)),
-        ).where(AIUsageLog.created_at >= thirty_days_ago)
+        ).where(AIUsageLog.created_at >= thirty_days_ago),
     )
     usage_stats = usage_result.fetchone()
 
@@ -90,7 +88,7 @@ async def get_ai_overview(
         ).where(
             AIUsageLog.created_at >= sixty_days_ago,
             AIUsageLog.created_at < thirty_days_ago,
-        )
+        ),
     )
     prev_stats = prev_usage_result.fetchone()
     prev_requests = int(prev_stats[0] or 0)
@@ -161,7 +159,7 @@ async def get_ai_overview(
 
 @router.get("/providers")
 async def get_providers(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get all configured AI providers with real aggregated usage and live status."""
     result = await db.execute(
@@ -175,7 +173,7 @@ async def get_providers(
         )
         .outerjoin(AIUsageLog, AIUsageLog.provider_id == AIProvider.id)
         .group_by(AIProvider.id)
-        .order_by(desc("requests"), AIProvider.name)
+        .order_by(desc("requests"), AIProvider.name),
     )
 
     data = []
@@ -199,7 +197,7 @@ async def get_providers(
                 "cost": float(cost or 0.0),
                 "tokens": int(tokens or 0),
                 "requests": req_count,
-            }
+            },
         )
 
     return {"providers": data, "data": data}
@@ -207,7 +205,7 @@ async def get_providers(
 
 @router.get("/models")
 async def get_models(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get all AI models across all providers with real aggregated usage."""
     result = await db.execute(
@@ -217,14 +215,14 @@ async def get_models(
             func.count(AIUsageLog.id).label("requests_count"),
             func.coalesce(func.sum(AIUsageLog.tokens_total), 0).label("tokens_sum"),
             func.coalesce(func.sum(AIUsageLog.cost_usd), Decimal("0.0")).label(
-                "cost_sum"
+                "cost_sum",
             ),
             func.coalesce(func.avg(AIUsageLog.latency_ms), 0).label("avg_lat"),
         )
         .join(AIProvider, AIModel.provider_id == AIProvider.id)
         .outerjoin(AIUsageLog, AIUsageLog.model_id == AIModel.id)
         .group_by(AIModel.id, AIProvider.id)
-        .order_by(desc("requests_count"), AIProvider.name)
+        .order_by(desc("requests_count"), AIProvider.name),
     )
 
     models = []
@@ -246,7 +244,7 @@ async def get_models(
                 "cost": round(float(cost or 0.0), 4),
                 "latency": int(avg_lat or 0),
                 "trend": "up",
-            }
+            },
         )
 
     return {"models": models, "data": models}
@@ -254,11 +252,11 @@ async def get_models(
 
 @router.get("/routing")
 async def get_routing_rules(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get smart routing rules and fallbacks."""
     result = await db.execute(
-        select(AIRoutingRule).order_by(asc(AIRoutingRule.task_type))
+        select(AIRoutingRule).order_by(asc(AIRoutingRule.task_type)),
     )
     rules = result.scalars().all()
 
@@ -281,7 +279,7 @@ async def get_routing_rules(
                 "timeout_ms": r.timeout_ms,
                 "retry_count": r.retry_count,
                 "is_active": r.is_active,
-            }
+            },
         )
 
     return {"rules": rule_data}
@@ -326,7 +324,7 @@ async def get_usage_timeseries(
                 ),
                 "requests": int(row.requests),
                 "cost": float(row.cost),
-            }
+            },
         )
 
     return {"timeseries": timeseries}
@@ -334,7 +332,7 @@ async def get_usage_timeseries(
 
 @router.get("/trends")
 async def get_trends(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Alias for timeseries to support legacy ai-usage page."""
     res = await get_usage_timeseries(days=7, db=db, current_user=current_user)
@@ -349,7 +347,7 @@ async def get_trends(
 
 @router.get("/organizations")
 async def get_org_usage(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Real per-org AI usage grouped from AIUsageLog."""
     from app.models.tenant import Tenant
@@ -367,7 +365,7 @@ async def get_org_usage(
         .where(AIUsageLog.created_at >= seven_days_ago)
         .group_by(Tenant.id, Tenant.name)
         .order_by(func.sum(AIUsageLog.cost_usd).desc())
-        .limit(10)
+        .limit(10),
     )
     rows = result.all()
     return {
@@ -380,13 +378,13 @@ async def get_org_usage(
                 "cost": round(float(r.cost), 4),
             }
             for r in rows
-        ]
+        ],
     }
 
 
 @router.get("/activity")
 async def get_activity(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Real AI activity feed from the latest AIUsageLog records."""
     from app.models.tenant import Tenant
@@ -406,7 +404,7 @@ async def get_activity(
         .join(Tenant, AIUsageLog.tenant_id == Tenant.id)
         .outerjoin(AIModel, AIUsageLog.model_id == AIModel.id)
         .order_by(desc(AIUsageLog.created_at))
-        .limit(20)
+        .limit(20),
     )
     rows = result.all()
     return {
@@ -423,13 +421,13 @@ async def get_activity(
                 "date": r.created_at.isoformat() if r.created_at else None,
             }
             for r in rows
-        ]
+        ],
     }
 
 
 @router.get("/analytics-charts")
 async def get_analytics_charts(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Return real data for the AI Analytics Charts (Usage, Distribution, Latency)."""
     # 1. Usage Over Time (last 7 days, requests and cost)
@@ -461,7 +459,7 @@ async def get_analytics_charts(
             date_str = row.day.strftime("%b %d")
 
         token_usage_data.append(
-            {"date": date_str, "requests": int(row.requests), "cost": float(row.cost)}
+            {"date": date_str, "requests": int(row.requests), "cost": float(row.cost)},
         )
 
     # 2. Model Distribution (based on usage)
@@ -482,16 +480,16 @@ async def get_analytics_charts(
                 "name": row.name,
                 "value": int(row.count),
                 "color": colors[idx % len(colors)],
-            }
+            },
         )
 
     # 3. Latency (hourly for today)
     today = datetime.now(timezone.utc).replace(
-        hour=0, minute=0, second=0, microsecond=0
+        hour=0, minute=0, second=0, microsecond=0,
     )
     if db.bind.dialect.name == "sqlite":
         hour_expr = func.strftime("%Y-%m-%d %H:00:00", AIUsageLog.created_at).label(
-            "hour"
+            "hour",
         )
     else:
         hour_expr = func.date_trunc("hour", AIUsageLog.created_at).label("hour")
@@ -518,7 +516,7 @@ async def get_analytics_charts(
             hour_str = row.hour.strftime("%H:00")
 
         latency_data.append(
-            {"time": hour_str, "p50": int(row.p50 or 0), "p99": int(row.p99 or 0)}
+            {"time": hour_str, "p50": int(row.p50 or 0), "p99": int(row.p99 or 0)},
         )
 
     return {
@@ -542,7 +540,7 @@ class Artifact(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     session_id: str
-    artifact: Optional[Artifact] = None
+    artifact: Artifact | None = None
 
 
 from fastapi import Request
@@ -563,7 +561,7 @@ async def chat_with_command_center(
 
     if not workspace_id or not message:
         raise HTTPException(
-            status_code=422, detail="workspace_id and message are required"
+            status_code=422, detail="workspace_id and message are required",
         )
 
     try:
@@ -601,8 +599,9 @@ async def chat_with_command_center(
     db.add(user_msg)
     await db.commit()
 
-    from fastapi.responses import StreamingResponse
     import json
+
+    from fastapi.responses import StreamingResponse
 
     async def response_generator():
         yield f"data: {json.dumps({'session_id': session_id_str, 'type': 'session'})}\n\n"
@@ -623,7 +622,7 @@ async def chat_with_command_center(
 
         # Save Assistant Message after stream completes
         assistant_msg = ChatMessage(
-            session_id=session_uuid, role="assistant", content=full_response
+            session_id=session_uuid, role="assistant", content=full_response,
         )
         db.add(assistant_msg)
         await db.commit()
@@ -633,7 +632,7 @@ async def chat_with_command_center(
 
 @router.get("/chat/sessions")
 async def get_chat_sessions(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ):
     stmt = (
         select(ChatSession)
@@ -666,7 +665,7 @@ async def get_chat_session_messages(
 ):
     # Verify ownership
     session_stmt = select(ChatSession).where(
-        ChatSession.id == session_id, ChatSession.tenant_id == current_user.tenant_id
+        ChatSession.id == session_id, ChatSession.tenant_id == current_user.tenant_id,
     )
     result = await db.execute(session_stmt)
     chat_session = result.scalars().first()

@@ -1,20 +1,20 @@
+import enum
 import uuid
 from datetime import datetime, timezone
+
 from sqlalchemy import (
-    String,
+    JSON,
+    BigInteger,
     Boolean,
     DateTime,
-    Integer,
-    BigInteger,
-    Float,
     ForeignKey,
+    Integer,
+    String,
     Text,
-    JSON,
-    Enum,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
-import enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.db.session import Base
 
 
@@ -50,10 +50,10 @@ class StorageBucket(Base):
     __tablename__ = "storage_buckets"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     name: Mapped[str] = mapped_column(
-        String(100), nullable=False, unique=True, index=True
+        String(100), nullable=False, unique=True, index=True,
     )
     bucket_type: Mapped[str] = mapped_column(String(50), default=BucketType.temp)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -61,7 +61,7 @@ class StorageBucket(Base):
     region: Mapped[str] = mapped_column(String(50), default="us-east-1")
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -70,7 +70,7 @@ class StorageBucket(Base):
     )
 
     files: Mapped[list["StorageFile"]] = relationship(
-        "StorageFile", back_populates="bucket", lazy="noload"
+        "StorageFile", back_populates="bucket", lazy="noload",
     )
 
 
@@ -78,7 +78,7 @@ class StorageFile(Base):
     __tablename__ = "storage_files"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     bucket_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -100,11 +100,11 @@ class StorageFile(Base):
 
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     file_path: Mapped[str] = mapped_column(
-        Text, nullable=False, index=True
+        Text, nullable=False, index=True,
     )  # Full path in storage
     file_size_bytes: Mapped[int] = mapped_column(BigInteger, default=0)
     file_type: Mapped[str] = mapped_column(
-        String(50), nullable=False
+        String(50), nullable=False,
     )  # e.g. text/csv, application/pdf
     category: Mapped[str] = mapped_column(String(50), default=FileCategory.other)
 
@@ -116,7 +116,7 @@ class StorageFile(Base):
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -124,11 +124,11 @@ class StorageFile(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
     deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True, index=True
+        DateTime(timezone=True), nullable=True, index=True,
     )
 
     bucket: Mapped["StorageBucket"] = relationship(
-        "StorageBucket", back_populates="files", lazy="noload"
+        "StorageBucket", back_populates="files", lazy="noload",
     )
 
 
@@ -136,7 +136,7 @@ class StorageBackup(Base):
     __tablename__ = "storage_backups"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     tenant_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
@@ -146,7 +146,7 @@ class StorageBackup(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[str] = mapped_column(
-        String(50), default="full"
+        String(50), default="full",
     )  # full, incremental, snapshot
     status: Mapped[str] = mapped_column(String(50), default=BackupStatus.pending)
     size_bytes: Mapped[int] = mapped_column(BigInteger, default=0)
@@ -155,13 +155,13 @@ class StorageBackup(Base):
     retention_days: Mapped[int] = mapped_column(Integer, default=30)
 
     scheduled_for: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True,
     )
     started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True,
     )
     completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True,
     )
 
 
@@ -169,7 +169,7 @@ class StorageLifecyclePolicy(Base):
     __tablename__ = "storage_lifecycle_policies"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     bucket_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
@@ -179,16 +179,16 @@ class StorageLifecyclePolicy(Base):
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     action: Mapped[str] = mapped_column(
-        String(50), nullable=False
+        String(50), nullable=False,
     )  # archive, delete, move_to_cold
     target_bucket_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
+        UUID(as_uuid=True), nullable=True,
     )
     condition_days: Mapped[int] = mapped_column(Integer, default=30)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
 
 
@@ -196,7 +196,7 @@ class StorageActivityLog(Base):
     __tablename__ = "storage_activity_logs"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     tenant_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
@@ -205,21 +205,21 @@ class StorageActivityLog(Base):
         index=True,
     )
     actor_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True,
     )
 
     action: Mapped[str] = mapped_column(
-        String(100), nullable=False
+        String(100), nullable=False,
     )  # file.uploaded, file.deleted, backup.created
     resource_type: Mapped[str] = mapped_column(
-        String(50), nullable=False
+        String(50), nullable=False,
     )  # file, bucket, backup, quota
     resource_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
+        UUID(as_uuid=True), nullable=True,
     )
 
     metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True,
     )

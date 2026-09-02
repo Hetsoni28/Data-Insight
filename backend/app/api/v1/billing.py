@@ -1,22 +1,20 @@
-"""
-Billing API endpoints.
+"""Billing API endpoints.
 
 POST /billing/checkout  → create Stripe checkout session, returns redirect URL
 POST /billing/webhook   → Stripe webhook (raw body, no auth required)
 GET  /billing/portal    → Stripe customer self-service portal URL
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Header, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
 import stripe
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from loguru import logger
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
-from app.services import billing as billing_service
 from app.repositories.tenant import TenantRepository
-from app.models.tenant import PlanType
+from app.services import billing as billing_service
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -53,7 +51,7 @@ async def create_checkout(
     """Create a Stripe checkout session for the requested plan."""
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User must belong to an organization."
+            status_code=400, detail="User must belong to an organization.",
         )
 
     tenant_repo = TenantRepository(db)
@@ -91,7 +89,7 @@ async def billing_portal(
     """Create a Stripe customer portal session for the current user."""
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User must belong to an organization."
+            status_code=400, detail="User must belong to an organization.",
         )
 
     tenant_repo = TenantRepository(db)
@@ -101,7 +99,7 @@ async def billing_portal(
 
     try:
         url = await billing_service.get_customer_portal_url(
-            tenant=tenant, user_email=current_user.email
+            tenant=tenant, user_email=current_user.email,
         )
 
         # If the service created a new Stripe customer, update the Tenant in our DB
@@ -137,8 +135,7 @@ async def stripe_webhook(
     stripe_signature: str = Header(None, alias="stripe-signature"),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """
-    Receive and process Stripe webhook events.
+    """Receive and process Stripe webhook events.
 
     Stripe sends events like:
     - checkout.session.completed

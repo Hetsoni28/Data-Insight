@@ -1,7 +1,8 @@
 import uuid
-from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict
 
 
 class NotificationBase(BaseModel):
@@ -9,28 +10,28 @@ class NotificationBase(BaseModel):
     message: str
     category: str
     priority: str = "Medium"
-    type: Optional[str] = None
+    type: str | None = None
     status: str = "Unread"
-    metadata_json: Optional[Dict[str, Any]] = None
-    action_url: Optional[str] = None
-    icon: Optional[str] = None
+    metadata_json: dict[str, Any] | None = None
+    action_url: str | None = None
+    icon: str | None = None
 
 
 class NotificationCreate(NotificationBase):
-    tenant_id: Optional[uuid.UUID] = None
-    user_id: Optional[uuid.UUID] = None
+    tenant_id: uuid.UUID | None = None
+    user_id: uuid.UUID | None = None
 
 
 class NotificationUpdate(BaseModel):
-    is_read: Optional[bool] = None
-    is_pinned: Optional[bool] = None
-    is_archived: Optional[bool] = None
+    is_read: bool | None = None
+    is_pinned: bool | None = None
+    is_archived: bool | None = None
 
 
 class NotificationResponse(NotificationBase):
     id: uuid.UUID
-    tenant_id: Optional[uuid.UUID] = None
-    user_id: Optional[uuid.UUID] = None
+    tenant_id: uuid.UUID | None = None
+    user_id: uuid.UUID | None = None
     is_read: bool
     is_pinned: bool
     is_archived: bool

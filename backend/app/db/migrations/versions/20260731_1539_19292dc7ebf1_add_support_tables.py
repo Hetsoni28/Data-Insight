@@ -6,9 +6,8 @@ Create Date: 2026-07-31 15:39:35.260734+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "19292dc7ebf1"
@@ -43,7 +42,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", name="ticketstatus_enum"
+                "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", name="ticketstatus_enum",
             ),
             nullable=False,
         ),

@@ -1,9 +1,10 @@
 """AuditLogRepository — append-only audit trail."""
 
 import uuid
-from typing import List
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.audit_log import AuditLog
 from app.repositories.base import BaseRepository
 
@@ -46,7 +47,7 @@ class AuditLogRepository(BaseRepository[AuditLog]):
         action: str | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[AuditLog]:
+    ) -> list[AuditLog]:
         stmt = (
             select(AuditLog)
             .where(AuditLog.tenant_id == tenant_id)

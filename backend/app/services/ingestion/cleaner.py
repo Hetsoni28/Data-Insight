@@ -1,12 +1,12 @@
+from typing import Any
+
 import polars as pl
-from typing import Dict, Any, Tuple
 
 
 class DatasetCleaner:
     @staticmethod
-    def clean_dataframe(df: pl.DataFrame) -> Tuple[pl.DataFrame, Dict[str, Any]]:
-        """
-        Applies data quality cleaning via Polars.
+    def clean_dataframe(df: pl.DataFrame) -> tuple[pl.DataFrame, dict[str, Any]]:
+        """Applies data quality cleaning via Polars.
         Returns the cleaned DataFrame and metrics on what was cleaned.
         """
         try:
@@ -32,4 +32,4 @@ class DatasetCleaner:
             return df_cleaned, metrics
 
         except Exception as e:
-            raise Exception(f"Failed to clean dataset: {str(e)}")
+            raise Exception(f"Failed to clean dataset: {e!s}")

@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, text
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User
-from app.models.tenant import Tenant
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
 from app.models.ai_token_usage import AITokenUsage
-from app.models.invoice import Invoice
 from app.models.dataset import Dataset
+from app.models.invoice import Invoice
 from app.models.report import Report
+from app.models.tenant import Tenant
+from app.models.user import User
 from app.models.user_session import UserSession
 
 router = APIRouter()
@@ -17,7 +18,7 @@ router = APIRouter()
 
 async def require_owner(current_user: User = Depends(get_current_user)) -> User:
     if getattr(current_user, "role", "") != "owner" and not getattr(
-        current_user, "is_owner", False
+        current_user, "is_owner", False,
     ):
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
@@ -28,14 +29,13 @@ async def get_analytics_overview(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    """
-    Returns high-level KPIs for the Executive Intelligence Dashboard.
+    """Returns high-level KPIs for the Executive Intelligence Dashboard.
     Calculates current metrics and compares them against the previous 30 days.
     """
     now = datetime.now(timezone.utc)
     thirty_days_ago = now - timedelta(days=30)
     sixty_days_ago = now - timedelta(days=60)
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    now.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 1. User Metrics
     total_users = (
@@ -44,34 +44,34 @@ async def get_analytics_overview(
 
     # Active Users (Logins in last 30 days)
     mau_stmt = select(func.count(func.distinct(UserSession.user_id))).where(
-        UserSession.created_at >= thirty_days_ago
+        UserSession.created_at >= thirty_days_ago,
     )
     mau = (await db.execute(mau_stmt)).scalar_one()
 
     # 2. Organization Metrics
     total_orgs = (
         await db.execute(
-            select(func.count(Tenant.id)).where(Tenant.is_deleted == False)
+            select(func.count(Tenant.id)).where(Tenant.is_deleted == False),
         )
     ).scalar_one()
     active_orgs = (
         await db.execute(
             select(func.count(Tenant.id)).where(
-                Tenant.is_deleted == False, Tenant.is_active == True
-            )
+                Tenant.is_deleted == False, Tenant.is_active == True,
+            ),
         )
     ).scalar_one()
 
     new_orgs_last_30 = (
         await db.execute(
-            select(func.count(Tenant.id)).where(Tenant.created_at >= thirty_days_ago)
+            select(func.count(Tenant.id)).where(Tenant.created_at >= thirty_days_ago),
         )
     ).scalar_one()
     new_orgs_prev_30 = (
         await db.execute(
             select(func.count(Tenant.id)).where(
-                Tenant.created_at >= sixty_days_ago, Tenant.created_at < thirty_days_ago
-            )
+                Tenant.created_at >= sixty_days_ago, Tenant.created_at < thirty_days_ago,
+            ),
         )
     ).scalar_one()
     org_growth = (
@@ -80,7 +80,7 @@ async def get_analytics_overview(
 
     # 3. Revenue Metrics (MRR / ARR based on invoices)
     mrr_stmt = select(func.sum(Invoice.amount)).where(
-        Invoice.status == "paid", Invoice.created_at >= thirty_days_ago
+        Invoice.status == "paid", Invoice.created_at >= thirty_days_ago,
     )
     mrr_cents = (await db.execute(mrr_stmt)).scalar_one() or 0
     mrr = mrr_cents / 100
@@ -98,7 +98,7 @@ async def get_analytics_overview(
 
     # 4. AI Metrics
     ai_requests_stmt = select(func.count(AITokenUsage.id)).where(
-        AITokenUsage.created_at >= thirty_days_ago
+        AITokenUsage.created_at >= thirty_days_ago,
     )
     ai_requests = (await db.execute(ai_requests_stmt)).scalar_one()
 
@@ -112,14 +112,14 @@ async def get_analytics_overview(
     # 5. Platform Usage — datasets & reports with real period-over-period growth
     total_datasets = (
         await db.execute(
-            select(func.count(Dataset.id)).where(Dataset.is_deleted == False)
+            select(func.count(Dataset.id)).where(Dataset.is_deleted == False),
         )
     ).scalar_one()
     total_reports = (await db.execute(select(func.count(Report.id)))).scalar_one()
 
     # Dataset growth: new datasets created last 30d vs prior 30d
     new_datasets_stmt = select(func.count(Dataset.id)).where(
-        Dataset.created_at >= thirty_days_ago, Dataset.is_deleted == False
+        Dataset.created_at >= thirty_days_ago, Dataset.is_deleted == False,
     )
     new_datasets = (await db.execute(new_datasets_stmt)).scalar_one()
     prev_datasets_stmt = select(func.count(Dataset.id)).where(
@@ -129,25 +129,25 @@ async def get_analytics_overview(
     )
     prev_datasets = (await db.execute(prev_datasets_stmt)).scalar_one()
     dataset_growth = round(
-        ((new_datasets - prev_datasets) / max(prev_datasets, 1)) * 100, 1
+        ((new_datasets - prev_datasets) / max(prev_datasets, 1)) * 100, 1,
     )
 
     # Report growth: new reports created last 30d vs prior 30d
     new_reports_stmt = select(func.count(Report.id)).where(
-        Report.created_at >= thirty_days_ago
+        Report.created_at >= thirty_days_ago,
     )
     new_reports = (await db.execute(new_reports_stmt)).scalar_one()
     prev_reports_stmt = select(func.count(Report.id)).where(
-        Report.created_at >= sixty_days_ago, Report.created_at < thirty_days_ago
+        Report.created_at >= sixty_days_ago, Report.created_at < thirty_days_ago,
     )
     prev_reports = (await db.execute(prev_reports_stmt)).scalar_one()
     report_growth = round(
-        ((new_reports - prev_reports) / max(prev_reports, 1)) * 100, 1
+        ((new_reports - prev_reports) / max(prev_reports, 1)) * 100, 1,
     )
 
     # User growth (period-over-period, reusing org_growth variable)
     new_users_stmt = select(func.count(User.id)).where(
-        User.created_at >= thirty_days_ago, User.is_active == True
+        User.created_at >= thirty_days_ago, User.is_active == True,
     )
     new_users = (await db.execute(new_users_stmt)).scalar_one()
     prev_users_stmt = select(func.count(User.id)).where(
@@ -203,13 +203,11 @@ async def get_ai_summary(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    """
-    Returns an AI-generated executive briefing.
+    """Returns an AI-generated executive briefing.
     In a real production environment, a background worker would query the DB daily,
     pass the metrics to Gemini, and store the resulting text to be served here.
     For this demo, we return a dynamic but structured mockup string.
     """
-
     return {
         "status": "success",
         "briefing": {
@@ -277,8 +275,8 @@ async def get_revenue_analytics(
     base_active_tenants = (
         await db.scalar(
             select(func.count(Tenant.id)).where(
-                Tenant.created_at < start_date, Tenant.is_deleted == False
-            )
+                Tenant.created_at < start_date, Tenant.is_deleted == False,
+            ),
         )
         or 0
     )
@@ -300,7 +298,7 @@ async def get_revenue_analytics(
                 "target": round(rev * 1.2, 2) if rev > 0 else 1000,
                 "active": current_active,
                 "new": new_t,
-            }
+            },
         )
 
         current_month = (current_month + timedelta(days=32)).replace(day=1)
@@ -363,8 +361,8 @@ async def get_user_analytics(
     base_orgs = (
         await db.scalar(
             select(func.count(Tenant.id)).where(
-                Tenant.created_at < start_date, Tenant.is_deleted == False
-            )
+                Tenant.created_at < start_date, Tenant.is_deleted == False,
+            ),
         )
         or 0
     )
@@ -389,7 +387,7 @@ async def get_user_analytics(
                 "active_orgs": cum_orgs,
                 "new_signups": nu,
                 "new_orgs": no,
-            }
+            },
         )
         current_month = (current_month + timedelta(days=32)).replace(day=1)
 
@@ -436,7 +434,7 @@ async def get_predictive_forecast(
                 "month": current_month.strftime("%b"),
                 "mrr_actual": round(actual, 2),
                 "mrr_forecast": None,
-            }
+            },
         )
         current_month = (current_month + timedelta(days=32)).replace(day=1)
 
@@ -444,8 +442,8 @@ async def get_predictive_forecast(
     current_mrr = (
         await db.scalar(
             select(func.coalesce(func.sum(Tenant.mrr), 0.0)).where(
-                Tenant.is_active == True, Tenant.is_deleted == False
-            )
+                Tenant.is_active == True, Tenant.is_deleted == False,
+            ),
         )
         or 0.0
     )
@@ -458,7 +456,7 @@ async def get_predictive_forecast(
                 "month": current_month.strftime("%b"),
                 "mrr_actual": None,
                 "mrr_forecast": round(projected, 2),
-            }
+            },
         )
         current_month = (current_month + timedelta(days=32)).replace(day=1)
 
@@ -470,9 +468,10 @@ async def get_anomalies(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    from app.models.security import SecurityEvent
+    from sqlalchemy import desc
+
     from app.models.audit_log import AuditLog
-    from sqlalchemy import or_, desc
+    from app.models.security import SecurityEvent
 
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(days=7)
@@ -485,7 +484,7 @@ async def get_anomalies(
             SecurityEvent.created_at >= cutoff,
         )
         .order_by(desc(SecurityEvent.created_at))
-        .limit(5)
+        .limit(5),
     )
     sec_events = sec_result.scalars().all()
 
@@ -498,7 +497,7 @@ async def get_anomalies(
             AuditLog.created_at >= cutoff,
         )
         .order_by(desc(AuditLog.created_at))
-        .limit(5)
+        .limit(5),
     )
     audit_events = audit_result.scalars().all()
 
@@ -513,7 +512,7 @@ async def get_anomalies(
                 "description": f"{e.event_type} from {e.ip_address or 'unknown'}",
                 "timestamp": e.created_at.isoformat(),
                 "resolved": e.resolved,
-            }
+            },
         )
     for e in audit_events:
         anomalies.append(
@@ -525,7 +524,7 @@ async def get_anomalies(
                 "description": f"Failed {e.action} in {e.module}",
                 "timestamp": e.created_at.isoformat(),
                 "resolved": False,
-            }
+            },
         )
 
     # Sort combined by timestamp desc
@@ -539,8 +538,7 @@ async def get_customer_health(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    """
-    Returns a matrix of organizations and their calculated health scores.
+    """Returns a matrix of organizations and their calculated health scores.
     """
     # Fetch all active orgs from DB
     stmt = (
@@ -623,7 +621,7 @@ async def get_customer_health(
                 "users": users,
                 "sessions_14d": sessions,
                 "trend": trend,
-            }
+            },
         )
 
     return {"status": "success", "data": health_data}

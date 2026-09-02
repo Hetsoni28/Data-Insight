@@ -47,13 +47,13 @@ Output pure JSON only, as a list of operations:
         for col, dtype in schema_info.items():
             schema_context += f" - {col} ({dtype})\n"
             
-        prompt = f""\"Dataset Schema:
+        prompt = f"""Dataset Schema:
 {schema_context}
 
 Sample Data:
 {json.dumps(sample_rows, default=str)}
 
-Suggest 3 to 5 cleaning operations.""\"
+Suggest 3 to 5 cleaning operations."""
 
         response = await self.router.generate(
             prompt=prompt,

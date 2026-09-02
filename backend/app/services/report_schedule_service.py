@@ -1,9 +1,11 @@
 import uuid
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from datetime import datetime, timezone
-from app.models.user import User
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.report_schedule import ReportSchedule
+from app.models.user import User
 
 
 class ReportScheduleService:
@@ -18,7 +20,7 @@ class ReportScheduleService:
         return list(result.scalars().all())
 
     async def create_schedule(
-        self, dataset_id: uuid.UUID, cron_expression: str, name: str, actor: User
+        self, dataset_id: uuid.UUID, cron_expression: str, name: str, actor: User,
     ) -> ReportSchedule:
         schedule = ReportSchedule(
             tenant_id=actor.tenant_id,

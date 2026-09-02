@@ -1,21 +1,22 @@
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, or_
-from datetime import datetime, timezone
 import math
-from pydantic import BaseModel
+from datetime import datetime, timezone
+from typing import Any
 
-from app.api.deps import get_db, get_current_user
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
+from app.models.feature_flag import FeatureExperiment, FeatureFlag, FeatureRollout
 from app.models.user import User
-from app.models.feature_flag import FeatureFlag, FeatureRollout, FeatureExperiment
 
 router = APIRouter()
 
 
 async def require_owner(current_user: User = Depends(get_current_user)) -> User:
     if getattr(current_user, "role", "") != "owner" and not getattr(
-        current_user, "is_owner", False
+        current_user, "is_owner", False,
     ):
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
@@ -23,22 +24,22 @@ async def require_owner(current_user: User = Depends(get_current_user)) -> User:
 
 @router.get("/overview")
 async def get_overview(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     total_flags = await db.scalar(select(func.count(FeatureFlag.id)))
     enabled_flags = await db.scalar(
-        select(func.count(FeatureFlag.id)).where(FeatureFlag.is_enabled == True)
+        select(func.count(FeatureFlag.id)).where(FeatureFlag.is_enabled == True),
     )
     disabled_flags = total_flags - enabled_flags if total_flags else 0
     active_rollouts = await db.scalar(
         select(func.count(FeatureRollout.id)).where(
-            FeatureRollout.rollout_percentage > 0
-        )
+            FeatureRollout.rollout_percentage > 0,
+        ),
     )
     active_experiments = await db.scalar(
         select(func.count(FeatureExperiment.id)).where(
-            FeatureExperiment.status == "running"
-        )
+            FeatureExperiment.status == "running",
+        ),
     )
 
     return {
@@ -48,16 +49,16 @@ async def get_overview(
             "disabled_flags": disabled_flags,
             "active_rollouts": active_rollouts or 0,
             "active_experiments": active_experiments or 0,
-        }
+        },
     }
 
 
 @router.get("")
 async def get_features(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     result = await db.execute(
-        select(FeatureFlag).order_by(desc(FeatureFlag.created_at))
+        select(FeatureFlag).order_by(desc(FeatureFlag.created_at)),
     )
     flags = result.scalars().all()
 
@@ -74,7 +75,7 @@ async def get_features(
                 "updated_at": f.updated_at.isoformat(),
             }
             for f in flags
-        ]
+        ],
     }
 
 
@@ -106,12 +107,12 @@ async def toggle_feature(
 
 @router.get("/rollouts")
 async def get_rollouts(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     result = await db.execute(
         select(FeatureRollout, FeatureFlag)
         .join(FeatureFlag)
-        .order_by(desc(FeatureRollout.rollout_percentage))
+        .order_by(desc(FeatureRollout.rollout_percentage)),
     )
 
     rollouts = []
@@ -124,7 +125,7 @@ async def get_rollouts(
                 "percentage": rollout.rollout_percentage,
                 "target_roles": rollout.target_roles,
                 "target_organizations": rollout.target_organizations,
-            }
+            },
         )
 
     return {"rollouts": rollouts}
@@ -132,12 +133,12 @@ async def get_rollouts(
 
 @router.get("/experiments")
 async def get_experiments(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     result = await db.execute(
         select(FeatureExperiment, FeatureFlag)
         .join(FeatureFlag)
-        .order_by(desc(FeatureExperiment.id))
+        .order_by(desc(FeatureExperiment.id)),
     )
 
     experiments = []
@@ -148,7 +149,7 @@ async def get_experiments(
         if total_success > 0:
             # Z = (A - B) / sqrt(A + B)
             z_score = abs(
-                exp.variation_a_success - exp.variation_b_success
+                exp.variation_a_success - exp.variation_b_success,
             ) / math.sqrt(total_success)
             # erf(Z / sqrt(2)) gives the confidence level
             confidence = math.erf(z_score / math.sqrt(2)) * 100
@@ -171,7 +172,7 @@ async def get_experiments(
                         else None
                     )
                 ),
-            }
+            },
         )
 
     return {"experiments": experiments}
@@ -192,11 +193,11 @@ async def create_feature_flag(
 ) -> Any:
     # Check if key exists
     existing = await db.execute(
-        select(FeatureFlag).where(FeatureFlag.key == payload.key)
+        select(FeatureFlag).where(FeatureFlag.key == payload.key),
     )
     if existing.scalars().first():
         raise HTTPException(
-            status_code=400, detail="Feature flag with this key already exists"
+            status_code=400, detail="Feature flag with this key already exists",
         )
 
     new_flag = FeatureFlag(
@@ -237,7 +238,7 @@ async def create_feature_flag(
 
 @router.post("/kill-switch")
 async def trigger_kill_switch(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     # Disable all active feature flags
     result = await db.execute(select(FeatureFlag).where(FeatureFlag.is_enabled == True))

@@ -2,20 +2,21 @@
 
 import uuid
 from datetime import datetime
+from typing import Any
+
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
 
 
 class ViewerWelcomeInfo(BaseModel):
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     greeting: str
-    organization_name: Optional[str] = None
-    department: Optional[str] = None
+    organization_name: str | None = None
+    department: str | None = None
     role: str
-    workspace_name: Optional[str] = None
-    workspace_id: Optional[uuid.UUID] = None
+    workspace_name: str | None = None
+    workspace_id: uuid.UUID | None = None
     today_date: str
-    recent_login: Optional[str] = None
+    recent_login: str | None = None
 
 
 class ViewerKpis(BaseModel):
@@ -32,30 +33,30 @@ class ViewerKpis(BaseModel):
 class ViewerDashboardOverview(BaseModel):
     welcome: ViewerWelcomeInfo
     kpis: ViewerKpis
-    recent_activity: List[Dict[str, Any]]
-    unread_notifications: List[Dict[str, Any]]
+    recent_activity: list[dict[str, Any]]
+    unread_notifications: list[dict[str, Any]]
 
 
 class DashboardChartWidget(BaseModel):
     id: str
     type: str  # "bar" | "line" | "pie" | "kpi"
     title: str
-    x_axis_key: Optional[str] = None
-    y_axis_key: Optional[str] = None
-    data: List[Dict[str, Any]]
-    metrics: Optional[Dict[str, Any]] = None
+    x_axis_key: str | None = None
+    y_axis_key: str | None = None
+    data: list[dict[str, Any]]
+    metrics: dict[str, Any] | None = None
 
 
 class ViewerDashboardResponse(BaseModel):
     id: uuid.UUID
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     dataset_id: uuid.UUID
     dataset_name: str
-    department: Optional[str] = None
+    department: str | None = None
     created_at: datetime
     updated_at: datetime
-    widgets: List[DashboardChartWidget]
+    widgets: list[DashboardChartWidget]
 
 
 class ViewerBookmarkToggleRequest(BaseModel):
@@ -70,9 +71,9 @@ class ViewerBookmarkToggleResponse(BaseModel):
 
 class ViewerAiChatRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=4000)
-    dataset_id: Optional[uuid.UUID] = None
-    report_id: Optional[uuid.UUID] = None
-    history: Optional[List[Dict[str, Any]]] = None
+    dataset_id: uuid.UUID | None = None
+    report_id: uuid.UUID | None = None
+    history: list[dict[str, Any]] | None = None
 
 
 class ViewerAiChatResponse(BaseModel):
@@ -82,12 +83,12 @@ class ViewerAiChatResponse(BaseModel):
 
 class ViewerReportInsights(BaseModel):
     executive_summary: str
-    key_findings: List[str] = []
-    trends: List[str] = []
-    anomalies: List[str] = []
-    risks: List[str] = []
-    opportunities: List[str] = []
-    recommendations: List[str] = []
+    key_findings: list[str] = []
+    trends: list[str] = []
+    anomalies: list[str] = []
+    risks: list[str] = []
+    opportunities: list[str] = []
+    recommendations: list[str] = []
 
 
 class ViewerReportRelatedAsset(BaseModel):
@@ -99,7 +100,7 @@ class ViewerReportRelatedAsset(BaseModel):
 class ViewerReportPreviewResponse(BaseModel):
     id: str
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     category: str
     status: str
     department: str
@@ -108,26 +109,26 @@ class ViewerReportPreviewResponse(BaseModel):
     updated_at: datetime
     data_freshness: str
     ai_generated: bool
-    output_url: Optional[str] = None
-    widgets: List[DashboardChartWidget] = []
+    output_url: str | None = None
+    widgets: list[DashboardChartWidget] = []
 
 
 class ViewerReportFiltersResponse(BaseModel):
-    categories: List[str] = []
-    departments: List[str] = []
-    owners: List[str] = []
-    statuses: List[str] = []
+    categories: list[str] = []
+    departments: list[str] = []
+    owners: list[str] = []
+    statuses: list[str] = []
 
 
 class ViewerActivityResponse(BaseModel):
-    entries: List[Any]
+    entries: list[Any]
     total: int
     page: int
     size: int
 
 
 class ViewerReportListResponse(BaseModel):
-    items: List[Dict[str, Any]]
+    items: list[dict[str, Any]]
     total: int
     page: int
     size: int

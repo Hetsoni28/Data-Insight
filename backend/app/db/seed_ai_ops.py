@@ -2,16 +2,18 @@ import asyncio
 import random
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from sqlalchemy import select, delete
+
+from sqlalchemy import delete, select
+
 from app.db.session import AsyncSessionLocal
 from app.models.ai_ops import (
-    AIProvider,
     AIModel,
-    AIRoutingRule,
     AIPromptTemplate,
+    AIProvider,
+    AIRoutingRule,
     AIUsageLog,
-    ProviderStatus,
     ModelType,
+    ProviderStatus,
 )
 from app.models.tenant import Tenant
 
@@ -220,10 +222,8 @@ async def seed_ai_ops():
             # Tokens
             t_prompt = int(random.gauss(500, 200))
             t_comp = int(random.gauss(200, 100))
-            if t_prompt < 10:
-                t_prompt = 10
-            if t_comp < 10:
-                t_comp = 10
+            t_prompt = max(t_prompt, 10)
+            t_comp = max(t_comp, 10)
 
             # Cost calculation
             cost_prompt = (Decimal(t_prompt) / Decimal(1000)) * m.input_cost_per_1k
@@ -253,7 +253,7 @@ async def seed_ai_ops():
                             "excel_generation",
                             "fast_embeddings",
                             "classification",
-                        ]
+                        ],
                     ),
                     tokens_prompt=t_prompt,
                     tokens_completion=t_comp,
@@ -262,7 +262,7 @@ async def seed_ai_ops():
                     latency_ms=latency,
                     status_code=status_code,
                     created_at=log_time,
-                )
+                ),
             )
 
         db.add_all(logs)

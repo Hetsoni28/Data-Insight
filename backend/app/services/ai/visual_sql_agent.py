@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Dict, Any, Optional, List
+from typing import Any
+
 import polars as pl
 
 from app.core.exceptions import AIServiceException
@@ -62,8 +63,8 @@ Guidelines:
 
     def _build_schema_context(
         self,
-        schema_info: Dict[str, Any],
-        preview_rows: Optional[List[Dict[str, Any]]] = None,
+        schema_info: dict[str, Any],
+        preview_rows: list[dict[str, Any]] | None = None,
     ) -> str:
         """Format column types and preview rows into schema context."""
         lines = ["Table Name: `data`\nColumns & Inferred Types:"]
@@ -79,10 +80,10 @@ Guidelines:
 
     def _detect_visual_artifact(
         self,
-        query_result: Dict[str, Any],
+        query_result: dict[str, Any],
         recommended_chart: str,
         sql: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Synthesize interactive visual artifact specs from DuckDB query results."""
         cols = query_result.get("columns", [])
         raw_rows = query_result.get("rows", [])
@@ -98,7 +99,7 @@ Guidelines:
             }
 
         # Convert rows to list of dicts with formatted values
-        records: List[Dict[str, Any]] = []
+        records: list[dict[str, Any]] = []
         for r in raw_rows:
             record = {}
             for col_idx, col_name in enumerate(cols):
@@ -133,7 +134,7 @@ Guidelines:
                             ),
                             "raw_value": num_val,
                             "subtitle": "Direct DuckDB aggregation",
-                        }
+                        },
                     ],
                     "sql": sql,
                     "columns": cols,
@@ -194,7 +195,7 @@ Guidelines:
                             else f"{total_sum:,}"
                         ),
                         "raw_value": total_sum,
-                    }
+                    },
                 )
                 kpi_metrics.append(
                     {
@@ -205,7 +206,7 @@ Guidelines:
                             else f"{avg_val:,}"
                         ),
                         "raw_value": avg_val,
-                    }
+                    },
                 )
                 kpi_metrics.append(
                     {
@@ -216,7 +217,7 @@ Guidelines:
                             else f"{max_val:,}"
                         ),
                         "raw_value": max_val,
-                    }
+                    },
                 )
 
         return {
@@ -237,10 +238,10 @@ Guidelines:
         self,
         question: str,
         df: pl.DataFrame,
-        schema_info: Dict[str, Any],
-        preview_rows: Optional[List[Dict[str, Any]]] = None,
-        preferred_provider: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        schema_info: dict[str, Any],
+        preview_rows: list[dict[str, Any]] | None = None,
+        preferred_provider: str | None = None,
+    ) -> dict[str, Any]:
         """Execute NL-to-SQL query on DuckDB and return grounded narrative + interactive visual artifact."""
         schema_context = self._build_schema_context(schema_info, preview_rows)
 
@@ -282,13 +283,13 @@ Generate the DuckDB SQL query and recommended visualization in JSON."""
         # 2. Execute on DuckDB with self-healing retry
         try:
             query_result = DuckDBEngine.execute_query(
-                df=df, sql=generated_sql, table_name="data", limit=100
+                df=df, sql=generated_sql, table_name="data", limit=100,
             )
         except Exception as e:
             logger.warning(
-                f"[VisualSQLAgent] Query failed: {e}. Attempting self-healing query..."
+                f"[VisualSQLAgent] Query failed: {e}. Attempting self-healing query...",
             )
-            fix_prompt = f"""SQL query failed with error: {str(e)}
+            fix_prompt = f"""SQL query failed with error: {e!s}
 Schema:
 {schema_context}
 Question: "{question}"
@@ -312,14 +313,14 @@ Provide the corrected DuckDB SQL in JSON format."""
                 parsed_fix = json.loads(fix_json)
                 generated_sql = parsed_fix.get("sql", generated_sql)
                 recommended_chart = parsed_fix.get(
-                    "recommended_chart", recommended_chart
+                    "recommended_chart", recommended_chart,
                 )
             except Exception:
                 match = re.search(r"SELECT\s+.+;", fix_json, re.DOTALL | re.IGNORECASE)
                 generated_sql = match.group(0) if match else fix_json
 
             query_result = DuckDBEngine.execute_query(
-                df=df, sql=generated_sql, table_name="data", limit=100
+                df=df, sql=generated_sql, table_name="data", limit=100,
             )
 
         # 3. Construct In-Chat Visual Artifact Specification
@@ -373,7 +374,7 @@ Provide the executive business summary."""
             "total_tokens": total_prompt_tokens + total_completion_tokens,
             "cost_usd": round(sql_response.cost_usd + synthesis_response.cost_usd, 6),
             "latency_ms": round(
-                sql_response.latency_ms + synthesis_response.latency_ms, 2
+                sql_response.latency_ms + synthesis_response.latency_ms, 2,
             ),
             "provider": synthesis_response.provider,
             "model": synthesis_response.model,

@@ -1,5 +1,4 @@
-"""
-Leads API — public endpoint for inbound demo/access requests + owner pipeline management.
+"""Leads API — public endpoint for inbound demo/access requests + owner pipeline management.
 
 Public  (no auth):
   POST /leads/inquire              → Submit a demo request form
@@ -15,16 +14,16 @@ Owner-only:
 
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
-from pydantic import BaseModel, EmailStr, Field
 
-from app.api.deps import get_shared_db, get_current_user
-from app.models.user import User, UserRole
-from app.models.lead import Lead, LeadStatus, LeadSource
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_shared_db
 from app.core.config import settings
+from app.models.lead import Lead, LeadSource, LeadStatus
+from app.models.user import User, UserRole
 from app.services import email as email_service
 
 router = APIRouter()
@@ -87,27 +86,27 @@ class InquirySubmission(BaseModel):
     company_name: str = Field(..., min_length=2, max_length=200)
     contact_person: str = Field(..., min_length=2, max_length=200)
     business_email: EmailStr
-    phone: Optional[str] = Field(None, max_length=50)
-    company_size: Optional[str] = None  # "1-10", "11-50", "51-200", "201-500", "500+"
-    industry: Optional[str] = None
-    expected_users: Optional[int] = None
-    expected_storage_gb: Optional[int] = None
-    expected_data_volume: Optional[str] = None
-    ai_bi_requirements: Optional[str] = None
-    preferred_contact_time: Optional[str] = None
-    message: Optional[str] = None
-    source: Optional[str] = "pricing_page"
+    phone: str | None = Field(None, max_length=50)
+    company_size: str | None = None  # "1-10", "11-50", "51-200", "201-500", "500+"
+    industry: str | None = None
+    expected_users: int | None = None
+    expected_storage_gb: int | None = None
+    expected_data_volume: str | None = None
+    ai_bi_requirements: str | None = None
+    preferred_contact_time: str | None = None
+    message: str | None = None
+    source: str | None = "pricing_page"
 
 
 class UpdateStatusPayload(BaseModel):
     status: LeadStatus
-    internal_notes: Optional[str] = None
-    assigned_to: Optional[str] = None
+    internal_notes: str | None = None
+    assigned_to: str | None = None
 
 
 class UpdateNotesPayload(BaseModel):
     internal_notes: str
-    assigned_to: Optional[str] = None
+    assigned_to: str | None = None
 
 
 # ── Public: Submit Inquiry ─────────────────────────────────────────────────────
@@ -119,8 +118,7 @@ async def submit_inquiry(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_shared_db),
 ):
-    """
-    Public endpoint — no authentication required.
+    """Public endpoint — no authentication required.
     Anyone can submit a demo request from the pricing/landing page.
     Creates a Lead record, sends a confirmation to the applicant,
     and notifies the owner.
@@ -162,7 +160,7 @@ async def submit_inquiry(
     # Fire emails in background — don't block the response
     frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
     owner_email = getattr(settings, "EMAIL_FROM", None) or getattr(
-        settings, "OWNER_EMAIL", None
+        settings, "OWNER_EMAIL", None,
     )
     dashboard_url = f"{frontend_url}/owner/dashboard/leads"
 
@@ -200,8 +198,8 @@ async def submit_inquiry(
 
 @router.get("/", summary="List all leads (owner only)")
 async def list_leads(
-    status: Optional[str] = Query(None),
-    search: Optional[str] = Query(None),
+    status: str | None = Query(None),
+    search: str | None = Query(None),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     current_user: User = Depends(_require_owner),
@@ -227,7 +225,7 @@ async def list_leads(
                 Lead.contact_person.ilike(like),
                 Lead.business_email.ilike(like),
                 Lead.lead_id.ilike(like),
-            )
+            ),
         )
 
     total_q = select(func.count()).select_from(q.subquery())
@@ -250,7 +248,7 @@ async def get_pipeline_stats(
     db: AsyncSession = Depends(get_shared_db),
 ):
     result = await db.execute(
-        select(Lead.status, func.count(Lead.id).label("count")).group_by(Lead.status)
+        select(Lead.status, func.count(Lead.id).label("count")).group_by(Lead.status),
     )
     rows = result.all()
     counts = {row.status.value: row.count for row in rows}

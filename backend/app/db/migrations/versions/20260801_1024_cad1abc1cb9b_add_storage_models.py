@@ -6,9 +6,8 @@ Create Date: 2026-08-01 10:24:05.554236+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "cad1abc1cb9b"
@@ -32,7 +31,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_storage_buckets_name"), "storage_buckets", ["name"], unique=True
+        op.f("ix_storage_buckets_name"), "storage_buckets", ["name"], unique=True,
     )
     op.create_table(
         "storage_backups",
@@ -67,7 +66,7 @@ def upgrade() -> None:
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["bucket_id"], ["storage_buckets.id"], ondelete="CASCADE"
+            ["bucket_id"], ["storage_buckets.id"], ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -123,14 +122,14 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(
-            ["bucket_id"], ["storage_buckets.id"], ondelete="CASCADE"
+            ["bucket_id"], ["storage_buckets.id"], ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(["owner_id"], ["users.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_storage_files_bucket_id"), "storage_files", ["bucket_id"], unique=False
+        op.f("ix_storage_files_bucket_id"), "storage_files", ["bucket_id"], unique=False,
     )
     op.create_index(
         op.f("ix_storage_files_deleted_at"),
@@ -139,13 +138,13 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_index(
-        op.f("ix_storage_files_file_path"), "storage_files", ["file_path"], unique=False
+        op.f("ix_storage_files_file_path"), "storage_files", ["file_path"], unique=False,
     )
     op.create_index(
-        op.f("ix_storage_files_owner_id"), "storage_files", ["owner_id"], unique=False
+        op.f("ix_storage_files_owner_id"), "storage_files", ["owner_id"], unique=False,
     )
     op.create_index(
-        op.f("ix_storage_files_tenant_id"), "storage_files", ["tenant_id"], unique=False
+        op.f("ix_storage_files_tenant_id"), "storage_files", ["tenant_id"], unique=False,
     )
     # ### end Alembic commands ###
 
@@ -159,10 +158,10 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_storage_files_bucket_id"), table_name="storage_files")
     op.drop_table("storage_files")
     op.drop_index(
-        op.f("ix_storage_activity_logs_tenant_id"), table_name="storage_activity_logs"
+        op.f("ix_storage_activity_logs_tenant_id"), table_name="storage_activity_logs",
     )
     op.drop_index(
-        op.f("ix_storage_activity_logs_created_at"), table_name="storage_activity_logs"
+        op.f("ix_storage_activity_logs_created_at"), table_name="storage_activity_logs",
     )
     op.drop_table("storage_activity_logs")
     op.drop_index(

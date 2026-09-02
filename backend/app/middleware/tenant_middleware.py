@@ -2,25 +2,24 @@
 
 import json
 import uuid
-from typing import Optional, Dict, Any
+from typing import Any
+
 from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
-from jose import jwt, JWTError
-from loguru import logger
+from jose import JWTError, jwt
 from redis.asyncio import Redis
 from sqlalchemy import select
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.tenant_context import (
     TenantContext,
-    set_tenant_context,
     reset_tenant_context,
+    set_tenant_context,
 )
-from app.db.session import AsyncSessionLocal
 from app.db.redis import get_redis_pool
+from app.db.session import AsyncSessionLocal
 from app.models.tenant import Tenant
-
 
 # Public or system routes that bypass tenant resolution
 EXCLUDED_PREFIXES = (
@@ -42,8 +41,7 @@ EXCLUDED_PREFIXES = (
 
 
 class TenantMiddleware(BaseHTTPMiddleware):
-    """
-    Fast ASGI HTTP Middleware resolving tenant from:
+    """Fast ASGI HTTP Middleware resolving tenant from:
     1. JWT access token claim (tenant_id)
     2. Subdomain / Custom Domain in Host header
     3. Gateway headers (X-Tenant-ID / X-Tenant-Slug)
@@ -57,9 +55,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
         if any(path.startswith(prefix) for prefix in EXCLUDED_PREFIXES):
             return await call_next(request)
 
-        tenant_id_str: Optional[str] = None
-        user_id_str: Optional[str] = None
-        user_role: Optional[str] = None
+        tenant_id_str: str | None = None
+        user_id_str: str | None = None
+        user_role: str | None = None
         is_owner: bool = False
         is_superuser: bool = False
 
@@ -73,7 +71,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
                     settings.SECRET_KEY,
                     algorithms=["HS256"],
                     options={
-                        "verify_exp": False
+                        "verify_exp": False,
                     },  # Let get_current_user handle strict expiry
                 )
                 user_id_str = payload.get("sub")
@@ -89,7 +87,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             tenant_id_str = request.headers.get("X-Tenant-ID")
 
         # 3. Inspect Host header (custom domain or subdomain routing)
-        tenant_slug: Optional[str] = request.headers.get("X-Tenant-Slug")
+        tenant_slug: str | None = request.headers.get("X-Tenant-Slug")
         if not tenant_id_str and not tenant_slug:
             host = request.headers.get("host", "").split(":")[0].lower()
             if host and host not in (
@@ -104,7 +102,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 if len(parts) >= 3 and parts[0] not in ("www", "api", "app"):
                     tenant_slug = parts[0]
 
-        tenant_data: Optional[Dict[str, Any]] = None
+        tenant_data: dict[str, Any] | None = None
         try:
             tenant_uuid = uuid.UUID(tenant_id_str) if tenant_id_str else None
         except ValueError:
@@ -183,8 +181,8 @@ class TenantMiddleware(BaseHTTPMiddleware):
             reset_tenant_context(token_ctx)
 
     async def _resolve_tenant(
-        self, tenant_id: Optional[uuid.UUID], tenant_slug: Optional[str]
-    ) -> Optional[Dict[str, Any]]:
+        self, tenant_id: uuid.UUID | None, tenant_slug: str | None,
+    ) -> dict[str, Any] | None:
         """Resolve tenant metadata with 60s Redis cache to maintain sub-millisecond overhead."""
         cache_key = (
             f"tenant:meta:id:{tenant_id}"
@@ -209,7 +207,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 stmt = stmt.where(Tenant.id == tenant_id)
             elif tenant_slug:
                 stmt = stmt.where(
-                    (Tenant.slug == tenant_slug) | (Tenant.custom_domain == tenant_slug)
+                    (Tenant.slug == tenant_slug) | (Tenant.custom_domain == tenant_slug),
                 )
 
             result = await session.execute(stmt)

@@ -6,9 +6,8 @@ Create Date: 2026-07-30 19:36:19.704252+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "43b96b58709c"
@@ -33,7 +32,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_user_activities_action"), "user_activities", ["action"], unique=False
+        op.f("ix_user_activities_action"), "user_activities", ["action"], unique=False,
     )
     op.create_index(
         op.f("ix_user_activities_created_at"),
@@ -42,7 +41,7 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_index(
-        op.f("ix_user_activities_user_id"), "user_activities", ["user_id"], unique=False
+        op.f("ix_user_activities_user_id"), "user_activities", ["user_id"], unique=False,
     )
     op.create_table(
         "user_profiles",
@@ -75,15 +74,15 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_user_profiles_user_id"), "user_profiles", ["user_id"], unique=True
+        op.f("ix_user_profiles_user_id"), "user_profiles", ["user_id"], unique=True,
     )
     op.add_column("api_keys", sa.Column("usage_count", sa.Integer(), nullable=False))
     op.add_column("api_keys", sa.Column("scopes", sa.JSON(), nullable=False))
     op.add_column(
-        "user_sessions", sa.Column("os", sa.String(length=100), nullable=True)
+        "user_sessions", sa.Column("os", sa.String(length=100), nullable=True),
     )
     op.add_column(
-        "user_sessions", sa.Column("location", sa.String(length=255), nullable=True)
+        "user_sessions", sa.Column("location", sa.String(length=255), nullable=True),
     )
     # ### end Alembic commands ###
 

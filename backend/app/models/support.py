@@ -1,19 +1,20 @@
-from sqlalchemy import (
-    Column,
-    String,
-    Text,
-    DateTime,
-    ForeignKey,
-    Enum as SQLEnum,
-    Integer,
-    Boolean,
-    JSON,
-)
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+import enum
 import uuid
 from datetime import datetime
-import enum
+
+from sqlalchemy import (
+    JSON,
+    Column,
+    DateTime,
+    ForeignKey,
+    String,
+    Text,
+)
+from sqlalchemy import (
+    Enum as SQLEnum,
+)
+from sqlalchemy.dialects.postgresql import UUID
+
 from app.db.session import Base
 
 
@@ -36,13 +37,13 @@ class SupportTicket(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(
-        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False,
     )
     requester_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False,
     )
     assigned_to_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True,
     )
 
     subject = Column(String(255), nullable=False)
@@ -64,7 +65,7 @@ class SupportTicket(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False,
     )
     resolved_at = Column(DateTime, nullable=True)
 
@@ -76,10 +77,10 @@ class PlatformIncident(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     status = Column(
-        String(50), default="investigating", nullable=False
+        String(50), default="investigating", nullable=False,
     )  # investigating, identified, monitoring, resolved
     severity = Column(
-        String(50), default="minor", nullable=False
+        String(50), default="minor", nullable=False,
     )  # minor, major, critical
 
     started_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -87,5 +88,5 @@ class PlatformIncident(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False,
     )

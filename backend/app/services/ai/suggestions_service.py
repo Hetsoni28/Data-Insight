@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Dict, Any, List, Optional
-import polars as pl
+from typing import Any
 
 from app.services.ai.router import LLMRouter
 
@@ -42,9 +41,9 @@ Output pure JSON matching:
 
     def generate_heuristic_suggestions(
         self,
-        schema_info: Dict[str, Any],
+        schema_info: dict[str, Any],
         row_count: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Instant zero-latency heuristic suggestions generator based on column types."""
         numeric_cols = []
         categorical_cols = []
@@ -61,7 +60,7 @@ Output pure JSON matching:
             else:
                 categorical_cols.append(col)
 
-        suggestions: List[Dict[str, Any]] = []
+        suggestions: list[dict[str, Any]] = []
 
         # 1. Performance question (Top categories by primary metric)
         if numeric_cols and categorical_cols:
@@ -73,7 +72,7 @@ Output pure JSON matching:
                     "icon": "TrendingUp",
                     "title": f"Top {c_col.replace('_', ' ').title()}",
                     "question": f"What are the top 5 {c_col.replace('_', ' ')}s by total {n_col.replace('_', ' ')}?",
-                }
+                },
             )
         elif numeric_cols:
             suggestions.append(
@@ -82,7 +81,7 @@ Output pure JSON matching:
                     "icon": "TrendingUp",
                     "title": "Metric Summary",
                     "question": f"What is the total and average {numeric_cols[0].replace('_', ' ')} across all records?",
-                }
+                },
             )
 
         # 2. Trend question (Time series / Temporal)
@@ -95,7 +94,7 @@ Output pure JSON matching:
                     "icon": "Calendar",
                     "title": f"{n_col.replace('_', ' ').title()} Over Time",
                     "question": f"How has {n_col.replace('_', ' ')} trended over time grouped by {d_col.replace('_', ' ')}?",
-                }
+                },
             )
         elif len(numeric_cols) >= 2:
             suggestions.append(
@@ -104,7 +103,7 @@ Output pure JSON matching:
                     "icon": "Sparkles",
                     "title": "Metric Comparison",
                     "question": f"Compare the total {numeric_cols[0].replace('_', ' ')} versus {numeric_cols[1].replace('_', ' ')}.",
-                }
+                },
             )
 
         # 3. Segmentation question (Category breakdown)
@@ -120,7 +119,7 @@ Output pure JSON matching:
                     "icon": "PieChart",
                     "title": f"{cat.replace('_', ' ').title()} Distribution",
                     "question": f"What is the percentage breakdown of records by {cat.replace('_', ' ')}?",
-                }
+                },
             )
 
         # 4. Anomaly / Outliers question
@@ -132,7 +131,7 @@ Output pure JSON matching:
                     "icon": "AlertTriangle",
                     "title": "Outliers & Extremes",
                     "question": f"Which records have the highest and lowest values for {n_col.replace('_', ' ')}?",
-                }
+                },
             )
 
         # 5. Additional categorical or distribution question
@@ -148,7 +147,7 @@ Output pure JSON matching:
                         "icon": "Layers",
                         "title": f"{cat2.replace('_', ' ').title()} Breakdown",
                         "question": f"Show the distribution of records grouped by {cat2.replace('_', ' ')}.",
-                    }
+                    },
                 )
 
         # Ensure at least 4 suggestions are always provided
@@ -189,11 +188,11 @@ Output pure JSON matching:
 
     async def generate_smart_suggestions(
         self,
-        schema_info: Dict[str, Any],
+        schema_info: dict[str, Any],
         row_count: int = 0,
-        preview_rows: Optional[List[Dict[str, Any]]] = None,
-        preferred_provider: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        preview_rows: list[dict[str, Any]] | None = None,
+        preferred_provider: str | None = None,
+    ) -> list[dict[str, Any]]:
         """Generate high-intelligence suggestions using LLM with instant heuristic fallback."""
         heuristic = self.generate_heuristic_suggestions(schema_info, row_count)
 
@@ -227,7 +226,7 @@ Generate 4 to 6 proactive analytical business questions."""
                 return suggestions
         except Exception as e:
             logger.warning(
-                f"[SuggestionsService] LLM suggestions failed: {e}. Using heuristics."
+                f"[SuggestionsService] LLM suggestions failed: {e}. Using heuristics.",
             )
 
         return heuristic

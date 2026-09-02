@@ -1,18 +1,18 @@
-"""
-Email service — SMTP integration with HTML templates.
+"""Email service — SMTP integration with HTML templates.
 
 Set SMTP_USER and SMTP_PASSWORD in .env to enable.
 In development, OTPs are logged to console if credentials are empty.
 """
 
 import asyncio
-import os
-import smtplib
 import email.utils
+import smtplib
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
 from loguru import logger
+
 from app.core.config import settings
 
 
@@ -116,7 +116,7 @@ def _otp_template(greeting: str, purpose: str, otp: str, expiry: str) -> str:
         ⏱ This verification code will expire in <strong style="color:#0F172A;">{expiry}</strong>.<br/>
         For security, never share this code with anyone.
       </p>
-    """
+    """,
     )
 
 
@@ -124,7 +124,7 @@ def _otp_template(greeting: str, purpose: str, otp: str, expiry: str) -> str:
 
 
 async def send_email_verification(
-    to_email: str, full_name: str | None, otp: str
+    to_email: str, full_name: str | None, otp: str,
 ) -> None:
     """Send the 5-minute email verification OTP."""
     name = full_name.split()[0] if full_name else "there"
@@ -185,13 +185,13 @@ async def send_welcome_email(to_email: str, full_name: str | None) -> None:
       <p style="margin:0;font-size:13px;color:#94A3B8;text-align:center;line-height:1.5;">
         Questions? Reply to this email — we're always here to help.
       </p>
-    """
+    """,
     )
     await _send(to=to_email, subject=f"Welcome to Data Insight, {name}!", html=html)
 
 
 async def send_team_invite(
-    to_email: str, invited_by: str, org_name: str, invite_url: str
+    to_email: str, invited_by: str, org_name: str, invite_url: str,
 ) -> None:
     """Send a team invitation email with an accept link."""
     html = _base_html(
@@ -228,15 +228,15 @@ async def send_team_invite(
         ⏱ This invitation expires in <strong style="color:#475569;">7 days</strong>.<br/>
         If you didn't expect this invitation, you can safely ignore this email.
       </p>
-    """
+    """,
     )
     await _send(
-        to=to_email, subject=f"You're invited to {org_name} on Data Insight", html=html
+        to=to_email, subject=f"You're invited to {org_name} on Data Insight", html=html,
     )
 
 
 async def send_report_ready(
-    to_email: str, full_name: str | None, report_name: str, report_url: str
+    to_email: str, full_name: str | None, report_name: str, report_url: str,
 ) -> None:
     """Send a notification when an AI report has finished generating."""
     name = full_name.split()[0] if full_name else "there"
@@ -257,7 +257,7 @@ async def send_report_ready(
           View Report →
         </a>
       </div>
-    """
+    """,
     )
     await _send(to=to_email, subject=f'Your report "{report_name}" is ready', html=html)
 
@@ -315,7 +315,7 @@ async def send_new_lead_notification(
       <p style="margin:0;font-size:12px;color:#94A3B8;text-align:center;line-height:1.5;">
         Go to Leads Pipeline in the Owner Dashboard to update the status and contact them.
       </p>
-    """
+    """,
     )
     await _send(
         to=owner_email,
@@ -331,7 +331,7 @@ async def send_lead_inquiry_confirmation(
     lead_id: str,
 ) -> None:
     """Send a professional acknowledgement to the person who submitted the inquiry."""
-    name = contact_person.split()[0] if contact_person else "there"
+    name = contact_person.split(maxsplit=1)[0] if contact_person else "there"
     html = _base_html(
         f"""
       <h2 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#0F172A;letter-spacing:-0.4px;">
@@ -364,7 +364,7 @@ async def send_lead_inquiry_confirmation(
         Questions? Reply to this email or contact us at
         <a href="mailto:sales@datainsight.ai" style="color:#10B981;font-weight:600;">sales@datainsight.ai</a>
       </p>
-    """
+    """,
     )
     await _send(
         to=to_email,
@@ -401,8 +401,7 @@ def _sync_send(to: str, subject: str, html: str) -> None:
 
 
 async def _send(to: str, subject: str, html: str) -> None:
-    """
-    Send via SMTP in a thread pool to avoid blocking the event loop.
+    """Send via SMTP in a thread pool to avoid blocking the event loop.
     Falls back to console log if SMTP_USER is not set.
     """
     if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
@@ -419,7 +418,7 @@ async def _send(to: str, subject: str, html: str) -> None:
             f"Subject: {subject}\n"
             f"{urls_str}\n"
             f"[HTML content omitted]\n"
-            f"{'='*60}"
+            f"{'='*60}",
         )
         return
 
@@ -428,6 +427,6 @@ async def _send(to: str, subject: str, html: str) -> None:
         logger.info(f"[Email] Sent to {to} via SMTP | subject='{subject}'")
     except Exception as exc:
         logger.error(
-            f"[Email] Failed to send to {to} | subject='{subject}' | error: {exc}"
+            f"[Email] Failed to send to {to} | subject='{subject}' | error: {exc}",
         )
         # Don't re-raise — email failure should not crash the auth flow.

@@ -9,13 +9,12 @@ from __future__ import annotations
 import io
 import json
 from pathlib import Path
-from typing import Optional, Union, List, Dict, Any
+from typing import Any
 
 import polars as pl
 from loguru import logger
 
 from app.core.exceptions import ValidationException
-
 
 # Common null value strings to normalize across all input files
 NULL_VALUES = [
@@ -60,7 +59,7 @@ class PolarsEngine:
         return "utf-8"
 
     @classmethod
-    def get_excel_sheet_names(cls, file_bytes: bytes) -> List[str]:
+    def get_excel_sheet_names(cls, file_bytes: bytes) -> list[str]:
         """Extract sheet names from an Excel file in-memory."""
         try:
             import openpyxl
@@ -79,8 +78,8 @@ class PolarsEngine:
         file_bytes: bytes,
         separator: str = ",",
         has_header: bool = True,
-        encoding: Optional[str] = None,
-        n_rows: Optional[int] = None,
+        encoding: str | None = None,
+        n_rows: int | None = None,
     ) -> pl.DataFrame:
         """Read CSV / TSV bytes into a Polars DataFrame with encoding fallback."""
         enc = encoding or cls.detect_encoding(file_bytes)
@@ -98,7 +97,7 @@ class PolarsEngine:
             )
         except Exception as exc:
             logger.warning(
-                f"Polars read_csv with {enc} failed, attempting latin1 fallback: {exc}"
+                f"Polars read_csv with {enc} failed, attempting latin1 fallback: {exc}",
             )
             return pl.read_csv(
                 io.BytesIO(file_bytes),
@@ -116,8 +115,8 @@ class PolarsEngine:
     def read_excel_from_bytes(
         cls,
         file_bytes: bytes,
-        sheet_name: Optional[str] = None,
-        n_rows: Optional[int] = None,
+        sheet_name: str | None = None,
+        n_rows: int | None = None,
     ) -> pl.DataFrame:
         """Read Excel (.xlsx / .xls) bytes into a Polars DataFrame."""
         try:
@@ -132,7 +131,7 @@ class PolarsEngine:
             import pandas as pd
 
             pdf = pd.read_excel(
-                io.BytesIO(file_bytes), sheet_name=sheet_name or 0, nrows=n_rows
+                io.BytesIO(file_bytes), sheet_name=sheet_name or 0, nrows=n_rows,
             )
             return pl.from_pandas(pdf)
 
@@ -140,7 +139,7 @@ class PolarsEngine:
     def read_json_from_bytes(
         cls,
         file_bytes: bytes,
-        n_rows: Optional[int] = None,
+        n_rows: int | None = None,
     ) -> pl.DataFrame:
         """Read JSON / JSONLines bytes into a Polars DataFrame."""
         try:
@@ -150,7 +149,7 @@ class PolarsEngine:
             try:
                 # Try reading as NDJSON (JSON Lines)
                 return pl.read_ndjson(io.BytesIO(file_bytes), n_rows=n_rows)
-            except Exception as exc:
+            except Exception:
                 # Fallback to json.loads + DataFrame
                 parsed = json.loads(file_bytes.decode("utf-8", errors="ignore"))
                 if isinstance(parsed, dict):
@@ -161,7 +160,7 @@ class PolarsEngine:
     def read_parquet_from_bytes(
         cls,
         file_bytes: bytes,
-        n_rows: Optional[int] = None,
+        n_rows: int | None = None,
     ) -> pl.DataFrame:
         """Read Parquet bytes into a Polars DataFrame."""
         return pl.read_parquet(io.BytesIO(file_bytes), n_rows=n_rows)
@@ -171,11 +170,10 @@ class PolarsEngine:
         cls,
         file_bytes: bytes,
         file_type: str,
-        sheet_name: Optional[str] = None,
-        n_rows: Optional[int] = None,
+        sheet_name: str | None = None,
+        n_rows: int | None = None,
     ) -> pl.DataFrame:
-        """
-        Universal entry point to ingest binary dataset content into a normalized Polars DataFrame.
+        """Universal entry point to ingest binary dataset content into a normalized Polars DataFrame.
         """
         if not file_bytes:
             raise ValidationException("Uploaded file is empty (0 bytes).")
@@ -187,7 +185,7 @@ class PolarsEngine:
             df = cls.read_csv_from_bytes(file_bytes, separator="\t", n_rows=n_rows)
         elif ft in ("xlsx", "xls", "excel"):
             df = cls.read_excel_from_bytes(
-                file_bytes, sheet_name=sheet_name, n_rows=n_rows
+                file_bytes, sheet_name=sheet_name, n_rows=n_rows,
             )
         elif ft in ("json", "ndjson", "jsonl"):
             df = cls.read_json_from_bytes(file_bytes, n_rows=n_rows)
@@ -195,7 +193,7 @@ class PolarsEngine:
             df = cls.read_parquet_from_bytes(file_bytes, n_rows=n_rows)
         else:
             raise ValidationException(
-                f"Unsupported file format '{file_type}'. Supported: CSV, TSV, XLSX, JSON, Parquet."
+                f"Unsupported file format '{file_type}'. Supported: CSV, TSV, XLSX, JSON, Parquet.",
             )
 
         # Clean column names (strip whitespace, ensure non-empty unique names)
@@ -220,10 +218,10 @@ class PolarsEngine:
     @classmethod
     def load_from_path(
         cls,
-        path: Union[str, Path],
-        file_type: Optional[str] = None,
-        sheet_name: Optional[str] = None,
-        n_rows: Optional[int] = None,
+        path: str | Path,
+        file_type: str | None = None,
+        sheet_name: str | None = None,
+        n_rows: int | None = None,
     ) -> pl.DataFrame:
         """Load a file directly from local filesystem path."""
         p = Path(path)
@@ -231,24 +229,24 @@ class PolarsEngine:
             raise ValidationException(f"File not found at path: {p}")
         ft = file_type or p.suffix.lstrip(".")
         return cls.load_from_bytes(
-            p.read_bytes(), file_type=ft, sheet_name=sheet_name, n_rows=n_rows
+            p.read_bytes(), file_type=ft, sheet_name=sheet_name, n_rows=n_rows,
         )
 
     @classmethod
     def read_file(
         cls,
-        path_or_url: Union[str, Path],
-        file_type: Optional[str] = None,
-        sheet_name: Optional[str] = None,
-        n_rows: Optional[int] = None,
+        path_or_url: str | Path,
+        file_type: str | None = None,
+        sheet_name: str | None = None,
+        n_rows: int | None = None,
     ) -> pl.DataFrame:
         """Load dataframe from path or file URL."""
         return cls.load_from_path(
-            path_or_url, file_type=file_type, sheet_name=sheet_name, n_rows=n_rows
+            path_or_url, file_type=file_type, sheet_name=sheet_name, n_rows=n_rows,
         )
 
     @staticmethod
-    def preview_rows(df: pl.DataFrame, n: int = 50) -> List[Dict[str, Any]]:
+    def preview_rows(df: pl.DataFrame, n: int = 50) -> list[dict[str, Any]]:
         """Return the top N rows formatted as JSON-serializable dictionaries."""
         head_df = df.head(n)
         # Convert date / datetime to ISO format strings

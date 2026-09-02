@@ -1,39 +1,39 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, desc, func
 import uuid
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User
-from app.models.user_profile import UserProfile
-from app.models.user_activity import UserActivity
-from app.models.user_session import UserSession
-from app.models.audit_log import AuditLog
-from app.models.report import Report
-from app.models.dataset import Dataset
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlalchemy import desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
+from app.core.exceptions import ResourceNotFoundException
 from app.models.ai_token_usage import AITokenUsage
 from app.models.api_key import ApiKey
-
+from app.models.audit_log import AuditLog
+from app.models.dataset import Dataset
+from app.models.report import Report
+from app.models.user import User
+from app.models.user_activity import UserActivity
+from app.models.user_profile import UserProfile
+from app.models.user_session import UserSession
+from app.schemas.audit_log import AuditLogResponse
 from app.schemas.profile import (
-    UserProfileUpdate,
-    UserProfileResponse,
-    UserActivityResponse,
-    UserSessionResponse,
     FullProfileResponse,
     ProfileStatsResponse,
+    UserActivityResponse,
+    UserProfileResponse,
+    UserProfileUpdate,
+    UserSessionResponse,
 )
 from app.schemas.user import UserResponse
-from app.schemas.audit_log import AuditLogResponse
-from app.core.exceptions import ResourceNotFoundException
 
 router = APIRouter(prefix="/profile", tags=["Executive Profile"])
 
 
 @router.get(
-    "/me", response_model=FullProfileResponse, summary="Get Full Profile & Stats"
+    "/me", response_model=FullProfileResponse, summary="Get Full Profile & Stats",
 )
 async def get_full_profile(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db),
 ):
     # Fetch profile
     stmt = select(UserProfile).where(UserProfile.user_id == current_user.id)
@@ -63,23 +63,23 @@ async def get_full_profile(
         )
         ai_requests = (
             await db.scalar(
-                select(func.count()).where(AITokenUsage.tenant_id == tenant_id)
+                select(func.count()).where(AITokenUsage.tenant_id == tenant_id),
             )
             or 0
         )
         api_calls = (
             await db.scalar(
                 select(func.sum(ApiKey.usage_count)).where(
-                    ApiKey.user_id == current_user.id
-                )
+                    ApiKey.user_id == current_user.id,
+                ),
             )
             or 0
         )
         storage_used_bytes = (
             await db.scalar(
                 select(func.sum(Dataset.file_size_bytes)).where(
-                    Dataset.tenant_id == tenant_id
-                )
+                    Dataset.tenant_id == tenant_id,
+                ),
             )
             or 0
         )
@@ -111,8 +111,8 @@ async def get_full_profile(
     active_sessions_count = (
         await db.scalar(
             select(func.count()).where(
-                UserSession.user_id == current_user.id, UserSession.is_active == True
-            )
+                UserSession.user_id == current_user.id, UserSession.is_active == True,
+            ),
         )
         or 0
     )
@@ -174,7 +174,7 @@ async def update_profile(
     summary="List Active Sessions",
 )
 async def list_sessions(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db),
 ):
     stmt = (
         select(UserSession)
@@ -204,7 +204,7 @@ async def terminate_session(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(UserSession).where(
-        UserSession.id == session_id, UserSession.user_id == current_user.id
+        UserSession.id == session_id, UserSession.user_id == current_user.id,
     )
     result = await db.execute(stmt)
     session = result.scalars().first()
@@ -219,7 +219,7 @@ async def terminate_session(
 
 @router.delete("/sessions", summary="Terminate all other sessions")
 async def terminate_all_other_sessions(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db),
 ):
     # In a real app, keep the current token active. Here we just mock revoking older ones.
     stmt = (
@@ -244,7 +244,7 @@ async def terminate_all_other_sessions(
     summary="Get recent activity",
 )
 async def get_activity(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db),
 ):
     stmt = (
         select(UserActivity)
@@ -257,10 +257,10 @@ async def get_activity(
 
 
 @router.get(
-    "/audit", response_model=list[AuditLogResponse], summary="Get personal audit logs"
+    "/audit", response_model=list[AuditLogResponse], summary="Get personal audit logs",
 )
 async def get_audit(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db),
 ):
     stmt = (
         select(AuditLog)
@@ -301,7 +301,7 @@ async def upload_avatar(
 
 @router.delete("/avatar", summary="Remove profile avatar")
 async def remove_avatar(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db),
 ):
     current_user.avatar_url = None
     await db.commit()

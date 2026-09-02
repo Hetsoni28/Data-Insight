@@ -6,8 +6,8 @@ Create Date: 2026-08-04 19:36:11.898053+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -43,7 +43,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=100), nullable=False),
         sa.Column("description", sa.String(length=255), nullable=True),
         sa.Column(
-            "permissions", postgresql.JSONB(astext_type=sa.Text()), nullable=False
+            "permissions", postgresql.JSONB(astext_type=sa.Text()), nullable=False,
         ),
         sa.Column("is_system", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -52,13 +52,13 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_tenant_roles_tenant_id"), "tenant_roles", ["tenant_id"], unique=False
+        op.f("ix_tenant_roles_tenant_id"), "tenant_roles", ["tenant_id"], unique=False,
     )
     op.add_column(
-        "users", sa.Column("employee_id", sa.String(length=50), nullable=True)
+        "users", sa.Column("employee_id", sa.String(length=50), nullable=True),
     )
     op.add_column(
-        "users", sa.Column("department", sa.String(length=100), nullable=True)
+        "users", sa.Column("department", sa.String(length=100), nullable=True),
     )
     op.add_column("users", sa.Column("phone", sa.String(length=50), nullable=True))
     op.add_column("users", sa.Column("location", sa.String(length=100), nullable=True))
@@ -72,7 +72,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f("ix_users_department"), "users", ["department"], unique=False)
     op.create_index(
-        op.f("ix_users_employee_id"), "users", ["employee_id"], unique=False
+        op.f("ix_users_employee_id"), "users", ["employee_id"], unique=False,
     )
     # ### end Alembic commands ###
 
@@ -86,7 +86,7 @@ def downgrade() -> None:
         "notification_preferences",
         existing_type=postgresql.JSONB(astext_type=sa.Text()),
         server_default=sa.text(
-            '\'{"push_notifications": true, "email_notifications": true, "slack_notifications": false}\'::jsonb'
+            '\'{"push_notifications": true, "email_notifications": true, "slack_notifications": false}\'::jsonb',
         ),
         existing_nullable=True,
     )
@@ -97,7 +97,7 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_tenant_roles_tenant_id"), table_name="tenant_roles")
     op.drop_table("tenant_roles")
     op.drop_index(
-        op.f("ix_tenant_departments_tenant_id"), table_name="tenant_departments"
+        op.f("ix_tenant_departments_tenant_id"), table_name="tenant_departments",
     )
     op.drop_table("tenant_departments")
     # ### end Alembic commands ###

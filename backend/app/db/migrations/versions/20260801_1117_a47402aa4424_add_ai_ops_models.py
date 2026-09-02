@@ -6,8 +6,8 @@ Create Date: 2026-08-01 11:17:00.103435+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -34,7 +34,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("name"),
     )
     op.create_index(
-        op.f("ix_ai_prompt_templates_id"), "ai_prompt_templates", ["id"], unique=False
+        op.f("ix_ai_prompt_templates_id"), "ai_prompt_templates", ["id"], unique=False,
     )
     op.create_table(
         "ai_providers",
@@ -46,7 +46,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "ONLINE", "OFFLINE", "DEGRADED", "MAINTENANCE", name="providerstatus"
+                "ONLINE", "OFFLINE", "DEGRADED", "MAINTENANCE", name="providerstatus",
             ),
             nullable=True,
         ),
@@ -84,16 +84,16 @@ def upgrade() -> None:
         ),
         sa.Column("context_window", sa.Integer(), nullable=False),
         sa.Column(
-            "input_cost_per_1k", sa.Numeric(precision=10, scale=6), nullable=False
+            "input_cost_per_1k", sa.Numeric(precision=10, scale=6), nullable=False,
         ),
         sa.Column(
-            "output_cost_per_1k", sa.Numeric(precision=10, scale=6), nullable=False
+            "output_cost_per_1k", sa.Numeric(precision=10, scale=6), nullable=False,
         ),
         sa.Column("quality_score", sa.Float(), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(
-            ["provider_id"], ["ai_providers.id"], ondelete="CASCADE"
+            ["provider_id"], ["ai_providers.id"], ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -111,16 +111,16 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(
-            ["fallback_model_id"], ["ai_models.id"], ondelete="SET NULL"
+            ["fallback_model_id"], ["ai_models.id"], ondelete="SET NULL",
         ),
         sa.ForeignKeyConstraint(
-            ["primary_model_id"], ["ai_models.id"], ondelete="SET NULL"
+            ["primary_model_id"], ["ai_models.id"], ondelete="SET NULL",
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("task_type"),
     )
     op.create_index(
-        op.f("ix_ai_routing_rules_id"), "ai_routing_rules", ["id"], unique=False
+        op.f("ix_ai_routing_rules_id"), "ai_routing_rules", ["id"], unique=False,
     )
     op.create_table(
         "ai_usage_logs",
@@ -139,7 +139,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(["model_id"], ["ai_models.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(
-            ["provider_id"], ["ai_providers.id"], ondelete="SET NULL"
+            ["provider_id"], ["ai_providers.id"], ondelete="SET NULL",
         ),
         sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),

@@ -1,30 +1,19 @@
-import uuid
-import random
 import math
-from typing import Dict, Any, List, Optional
+import uuid
 from datetime import datetime, timezone
+from typing import Any
+
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
 
-from app.models.user import User
+from app.core.exceptions import ForbiddenException, ValidationException
 from app.models.dataset import Dataset, DatasetStatus
-from app.services.dataset import DatasetService
+from app.models.user import User
 from app.services.audit_service import AuditService
-from app.core.exceptions import ValidationException, ForbiddenException
-from app.schemas.viewer_analytics import (
-    ViewerAnalyticsKpi,
-    ViewerAnalyticsTrend,
-    ViewerAnalyticsPerformanceItem,
-    ViewerAnalyticsPerformance,
-    ViewerAnalyticsComparison,
-    ViewerAnalyticsForecast,
-    ViewerAnalyticsAnomaly,
-    ViewerAnalyticsInsight,
-    ViewerAnalyticsDataQuality,
-)
+from app.services.dataset import DatasetService
 
 
-def _rows_to_dicts(result: dict) -> List[Dict]:
+def _rows_to_dicts(result: dict) -> list[dict]:
     """Convert DuckDB engine {columns: [...], rows: [[...]]} to [{col: val, ...}]."""
     columns = result.get("columns", [])
     rows = result.get("rows", [])
@@ -36,7 +25,7 @@ class TenantAnalyticsService:
         self.session = session
         self.dataset_service = DatasetService(session)
 
-    async def _resolve_datasets(self, actor: User) -> List[Dataset]:
+    async def _resolve_datasets(self, actor: User) -> list[Dataset]:
         """Fetch all ready datasets the user is authorized to access in their tenant."""
         if not actor.tenant_id:
             raise ForbiddenException("Organization required.")
@@ -46,7 +35,7 @@ class TenantAnalyticsService:
                 Dataset.tenant_id == actor.tenant_id,
                 Dataset.is_deleted == False,
                 Dataset.status == DatasetStatus.ready,
-            )
+            ),
         )
         res = await self.session.execute(stmt)
         return list(res.scalars().all())
@@ -69,7 +58,7 @@ class TenantAnalyticsService:
         ds = await self.dataset_service.get_dataset(dataset_id, actor)
         if ds.status != DatasetStatus.ready or not ds.profile:
             raise ValidationException(
-                "Dataset is not ready for analytics or has no profile."
+                "Dataset is not ready for analytics or has no profile.",
             )
 
         numeric_cols = []
@@ -87,17 +76,17 @@ class TenantAnalyticsService:
 
         return ds, numeric_cols, categorical_cols, date_cols
 
-    def _detect_business_domain(self, datasets: List[Dataset]) -> str:
+    def _detect_business_domain(self, datasets: list[Dataset]) -> str:
         domain_keywords = {
             "Sales": ["revenue", "sales", "order", "price", "discount", "customer"],
             "Finance": ["expense", "profit", "margin", "cash", "budget", "tax"],
             "HR": ["employee", "salary", "hire", "attrition", "department", "absence"],
             "Inventory": ["stock", "warehouse", "sku", "quantity", "inventory"],
         }
-        scores = {k: 0 for k in domain_keywords.keys()}
+        scores = dict.fromkeys(domain_keywords.keys(), 0)
         for d in datasets:
             if d.profile and "columns" in d.profile:
-                for col_name in self._get_columns_dict(d.profile).keys():
+                for col_name in self._get_columns_dict(d.profile):
                     col_lower = col_name.lower()
                     for domain, keywords in domain_keywords.items():
                         if any(kw in col_lower for kw in keywords):
@@ -109,18 +98,17 @@ class TenantAnalyticsService:
 
     # --- KPIs ---
     async def get_kpis(
-        self, actor: User, dataset_id: Optional[uuid.UUID] = None
-    ) -> Dict[str, Any]:
+        self, actor: User, dataset_id: uuid.UUID | None = None,
+    ) -> dict[str, Any]:
         if dataset_id:
             return await self._get_dataset_kpis(actor, dataset_id)
-        else:
-            return await self._get_aggregate_kpis(actor)
+        return await self._get_aggregate_kpis(actor)
 
     async def _get_dataset_kpis(
-        self, actor: User, dataset_id: uuid.UUID
-    ) -> Dict[str, Any]:
-        ds, numeric_cols, categorical_cols, date_cols = await self._get_auto_columns(
-            dataset_id, actor
+        self, actor: User, dataset_id: uuid.UUID,
+    ) -> dict[str, Any]:
+        _ds, numeric_cols, _categorical_cols, _date_cols = await self._get_auto_columns(
+            dataset_id, actor,
         )
         if not numeric_cols:
             return {"kpis": []}
@@ -164,14 +152,14 @@ class TenantAnalyticsService:
                             "percentage_change": round(pct, 1),
                             "trend_direction": "up" if pct >= 0 else "down",
                             "sparkline": [prev, prev * 1.05, total * 0.95, total],
-                        }
+                        },
                     )
         except Exception as e:
             print(f"Error calculating combined KPIs: {e}")
 
         return {"kpis": kpis}
 
-    async def _get_aggregate_kpis(self, actor: User) -> Dict[str, Any]:
+    async def _get_aggregate_kpis(self, actor: User) -> dict[str, Any]:
         datasets = await self._resolve_datasets(actor)
         if not datasets:
             return {"domain": "General Business", "kpis": []}
@@ -199,7 +187,7 @@ class TenantAnalyticsService:
                     float(total_rows * 0.9),
                     float(total_rows),
                 ],
-            }
+            },
         )
         total_cols = sum(d.column_count for d in datasets if d.column_count)
         kpis.append(
@@ -211,7 +199,7 @@ class TenantAnalyticsService:
                 "percentage_change": 0.0,
                 "trend_direction": "neutral",
                 "sparkline": [float(total_cols)] * 4,
-            }
+            },
         )
         avg_quality = sum(d.data_quality_score or 100 for d in datasets) / len(datasets)
         kpis.append(
@@ -223,24 +211,23 @@ class TenantAnalyticsService:
                 "percentage_change": 0.0,
                 "trend_direction": "neutral",
                 "sparkline": [avg_quality] * 4,
-            }
+            },
         )
         return {"domain": domain, "kpis": kpis}
 
     # --- Trends ---
     async def get_trends(
-        self, actor: User, dataset_id: Optional[uuid.UUID] = None
-    ) -> Dict[str, Any]:
+        self, actor: User, dataset_id: uuid.UUID | None = None,
+    ) -> dict[str, Any]:
         if dataset_id:
             return await self._get_dataset_trends(actor, dataset_id)
-        else:
-            return await self._get_aggregate_trends(actor)
+        return await self._get_aggregate_trends(actor)
 
     async def _get_dataset_trends(
-        self, actor: User, dataset_id: uuid.UUID
-    ) -> Dict[str, Any]:
-        ds, numeric_cols, categorical_cols, date_cols = await self._get_auto_columns(
-            dataset_id, actor
+        self, actor: User, dataset_id: uuid.UUID,
+    ) -> dict[str, Any]:
+        _ds, numeric_cols, _categorical_cols, date_cols = await self._get_auto_columns(
+            dataset_id, actor,
         )
         trends = []
         if date_cols and numeric_cols:
@@ -257,7 +244,7 @@ class TenantAnalyticsService:
             """
             try:
                 result = await self.dataset_service.execute_query(
-                    dataset_id, sql, actor
+                    dataset_id, sql, actor,
                 )
                 rows = _rows_to_dicts(result)
                 trend_items = []
@@ -267,7 +254,7 @@ class TenantAnalyticsService:
                             {
                                 "date": str(row["month"])[:10],
                                 "value": round(row.get("total", 0) or 0, 2),
-                            }
+                            },
                         )
                 trends.append(
                     {
@@ -275,7 +262,7 @@ class TenantAnalyticsService:
                         "title": f"{num_col.replace('_', ' ').title()} over time",
                         "metric": num_col.replace("_", " ").title(),
                         "data": trend_items,
-                    }
+                    },
                 )
             except Exception as e:
                 print(f"Error calculating Trend for {num_col} by {date_col}: {e}")
@@ -284,7 +271,7 @@ class TenantAnalyticsService:
             sql = f'SELECT ROW_NUMBER() OVER () as row_num, TRY_CAST("{num_col}" AS DOUBLE) as val FROM dataset WHERE "{num_col}" IS NOT NULL LIMIT 50'
             try:
                 result = await self.dataset_service.execute_query(
-                    dataset_id, sql, actor
+                    dataset_id, sql, actor,
                 )
                 rows = _rows_to_dicts(result)
                 trend_items = [
@@ -300,13 +287,13 @@ class TenantAnalyticsService:
                         "title": f"{num_col.replace('_', ' ').title()} distribution",
                         "metric": num_col.replace("_", " ").title(),
                         "data": trend_items,
-                    }
+                    },
                 )
             except Exception as e:
                 print(f"Error calculating row trend for {num_col}: {e}")
         return {"trends": trends}
 
-    async def _get_aggregate_trends(self, actor: User) -> Dict[str, Any]:
+    async def _get_aggregate_trends(self, actor: User) -> dict[str, Any]:
         datasets = await self._resolve_datasets(actor)
         trends = []
         if datasets:
@@ -328,24 +315,23 @@ class TenantAnalyticsService:
                         "title": "Data Volume Growth",
                         "metric": "Total Records",
                         "data": final_data,
-                    }
+                    },
                 )
         return {"trends": trends}
 
     # --- Performance ---
     async def get_performance(
-        self, actor: User, dataset_id: Optional[uuid.UUID] = None
-    ) -> Dict[str, Any]:
+        self, actor: User, dataset_id: uuid.UUID | None = None,
+    ) -> dict[str, Any]:
         if dataset_id:
             return await self._get_dataset_performance(actor, dataset_id)
-        else:
-            return await self._get_aggregate_performance(actor)
+        return await self._get_aggregate_performance(actor)
 
     async def _get_dataset_performance(
-        self, actor: User, dataset_id: uuid.UUID
-    ) -> Dict[str, Any]:
-        ds, numeric_cols, categorical_cols, date_cols = await self._get_auto_columns(
-            dataset_id, actor
+        self, actor: User, dataset_id: uuid.UUID,
+    ) -> dict[str, Any]:
+        _ds, numeric_cols, categorical_cols, _date_cols = await self._get_auto_columns(
+            dataset_id, actor,
         )
         performances = []
         if categorical_cols and numeric_cols:
@@ -362,7 +348,7 @@ class TenantAnalyticsService:
                 """
                 try:
                     result = await self.dataset_service.execute_query(
-                        dataset_id, sql, actor
+                        dataset_id, sql, actor,
                     )
                     rows = _rows_to_dicts(result)
                     total_sum = sum((r.get("total", 0) or 0) for r in rows)
@@ -378,18 +364,18 @@ class TenantAnalyticsService:
                                 "contribution": round(contrib, 1),
                                 "growth": 0,
                                 "trend": "neutral",
-                            }
+                            },
                         )
                     performances.append(
-                        {"dimension": cat_col.replace("_", " ").title(), "items": items}
+                        {"dimension": cat_col.replace("_", " ").title(), "items": items},
                     )
                 except Exception as e:
                     print(
-                        f"Error calculating Performance for {num_col} by {cat_col}: {e}"
+                        f"Error calculating Performance for {num_col} by {cat_col}: {e}",
                     )
         return {"performances": performances}
 
-    async def _get_aggregate_performance(self, actor: User) -> Dict[str, Any]:
+    async def _get_aggregate_performance(self, actor: User) -> dict[str, Any]:
         datasets = await self._resolve_datasets(actor)
         performances = []
 
@@ -437,7 +423,7 @@ class TenantAnalyticsService:
 
                     # Period-over-period: compare first half vs second half of dataset rows
                     half = max(1, (d.row_count or 2) // 2)
-                    growth_map: Dict[str, float] = {}
+                    growth_map: dict[str, float] = {}
                     if num_col:
                         try:
                             g_sql = f"""
@@ -451,7 +437,7 @@ class TenantAnalyticsService:
                                 LIMIT 8
                             """
                             g_result = await self.dataset_service.execute_query(
-                                d.id, g_sql, actor
+                                d.id, g_sql, actor,
                             )
                             for gr in _rows_to_dicts(g_result):
                                 first = float(gr.get("first_half") or 0)
@@ -459,7 +445,7 @@ class TenantAnalyticsService:
                                 key = str(gr.get("cat", ""))
                                 if first > 0:
                                     growth_map[key] = round(
-                                        (second - first) / first * 100, 1
+                                        (second - first) / first * 100, 1,
                                     )
                         except Exception:
                             pass
@@ -481,14 +467,14 @@ class TenantAnalyticsService:
                                     if growth_val > 0
                                     else ("down" if growth_val < 0 else "neutral")
                                 ),
-                            }
+                            },
                         )
 
                 except Exception as e:
                     print(f"[Performance] DuckDB error for {d.name}/{cat_col}: {e}")
                     # Fallback: profile top_values
                     raw_top = cols_dict.get(cat_col, {}).get("top_values", {})
-                    top_vals: Dict[str, float] = {}
+                    top_vals: dict[str, float] = {}
                     if isinstance(raw_top, list):
                         for entry in raw_top:
                             if isinstance(entry, (list, tuple)) and len(entry) >= 2:
@@ -514,7 +500,7 @@ class TenantAnalyticsService:
                                     "contribution": round(v / total_sum * 100, 1),
                                     "growth": 0,
                                     "trend": "neutral",
-                                }
+                                },
                             )
 
                 if items:
@@ -522,25 +508,24 @@ class TenantAnalyticsService:
                         {
                             "dimension": f"{d.name} - {cat_col.replace('_', ' ').title()}",
                             "items": items,
-                        }
+                        },
                     )
 
         return {"performances": performances[:4]}
 
     # --- Anomalies ---
     async def get_anomalies(
-        self, actor: User, dataset_id: Optional[uuid.UUID] = None
-    ) -> Dict[str, Any]:
+        self, actor: User, dataset_id: uuid.UUID | None = None,
+    ) -> dict[str, Any]:
         if dataset_id:
             return await self._get_dataset_anomalies(actor, dataset_id)
-        else:
-            return await self._get_aggregate_anomalies(actor)
+        return await self._get_aggregate_anomalies(actor)
 
     async def _get_dataset_anomalies(
-        self, actor: User, dataset_id: uuid.UUID
-    ) -> Dict[str, Any]:
-        ds, numeric_cols, categorical_cols, date_cols = await self._get_auto_columns(
-            dataset_id, actor
+        self, actor: User, dataset_id: uuid.UUID,
+    ) -> dict[str, Any]:
+        ds, numeric_cols, _categorical_cols, _date_cols = await self._get_auto_columns(
+            dataset_id, actor,
         )
         anomalies = []
         if numeric_cols:
@@ -550,7 +535,7 @@ class TenantAnalyticsService:
                 std = ds.profile["columns"][num_col].get("std", 1) or 1
                 sql = f'SELECT MAX(TRY_CAST("{num_col}" AS DOUBLE)) as max_val FROM dataset'
                 result = await self.dataset_service.execute_query(
-                    dataset_id, sql, actor
+                    dataset_id, sql, actor,
                 )
                 rows = _rows_to_dicts(result)
                 max_val = rows[0].get("max_val", 0) if rows else 0
@@ -568,13 +553,13 @@ class TenantAnalyticsService:
                                 "high" if (max_val - mean) / std > 5 else "medium"
                             ),
                             "possible_explanation": f"Max value is {round((max_val - mean) / std, 1)} standard deviations above the mean.",
-                        }
+                        },
                     )
             except Exception as e:
                 print(f"Error calculating Anomalies for {num_col}: {e}")
         return {"anomalies": anomalies}
 
-    async def _get_aggregate_anomalies(self, actor: User) -> Dict[str, Any]:
+    async def _get_aggregate_anomalies(self, actor: User) -> dict[str, Any]:
         datasets = await self._resolve_datasets(actor)
         anomalies = []
         for d in datasets:
@@ -600,7 +585,7 @@ class TenantAnalyticsService:
                                             "id": str(uuid.uuid4()),
                                             "metric": f"{d.name}: {col}",
                                             "date": datetime.now(
-                                                timezone.utc
+                                                timezone.utc,
                                             ).isoformat(),
                                             "expected_value": round(mean, 2),
                                             "actual_value": round(max_val, 2),
@@ -609,7 +594,7 @@ class TenantAnalyticsService:
                                                 "high" if z_score > 5 else "medium"
                                             ),
                                             "possible_explanation": f"Outlier detected: {z_score:.1f} standard deviations above mean.",
-                                        }
+                                        },
                                     )
                         except (ValueError, TypeError):
                             continue
@@ -617,16 +602,15 @@ class TenantAnalyticsService:
 
     # --- Data Quality ---
     async def get_data_quality(
-        self, actor: User, dataset_id: Optional[uuid.UUID] = None
-    ) -> Dict[str, Any]:
+        self, actor: User, dataset_id: uuid.UUID | None = None,
+    ) -> dict[str, Any]:
         if dataset_id:
             return await self._get_dataset_data_quality(actor, dataset_id)
-        else:
-            return await self._get_aggregate_data_quality(actor)
+        return await self._get_aggregate_data_quality(actor)
 
     async def _get_dataset_data_quality(
-        self, actor: User, dataset_id: uuid.UUID
-    ) -> Dict[str, Any]:
+        self, actor: User, dataset_id: uuid.UUID,
+    ) -> dict[str, Any]:
         ds = await self.dataset_service.get_dataset(dataset_id, actor)
         quality = []
         if ds.profile:
@@ -641,11 +625,11 @@ class TenantAnalyticsService:
                     ),
                     "duplicate_records": ds.profile.get("duplicate_count", 0),
                     "quality_score": int(ds.profile.get("quality_score", 100)),
-                }
+                },
             )
         return {"quality_reports": quality}
 
-    async def _get_aggregate_data_quality(self, actor: User) -> Dict[str, Any]:
+    async def _get_aggregate_data_quality(self, actor: User) -> dict[str, Any]:
         datasets = await self._resolve_datasets(actor)
         reports = []
         for d in datasets:
@@ -661,12 +645,12 @@ class TenantAnalyticsService:
                         ),
                         "duplicate_records": d.profile.get("duplicate_count", 0),
                         "quality_score": d.profile.get("quality_score", 95.0),
-                    }
+                    },
                 )
         return {"quality_reports": reports}
 
     # --- Other Aggregate Functions (Comparisons, Forecast, AI Insights) ---
-    async def get_comparisons(self, actor: User) -> Dict[str, Any]:
+    async def get_comparisons(self, actor: User) -> dict[str, Any]:
         datasets = await self._resolve_datasets(actor)
         if not datasets:
             return {"comparisons": []}
@@ -688,12 +672,11 @@ class TenantAnalyticsService:
                     "absolute_difference": abs(diff),
                     "percentage_difference": pct_diff,
                     "trend": "up" if diff > 0 else "down",
-                }
+                },
             )
         return {"comparisons": comparisons}
 
-    async def get_forecast(self, actor: User) -> Dict[str, Any]:
-        from datetime import timedelta
+    async def get_forecast(self, actor: User) -> dict[str, Any]:
 
         datasets = await self._resolve_datasets(actor)
         forecasts = []
@@ -705,7 +688,7 @@ class TenantAnalyticsService:
         sorted_ds = sorted(datasets, key=lambda x: x.created_at)
 
         # Aggregate into monthly buckets
-        monthly: Dict[str, float] = {}
+        monthly: dict[str, float] = {}
         cumulative = 0.0
         for ds in sorted_ds:
             month_key = ds.created_at.strftime("%Y-%m")
@@ -764,7 +747,7 @@ class TenantAnalyticsService:
                     "date": future_label,
                     "upper": round(projected_val + margin, 0),
                     "lower": round(max(0, projected_val - margin), 0),
-                }
+                },
             )
 
         forecasts.append(
@@ -777,12 +760,12 @@ class TenantAnalyticsService:
                 "confidence_interval": conf,
                 "model_accuracy": round(r_squared, 2),
                 "slope_per_month": round(slope, 0),
-            }
+            },
         )
 
         return {"forecasts": forecasts}
 
-    async def get_ai_insights(self, actor: User) -> Dict[str, Any]:
+    async def get_ai_insights(self, actor: User) -> dict[str, Any]:
         datasets = await self._resolve_datasets(actor)
         domain = self._detect_business_domain(datasets)
 
@@ -794,7 +777,7 @@ class TenantAnalyticsService:
                         "id": str(uuid.uuid4()),
                         "type": "recommendation",
                         "content": "Start by uploading datasets to receive AI-driven executive insights.",
-                    }
+                    },
                 ],
             }
 
@@ -830,7 +813,7 @@ The user's business domain is: {domain}
 Here is a summary of their data workspace ({len(datasets)} datasets, {total_rows:,} total rows):
 {ds_context}
 
-Low quality datasets (score < 80%): {low_quality if low_quality else 'None'}
+Low quality datasets (score < 80%): {low_quality or 'None'}
 
 Generate a concise executive business intelligence report with:
 1. A 2-sentence executive summary of the data ecosystem health and growth status.
@@ -842,26 +825,23 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
         insights = []
 
         try:
-            from app.core.config import settings
             from google import genai
+
+            from app.core.config import settings
 
             client = genai.Client(api_key=settings.GEMINI_API_KEY)
             response = client.models.generate_content(
-                model="gemini-2.0-flash", contents=prompt
+                model="gemini-2.0-flash", contents=prompt,
             )
             raw = response.text.strip()
 
             # Split into summary + bullet points
             lines = [l.strip() for l in raw.split("\n") if l.strip()]
             summary_lines = []
-            insight_lines = []
             in_bullets = False
             for line in lines:
                 if (
-                    line.startswith("**")
-                    or line.startswith("- **")
-                    or line.startswith("* **")
-                    or line.startswith("•")
+                    line.startswith(("**", "- **", "* **", "•"))
                 ):
                     in_bullets = True
                 if in_bullets:
@@ -890,7 +870,7 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
                                 "id": str(uuid.uuid4()),
                                 "type": insight_type,
                                 "content": clean,
-                            }
+                            },
                         )
                 else:
                     summary_lines.append(line)
@@ -912,7 +892,7 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
                     "type": "opportunity",
                     "content": f"**{domain} Data Opportunity:** You have {len(datasets)} datasets with {total_rows:,} total rows. "
                     f"Combining them could yield new cross-functional insights. Recommendation: Run a cross-dataset join analysis.",
-                }
+                },
             )
             if low_quality:
                 insights.append(
@@ -921,7 +901,7 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
                         "type": "risk",
                         "content": f"**Data Quality Warning:** Datasets {low_quality} have quality scores below 80%. "
                         f"Missing or invalid values may impact forecast accuracy. Recommendation: Set up automated data cleaning.",
-                    }
+                    },
                 )
 
         if not insights:
@@ -930,13 +910,13 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
                     "id": str(uuid.uuid4()),
                     "type": "opportunity",
                     "content": f"**{domain} Opportunity:** {len(datasets)} datasets with {total_rows:,} rows ready for analysis. Upload more data to unlock deeper cross-dataset insights.",
-                }
+                },
             )
 
         return {"executive_summary": executive_summary, "insights": insights}
 
     async def chat_ai(
-        self, actor: User, message: str, context: Optional[Dict[str, Any]] = None
+        self, actor: User, message: str, context: dict[str, Any] | None = None,
     ) -> str:
         datasets = await self._resolve_datasets(actor)
         domain = self._detect_business_domain(datasets)
@@ -980,8 +960,9 @@ Answer the user's question in 2-4 sentences. Be specific and reference actual da
 Do not make up data. If you cannot answer from the context, say so and suggest what data they should upload."""
 
         try:
-            from app.core.config import settings
             from groq import Groq
+
+            from app.core.config import settings
 
             client = Groq(api_key=settings.GROQ_API_KEY)
             response = client.chat.completions.create(

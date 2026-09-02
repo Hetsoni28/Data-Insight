@@ -6,16 +6,15 @@ advanced statistical aggregations, correlation matrix computation, and SQL safet
 
 from __future__ import annotations
 
-import time
 import re
-from typing import Optional, List, Dict, Any, Union
+import time
+from typing import Any
 
 import duckdb
 import polars as pl
 from loguru import logger
 
-from app.core.exceptions import ValidationException, ForbiddenException
-
+from app.core.exceptions import ForbiddenException, ValidationException
 
 # Disallowed keywords for safe read-only SQL queries
 DISALLOWED_SQL_PATTERNS = [
@@ -69,7 +68,7 @@ class DuckDBEngine:
         first_token = cleaned.split()[0].upper()
         if first_token not in ("SELECT", "WITH", "EXPLAIN", "DESCRIBE", "SHOW"):
             raise ForbiddenException(
-                f"Unsupported statement type: '{first_token}'. Only SELECT queries are permitted."
+                f"Unsupported statement type: '{first_token}'. Only SELECT queries are permitted.",
             )
 
     @classmethod
@@ -80,9 +79,8 @@ class DuckDBEngine:
         table_name: str = "dataset",
         limit: int = 1000,
         offset: int = 0,
-    ) -> Dict[str, Any]:
-        """
-        Execute an interactive SQL query against a Polars DataFrame with timeout and bounds.
+    ) -> dict[str, Any]:
+        """Execute an interactive SQL query against a Polars DataFrame with timeout and bounds.
         """
         cls.validate_sql(sql)
         start_time = time.perf_counter()
@@ -138,14 +136,13 @@ class DuckDBEngine:
             }
         except Exception as exc:
             logger.error(f"DuckDB SQL Execution Error: {exc}")
-            raise ValidationException(f"SQL Execution Error: {str(exc)}")
+            raise ValidationException(f"SQL Execution Error: {exc!s}")
         finally:
             conn.close()
 
     @classmethod
-    def compute_correlation_matrix(cls, df: pl.DataFrame) -> Dict[str, Any]:
-        """
-        Compute Pearson correlation matrix for all numeric columns.
+    def compute_correlation_matrix(cls, df: pl.DataFrame) -> dict[str, Any]:
+        """Compute Pearson correlation matrix for all numeric columns.
         """
         numeric_cols = [
             col
@@ -174,7 +171,7 @@ class DuckDBEngine:
             arrow_table = df.select(numeric_cols).to_arrow()
             conn.register("df_num", arrow_table)
 
-            matrix: Dict[str, Dict[str, Optional[float]]] = {}
+            matrix: dict[str, dict[str, float | None]] = {}
             for col in numeric_cols:
                 matrix[col] = {}
 
@@ -186,7 +183,7 @@ class DuckDBEngine:
                         safe_col1 = f'"{col1}"'
                         safe_col2 = f'"{col2}"'
                         select_clauses.append(
-                            f"CORR({safe_col1}, {safe_col2}) AS c_{i}_{j}"
+                            f"CORR({safe_col1}, {safe_col2}) AS c_{i}_{j}",
                         )
 
             sql = f"SELECT {', '.join(select_clauses)} FROM df_num"
@@ -197,7 +194,7 @@ class DuckDBEngine:
                 for j, col2 in enumerate(numeric_cols):
                     if i <= j:
                         val = row[idx]
-                        if val is not None and not (val != val):  # not nan
+                        if val is not None and val == val:  # not nan
                             rounded = round(float(val), 4)
                         else:
                             rounded = None
@@ -221,9 +218,8 @@ class DuckDBEngine:
         df: pl.DataFrame,
         column_name: str,
         num_bins: int = 10,
-    ) -> List[Dict[str, Any]]:
-        """
-        Compute histogram bucket distribution for a numeric column.
+    ) -> list[dict[str, Any]]:
+        """Compute histogram bucket distribution for a numeric column.
         """
         series = df[column_name].drop_nulls()
         if len(series) == 0:
@@ -239,7 +235,7 @@ class DuckDBEngine:
                     "bin_end": max_val,
                     "count": len(series),
                     "pct": 100.0,
-                }
+                },
             ]
 
         step = (max_val - min_val) / num_bins
@@ -268,7 +264,7 @@ class DuckDBEngine:
                         "bin_end": round(b_end, 3),
                         "count": count,
                         "pct": pct,
-                    }
+                    },
                 )
             return bins
         except Exception as exc:

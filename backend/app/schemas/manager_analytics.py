@@ -1,12 +1,12 @@
+
 from pydantic import BaseModel
-from typing import List, Optional
 
 
 class ManagerAnalyticsKpi(BaseModel):
     id: str
     title: str
     value: float
-    previous_value: Optional[float] = None
+    previous_value: float | None = None
     change_pct: float
     trend: str
     is_currency: bool = False
@@ -21,7 +21,7 @@ class ManagerAnalyticsTrend(BaseModel):
     id: str
     title: str
     metric: str
-    data: List[ManagerAnalyticsTrendItem]
+    data: list[ManagerAnalyticsTrendItem]
 
 
 class ManagerAnalyticsPerformanceItem(BaseModel):
@@ -33,7 +33,7 @@ class ManagerAnalyticsPerformanceItem(BaseModel):
 
 class ManagerAnalyticsPerformance(BaseModel):
     dimension: str
-    items: List[ManagerAnalyticsPerformanceItem]
+    items: list[ManagerAnalyticsPerformanceItem]
 
 
 class ManagerAnalyticsAnomaly(BaseModel):
@@ -49,7 +49,7 @@ class ManagerAnalyticsAnomaly(BaseModel):
 
 class ManagerAnalyticsInsightsResponse(BaseModel):
     executive_summary: str
-    insights: List[dict]
+    insights: list[dict]
 
 
 class ManagerAnalyticsDataQuality(BaseModel):
@@ -62,20 +62,20 @@ class ManagerAnalyticsDataQuality(BaseModel):
 
 
 class ManagerAnalyticsKpisResponse(BaseModel):
-    kpis: List[ManagerAnalyticsKpi]
+    kpis: list[ManagerAnalyticsKpi]
 
 
 class ManagerAnalyticsTrendsResponse(BaseModel):
-    trends: List[ManagerAnalyticsTrend]
+    trends: list[ManagerAnalyticsTrend]
 
 
 class ManagerAnalyticsPerformanceResponse(BaseModel):
-    performances: List[ManagerAnalyticsPerformance]
+    performances: list[ManagerAnalyticsPerformance]
 
 
 class ManagerAnalyticsAnomaliesResponse(BaseModel):
-    anomalies: List[ManagerAnalyticsAnomaly]
+    anomalies: list[ManagerAnalyticsAnomaly]
 
 
 class ManagerAnalyticsDataQualityResponse(BaseModel):
-    quality_reports: List[ManagerAnalyticsDataQuality]
+    quality_reports: list[ManagerAnalyticsDataQuality]

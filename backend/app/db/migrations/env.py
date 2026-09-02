@@ -1,20 +1,18 @@
 """Alembic migration environment configuration."""
 
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
 import os
 import sys
+from logging.config import fileConfig
+
+from alembic import context
+from sqlalchemy import pool
 
 # Add the backend root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from app.db.session import Base  # noqa: E402
-from app.core.config import settings  # noqa: E402
-
 # ── Import ALL models so Alembic detects every table ────────────────────────
-import app.models  # noqa: E402 — registers all models on Base.metadata
-
+from app.core.config import settings
+from app.db.session import Base
 
 config = context.config
 
@@ -43,6 +41,7 @@ def run_migrations_offline() -> None:
 
 
 import asyncio
+
 from sqlalchemy.ext.asyncio import create_async_engine
 
 

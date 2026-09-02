@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-import uuid
 import secrets
+import uuid
 
-from app.api.deps import get_db, get_current_user
+from fastapi import APIRouter, Depends
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
+from app.core.exceptions import ForbiddenException, ResourceNotFoundException
 from app.models.user import User
 from app.models.webhook import Webhook
-from app.schemas.webhook import WebhookCreate, WebhookResponse, WebhookUpdate
-from app.core.exceptions import ResourceNotFoundException, ForbiddenException
+from app.schemas.webhook import WebhookCreate, WebhookResponse
 
 router = APIRouter(prefix="/tenants/me/webhooks", tags=["Webhooks"])
 
@@ -22,10 +23,10 @@ def require_org_admin(current_user: User = Depends(get_current_user)):
 
 
 @router.get(
-    "", response_model=list[WebhookResponse], summary="List organization webhooks"
+    "", response_model=list[WebhookResponse], summary="List organization webhooks",
 )
 async def list_webhooks(
-    admin: User = Depends(require_org_admin), db: AsyncSession = Depends(get_db)
+    admin: User = Depends(require_org_admin), db: AsyncSession = Depends(get_db),
 ):
     if not admin.tenant_id:
         return []
@@ -70,7 +71,7 @@ async def delete_webhook(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Webhook).where(
-        Webhook.id == webhook_id, Webhook.tenant_id == admin.tenant_id
+        Webhook.id == webhook_id, Webhook.tenant_id == admin.tenant_id,
     )
     result = await db.execute(stmt)
     webhook = result.scalars().first()

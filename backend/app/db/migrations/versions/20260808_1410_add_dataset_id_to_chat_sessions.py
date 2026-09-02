@@ -6,9 +6,8 @@ Create Date: 2026-08-08 14:10:00.000000+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "7d8e2f1a9b4c"
@@ -37,7 +36,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_constraint(
-        "fk_chat_sessions_dataset_id", "chat_sessions", type_="foreignkey"
+        "fk_chat_sessions_dataset_id", "chat_sessions", type_="foreignkey",
     )
     op.drop_index(op.f("ix_chat_sessions_dataset_id"), table_name="chat_sessions")
     op.drop_column("chat_sessions", "dataset_id")

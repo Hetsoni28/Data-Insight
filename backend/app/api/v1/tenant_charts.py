@@ -1,21 +1,20 @@
 import uuid
-from typing import Any, List
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
 
 from app.api import deps
-from app.models.user import User
-from app.models.tenant import Tenant
-from app.models.workspace import Workspace
 from app.models.chart import Chart
 from app.models.dataset import Dataset
+from app.models.user import User
+from app.models.workspace import Workspace
 from app.schemas.tenant_charts import (
     ChartCreate,
-    ChartUpdate,
-    ChartResponse,
     ChartListResponse,
+    ChartResponse,
+    ChartUpdate,
 )
 
 router = APIRouter()
@@ -29,8 +28,7 @@ async def create_chart(
     current_user: User = Depends(deps.get_current_active_tenant_user),
     current_workspace: Workspace = Depends(deps.get_current_workspace),
 ) -> Any:
-    """
-    Create a new chart in the current workspace.
+    """Create a new chart in the current workspace.
     """
     if not current_workspace:
         raise HTTPException(
@@ -43,12 +41,12 @@ async def create_chart(
             Dataset.tenant_id == current_user.tenant_id,
             Dataset.workspace_id == current_workspace.id,
             Dataset.is_deleted == False,
-        )
+        ),
     )
     dataset = dataset_result.scalar_one_or_none()
     if not dataset:
         raise HTTPException(
-            status_code=404, detail="Dataset not found or access denied"
+            status_code=404, detail="Dataset not found or access denied",
         )
 
     chart = Chart(
@@ -68,13 +66,12 @@ async def read_charts(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    search: str = None,
-    dataset_id: uuid.UUID = None,
+    search: str | None = None,
+    dataset_id: uuid.UUID | None = None,
     current_user: User = Depends(deps.get_current_active_tenant_user),
     current_workspace: Workspace = Depends(deps.get_current_workspace),
 ) -> Any:
-    """
-    Retrieve charts.
+    """Retrieve charts.
     """
     if not current_workspace:
         raise HTTPException(
@@ -113,8 +110,7 @@ async def read_chart(
     current_user: User = Depends(deps.get_current_active_tenant_user),
     current_workspace: Workspace = Depends(deps.get_current_workspace),
 ) -> Any:
-    """
-    Get chart by ID.
+    """Get chart by ID.
     """
     if not current_workspace:
         raise HTTPException(
@@ -127,7 +123,7 @@ async def read_chart(
             Chart.tenant_id == current_user.tenant_id,
             Chart.workspace_id == current_workspace.id,
             Chart.is_deleted == False,
-        )
+        ),
     )
     chart = result.scalar_one_or_none()
     if not chart:
@@ -150,8 +146,7 @@ async def update_chart(
     current_user: User = Depends(deps.get_current_active_tenant_user),
     current_workspace: Workspace = Depends(deps.get_current_workspace),
 ) -> Any:
-    """
-    Update a chart.
+    """Update a chart.
     """
     if not current_workspace:
         raise HTTPException(
@@ -164,7 +159,7 @@ async def update_chart(
             Chart.tenant_id == current_user.tenant_id,
             Chart.workspace_id == current_workspace.id,
             Chart.is_deleted == False,
-        )
+        ),
     )
     chart = result.scalar_one_or_none()
     if not chart:
@@ -187,8 +182,7 @@ async def delete_chart(
     current_user: User = Depends(deps.get_current_active_tenant_user),
     current_workspace: Workspace = Depends(deps.get_current_workspace),
 ) -> Any:
-    """
-    Delete a chart (soft delete).
+    """Delete a chart (soft delete).
     """
     if not current_workspace:
         raise HTTPException(
@@ -201,7 +195,7 @@ async def delete_chart(
             Chart.tenant_id == current_user.tenant_id,
             Chart.workspace_id == current_workspace.id,
             Chart.is_deleted == False,
-        )
+        ),
     )
     chart = result.scalar_one_or_none()
     if not chart:

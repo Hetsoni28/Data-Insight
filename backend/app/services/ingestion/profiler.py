@@ -8,14 +8,15 @@ and automated schema heuristics without fabricating data.
 from __future__ import annotations
 
 import math
-from typing import Dict, Any, List, Optional, Union
-import polars as pl
+from typing import Any
+
 import numpy as np
+import polars as pl
 
 from app.services.ingestion.duckdb_engine import DuckDBEngine
 
 
-def _safe_float(val: Any) -> Optional[float]:
+def _safe_float(val: Any) -> float | None:
     """Convert numpy / polars floats to standard Python float with NaN safety."""
     if val is None:
         return None
@@ -28,7 +29,7 @@ def _safe_float(val: Any) -> Optional[float]:
         return None
 
 
-def _safe_int(val: Any) -> Optional[int]:
+def _safe_int(val: Any) -> int | None:
     """Convert numeric values to standard Python int."""
     if val is None:
         return None
@@ -42,9 +43,8 @@ class DataProfiler:
     """Automated statistical profiler, data quality evaluator, and schema analyzer."""
 
     @classmethod
-    def profile_dataframe(cls, df: pl.DataFrame) -> Dict[str, Any]:
-        """
-        Generate comprehensive, multi-dimensional profiling metadata for a Polars DataFrame.
+    def profile_dataframe(cls, df: pl.DataFrame) -> dict[str, Any]:
+        """Generate comprehensive, multi-dimensional profiling metadata for a Polars DataFrame.
         """
         n_rows = len(df)
         n_cols = len(df.columns)
@@ -76,7 +76,7 @@ class DataProfiler:
         )
 
         # 2. Column-level deep profiling
-        columns_profile: Dict[str, Any] = {}
+        columns_profile: dict[str, Any] = {}
         primary_key_candidates = []
         target_candidates = []
         time_dimensions = []
@@ -90,7 +90,7 @@ class DataProfiler:
             unique_count = series.n_unique()
             unique_pct = round((unique_count / n_rows) * 100, 2)
 
-            col_info: Dict[str, Any] = {
+            col_info: dict[str, Any] = {
                 "name": col,
                 "dtype": str(dtype),
                 "null_count": null_count,
@@ -107,7 +107,7 @@ class DataProfiler:
                         "type": "constant_column",
                         "severity": "medium",
                         "message": f"Column '{col}' has only {unique_count} distinct value and provides zero variance.",
-                    }
+                    },
                 )
 
             # Check for high missingness
@@ -118,7 +118,7 @@ class DataProfiler:
                         "type": "high_missingness",
                         "severity": "high",
                         "message": f"Column '{col}' has {null_pct}% missing values.",
-                    }
+                    },
                 )
 
             # Check primary key candidate
@@ -140,7 +140,7 @@ class DataProfiler:
                             "type": "high_outliers",
                             "severity": "medium",
                             "message": f"Column '{col}' contains {outlier_cnt} statistical outliers ({round(outlier_cnt/n_rows*100, 1)}% of rows).",
-                        }
+                        },
                     )
 
                 # Check potential numeric target variable
@@ -209,8 +209,8 @@ class DataProfiler:
 
     @classmethod
     def _profile_numeric_column(
-        cls, series: pl.Series, df: pl.DataFrame, col: str, n_rows: int
-    ) -> Dict[str, Any]:
+        cls, series: pl.Series, df: pl.DataFrame, col: str, n_rows: int,
+    ) -> dict[str, Any]:
         """Compute deep statistical profile for a numeric column."""
         clean = series.drop_nulls()
         if len(clean) == 0:
@@ -304,8 +304,8 @@ class DataProfiler:
 
     @classmethod
     def _profile_categorical_column(
-        cls, series: pl.Series, n_rows: int
-    ) -> Dict[str, Any]:
+        cls, series: pl.Series, n_rows: int,
+    ) -> dict[str, Any]:
         """Compute statistical breakdown for categorical or text column."""
         clean = series.drop_nulls()
         if len(clean) == 0:
@@ -335,7 +335,7 @@ class DataProfiler:
                     "value": str(val) if val is not None else "null",
                     "count": count,
                     "pct": pct,
-                }
+                },
             )
 
         if len(top_10) > 0:
@@ -363,7 +363,7 @@ class DataProfiler:
         }
 
     @classmethod
-    def _profile_datetime_column(cls, series: pl.Series) -> Dict[str, Any]:
+    def _profile_datetime_column(cls, series: pl.Series) -> dict[str, Any]:
         """Compute metrics for datetime column."""
         clean = series.drop_nulls()
         if len(clean) == 0:
@@ -389,7 +389,7 @@ class DataProfiler:
         }
 
     @classmethod
-    def _profile_boolean_column(cls, series: pl.Series, n_rows: int) -> Dict[str, Any]:
+    def _profile_boolean_column(cls, series: pl.Series, n_rows: int) -> dict[str, Any]:
         """Compute metrics for boolean column."""
         true_cnt = int(series.eq(True).sum())
         false_cnt = int(series.eq(False).sum())
@@ -410,11 +410,10 @@ class DataProfiler:
         n_cols: int,
         sparsity_pct: float,
         duplicate_pct: float,
-        columns_profile: Dict[str, Any],
-        anomalies: List[Dict[str, Any]],
-    ) -> tuple[int, Dict[str, float], str]:
-        """
-        Calculate composite data quality score (0 - 100) based on enterprise dimensions.
+        columns_profile: dict[str, Any],
+        anomalies: list[dict[str, Any]],
+    ) -> tuple[int, dict[str, float], str]:
+        """Calculate composite data quality score (0 - 100) based on enterprise dimensions.
         """
         # 1. Completeness (100 - null percentage)
         completeness = max(0.0, 100.0 - sparsity_pct)
@@ -434,7 +433,7 @@ class DataProfiler:
             * max(
                 1,
                 len(
-                    [c for c in columns_profile.values() if c.get("type") == "numeric"]
+                    [c for c in columns_profile.values() if c.get("type") == "numeric"],
                 ),
             ),
         )
@@ -454,7 +453,7 @@ class DataProfiler:
             + (validity * 0.20)
             + (consistency * 0.20)
         )
-        final_score = max(0, min(100, int(round(overall))))
+        final_score = max(0, min(100, round(overall)))
 
         # Determine letter grade
         if final_score >= 95:

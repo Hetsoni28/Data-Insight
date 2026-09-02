@@ -1,9 +1,11 @@
 """AdvancedExcelBuilder - 15-Tab AI-Powered Excel Report Generator."""
 
 from __future__ import annotations
-import io, math
+
+import io
+import math
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+
 import polars as pl
 
 try:
@@ -102,19 +104,19 @@ class AdvancedExcelBuilder:
         tabs.append(
             self._t05_kpi()
             if self.num_cols
-            else self._na("05 KPI Dashboard", "No numeric columns.")
+            else self._na("05 KPI Dashboard", "No numeric columns."),
         )
         tabs.append(
             self._t06_exec_dash()
             if self.cat_cols
-            else self._na("06 Exec Dashboard", "No categorical columns.")
+            else self._na("06 Exec Dashboard", "No categorical columns."),
         )
         tabs.append(self._t07_data())
         tabs.append(self._t08_quality())
         tabs.append(
             self._t09_pivot()
             if (self.cat_cols and self.num_cols)
-            else self._na("09 Pivot", "Needs cat+numeric cols.")
+            else self._na("09 Pivot", "Needs cat+numeric cols."),
         )
         if self.date_cols and len(self.df) >= 10:
             tabs.append(self._t10_trend())
@@ -271,7 +273,8 @@ class AdvancedExcelBuilder:
         viewBox, width, height or any gradient definitions so the D-icon
         renders exactly as designed.
         """
-        import os, pathlib, re as _re
+        import os
+        import pathlib
 
         candidates = [
             "/app/app/static/logo.svg",
@@ -283,7 +286,7 @@ class AdvancedExcelBuilder:
         try:
             import cairosvg
 
-            with open(svg_path, "r", encoding="utf-8") as _f:
+            with open(svg_path, encoding="utf-8") as _f:
                 svg_src = _f.read()
             # ONLY change: add overflow="visible" so the wordmark is not
             # clipped at the 640px viewBox boundary.
@@ -340,7 +343,7 @@ class AdvancedExcelBuilder:
                 "valign": "vcenter",
                 "bottom": 2,
                 "bottom_color": C_GREEN,
-            }
+            },
         )
         ws.merge_range("A2:B2", "", banner_fmt)
 
@@ -371,7 +374,7 @@ class AdvancedExcelBuilder:
                     "font_color": "#10B981",
                     "bg_color": C_NAVY,
                     "valign": "vcenter",
-                }
+                },
             )
             ws.merge_range("A2:B2", "  DataInsight", logo_txt_fmt)
 
@@ -394,7 +397,7 @@ class AdvancedExcelBuilder:
                 "valign": "vcenter",
                 "bottom": 1,
                 "bottom_color": C_GREEN_L,
-            }
+            },
         )
         ws.merge_range("A6:B6", f"  {self.name}", title_fmt)
 
@@ -407,7 +410,7 @@ class AdvancedExcelBuilder:
                 "italic": True,
                 "font_color": C_SLATE,
                 "valign": "vcenter",
-            }
+            },
         )
         ws.merge_range("A7:B7", "  AI-Powered Business Intelligence Report", sub_fmt)
 
@@ -430,7 +433,7 @@ class AdvancedExcelBuilder:
                 "bottom_color": C_GREEN_L,
                 "valign": "vcenter",
                 "indent": 1,
-            }
+            },
         )
         kv_fmt_r = self._wb.add_format(
             {
@@ -446,7 +449,7 @@ class AdvancedExcelBuilder:
                 "bottom_color": C_GREEN_L,
                 "valign": "vcenter",
                 "indent": 1,
-            }
+            },
         )
 
         metrics = [
@@ -476,7 +479,7 @@ class AdvancedExcelBuilder:
                     "bg_color": C_GREEN_D,
                     "valign": "vcenter",
                     "indent": 1,
-                }
+                },
             )
             ws.set_row(13, 18)
             ws.merge_range("A14:B14", "  AI Executive Summary", sec_fmt)
@@ -495,7 +498,7 @@ class AdvancedExcelBuilder:
                     "bottom": 1,
                     "bottom_color": C_GREEN_L,
                     "indent": 1,
-                }
+                },
             )
             ws.set_row(14, 75)
             ws.merge_range("A15:B15", str(es), wrap_fmt)
@@ -509,7 +512,7 @@ class AdvancedExcelBuilder:
                 "italic": True,
                 "font_color": "#94A3B8",
                 "align": "center",
-            }
+            },
         )
         ws.merge_range(
             "A18:B18",
@@ -534,7 +537,7 @@ class AdvancedExcelBuilder:
         qg = str(ov.get("quality_grade") or self.profile.get("quality_grade") or "N/A")
         dup = int(ov.get("duplicate_rows") or self.profile.get("duplicate_rows") or 0)
         mp = float(
-            ov.get("missing_cells_pct") or self.profile.get("missing_cells_pct") or 0
+            ov.get("missing_cells_pct") or self.profile.get("missing_cells_pct") or 0,
         )
         ws.set_row(0, 40)
         ws.merge_range("A1:N1", f"Executive Summary - {self.name}", self.FT)
@@ -610,12 +613,12 @@ class AdvancedExcelBuilder:
             rc = ov.get("row_count") or len(self.df)
             cc = ov.get("column_count") or len(self.df.columns)
             qs = float(
-                ov.get("quality_score") or self.profile.get("quality_score") or 0
+                ov.get("quality_score") or self.profile.get("quality_score") or 0,
             )
             mp = float(
                 ov.get("missing_cells_pct")
                 or self.profile.get("missing_cells_pct")
-                or 0
+                or 0,
             )
             dup = int(ov.get("duplicate_rows") or 0)
             auto_insights = [
@@ -625,7 +628,7 @@ class AdvancedExcelBuilder:
             ]
             if self.num_cols:
                 auto_insights.append(
-                    f"Numeric columns available for statistical analysis: {', '.join(self.num_cols[:6])}."
+                    f"Numeric columns available for statistical analysis: {', '.join(self.num_cols[:6])}.",
                 )
             if self.cat_cols:
                 top_cats = []
@@ -635,11 +638,11 @@ class AdvancedExcelBuilder:
                 auto_insights.append(f"Categorical columns: {', '.join(top_cats)}.")
             if not self.date_cols:
                 auto_insights.append(
-                    "No date/time column found — Trend and Forecast tabs are not available for this dataset."
+                    "No date/time column found — Trend and Forecast tabs are not available for this dataset.",
                 )
             else:
                 auto_insights.append(
-                    f"Time-series analysis available using column: {self.date_cols[0]}."
+                    f"Time-series analysis available using column: {self.date_cols[0]}.",
                 )
             for i, ins in enumerate(auto_insights):
                 ws.set_row(row, 50)
@@ -674,7 +677,7 @@ class AdvancedExcelBuilder:
                     _safe_float(s.max()),
                     _safe_float(s.std()),
                     int(self.df[col].null_count()),
-                ]
+                ],
             )
         nr = 3
         for ri, rd in enumerate(stats):
@@ -704,7 +707,7 @@ class AdvancedExcelBuilder:
                     "categories": [sn, ds + 1, 0, ds + len(cd), 0],
                     "values": [sn, ds + 1, 1, ds + len(cd), 1],
                     "fill": {"color": C_GREEN},
-                }
+                },
             )
             ch.set_title({"name": "Mean Values"})
             ch.set_legend({"none": True})
@@ -741,7 +744,7 @@ class AdvancedExcelBuilder:
                 ie = ri % 2 == 0
                 ws.write(cr, 0, str(rd.get(col, "")), self.FE if ie else self.FO)
                 ws.write_number(
-                    cr, 1, int(rd.get("count", 0)), self.FNE if ie else self.FNO
+                    cr, 1, int(rd.get("count", 0)), self.FNE if ie else self.FNO,
                 )
                 cr += 1
                 rw += 1
@@ -752,7 +755,7 @@ class AdvancedExcelBuilder:
                     "categories": [sn, ds + 1, 0, ds + rw, 0],
                     "values": [sn, ds + 1, 1, ds + rw, 1],
                     "data_labels": {"percentage": True},
-                }
+                },
             )
             ch.set_title({"name": f"{col} Distribution"})
             ch.set_size({"width": 360, "height": 240})
@@ -912,7 +915,7 @@ class AdvancedExcelBuilder:
                     "categories": [sn, ds + 1, 0, ds + n, 0],
                     "values": [sn, ds + 1, 1, ds + n, 1],
                     "line": {"color": C_TEAL, "width": 2.5},
-                }
+                },
             )
             ch.set_title({"name": f"Trend: {vc} over {dc}"})
             ch.set_size({"width": 560, "height": 300})
@@ -1012,7 +1015,7 @@ class AdvancedExcelBuilder:
                 "categories": [sn, ds + 1, 0, he, 0],
                 "values": [sn, ds + 1, 1, he, 1],
                 "line": {"color": C_TEAL, "width": 2},
-            }
+            },
         )
         ch.add_series(
             {
@@ -1020,7 +1023,7 @@ class AdvancedExcelBuilder:
                 "categories": [sn, ds + 1, 0, ds + tr2, 0],
                 "values": [sn, ds + 1, 2, ds + tr2, 2],
                 "line": {"color": C_AMBER, "width": 2, "dash_type": "dash"},
-            }
+            },
         )
         ch.set_title({"name": f"Forecast - {vc}"})
         ch.set_size({"width": 560, "height": 300})
@@ -1134,12 +1137,12 @@ class AdvancedExcelBuilder:
             rc = ov.get("row_count") or len(self.df)
             cc = ov.get("column_count") or len(self.df.columns)
             qs = float(
-                ov.get("quality_score") or self.profile.get("quality_score") or 0
+                ov.get("quality_score") or self.profile.get("quality_score") or 0,
             )
             mp = float(
                 ov.get("missing_cells_pct")
                 or self.profile.get("missing_cells_pct")
-                or 0
+                or 0,
             )
             row = self._sec(ws, row, "Automated Recommendations", 2)
             auto_recs = [
@@ -1148,19 +1151,19 @@ class AdvancedExcelBuilder:
             ]
             if mp > 5:
                 auto_recs.append(
-                    f"Missing data at {mp:.1f}% — apply imputation strategies (mean/median/mode) before analysis."
+                    f"Missing data at {mp:.1f}% — apply imputation strategies (mean/median/mode) before analysis.",
                 )
             if self.num_cols:
                 auto_recs.append(
-                    f"Perform correlation analysis on numeric columns: {', '.join(self.num_cols[:4])}."
+                    f"Perform correlation analysis on numeric columns: {', '.join(self.num_cols[:4])}.",
                 )
             if self.cat_cols:
                 auto_recs.append(
-                    f"Encode categorical columns ({', '.join(self.cat_cols[:3])}) before machine learning models."
+                    f"Encode categorical columns ({', '.join(self.cat_cols[:3])}) before machine learning models.",
                 )
             if not self.date_cols:
                 auto_recs.append(
-                    "Add a date/timestamp column to enable time-series Trend and Forecast analysis."
+                    "Add a date/timestamp column to enable time-series Trend and Forecast analysis.",
                 )
             for i, r in enumerate(auto_recs):
                 ws.set_row(row, 50)

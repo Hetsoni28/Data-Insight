@@ -1,5 +1,4 @@
-"""
-OTP (One-Time Password) service.
+"""OTP (One-Time Password) service.
 
 Uses Redis for storage with TTL-based expiry.
 Falls back to an in-memory dict INSTANTLY when Redis is unavailable.
@@ -10,13 +9,13 @@ Keys:
   otp:rate:{email}     -> resend rate limit  (1 hour TTL)
 """
 
+import asyncio
 import random
 import string
 import time
-import asyncio
 from datetime import timedelta
-from loguru import logger
 
+from loguru import logger
 
 # ── In-Memory Fallback Store ──────────────────────────────────────────────────
 # Dict of {key: (value_bytes, expires_at_unix_float)}
@@ -50,7 +49,7 @@ def _mem_delete(key: str) -> None:
 def _mem_incr(key: str, ex: int) -> int:
     entry = _mem_store.get(key)
     if entry:
-        val, expires_at = entry
+        _val, expires_at = entry
         if time.time() > expires_at:
             entry = None
     if not entry:
@@ -65,8 +64,7 @@ def _mem_incr(key: str, ex: int) -> int:
 
 
 async def _redis_is_ok(redis) -> bool:
-    """
-    Test Redis connectivity.
+    """Test Redis connectivity.
     Result is cached but re-tested every 30 seconds if Redis was down
     to support self-healing on reconnection.
     """
@@ -85,7 +83,7 @@ async def _redis_is_ok(redis) -> bool:
     except Exception:
         _redis_ok = False
         logger.warning(
-            "[OTP] Redis not reachable — using in-memory fallback (dev mode)"
+            "[OTP] Redis not reachable — using in-memory fallback (dev mode)",
         )
 
     _last_checked = now
@@ -164,7 +162,7 @@ async def create_email_verification_otp(redis, email: str) -> str:
     """Create + store a 6-digit email verification OTP (TTL: 5 min)."""
     otp = _generate_otp()
     await _set(
-        redis, _verify_key(email), otp, int(timedelta(minutes=5).total_seconds())
+        redis, _verify_key(email), otp, int(timedelta(minutes=5).total_seconds()),
     )
     # Always log OTP so devs can verify without needing email delivery
     logger.info(f"[OTP] Verification OTP for {email}: {otp}")
@@ -191,7 +189,7 @@ async def create_password_reset_otp(redis, email: str) -> str:
     """Create + store a 6-digit password reset OTP (TTL: 10 min)."""
     otp = _generate_otp()
     await _set(
-        redis, _reset_key(email), otp, int(timedelta(minutes=10).total_seconds())
+        redis, _reset_key(email), otp, int(timedelta(minutes=10).total_seconds()),
     )
     logger.info(f"[OTP] Password reset OTP for {email}: {otp}")
     return otp
@@ -238,8 +236,7 @@ async def verify_login_otp(redis, email: str, otp: str) -> bool:
 
 
 async def check_resend_rate_limit(redis, email: str, max_per_hour: int = 5) -> bool:
-    """
-    Returns True if resend is allowed, False if rate limit exceeded.
+    """Returns True if resend is allowed, False if rate limit exceeded.
     Limit raised to 5/hour for better dev experience.
     """
     key = _resend_rate_key(email)

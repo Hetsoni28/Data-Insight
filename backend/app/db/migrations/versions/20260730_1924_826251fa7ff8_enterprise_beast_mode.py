@@ -6,8 +6,8 @@ Create Date: 2026-07-30 19:24:39.647066+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -34,7 +34,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_webhooks_tenant_id"), "webhooks", ["tenant_id"], unique=False
+        op.f("ix_webhooks_tenant_id"), "webhooks", ["tenant_id"], unique=False,
     )
     op.create_table(
         "api_keys",
@@ -54,7 +54,7 @@ def upgrade() -> None:
     op.create_index(op.f("ix_api_keys_user_id"), "api_keys", ["user_id"], unique=False)
     op.add_column("tenants", sa.Column("sso_config", sa.JSON(), nullable=True))
     op.add_column(
-        "tenants", sa.Column("custom_domain", sa.String(length=255), nullable=True)
+        "tenants", sa.Column("custom_domain", sa.String(length=255), nullable=True),
     )
     op.add_column(
         "tenants",

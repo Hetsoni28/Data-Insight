@@ -6,8 +6,8 @@ Create Date: 2026-08-09 03:50:00.000000+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects.postgresql import UUID
 
 # revision identifiers, used by Alembic.
@@ -36,7 +36,7 @@ def upgrade() -> None:
             server_default="dedicated_system_rental",
         ),
         sa.Column(
-            "status", sa.String(length=50), nullable=False, server_default="active"
+            "status", sa.String(length=50), nullable=False, server_default="active",
         ),
         sa.Column(
             "start_date",
@@ -53,7 +53,7 @@ def upgrade() -> None:
             server_default="annual",
         ),
         sa.Column(
-            "base_price_monthly", sa.Float(), nullable=False, server_default="12500.0"
+            "base_price_monthly", sa.Float(), nullable=False, server_default="12500.0",
         ),
         sa.Column(
             "annual_contract_value",
@@ -62,7 +62,7 @@ def upgrade() -> None:
             server_default="150000.0",
         ),
         sa.Column(
-            "annual_discount", sa.Float(), nullable=False, server_default="30000.0"
+            "annual_discount", sa.Float(), nullable=False, server_default="30000.0",
         ),
         sa.Column(
             "contracted_annual_amount",
@@ -71,7 +71,7 @@ def upgrade() -> None:
             server_default="120000.0",
         ),
         sa.Column(
-            "currency", sa.String(length=10), nullable=False, server_default="USD"
+            "currency", sa.String(length=10), nullable=False, server_default="USD",
         ),
         sa.Column(
             "payment_terms",
@@ -151,7 +151,7 @@ def upgrade() -> None:
         sa.Column("current_capacity", sa.String(length=100), nullable=True),
         sa.Column("business_reason", sa.Text(), nullable=False),
         sa.Column(
-            "status", sa.String(length=50), nullable=False, server_default="submitted"
+            "status", sa.String(length=50), nullable=False, server_default="submitted",
         ),
         sa.Column("approved_capacity", sa.String(length=100), nullable=True),
         sa.Column("admin_notes", sa.Text(), nullable=True),
@@ -179,11 +179,11 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_index(
-        op.f("ix_resource_requests_tenant_id"), table_name="resource_requests"
+        op.f("ix_resource_requests_tenant_id"), table_name="resource_requests",
     )
     op.drop_table("resource_requests")
     op.drop_index(
-        op.f("ix_rental_contracts_contract_number"), table_name="rental_contracts"
+        op.f("ix_rental_contracts_contract_number"), table_name="rental_contracts",
     )
     op.drop_index(op.f("ix_rental_contracts_tenant_id"), table_name="rental_contracts")
     op.drop_table("rental_contracts")

@@ -1,17 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text
-from app.api.deps import get_db, get_current_user
-from app.models.user import User
 import time
-import random
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
+from app.models.user import User
 
 router = APIRouter()
 
 
 async def require_owner(current_user: User = Depends(get_current_user)) -> User:
     if getattr(current_user, "role", "") != "owner" and not getattr(
-        current_user, "is_owner", False
+        current_user, "is_owner", False,
     ):
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
@@ -22,8 +23,7 @@ async def get_platform_health(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_owner),
 ):
-    """
-    Returns live health metrics for the platform infrastructure.
+    """Returns live health metrics for the platform infrastructure.
     """
     # 1. Database Ping
     db_start = time.perf_counter()

@@ -5,13 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Dict, Any, Optional, List
+from typing import Any
+
 import polars as pl
 
 from app.core.exceptions import (
     AIServiceException,
-    ValidationException,
-    ForbiddenException,
 )
 from app.services.ai.router import LLMRouter
 from app.services.ingestion.duckdb_engine import DuckDBEngine
@@ -62,8 +61,8 @@ Rules:
 
     def _build_schema_context(
         self,
-        schema_info: Dict[str, Any],
-        preview_rows: Optional[List[Dict[str, Any]]] = None,
+        schema_info: dict[str, Any],
+        preview_rows: list[dict[str, Any]] | None = None,
     ) -> str:
         """Format column types and sample rows into a clear context prompt."""
         context_lines = ["Table Name: `data`\nColumns & Types:"]
@@ -81,10 +80,10 @@ Rules:
         self,
         question: str,
         df: pl.DataFrame,
-        schema_info: Dict[str, Any],
-        preview_rows: Optional[List[Dict[str, Any]]] = None,
-        preferred_provider: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        schema_info: dict[str, Any],
+        preview_rows: list[dict[str, Any]] | None = None,
+        preferred_provider: str | None = None,
+    ) -> dict[str, Any]:
         """Translate question to SQL, execute on DuckDB, and return grounded analytical answer."""
         schema_context = self._build_schema_context(schema_info, preview_rows)
 
@@ -126,14 +125,14 @@ Generate the DuckDB SQL query to answer this question."""
         # 2. Execute SQL safely using DuckDBEngine
         try:
             query_result = DuckDBEngine.execute_query(
-                df=df, sql=generated_sql, table_name="data", limit=100
+                df=df, sql=generated_sql, table_name="data", limit=100,
             )
         except Exception as e:
             logger.warning(
-                f"[NLSQLAgent] SQL execution failed: {e}. Retrying with error feedback..."
+                f"[NLSQLAgent] SQL execution failed: {e}. Retrying with error feedback...",
             )
             # Self-healing retry
-            fix_prompt = f"""The previous SQL query failed with error: {str(e)}
+            fix_prompt = f"""The previous SQL query failed with error: {e!s}
 Schema:
 {schema_context}
 Question: "{question}"
@@ -155,7 +154,7 @@ Please provide the corrected DuckDB SQL in JSON format."""
             parsed_fix = json.loads(fix_json)
             generated_sql = parsed_fix.get("sql", generated_sql)
             query_result = DuckDBEngine.execute_query(
-                df=df, sql=generated_sql, table_name="data", limit=100
+                df=df, sql=generated_sql, table_name="data", limit=100,
             )
 
         # 3. Synthesize the final grounded business answer
@@ -203,7 +202,7 @@ Provide an executive answer based on these findings."""
             "total_tokens": total_prompt_tokens + total_completion_tokens,
             "cost_usd": total_cost,
             "latency_ms": round(
-                sql_response.latency_ms + synthesis_response.latency_ms, 2
+                sql_response.latency_ms + synthesis_response.latency_ms, 2,
             ),
             "provider": synthesis_response.provider,
             "model": synthesis_response.model,

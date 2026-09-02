@@ -1,20 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, or_
-from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any
-import uuid
-
-from app.api.deps import get_db, get_current_active_tenant_user, RequireRole
-from app.models.user import User, UserRole
-from app.models.tenant import Tenant
-from app.models.tenant_role import TenantRole
-from app.models.tenant_department import TenantDepartment
-from app.models.user_session import UserSession
-from app.models.invitation import Invitation, InvitationStatus
-from app.models.audit_log import AuditLog
-from pydantic import BaseModel, EmailStr
 import secrets
+import uuid
+from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel, EmailStr
+from sqlalchemy import desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import RequireRole, get_current_active_tenant_user, get_db
+from app.models.audit_log import AuditLog
+from app.models.invitation import Invitation, InvitationStatus
+from app.models.tenant import Tenant
+from app.models.tenant_department import TenantDepartment
+from app.models.tenant_role import TenantRole
+from app.models.user import User, UserRole
+from app.models.user_session import UserSession
 
 router = APIRouter()
 
@@ -30,7 +30,7 @@ async def get_team_members(
         tenant_id = current_user.tenant_id
         if not tenant_id:
             raise HTTPException(
-                status_code=403, detail="User does not belong to an organization"
+                status_code=403, detail="User does not belong to an organization",
             )
 
         # Use a scalar subquery for active session count to avoid N+1 query loop
@@ -64,14 +64,14 @@ async def get_team_members(
                     "status": "Active" if u.is_active else "Suspended",
                     "created_at": u.created_at,
                     "active_sessions": active_sessions or 0,
-                }
+                },
             )
 
         return {"status": "success", "data": members}
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -83,7 +83,7 @@ async def get_team_stats(
     tenant_id = current_user.tenant_id
     if not tenant_id:
         raise HTTPException(
-            status_code=403, detail="User does not belong to an organization"
+            status_code=403, detail="User does not belong to an organization",
         )
 
     # Total members
@@ -93,14 +93,14 @@ async def get_team_stats(
 
     # Admins
     admin_stmt = select(func.count(User.id)).where(
-        User.tenant_id == tenant_id, User.role == UserRole.org_admin
+        User.tenant_id == tenant_id, User.role == UserRole.org_admin,
     )
     admin_res = await db.execute(admin_stmt)
     total_admins = admin_res.scalar() or 0
 
     # Pending invites
     invite_stmt = select(func.count(Invitation.id)).where(
-        Invitation.tenant_id == tenant_id, Invitation.status == InvitationStatus.PENDING
+        Invitation.tenant_id == tenant_id, Invitation.status == InvitationStatus.PENDING,
     )
     invite_res = await db.execute(invite_stmt)
     pending_invites = invite_res.scalar() or 0
@@ -162,7 +162,7 @@ async def get_team_roles(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -244,7 +244,7 @@ async def get_team_invitations(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -261,11 +261,11 @@ async def invite_team_member(
 ):
     tenant_id = current_user.tenant_id
     from app.core.config import settings
+    from app.models.tenant import Tenant
     from app.services import email as email_service
 
     # Phase 5: Quota Enforcement
-    from app.services.entitlements import check_quota, BillingResource, get_usage
-    from app.models.tenant import Tenant
+    from app.services.entitlements import BillingResource, check_quota, get_usage
 
     tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
     usage = await get_usage(tenant, db)
@@ -283,7 +283,7 @@ async def invite_team_member(
     res = await db.execute(stmt)
     if res.scalars().first():
         raise HTTPException(
-            status_code=400, detail="User already exists in this organization"
+            status_code=400, detail="User already exists in this organization",
         )
 
     token = secrets.token_urlsafe(32)
@@ -379,7 +379,7 @@ async def resend_team_invitation(
 
     tenant_id = current_user.tenant_id
     stmt = select(Invitation).where(
-        Invitation.id == invitation_id, Invitation.tenant_id == tenant_id
+        Invitation.id == invitation_id, Invitation.tenant_id == tenant_id,
     )
     res = await db.execute(stmt)
     inv = res.scalars().first()
@@ -452,7 +452,7 @@ async def revoke_team_invitation(
     try:
         tenant_id = current_user.tenant_id
         stmt = select(Invitation).where(
-            Invitation.id == invitation_id, Invitation.tenant_id == tenant_id
+            Invitation.id == invitation_id, Invitation.tenant_id == tenant_id,
         )
         res = await db.execute(stmt)
         inv = res.scalars().first()
@@ -478,7 +478,7 @@ async def revoke_team_invitation(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -524,7 +524,7 @@ async def get_team_audit_logs(
                     "name": user.full_name if user else "System",
                     "email": user.email if user else None,
                 },
-            }
+            },
         )
 
     count_stmt = select(func.count(AuditLog.id)).where(AuditLog.tenant_id == tenant_id)
@@ -579,7 +579,7 @@ async def get_team_active_sessions(
                     "ip_address": session.ip_address,
                     "last_active_at": session.last_active_at,
                     "created_at": session.created_at,
-                }
+                },
             )
 
         count_stmt = (
@@ -598,7 +598,7 @@ async def get_team_active_sessions(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -629,7 +629,7 @@ async def change_team_member_role(
     tenant_id = current_user.tenant_id
     if not tenant_id:
         raise HTTPException(
-            status_code=403, detail="You do not belong to an organization."
+            status_code=403, detail="You do not belong to an organization.",
         )
 
     # Fetch the target user — must be in the same tenant
@@ -639,12 +639,12 @@ async def change_team_member_role(
 
     if not target_user:
         raise HTTPException(
-            status_code=404, detail="Team member not found in your organization."
+            status_code=404, detail="Team member not found in your organization.",
         )
 
     if target_user.is_owner:
         raise HTTPException(
-            status_code=403, detail="Cannot change the Platform Owner's role."
+            status_code=403, detail="Cannot change the Platform Owner's role.",
         )
 
     if target_user.id == current_user.id:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_shared_db
 from app.models.tenant import Tenant
@@ -10,12 +10,11 @@ router = APIRouter()
 
 @router.get("/tenant-branding")
 async def get_tenant_branding(domain: str, db: AsyncSession = Depends(get_shared_db)):
-    """
-    Public endpoint to fetch a tenant's branding configuration based on their custom domain.
+    """Public endpoint to fetch a tenant's branding configuration based on their custom domain.
     Used by the frontend middleware/providers to dynamically inject CSS themes before login.
     """
     stmt = select(Tenant).where(
-        Tenant.custom_domain == domain, Tenant.is_deleted == False
+        Tenant.custom_domain == domain, Tenant.is_deleted == False,
     )
     result = await db.execute(stmt)
     tenant = result.scalar_one_or_none()

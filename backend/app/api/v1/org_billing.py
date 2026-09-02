@@ -1,29 +1,27 @@
 import uuid
-from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from pydantic import BaseModel, Field
+from datetime import datetime, timedelta, timezone
 
-from app.api.deps import get_db, get_current_org_admin
-from app.models.user import User
-from app.models.tenant import Tenant, PlanType
-from app.models.invoice import Invoice, InvoiceStatus
-from app.models.billing_activity import BillingActivity
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_org_admin, get_db
 from app.models.ai_token_usage import AITokenUsage
-from app.models.storage import StorageFile, StorageBackup
+from app.models.billing_activity import BillingActivity
 from app.models.dataset import Dataset
+from app.models.invoice import Invoice, InvoiceStatus
+from app.models.rental_contract import ContractStatus, ContractType, RentalContract
 from app.models.report import Report
-from app.models.rental_contract import RentalContract, ContractType, ContractStatus
 from app.models.resource_request import (
     ResourceRequest,
-    ResourceRequestType,
     ResourceRequestStatus,
 )
-from app.repositories.tenant import TenantRepository
-from app.services import entitlements
+from app.models.storage import StorageBackup, StorageFile
+from app.models.tenant import PlanType, Tenant
+from app.models.user import User
 from app.services import billing as billing_service
+from app.services import entitlements
 
 router = APIRouter()
 
@@ -58,14 +56,14 @@ class CancelRequest(BaseModel):
 
 class CreateResourceRequestPayload(BaseModel):
     resource_type: str = Field(
-        ..., description="storage | database | ai_tokens | compute | backup | custom"
+        ..., description="storage | database | ai_tokens | compute | backup | custom",
     )
     requested_capacity: str = Field(
-        ..., description="e.g. +500 GB Storage, NVMe Tier 2 DB"
+        ..., description="e.g. +500 GB Storage, NVMe Tier 2 DB",
     )
-    current_capacity: Optional[str] = Field(None, description="e.g. 500 GB")
+    current_capacity: str | None = Field(None, description="e.g. 500 GB")
     business_reason: str = Field(
-        ..., min_length=5, description="Business justification for additional capacity"
+        ..., min_length=5, description="Business justification for additional capacity",
     )
 
 
@@ -73,22 +71,20 @@ class CreateResourceRequestPayload(BaseModel):
 
 
 async def _get_or_create_tenant_contract(
-    tenant: Tenant, db: AsyncSession
+    tenant: Tenant, db: AsyncSession,
 ) -> RentalContract:
-    """
-    Retrieve or initialize the authoritative RentalContract for the tenant.
+    """Retrieve or initialize the authoritative RentalContract for the tenant.
     """
     contract = await db.scalar(
         select(RentalContract)
         .where(RentalContract.tenant_id == tenant.id)
-        .order_by(RentalContract.created_at.desc())
+        .order_by(RentalContract.created_at.desc()),
     )
     if contract:
         return contract
 
     # Auto-initialize a default contract matching tenant's configuration
     is_custom = tenant.plan == PlanType.custom
-    is_enterprise = tenant.plan == PlanType.enterprise
 
     contract_number = f"CNT-{datetime.now(timezone.utc).year}-{tenant.slug.upper()[:4]}-{str(tenant.id)[:4].upper()}"
     start = tenant.created_at or datetime.now(timezone.utc)
@@ -226,27 +222,27 @@ async def get_rented_resources(
     # Real storage metrics
     files_count = (
         await db.scalar(
-            select(func.count(StorageFile.id)).where(StorageFile.tenant_id == tenant.id)
+            select(func.count(StorageFile.id)).where(StorageFile.tenant_id == tenant.id),
         )
         or 0
     )
     backups_count = (
         await db.scalar(
             select(func.count(StorageBackup.id)).where(
-                StorageBackup.tenant_id == tenant.id
-            )
+                StorageBackup.tenant_id == tenant.id,
+            ),
         )
         or 0
     )
     datasets_count = (
         await db.scalar(
-            select(func.count(Dataset.id)).where(Dataset.tenant_id == tenant.id)
+            select(func.count(Dataset.id)).where(Dataset.tenant_id == tenant.id),
         )
         or 0
     )
     reports_count = (
         await db.scalar(
-            select(func.count(Report.id)).where(Report.tenant_id == tenant.id)
+            select(func.count(Report.id)).where(Report.tenant_id == tenant.id),
         )
         or 0
     )
@@ -261,7 +257,7 @@ async def get_rented_resources(
             func.count(AITokenUsage.id).label("requests"),
         )
         .where(AITokenUsage.tenant_id == tenant.id)
-        .group_by(AITokenUsage.feature)
+        .group_by(AITokenUsage.feature),
     )
     feature_rows = ai_breakdown.all()
     feature_map = {}
@@ -371,7 +367,7 @@ async def get_cost_breakdown(
     max_tokens = tenant.max_ai_tokens_per_month or 5_000_000
     ai_overage_tokens = max(0, used_tokens - max_tokens)
     ai_overage_fee = round(
-        (ai_overage_tokens / 1_000_000) * 15.0, 2
+        (ai_overage_tokens / 1_000_000) * 15.0, 2,
     )  # $15 per 1M tokens overage
 
     subtotal = base_monthly + storage_overage_fee + ai_overage_fee
@@ -455,7 +451,7 @@ async def get_usage(
 
 
 @router.get(
-    "/resource-requests", summary="Get list of tenant resource expansion requests"
+    "/resource-requests", summary="Get list of tenant resource expansion requests",
 )
 async def get_resource_requests(
     current_user: User = Depends(get_current_org_admin),
@@ -465,7 +461,7 @@ async def get_resource_requests(
     results = await db.execute(
         select(ResourceRequest)
         .where(ResourceRequest.tenant_id == current_user.tenant_id)
-        .order_by(ResourceRequest.created_at.desc())
+        .order_by(ResourceRequest.created_at.desc()),
     )
     requests = results.scalars().all()
 
@@ -546,8 +542,8 @@ async def get_invoices(
 
     total = await db.scalar(
         select(func.count(Invoice.id)).where(
-            Invoice.tenant_id == current_user.tenant_id
-        )
+            Invoice.tenant_id == current_user.tenant_id,
+        ),
     )
 
     result = await db.execute(
@@ -555,7 +551,7 @@ async def get_invoices(
         .where(Invoice.tenant_id == current_user.tenant_id)
         .order_by(Invoice.created_at.desc())
         .offset(offset)
-        .limit(limit)
+        .limit(limit),
     )
     invoices = result.scalars().all()
 
@@ -595,8 +591,8 @@ async def get_single_invoice(
 ):
     invoice = await db.scalar(
         select(Invoice).where(
-            Invoice.id == invoice_id, Invoice.tenant_id == current_user.tenant_id
-        )
+            Invoice.id == invoice_id, Invoice.tenant_id == current_user.tenant_id,
+        ),
     )
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
@@ -624,19 +620,19 @@ async def pay_single_invoice(
     tenant = await db.scalar(select(Tenant).where(Tenant.id == current_user.tenant_id))
     invoice = await db.scalar(
         select(Invoice).where(
-            Invoice.id == invoice_id, Invoice.tenant_id == current_user.tenant_id
-        )
+            Invoice.id == invoice_id, Invoice.tenant_id == current_user.tenant_id,
+        ),
     )
     if not tenant or not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
 
     if invoice.status == InvoiceStatus.paid:
         raise HTTPException(
-            status_code=400, detail="This invoice has already been paid."
+            status_code=400, detail="This invoice has already been paid.",
         )
 
     checkout_url = await billing_service.create_invoice_checkout_session(
-        tenant=tenant, user_email=current_user.email, invoice=invoice
+        tenant=tenant, user_email=current_user.email, invoice=invoice,
     )
     return {"checkout_url": checkout_url}
 
@@ -652,8 +648,8 @@ async def get_payments(
 
     total = await db.scalar(
         select(func.count(BillingActivity.id)).where(
-            BillingActivity.tenant_id == current_user.tenant_id
-        )
+            BillingActivity.tenant_id == current_user.tenant_id,
+        ),
     )
 
     result = await db.execute(
@@ -661,7 +657,7 @@ async def get_payments(
         .where(BillingActivity.tenant_id == current_user.tenant_id)
         .order_by(BillingActivity.created_at.desc())
         .offset(offset)
-        .limit(limit)
+        .limit(limit),
     )
     activities = result.scalars().all()
 
@@ -744,7 +740,7 @@ async def get_plans(
 
 
 @router.post(
-    "/portal", response_model=PortalResponse, summary="Get customer portal URL"
+    "/portal", response_model=PortalResponse, summary="Get customer portal URL",
 )
 async def create_portal(
     current_user: User = Depends(get_current_org_admin),
@@ -774,7 +770,7 @@ async def create_checkout(
     tenant = await db.scalar(select(Tenant).where(Tenant.id == current_user.tenant_id))
     try:
         url = await billing_service.create_checkout_session(
-            tenant, current_user.email, body.plan
+            tenant, current_user.email, body.plan,
         )
 
         activity = BillingActivity(

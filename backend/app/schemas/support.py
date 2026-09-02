@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-from uuid import UUID
 from datetime import datetime
-from app.models.support import TicketStatus, TicketPriority
+from typing import Any
+from uuid import UUID
+
+from pydantic import BaseModel, Field
+
+from app.models.support import TicketPriority, TicketStatus
 
 # -----------------------------------------
 # Support Ticket Schemas
@@ -13,8 +15,8 @@ class SupportTicketBase(BaseModel):
     subject: str = Field(..., max_length=255)
     description: str
     priority: TicketPriority = TicketPriority.MEDIUM
-    category: Optional[str] = Field(None, max_length=100)
-    tags: List[str] = []
+    category: str | None = Field(None, max_length=100)
+    tags: list[str] = []
 
 
 class SupportTicketCreate(SupportTicketBase):
@@ -22,26 +24,26 @@ class SupportTicketCreate(SupportTicketBase):
 
 
 class SupportTicketUpdate(BaseModel):
-    subject: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    status: Optional[TicketStatus] = None
-    priority: Optional[TicketPriority] = None
-    category: Optional[str] = Field(None, max_length=100)
-    tags: Optional[List[str]] = None
-    assigned_to_id: Optional[UUID] = None
-    metadata_: Optional[Dict[str, Any]] = Field(None, alias="metadata")
+    subject: str | None = Field(None, max_length=255)
+    description: str | None = None
+    status: TicketStatus | None = None
+    priority: TicketPriority | None = None
+    category: str | None = Field(None, max_length=100)
+    tags: list[str] | None = None
+    assigned_to_id: UUID | None = None
+    metadata_: dict[str, Any] | None = Field(None, alias="metadata")
 
 
 class SupportTicketResponse(SupportTicketBase):
     id: UUID
     tenant_id: UUID
     requester_id: UUID
-    assigned_to_id: Optional[UUID]
+    assigned_to_id: UUID | None
     status: TicketStatus
-    metadata_: Dict[str, Any] = Field(default_factory=dict, alias="metadata")
+    metadata_: dict[str, Any] = Field(default_factory=dict, alias="metadata")
     created_at: datetime
     updated_at: datetime
-    resolved_at: Optional[datetime]
+    resolved_at: datetime | None
 
     class Config:
         from_attributes = True
@@ -57,7 +59,7 @@ class PlatformIncidentBase(BaseModel):
     title: str = Field(..., max_length=255)
     description: str
     status: str = Field(
-        default="investigating", max_length=50
+        default="investigating", max_length=50,
     )  # investigating, identified, monitoring, resolved
     severity: str = Field(default="minor", max_length=50)  # minor, major, critical
 
@@ -67,16 +69,16 @@ class PlatformIncidentCreate(PlatformIncidentBase):
 
 
 class PlatformIncidentUpdate(BaseModel):
-    title: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    status: Optional[str] = Field(None, max_length=50)
-    severity: Optional[str] = Field(None, max_length=50)
+    title: str | None = Field(None, max_length=255)
+    description: str | None = None
+    status: str | None = Field(None, max_length=50)
+    severity: str | None = Field(None, max_length=50)
 
 
 class PlatformIncidentResponse(PlatformIncidentBase):
     id: UUID
     started_at: datetime
-    resolved_at: Optional[datetime]
+    resolved_at: datetime | None
     created_at: datetime
     updated_at: datetime
 

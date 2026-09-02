@@ -1,50 +1,44 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, Request
-from fastapi.responses import StreamingResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, or_
-from sqlalchemy.orm import selectinload
-from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any, Optional
+import io
 import uuid
-import asyncio
-import random
+from datetime import datetime, timezone
+
+import pandas as pd
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from sqlalchemy import desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import (
-    get_db,
-    get_current_active_tenant_user,
-    RequireRole,
-    get_current_workspace,
-    RequirePermission,
     ROLE_PERMISSIONS,
+    RequirePermission,
+    get_current_active_tenant_user,
+    get_current_workspace,
+    get_db,
 )
-from app.models.user import User
-from app.models.workspace import Workspace
-from app.models.report import Report, ReportStatus, ReportType
-from app.models.report_schedule import ReportSchedule
-from app.models.dataset import Dataset
 from app.core.rate_limit import limiter
-from app.models.ai_token_usage import AITokenUsage
-from app.models.audit_log import AuditLog
-from app.models.tenant import Tenant
-from app.models.tenant_role import TenantRole
-from app.models.user_session import UserSession
-from app.models.report_bookmark import ReportBookmark
-from app.schemas.report import ReportScheduleCreate, ReportScheduleResponse
-from pydantic import BaseModel, Field
-import io
-import pandas as pd
-from app.core.websockets import manager as ws_manager
 from app.core.storage import (
-    download_file_bytes,
-    upload_file,
     DATASETS_BUCKET,
     REPORTS_BUCKET,
+    download_file_bytes,
     report_storage_path,
+    upload_file,
 )
+from app.core.websockets import manager as ws_manager
+from app.models.ai_token_usage import AITokenUsage
+from app.models.audit_log import AuditLog
+from app.models.dataset import Dataset
+from app.models.report import Report, ReportStatus, ReportType
+from app.models.report_bookmark import ReportBookmark
+from app.models.report_schedule import ReportSchedule
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.models.workspace import Workspace
+from app.schemas.report import ReportScheduleCreate, ReportScheduleResponse
 from app.worker.tasks.ai_report_tasks import (
-    generate_executive_summary_task,
     generate_ai_analysis_task,
     generate_bi_dashboard_task,
+    generate_executive_summary_task,
     generate_trend_forecast_task,
 )
 from app.worker.tasks.report_tasks import generate_excel_report_task
@@ -83,7 +77,7 @@ async def get_report_stats(
 
         # AI Reports
         ai_stmt = select(func.count(Report.id)).where(
-            *base_conditions, Report.ai_tokens_used > 0
+            *base_conditions, Report.ai_tokens_used > 0,
         )
         ai_res = await db.execute(ai_stmt)
         ai_reports = ai_res.scalar() or 0
@@ -104,16 +98,16 @@ async def get_report_stats(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
 @router.get(
-    "", summary="List Reports", dependencies=[Depends(RequirePermission("REPORT_VIEW"))]
+    "", summary="List Reports", dependencies=[Depends(RequirePermission("REPORT_VIEW"))],
 )
 async def list_reports(
-    search: Optional[str] = None,
-    status: Optional[str] = None,
+    search: str | None = None,
+    status: str | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_active_tenant_user),
@@ -171,7 +165,7 @@ async def list_reports(
                 "created_at": r.created_at.isoformat(),
                 "output_size_bytes": r.output_size_bytes or 0,
                 "dataset_id": str(r.dataset_id) if r.dataset_id else None,
-            }
+            },
         )
 
     return {
@@ -240,9 +234,10 @@ async def get_report_insights(
     workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
+    import json
+
     from app.repositories.report import ReportRepository
     from app.services.ai_service import AIService
-    import json
 
     repo = ReportRepository(db)
     report = await repo.get_tenant_report(current_user.tenant_id, report_id)
@@ -262,7 +257,7 @@ async def get_report_insights(
   "recommendations": ["Recommendation 1", "Recommendation 2"]
 }}"""
         res = await ai.copilot_chat(
-            question=prompt, dataset_id=report.dataset_id, actor=current_user
+            question=prompt, dataset_id=report.dataset_id, actor=current_user,
         )
 
         # Try to parse the answer as JSON
@@ -359,7 +354,7 @@ async def get_report_activities(
                     "action": log.action,
                     "created_at": log.created_at.isoformat(),
                     "type": "audit",
-                }
+                },
             )
 
         return {"status": "success", "data": {"audit_logs": audit_logs}}
@@ -369,7 +364,7 @@ async def get_report_activities(
         import traceback
 
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error: {e!s}")
 
 
 @router.post(
@@ -389,7 +384,7 @@ async def create_schedule(
 
     # Verify dataset exists
     stmt = select(Dataset).where(
-        Dataset.id == req.dataset_id, Dataset.tenant_id == tenant_id
+        Dataset.id == req.dataset_id, Dataset.tenant_id == tenant_id,
     )
     res = await db.execute(stmt)
     dataset = res.scalars().first()
@@ -400,7 +395,7 @@ async def create_schedule(
         raise HTTPException(status_code=400, detail="Invalid cron expression")
 
     next_run = croniter(req.cron_expression, datetime.now(timezone.utc)).get_next(
-        datetime
+        datetime,
     )
 
     schedule = ReportSchedule(
@@ -432,7 +427,7 @@ async def create_schedule(
 
 @router.get(
     "/schedules",
-    response_model=List[ReportScheduleResponse],
+    response_model=list[ReportScheduleResponse],
     summary="List Report Schedules",
     dependencies=[Depends(RequirePermission("REPORT_SCHEDULE"))],
 )
@@ -463,7 +458,7 @@ async def toggle_schedule(
 ):
     tenant_id = current_user.tenant_id
     stmt = select(ReportSchedule).where(
-        ReportSchedule.id == schedule_id, ReportSchedule.tenant_id == tenant_id
+        ReportSchedule.id == schedule_id, ReportSchedule.tenant_id == tenant_id,
     )
     res = await db.execute(stmt)
     schedule = res.scalars().first()
@@ -496,7 +491,7 @@ async def delete_schedule(
 ):
     tenant_id = current_user.tenant_id
     stmt = select(ReportSchedule).where(
-        ReportSchedule.id == schedule_id, ReportSchedule.tenant_id == tenant_id
+        ReportSchedule.id == schedule_id, ReportSchedule.tenant_id == tenant_id,
     )
     res = await db.execute(stmt)
     schedule = res.scalars().first()
@@ -507,10 +502,9 @@ async def delete_schedule(
     await db.commit()
 
     await ws_manager.publish_tenant_event(
-        str(tenant_id), "schedule_deleted", {"schedule_id": str(schedule_id)}
+        str(tenant_id), "schedule_deleted", {"schedule_id": str(schedule_id)},
     )
 
-    return None
 
 
 @router.get("/bookmarks", summary="Get Bookmarked Report IDs")
@@ -520,14 +514,14 @@ async def get_bookmarked_reports(
 ):
     try:
         stmt = select(ReportBookmark.report_id).where(
-            ReportBookmark.user_id == current_user.id
+            ReportBookmark.user_id == current_user.id,
         )
         res = await db.execute(stmt)
         bookmarked_ids = [str(r) for r in res.scalars().all()]
         return {"status": "success", "data": bookmarked_ids}
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail="An error occurred while fetching bookmarks."
+            status_code=500, detail="An error occurred while fetching bookmarks.",
         )
 
 
@@ -556,23 +550,22 @@ async def toggle_report_bookmark(
                     "message": "Bookmark removed",
                 },
             }
-        else:
-            new_bookmark = ReportBookmark(
-                user_id=current_user.id,
-                report_id=report_id,
-                tenant_id=current_user.tenant_id,
-            )
-            db.add(new_bookmark)
-            await db.commit()
-            return {
-                "status": "success",
-                "data": {
-                    "report_id": str(report_id),
-                    "is_bookmarked": True,
-                    "message": "Bookmark added",
-                },
-            }
-    except Exception as e:
+        new_bookmark = ReportBookmark(
+            user_id=current_user.id,
+            report_id=report_id,
+            tenant_id=current_user.tenant_id,
+        )
+        db.add(new_bookmark)
+        await db.commit()
+        return {
+            "status": "success",
+            "data": {
+                "report_id": str(report_id),
+                "is_bookmarked": True,
+                "message": "Bookmark added",
+            },
+        }
+    except Exception:
         await db.rollback()
         raise HTTPException(status_code=500, detail="Failed to toggle bookmark")
 
@@ -602,7 +595,7 @@ async def get_report(
     # (Since we only pass workspace via header, we require it for non-admins)
     if current_user.role not in ["org_admin", "owner"]:
         workspace = await get_current_workspace(
-            request.headers.get("x-workspace-id"), current_user, db
+            request.headers.get("x-workspace-id"), current_user, db,
         )
         if not workspace:
             raise HTTPException(
@@ -650,7 +643,7 @@ async def simulate_report_workflow(
     async with AsyncSessionLocal() as db:
         # Get Dataset
         stmt_d = select(Dataset).where(
-            Dataset.id == dataset_id, Dataset.tenant_id == tenant_id
+            Dataset.id == dataset_id, Dataset.tenant_id == tenant_id,
         )
         res_d = await db.execute(stmt_d)
         dataset = res_d.scalars().first()
@@ -660,7 +653,7 @@ async def simulate_report_workflow(
 
         # Get Report
         stmt_r = select(Report).where(
-            Report.id == report_id, Report.tenant_id == tenant_id
+            Report.id == report_id, Report.tenant_id == tenant_id,
         )
         res_r = await db.execute(stmt_r)
         report = res_r.scalars().first()
@@ -699,14 +692,14 @@ async def simulate_report_workflow(
                     {
                         "Type": "Data Quality Warning",
                         "Description": f"Dataset has {missing_pct}% missing values across {missing_cells} cells.",
-                    }
+                    },
                 )
             else:
                 insights.append(
                     {
                         "Type": "Data Quality check",
                         "Description": f"Excellent data health: only {missing_pct}% missing values.",
-                    }
+                    },
                 )
 
             numeric_cols = df.select_dtypes(include="number").columns.tolist()
@@ -717,7 +710,7 @@ async def simulate_report_workflow(
                     {
                         "Type": "Statistical Mean",
                         "Description": f"The average value for '{top_col}' is {mean_val}.",
-                    }
+                    },
                 )
 
             cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
@@ -728,7 +721,7 @@ async def simulate_report_workflow(
                     {
                         "Type": "Categorical Diversity",
                         "Description": f"Column '{top_cat}' contains {unique_vals} unique categories.",
-                    }
+                    },
                 )
 
             # 5. Export back to an in-memory .xlsx file
@@ -739,7 +732,7 @@ async def simulate_report_workflow(
                     {"Metric": "Total Rows", "Value": num_rows},
                     {"Metric": "Total Columns", "Value": num_cols},
                     {"Metric": "Total Missing Cells", "Value": missing_cells},
-                ]
+                ],
             )
 
             insights_df = pd.DataFrame(insights)
@@ -748,7 +741,7 @@ async def simulate_report_workflow(
                     "Column Name": df.columns,
                     "Data Type": [str(x) for x in df.dtypes],
                     "Missing Values": df.isnull().sum().values,
-                }
+                },
             )
 
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -761,7 +754,7 @@ async def simulate_report_workflow(
             # 6. Upload output to REPORTS_BUCKET
             safe_title = (
                 "".join(
-                    [c for c in report.title if c.isalpha() or c.isdigit() or c == " "]
+                    [c for c in report.title if c.isalpha() or c.isdigit() or c == " "],
                 )
                 .rstrip()
                 .replace(" ", "_")
@@ -808,7 +801,7 @@ async def simulate_report_workflow(
 
             await db.commit()
 
-        except Exception as e:
+        except Exception:
             import traceback
 
             traceback.print_exc()
@@ -833,7 +826,7 @@ async def generate_report(
     tenant_id = current_user.tenant_id
 
     # Phase 5: Quota Enforcement
-    from app.services.entitlements import check_quota, BillingResource, get_usage
+    from app.services.entitlements import BillingResource, check_quota, get_usage
 
 
     tenant = await db.scalar(select(Tenant).where(Tenant.id == tenant_id))
@@ -893,7 +886,7 @@ async def generate_report(
     # Dispatch Celery tasks dynamically based on report_category
     if req.report_category == "executive":
         generate_executive_summary_task.delay(
-            str(tenant_id), str(r.id), str(dataset.id)
+            str(tenant_id), str(r.id), str(dataset.id),
         )
     elif req.report_category == "ai-insight":
         generate_ai_analysis_task.delay(str(tenant_id), str(r.id), str(dataset.id))
@@ -906,7 +899,7 @@ async def generate_report(
     else:
         # Fallback to the old simulation workflow (or for other types until we implement them)
         background_tasks.add_task(
-            simulate_report_workflow, tenant_id, r.id, current_user.id, dataset.id
+            simulate_report_workflow, tenant_id, r.id, current_user.id, dataset.id,
         )
 
     return {
@@ -935,11 +928,11 @@ async def report_action(
         # Workspace Enforcement for non-admins
         if current_user.role not in ["org_admin", "owner"]:
             workspace = await get_current_workspace(
-                request.headers.get("x-workspace-id"), current_user, db
+                request.headers.get("x-workspace-id"), current_user, db,
             )
             if not workspace:
                 raise HTTPException(
-                    status_code=403, detail="Workspace context required."
+                    status_code=403, detail="Workspace context required.",
                 )
             base_conditions.append(Report.workspace_id == workspace.id)
 
@@ -949,7 +942,7 @@ async def report_action(
 
         if not r:
             raise HTTPException(
-                status_code=404, detail="Report not found or access denied"
+                status_code=404, detail="Report not found or access denied",
             )
 
         # RBAC and Ownership check
@@ -985,14 +978,14 @@ async def report_action(
         await db.commit()
 
         await ws_manager.publish_tenant_event(
-            str(tenant_id), f"report_{action_type}", {"report_id": str(r.id)}
+            str(tenant_id), f"report_{action_type}", {"report_id": str(r.id)},
         )
 
         return {"status": "success", "message": f"Action {action_type} completed"}
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
@@ -1015,11 +1008,11 @@ async def download_report(
 
         if current_user.role not in ["org_admin", "owner"]:
             workspace = await get_current_workspace(
-                request.headers.get("x-workspace-id"), current_user, db
+                request.headers.get("x-workspace-id"), current_user, db,
             )
             if not workspace:
                 raise HTTPException(
-                    status_code=403, detail="Workspace context required for download."
+                    status_code=403, detail="Workspace context required for download.",
                 )
             base_conditions.append(Report.workspace_id == workspace.id)
 
@@ -1044,7 +1037,7 @@ async def download_report(
                 file_bytes = await download_file_bytes(REPORTS_BUCKET, file_url)
                 output.write(file_bytes)
                 output.seek(0)
-            except Exception as e:
+            except Exception:
                 pass  # Fall back to dynamic generation
 
         # If no file exists in storage or it failed, generate one dynamically from ai_blueprint
@@ -1082,10 +1075,10 @@ async def download_report(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         import traceback
 
         traceback.print_exc()
         raise HTTPException(
-            status_code=500, detail="Failed to generate or download report"
+            status_code=500, detail="Failed to generate or download report",
         )

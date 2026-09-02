@@ -6,9 +6,8 @@ Create Date: 2026-08-01 09:30:58.360465+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "c884bdec6eb8"
@@ -43,7 +42,7 @@ def upgrade() -> None:
         sa.Column("alerts_enabled", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE"
+            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("workspace_id"),
@@ -65,7 +64,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["api_key_id"], ["api_keys.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(
-            ["workspace_id"], ["workspaces.id"], ondelete="SET NULL"
+            ["workspace_id"], ["workspaces.id"], ondelete="SET NULL",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -113,12 +112,12 @@ def upgrade() -> None:
         sa.Column("last_used_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE"
+            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_oauth_clients_client_id"), "oauth_clients", ["client_id"], unique=True
+        op.f("ix_oauth_clients_client_id"), "oauth_clients", ["client_id"], unique=True,
     )
     op.create_index(
         op.f("ix_oauth_clients_workspace_id"),
@@ -163,10 +162,10 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_oauth_clients_client_id"), table_name="oauth_clients")
     op.drop_table("oauth_clients")
     op.drop_index(
-        op.f("ix_api_request_logs_workspace_id"), table_name="api_request_logs"
+        op.f("ix_api_request_logs_workspace_id"), table_name="api_request_logs",
     )
     op.drop_index(
-        op.f("ix_api_request_logs_status_code"), table_name="api_request_logs"
+        op.f("ix_api_request_logs_status_code"), table_name="api_request_logs",
     )
     op.drop_index(op.f("ix_api_request_logs_endpoint"), table_name="api_request_logs")
     op.drop_index(op.f("ix_api_request_logs_created_at"), table_name="api_request_logs")

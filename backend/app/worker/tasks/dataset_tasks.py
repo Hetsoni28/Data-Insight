@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import io
-import json
 import uuid
-from loguru import logger
+
 from celery import shared_task
+from loguru import logger
 
 
 @shared_task(bind=True, name="dataset.profile", max_retries=3, default_retry_delay=30)
 def profile_dataset_task(self, dataset_id: str):
-    """
-    Phase 3: Ingest dataset using Polars engine, run comprehensive
+    """Phase 3: Ingest dataset using Polars engine, run comprehensive
     DuckDB & statistical profiling, and persist results.
     """
     import asyncio
@@ -22,15 +20,16 @@ def profile_dataset_task(self, dataset_id: str):
 
 async def _profile_dataset(task, dataset_id: str):
     import httpx
-    from app.db.session import AsyncSessionLocal, engine
-    from app.repositories.dataset import DatasetRepository
-    from app.models.dataset import DatasetStatus
+
     from app.core.storage import (
-        get_signed_url,
         DATASETS_BUCKET,
-        is_local_storage,
         LOCAL_UPLOADS_DIR,
+        get_signed_url,
+        is_local_storage,
     )
+    from app.db.session import AsyncSessionLocal
+    from app.models.dataset import DatasetStatus
+    from app.repositories.dataset import DatasetRepository
     from app.services.ingestion.polars_engine import PolarsEngine
     from app.services.ingestion.profiler import DataProfiler
 
@@ -52,7 +51,7 @@ async def _profile_dataset(task, dataset_id: str):
                     file_bytes = local_path.read_bytes()
                 else:
                     signed_url = await get_signed_url(
-                        DATASETS_BUCKET, dataset.file_url, expires_in=300
+                        DATASETS_BUCKET, dataset.file_url, expires_in=300,
                     )
                     async with httpx.AsyncClient() as client:
                         response = await client.get(signed_url)
@@ -85,20 +84,20 @@ async def _profile_dataset(task, dataset_id: str):
                 logger.info(
                     f"Dataset {dataset_id} successfully profiled via Polars/DuckDB: "
                     f"{profile['row_count']} rows, {profile['column_count']} cols, "
-                    f"quality={profile['quality_score']}/100 (Grade {profile['quality_grade']})"
+                    f"quality={profile['quality_score']}/100 (Grade {profile['quality_grade']})",
                 )
 
             except Exception as exc:
                 logger.exception(f"Profiling failed for dataset {dataset_id}: {exc}")
                 await ds_repo.update_status(
-                    dataset, DatasetStatus.error, error_message=str(exc)
+                    dataset, DatasetStatus.error, error_message=str(exc),
                 )
                 await session.commit()
                 raise task.retry(exc=exc)
 
     except Exception as exc:
         logger.exception(
-            f"Unhandled error in profile_dataset_task for {dataset_id}: {exc}"
+            f"Unhandled error in profile_dataset_task for {dataset_id}: {exc}",
         )
 
 

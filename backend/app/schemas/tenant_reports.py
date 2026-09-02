@@ -1,7 +1,4 @@
-from datetime import datetime
-from typing import List, Optional, Any
 from pydantic import BaseModel
-import uuid
 
 
 class ReportStatsResponse(BaseModel):
@@ -20,7 +17,7 @@ class ReportItem(BaseModel):
     category: str
     created_at: str
     output_size_bytes: int
-    dataset_id: Optional[str]
+    dataset_id: str | None
 
 
 class ReportActivityItem(BaseModel):
@@ -31,4 +28,4 @@ class ReportActivityItem(BaseModel):
 
 
 class ReportActivitiesResponse(BaseModel):
-    audit_logs: List[ReportActivityItem]
+    audit_logs: list[ReportActivityItem]

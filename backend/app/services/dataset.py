@@ -17,6 +17,7 @@ from app.core.storage import (
     delete_file,
     DATASETS_BUCKET,
 )
+from app.schemas.dataset import StructuredQueryRequest
 from app.core.exceptions import (
     ResourceNotFoundException,
     ForbiddenException,

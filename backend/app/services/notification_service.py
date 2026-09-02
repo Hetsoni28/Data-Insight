@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.notification import Notification
 
 
@@ -13,15 +15,14 @@ class NotificationService:
         message: str,
         category: str,
         priority: str = "Medium",
-        notif_type: str = None,
-        icon: str = None,
-        tenant_id: uuid.UUID = None,
-        user_id: uuid.UUID = None,
-        metadata_json: dict = None,
-        action_url: str = None,
+        notif_type: str | None = None,
+        icon: str | None = None,
+        tenant_id: uuid.UUID | None = None,
+        user_id: uuid.UUID | None = None,
+        metadata_json: dict | None = None,
+        action_url: str | None = None,
     ) -> Notification:
-        """
-        Creates a new notification. If `tenant_id` and `user_id` are both None,
+        """Creates a new notification. If `tenant_id` and `user_id` are both None,
         this becomes a platform-wide notification visible to the platform owner.
         """
         try:

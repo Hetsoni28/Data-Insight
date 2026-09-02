@@ -1,18 +1,18 @@
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import case, desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
 from app.models.integration import (
+    AutomationWorkflow,
     IntegrationConnection,
     IntegrationLog,
-    AutomationWorkflow,
 )
+from app.models.user import User
 from app.models.webhook import Webhook
 from app.models.webhook_delivery import WebhookDeliveryLog
-from sqlalchemy import case
 
 router = APIRouter()
 
@@ -20,39 +20,39 @@ router = APIRouter()
 async def require_owner(current_user: User = Depends(get_current_user)) -> User:
     if not getattr(current_user, "is_owner", False) and current_user.role != "owner":
         raise HTTPException(
-            status_code=403, detail="Only platform owners can access this endpoint"
+            status_code=403, detail="Only platform owners can access this endpoint",
         )
     return current_user
 
 
 @router.get("/overview")
 async def get_overview(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     # Get connections stats
     total_connections = await db.scalar(select(func.count(IntegrationConnection.id)))
     online_connections = await db.scalar(
         select(func.count(IntegrationConnection.id)).where(
-            IntegrationConnection.status == "online"
-        )
+            IntegrationConnection.status == "online",
+        ),
     )
 
     # Get log stats (last 30 days)
     total_syncs = await db.scalar(select(func.count(IntegrationLog.id)))
     failed_syncs = await db.scalar(
-        select(func.count(IntegrationLog.id)).where(IntegrationLog.status_code >= 400)
+        select(func.count(IntegrationLog.id)).where(IntegrationLog.status_code >= 400),
     )
     avg_latency = await db.scalar(select(func.avg(IntegrationLog.latency_ms)))
 
     # Active Webhooks
     active_webhooks = await db.scalar(
-        select(func.count(Webhook.id)).where(Webhook.is_active == True)
+        select(func.count(Webhook.id)).where(Webhook.is_active == True),
     )
 
     global_health = 100.0
     if total_connections and total_connections > 0:
         avg_score = await db.scalar(
-            select(func.avg(IntegrationConnection.health_score))
+            select(func.avg(IntegrationConnection.health_score)),
         )
         global_health = float(avg_score or 100.0)
 
@@ -66,16 +66,16 @@ async def get_overview(
             "failed_syncs_30d": failed_syncs or 0,
             "avg_latency_ms": int(avg_latency or 0),
             "active_webhooks": active_webhooks or 0,
-        }
+        },
     }
 
 
 @router.get("/connected")
 async def get_connected_integrations(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     result = await db.execute(
-        select(IntegrationConnection).order_by(desc(IntegrationConnection.health_score))
+        select(IntegrationConnection).order_by(desc(IntegrationConnection.health_score)),
     )
     integrations = result.scalars().all()
 
@@ -95,13 +95,13 @@ async def get_connected_integrations(
                 "last_sync_at": i.last_sync_at.isoformat() if i.last_sync_at else None,
             }
             for i in integrations
-        ]
+        ],
     }
 
 
 @router.get("/webhooks")
 async def get_webhooks(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     # Subquery to calculate real stats from delivery logs
     stats_subq = (
@@ -111,7 +111,7 @@ async def get_webhooks(
             func.sum(WebhookDeliveryLog.retry_count).label("total_retries"),
             func.count(WebhookDeliveryLog.id).label("total_deliveries"),
             func.sum(case((WebhookDeliveryLog.success == True, 1), else_=0)).label(
-                "success_count"
+                "success_count",
             ),
         )
         .group_by(WebhookDeliveryLog.webhook_id)
@@ -151,7 +151,7 @@ async def get_webhooks(
                 "latency_ms": int(avg_latency),
                 "success_rate": round(success_rate, 1),
                 "retries": total_retries,
-            }
+            },
         )
 
     return {"webhooks": webhooks_data}
@@ -159,10 +159,10 @@ async def get_webhooks(
 
 @router.get("/workflows")
 async def get_workflows(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     result = await db.execute(
-        select(AutomationWorkflow).order_by(desc(AutomationWorkflow.created_at))
+        select(AutomationWorkflow).order_by(desc(AutomationWorkflow.created_at)),
     )
     workflows = result.scalars().all()
 
@@ -184,7 +184,7 @@ async def get_workflows(
                 ),
             }
             for w in workflows
-        ]
+        ],
     }
 
 
@@ -201,7 +201,7 @@ async def get_integration_logs(
             IntegrationLog.integration_id == IntegrationConnection.id,
         )
         .order_by(desc(IntegrationLog.created_at))
-        .limit(limit)
+        .limit(limit),
     )
 
     logs = []
@@ -215,7 +215,7 @@ async def get_integration_logs(
                 "status_code": log.status_code,
                 "latency_ms": log.latency_ms,
                 "timestamp": log.created_at.isoformat(),
-            }
+            },
         )
 
     return {"logs": logs}

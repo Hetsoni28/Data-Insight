@@ -2,9 +2,10 @@
 
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, List
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.report import Report, ReportStatus
 from app.repositories.base import BaseRepository
 
@@ -19,7 +20,7 @@ class ReportRepository(BaseRepository[Report]):
         workspace_id: uuid.UUID,
         limit: int = 50,
         offset: int = 0,
-    ) -> List[Report]:
+    ) -> list[Report]:
         stmt = (
             select(Report)
             .where(
@@ -35,8 +36,8 @@ class ReportRepository(BaseRepository[Report]):
         return list(result.scalars().all())
 
     async def get_tenant_report(
-        self, tenant_id: uuid.UUID, report_id: uuid.UUID
-    ) -> Optional[Report]:
+        self, tenant_id: uuid.UUID, report_id: uuid.UUID,
+    ) -> Report | None:
         stmt = select(Report).where(
             Report.id == report_id,
             Report.tenant_id == tenant_id,
@@ -45,13 +46,13 @@ class ReportRepository(BaseRepository[Report]):
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
-    async def get_by_celery_task(self, task_id: str) -> Optional[Report]:
+    async def get_by_celery_task(self, task_id: str) -> Report | None:
         stmt = select(Report).where(Report.celery_task_id == task_id)
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
     async def update_status(
-        self, report: Report, status: ReportStatus, progress: int = None, **kwargs
+        self, report: Report, status: ReportStatus, progress: int | None = None, **kwargs,
     ) -> Report:
         report.status = status
         if progress is not None:

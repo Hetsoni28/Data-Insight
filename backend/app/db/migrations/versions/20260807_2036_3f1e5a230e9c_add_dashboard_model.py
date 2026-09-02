@@ -6,9 +6,8 @@ Create Date: 2026-08-07 20:36:30.304288+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "3f1e5a230e9c"
@@ -37,19 +36,19 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["created_by_id"], ["users.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(
-            ["primary_dataset_id"], ["datasets.id"], ondelete="SET NULL"
+            ["primary_dataset_id"], ["datasets.id"], ondelete="SET NULL",
         ),
         sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
-            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE"
+            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_dashboards_tenant_id"), "dashboards", ["tenant_id"], unique=False
+        op.f("ix_dashboards_tenant_id"), "dashboards", ["tenant_id"], unique=False,
     )
     op.create_index(
-        op.f("ix_dashboards_workspace_id"), "dashboards", ["workspace_id"], unique=False
+        op.f("ix_dashboards_workspace_id"), "dashboards", ["workspace_id"], unique=False,
     )
     # op.alter_column('tenants', 'db_connection_type',
     #            existing_type=sa.VARCHAR(length=20),

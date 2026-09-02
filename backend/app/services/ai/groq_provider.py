@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 import re
 import time
-import logging
-from typing import AsyncIterator, Optional, Dict, Any, List
+from collections.abc import AsyncIterator
+from typing import Any
+
 from groq import AsyncGroq
 
 from app.core.config import settings
@@ -36,7 +38,7 @@ class GroqProvider(BaseLLMProvider):
     default_model: str = "openai/gpt-oss-120b"
 
     # Pricing per 1M tokens in USD
-    PRICING: Dict[str, Dict[str, float]] = {
+    PRICING: dict[str, dict[str, float]] = {
         "openai/gpt-oss-120b": {"prompt": 0.59, "completion": 0.79},
         "qwen/qwen3.6-27b": {"prompt": 0.59, "completion": 0.79},
         "llama-3.3-70b-versatile": {"prompt": 0.59, "completion": 0.79},
@@ -46,9 +48,9 @@ class GroqProvider(BaseLLMProvider):
         "mixtral-8x7b-32768": {"prompt": 0.24, "completion": 0.24},
     }
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or settings.GROQ_API_KEY
-        self._client: Optional[AsyncGroq] = None
+        self._client: AsyncGroq | None = None
         if self.api_key:
             try:
                 self._client = AsyncGroq(api_key=self.api_key)
@@ -68,16 +70,16 @@ class GroqProvider(BaseLLMProvider):
     async def generate(
         self,
         prompt: str,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         temperature: float = 0.2,
         max_tokens: int = 4096,
         json_mode: bool = False,
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> LLMResponse:
         client = self._get_client()
         target_model = model or settings.GROQ_DEFAULT_MODEL or self.default_model
 
-        messages: List[Dict[str, str]] = []
+        messages: list[dict[str, str]] = []
         if system_instruction:
             messages.append({"role": "system", "content": system_instruction})
         messages.append({"role": "user", "content": prompt})
@@ -86,7 +88,7 @@ class GroqProvider(BaseLLMProvider):
 
         start_time = time.perf_counter()
         try:
-            kwargs: Dict[str, Any] = {
+            kwargs: dict[str, Any] = {
                 "model": target_model,
                 "messages": messages,
                 "temperature": temperature,
@@ -128,7 +130,7 @@ class GroqProvider(BaseLLMProvider):
                 "429" in err_str or "rate_limit" in err_str.lower()
             ) and target_model != "llama-3.1-8b-instant":
                 logger.warning(
-                    f"[GroqProvider] {target_model} rate limited. Falling back to llama-3.1-8b-instant..."
+                    f"[GroqProvider] {target_model} rate limited. Falling back to llama-3.1-8b-instant...",
                 )
                 try:
                     kwargs["model"] = "llama-3.1-8b-instant"
@@ -149,7 +151,7 @@ class GroqProvider(BaseLLMProvider):
                         completion_tokens=completion_tokens,
                         total_tokens=prompt_tokens + completion_tokens,
                         cost_usd=self.calculate_cost(
-                            "llama-3.1-8b-instant", prompt_tokens, completion_tokens
+                            "llama-3.1-8b-instant", prompt_tokens, completion_tokens,
                         ),
                         latency_ms=round(latency_ms, 2),
                         provider=self.provider_name,
@@ -159,20 +161,20 @@ class GroqProvider(BaseLLMProvider):
                     logger.error(f"[GroqProvider] Fallback model also failed: {fb_err}")
 
             logger.error(f"[GroqProvider] Generation failed with error: {e}")
-            raise AIServiceException(f"Groq generation failed: {str(e)}")
+            raise AIServiceException(f"Groq generation failed: {e!s}")
 
     async def generate_stream(
         self,
         prompt: str,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         temperature: float = 0.2,
         max_tokens: int = 4096,
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> AsyncIterator[str]:
         client = self._get_client()
         target_model = model or settings.GROQ_DEFAULT_MODEL or self.default_model
 
-        messages: List[Dict[str, str]] = []
+        messages: list[dict[str, str]] = []
         if system_instruction:
             messages.append({"role": "system", "content": system_instruction})
         messages.append({"role": "user", "content": prompt})
@@ -230,4 +232,4 @@ class GroqProvider(BaseLLMProvider):
 
         except Exception as e:
             logger.error(f"[GroqProvider] Streaming failed: {e}")
-            raise AIServiceException(f"Groq streaming failed: {str(e)}")
+            raise AIServiceException(f"Groq streaming failed: {e!s}")

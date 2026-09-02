@@ -1,8 +1,7 @@
 import uuid
-from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
-from typing import Optional, Dict, Any, List
 
+from pydantic import BaseModel, ConfigDict, Field
 
 # ═══════════════════════════════════════════════
 # Profile Header / Full Profile
@@ -15,26 +14,26 @@ class ViewerProfileResponse(BaseModel):
     # Identity
     id: uuid.UUID
     email: str
-    full_name: Optional[str] = None
-    avatar_url: Optional[str] = None
+    full_name: str | None = None
+    avatar_url: str | None = None
 
     # Organization context
-    organization_name: Optional[str] = None
-    organization_logo: Optional[str] = None
-    department: Optional[str] = None
-    job_title: Optional[str] = None
+    organization_name: str | None = None
+    organization_logo: str | None = None
+    department: str | None = None
+    job_title: str | None = None
     role: str
     account_type: str
     account_status: str  # "active", "locked", "suspended"
 
     # Timestamps
     member_since: datetime
-    last_active: Optional[datetime] = None
+    last_active: datetime | None = None
 
     # Personal fields
-    phone: Optional[str] = None
-    location: Optional[str] = None
-    short_bio: Optional[str] = None
+    phone: str | None = None
+    location: str | None = None
+    short_bio: str | None = None
 
     # Security summary
     is_email_verified: bool = False
@@ -46,12 +45,12 @@ class ViewerProfileResponse(BaseModel):
 class ViewerProfileUpdateRequest(BaseModel):
     """Fields the viewer is allowed to edit themselves."""
 
-    full_name: Optional[str] = None
-    phone: Optional[str] = None
-    location: Optional[str] = None
-    job_title: Optional[str] = None
-    department: Optional[str] = None
-    short_bio: Optional[str] = None
+    full_name: str | None = None
+    phone: str | None = None
+    location: str | None = None
+    job_title: str | None = None
+    department: str | None = None
+    short_bio: str | None = None
 
 
 # ═══════════════════════════════════════════════
@@ -60,11 +59,11 @@ class ViewerProfileUpdateRequest(BaseModel):
 
 
 class ViewerSecurityOverview(BaseModel):
-    password_last_changed: Optional[str] = "Not available"
+    password_last_changed: str | None = "Not available"
     mfa_enabled: bool = False
     active_sessions_count: int = 0
     failed_login_attempts: int = 0
-    last_login: Optional[datetime] = None
+    last_login: datetime | None = None
     security_score: int = 0
     is_email_verified: bool = False
 
@@ -87,11 +86,11 @@ class ViewerPasswordChangeResponse(BaseModel):
 
 class ViewerSessionResponse(BaseModel):
     id: uuid.UUID
-    device_name: Optional[str] = None
-    os: Optional[str] = None
-    browser: Optional[str] = None
-    location: Optional[str] = None
-    ip_address: Optional[str] = None
+    device_name: str | None = None
+    os: str | None = None
+    browser: str | None = None
+    location: str | None = None
+    ip_address: str | None = None
     is_active: bool
     is_current: bool = False
     last_active_at: datetime
@@ -114,14 +113,14 @@ class ViewerLoginHistoryEntry(BaseModel):
     country: str
     city: str
     success: bool
-    failure_reason: Optional[str] = None
+    failure_reason: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ViewerLoginHistoryResponse(BaseModel):
-    entries: List[ViewerLoginHistoryEntry]
+    entries: list[ViewerLoginHistoryEntry]
     total: int
     page: int
     size: int
@@ -182,16 +181,16 @@ class ViewerPreferences(BaseModel):
 class ViewerActivityEntry(BaseModel):
     id: uuid.UUID
     action: str
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
-    details: Optional[str] = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    details: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ViewerActivityResponse(BaseModel):
-    entries: List[ViewerActivityEntry]
+    entries: list[ViewerActivityEntry]
     total: int
 
 
@@ -203,7 +202,7 @@ class ViewerActivityResponse(BaseModel):
 class ViewerDataExportResponse(BaseModel):
     status: str  # "requested", "processing", "ready"
     message: str
-    request_id: Optional[str] = None
+    request_id: str | None = None
 
 
 class ViewerAccountDeletionResponse(BaseModel):

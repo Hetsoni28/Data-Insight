@@ -2,9 +2,8 @@
 
 import uuid
 from datetime import datetime
-from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field
 
+from pydantic import BaseModel, Field
 
 PLAN_TYPES = ["starter", "professional", "enterprise", "custom"]
 DB_CONNECTION_TYPES = ["shared", "dedicated"]
@@ -30,8 +29,8 @@ class TenantUpdateRequest(BaseModel):
 
 class TenantDatabaseConfigRequest(BaseModel):
     db_connection_type: str = Field(..., pattern="^(shared|dedicated)$")
-    dedicated_db_url: Optional[str] = Field(
-        None, description="PostgreSQL async connection string"
+    dedicated_db_url: str | None = Field(
+        None, description="PostgreSQL async connection string",
     )
 
 
@@ -43,7 +42,7 @@ class DatabaseConnectionTestResponse(BaseModel):
     success: bool
     latency_ms: float
     message: str
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class StorageUsageBreakdown(BaseModel):
@@ -63,7 +62,7 @@ class AITokenUsageBreakdown(BaseModel):
     percentage: float
     is_near_limit: bool
     is_exceeded: bool
-    resets_at: Optional[str] = None
+    resets_at: str | None = None
 
 
 class UserSeatUsageBreakdown(BaseModel):
@@ -82,7 +81,7 @@ class TenantUsageResponse(BaseModel):
     db_connection_type: str
     has_dedicated_db: bool
     is_suspended: bool
-    suspension_reason: Optional[str] = None
+    suspension_reason: str | None = None
     storage: StorageUsageBreakdown
     ai_tokens: AITokenUsageBreakdown
     users: UserSeatUsageBreakdown

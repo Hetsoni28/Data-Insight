@@ -1,138 +1,138 @@
 """Models package — import all models so Alembic can detect them."""
 
-from app.models.user import User, UserRole, AccountType
-from app.models.user_profile import UserProfile
-from app.models.user_activity import UserActivity
-from app.models.user_session import UserSession
-from app.models.auth import RefreshToken, LoginHistory
-from app.models.tenant import Tenant, PlanType, DBConnectionType
-from app.models.workspace import Workspace
-from app.models.dataset import Dataset, DatasetStatus, DatasetFileType
-from app.models.report import Report, ReportStatus, ReportType
-from app.models.audit_log import AuditLog
-from app.models.ai_token_usage import AITokenUsage
-from app.models.invitation import Invitation, InvitationStatus
-from app.models.api_key import ApiKey
-from app.models.webhook import Webhook
-from app.models.notification import Notification
-from app.models.support import SupportTicket, PlatformIncident
-from app.models.invoice import Invoice, InvoiceStatus
-from app.models.billing_activity import BillingActivity
-from app.models.api_gateway import (
-    ApiRequestLog,
-    OAuthClient,
-    ApiRateLimit,
-    ApiIntegration,
-)
-from app.models.storage import (
-    StorageBucket,
-    StorageFile,
-    StorageBackup,
-    StorageLifecyclePolicy,
-    StorageActivityLog,
-)
 from app.models.ai_ops import (
-    AIProvider,
     AIModel,
-    AIRoutingRule,
     AIPromptTemplate,
+    AIProvider,
+    AIRoutingRule,
     AIUsageLog,
 )
+from app.models.ai_token_usage import AITokenUsage
+from app.models.api_gateway import (
+    ApiIntegration,
+    ApiRateLimit,
+    ApiRequestLog,
+    OAuthClient,
+)
+from app.models.api_key import ApiKey
+from app.models.audit_log import AuditLog
+from app.models.auth import LoginHistory, RefreshToken
+from app.models.billing_activity import BillingActivity
+from app.models.chart import Chart
+from app.models.chat import ChatMessage, ChatSession
+from app.models.dashboard import Dashboard
+from app.models.dataset import Dataset, DatasetFileType, DatasetStatus
+from app.models.feature_flag import FeatureExperiment, FeatureFlag, FeatureRollout
 from app.models.integration import (
+    AutomationWorkflow,
     IntegrationConnection,
     IntegrationLog,
-    AutomationWorkflow,
 )
-from app.models.security import SecurityEvent, ThreatIntelligence, ComplianceReport
-from app.models.feature_flag import FeatureFlag, FeatureRollout, FeatureExperiment
+from app.models.invitation import Invitation, InvitationStatus
+from app.models.invoice import Invoice, InvoiceStatus
+from app.models.lead import Lead, LeadSource, LeadStatus
+from app.models.notification import Notification
 from app.models.operating_expense import OperatingExpense
-from app.models.webhook_delivery import WebhookDeliveryLog
-from app.models.chat import ChatSession, ChatMessage
-from app.models.tenant_role import TenantRole
-from app.models.tenant_department import TenantDepartment
+from app.models.rental_contract import ContractStatus, ContractType, RentalContract
+from app.models.report import Report, ReportStatus, ReportType
+from app.models.report_activity import ReportActivity
+from app.models.report_bookmark import ReportBookmark
 from app.models.report_schedule import ReportSchedule
-from app.models.dashboard import Dashboard
-from app.models.chart import Chart
-from app.models.stripe_event import StripeEvent
-from app.models.rental_contract import RentalContract, ContractType, ContractStatus
 from app.models.resource_request import (
     ResourceRequest,
-    ResourceRequestType,
     ResourceRequestStatus,
+    ResourceRequestType,
 )
-from app.models.lead import Lead, LeadStatus, LeadSource
-from app.models.report_bookmark import ReportBookmark
-from app.models.report_activity import ReportActivity
+from app.models.security import ComplianceReport, SecurityEvent, ThreatIntelligence
+from app.models.storage import (
+    StorageActivityLog,
+    StorageBackup,
+    StorageBucket,
+    StorageFile,
+    StorageLifecyclePolicy,
+)
+from app.models.stripe_event import StripeEvent
+from app.models.support import PlatformIncident, SupportTicket
+from app.models.tenant import DBConnectionType, PlanType, Tenant
+from app.models.tenant_department import TenantDepartment
+from app.models.tenant_role import TenantRole
+from app.models.user import AccountType, User, UserRole
+from app.models.user_activity import UserActivity
+from app.models.user_profile import UserProfile
+from app.models.user_session import UserSession
+from app.models.webhook import Webhook
+from app.models.webhook_delivery import WebhookDeliveryLog
+from app.models.workspace import Workspace
 
 __all__ = [
-    "User",
-    "UserRole",
-    "AccountType",
-    "UserProfile",
-    "UserActivity",
-    "UserSession",
-    "LoginHistory",
-    "RefreshToken",
-    "Tenant",
-    "PlanType",
-    "Workspace",
-    "Dataset",
-    "DatasetStatus",
-    "DatasetFileType",
-    "Report",
-    "ReportStatus",
-    "ReportType",
-    "AuditLog",
-    "AITokenUsage",
-    "Invitation",
-    "InvitationStatus",
-    "ApiKey",
-    "Webhook",
-    "Notification",
-    "SupportTicket",
-    "PlatformIncident",
-    "Invoice",
-    "InvoiceStatus",
-    "BillingActivity",
-    "ApiRequestLog",
-    "OAuthClient",
-    "ApiRateLimit",
-    "ApiIntegration",
-    "StorageBucket",
-    "StorageFile",
-    "StorageBackup",
-    "StorageLifecyclePolicy",
-    "StorageActivityLog",
-    "AIProvider",
     "AIModel",
-    "AIRoutingRule",
     "AIPromptTemplate",
+    "AIProvider",
+    "AIRoutingRule",
+    "AITokenUsage",
     "AIUsageLog",
-    "IntegrationConnection",
-    "IntegrationLog",
+    "AccountType",
+    "ApiIntegration",
+    "ApiKey",
+    "ApiRateLimit",
+    "ApiRequestLog",
+    "AuditLog",
     "AutomationWorkflow",
-    "SecurityEvent",
-    "ThreatIntelligence",
+    "BillingActivity",
+    "ChatMessage",
     "ComplianceReport",
+    "ContractStatus",
+    "ContractType",
+    "DBConnectionType",
+    "Dataset",
+    "DatasetFileType",
+    "DatasetStatus",
+    "FeatureExperiment",
     "FeatureFlag",
     "FeatureRollout",
-    "FeatureExperiment",
-    "OperatingExpense",
-    "WebhookDeliveryLog",
-    "ChatMessage",
-    "ReportSchedule",
-    "StripeEvent",
-    "RentalContract",
-    "ContractType",
-    "ContractStatus",
-    "ResourceRequest",
-    "ResourceRequestType",
-    "ResourceRequestStatus",
+    "IntegrationConnection",
+    "IntegrationLog",
+    "Invitation",
+    "InvitationStatus",
+    "Invoice",
+    "InvoiceStatus",
     "Lead",
-    "LeadStatus",
     "LeadSource",
-    "DBConnectionType",
-    "ReportBookmark",
+    "LeadStatus",
+    "LoginHistory",
+    "Notification",
+    "OAuthClient",
+    "OperatingExpense",
+    "PlanType",
+    "PlatformIncident",
+    "RefreshToken",
+    "RentalContract",
+    "Report",
     "ReportActivity",
+    "ReportBookmark",
+    "ReportSchedule",
+    "ReportStatus",
+    "ReportType",
+    "ResourceRequest",
+    "ResourceRequestStatus",
+    "ResourceRequestType",
+    "SecurityEvent",
+    "StorageActivityLog",
+    "StorageBackup",
+    "StorageBucket",
+    "StorageFile",
+    "StorageLifecyclePolicy",
+    "StripeEvent",
+    "SupportTicket",
+    "Tenant",
+    "ThreatIntelligence",
+    "User",
+    "UserActivity",
+    "UserProfile",
+    "UserRole",
+    "UserSession",
+    "Webhook",
+    "WebhookDeliveryLog",
+    "Workspace",
 ]
 from app.models.dataset_alert import DatasetAlert

@@ -1,7 +1,8 @@
 import uuid
-from typing import Literal
-from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserBase(BaseModel):

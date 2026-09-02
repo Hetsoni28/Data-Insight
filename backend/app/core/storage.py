@@ -1,13 +1,13 @@
 """Supabase Storage helper — upload, download, signed URLs."""
 
-import uuid
 import mimetypes
-import os
-import shutil
+import uuid
 from pathlib import Path
-from supabase import create_client, Client
-from app.core.config import settings
+
 from loguru import logger
+from supabase import Client, create_client
+
+from app.core.config import settings
 
 
 def is_local_storage() -> bool:
@@ -27,7 +27,7 @@ def _client() -> Client:
         raise Exception("Using local storage, do not initialize Supabase client.")
     if _supabase_client is None:
         _supabase_client = create_client(
-            settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY
+            settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY,
         )
     return _supabase_client
 
@@ -132,7 +132,7 @@ def dataset_storage_path(tenant_id: uuid.UUID, filename: str) -> str:
 
 
 def report_storage_path(
-    tenant_id: uuid.UUID, report_id: uuid.UUID, filename: str
+    tenant_id: uuid.UUID, report_id: uuid.UUID, filename: str,
 ) -> str:
     """Generate a deterministic storage path for a report output."""
     return f"{tenant_id}/reports/{report_id}/{filename}"

@@ -1,16 +1,17 @@
 import asyncio
 import json
+
 from fastapi import WebSocket
-from typing import Dict, Set
 from loguru import logger
-from app.db.redis import get_redis_client
 from redis.asyncio.client import PubSub
+
+from app.db.redis import get_redis_client
 
 
 class WebSocketManager:
     def __init__(self):
         # tenant_id -> set of active WebSockets
-        self.active_connections: Dict[str, Set[WebSocket]] = {}
+        self.active_connections: dict[str, set[WebSocket]] = {}
         self.pubsub: PubSub | None = None
         self.listener_task: asyncio.Task | None = None
 
@@ -20,7 +21,7 @@ class WebSocketManager:
             self.active_connections[tenant_id] = set()
         self.active_connections[tenant_id].add(websocket)
         logger.debug(
-            f"WebSocket connected for tenant {tenant_id}. Total: {len(self.active_connections[tenant_id])}"
+            f"WebSocket connected for tenant {tenant_id}. Total: {len(self.active_connections[tenant_id])}",
         )
 
     def disconnect(self, websocket: WebSocket, tenant_id: str):
@@ -45,7 +46,7 @@ class WebSocketManager:
                     self.disconnect(connection, tenant_id)
 
     async def publish_tenant_event(
-        self, tenant_id: str, event_type: str, payload: dict = None
+        self, tenant_id: str, event_type: str, payload: dict | None = None,
     ):
         """Publish event to Redis so all workers/instances can broadcast it."""
         redis = await get_redis_client()

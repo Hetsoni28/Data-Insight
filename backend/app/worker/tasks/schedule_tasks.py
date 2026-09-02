@@ -1,17 +1,16 @@
-import asyncio
 from datetime import datetime, timezone
-import uuid
-from croniter import croniter
 
+from croniter import croniter
 from sqlalchemy import select
+
 from app.db.session import AsyncSessionLocal
+from app.models.report import Report, ReportStatus
 from app.models.report_schedule import ReportSchedule
-from app.models.report import Report, ReportStatus, ReportType
 from app.worker.celery_app import celery_app
 from app.worker.tasks.ai_report_tasks import (
-    generate_executive_summary_task,
     generate_ai_analysis_task,
     generate_bi_dashboard_task,
+    generate_executive_summary_task,
     generate_trend_forecast_task,
 )
 
@@ -21,7 +20,7 @@ async def _process_schedules_async():
     async with AsyncSessionLocal() as db:
         # Find schedules that are active and due to run
         stmt = select(ReportSchedule).where(
-            ReportSchedule.is_active == True, ReportSchedule.next_run_at <= now
+            ReportSchedule.is_active == True, ReportSchedule.next_run_at <= now,
         )
         res = await db.execute(stmt)
         schedules = res.scalars().all()
@@ -69,7 +68,7 @@ async def _process_schedules_async():
             if croniter.is_valid(schedule.cron_expression):
                 schedule.last_run_at = now
                 schedule.next_run_at = croniter(schedule.cron_expression, now).get_next(
-                    datetime
+                    datetime,
                 )
             else:
                 schedule.is_active = False  # Disable invalid schedules
@@ -97,17 +96,19 @@ def dispatch_schedule_email_task(schedule_id: str):
 
 async def _dispatch_schedule_email_async(schedule_id: str):
     import os
-    import resend
-    from app.db.session import AsyncSessionLocal
-    from app.models.report_schedule import ReportSchedule
-    from app.models.dataset import Dataset
-    from app.core.storage import (
-        get_signed_url,
-        DATASETS_BUCKET,
-        is_local_storage,
-        LOCAL_UPLOADS_DIR,
-    )
+
     import httpx
+    import resend
+
+    from app.core.storage import (
+        DATASETS_BUCKET,
+        LOCAL_UPLOADS_DIR,
+        get_signed_url,
+        is_local_storage,
+    )
+    from app.db.session import AsyncSessionLocal
+    from app.models.dataset import Dataset
+    from app.models.report_schedule import ReportSchedule
 
     resend_key = os.getenv("RESEND_API_KEY")
     if resend_key:
@@ -167,7 +168,7 @@ async def _dispatch_schedule_email_async(schedule_id: str):
                             "subject": f"Scheduled Report: {ds.name}",
                             "html": html_content,
                             "attachments": attachments,
-                        }
+                        },
                     )
                     print(f"Emailed {email} successfully via Resend.")
                 except Exception as e:

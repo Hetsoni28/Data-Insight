@@ -6,15 +6,15 @@ and comprehensive login history audit records.
 
 import uuid
 from datetime import datetime, timezone
+
 from sqlalchemy import (
-    String,
     Boolean,
     DateTime,
     ForeignKey,
-    Index,
+    String,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
 
@@ -25,7 +25,7 @@ class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -34,10 +34,10 @@ class RefreshToken(Base):
         index=True,
     )
     token_hash: Mapped[str] = mapped_column(
-        String(255), unique=True, index=True, nullable=False
+        String(255), unique=True, index=True, nullable=False,
     )
     expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+        DateTime(timezone=True), nullable=False,
     )
     is_revoked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -55,7 +55,7 @@ class LoginHistory(Base):
     __tablename__ = "login_history"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -64,10 +64,10 @@ class LoginHistory(Base):
         index=True,
     )
     ip_address: Mapped[str] = mapped_column(
-        String(45), default="127.0.0.1", nullable=False
+        String(45), default="127.0.0.1", nullable=False,
     )
     browser: Mapped[str] = mapped_column(
-        String(100), default="Unknown Browser", nullable=False
+        String(100), default="Unknown Browser", nullable=False,
     )
     os: Mapped[str] = mapped_column(String(100), default="Unknown OS", nullable=False)
     device: Mapped[str] = mapped_column(String(100), default="Desktop", nullable=False)

@@ -1,7 +1,9 @@
-from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from datetime import datetime, timezone
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
+
 from app.db.session import Base
 
 
@@ -16,7 +18,7 @@ class ReportSchedule(Base):
         index=True,
     )
     created_by_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True,
     )
     dataset_id = Column(
         UUID(as_uuid=True),
@@ -29,7 +31,7 @@ class ReportSchedule(Base):
     report_category = Column(String, nullable=False, default="executive")
 
     export_format = Column(
-        String, nullable=False, default="pdf"
+        String, nullable=False, default="pdf",
     )  # 'pdf', 'excel', 'both'
     email_recipients = Column(String, nullable=True)  # comma-separated emails
 
@@ -40,7 +42,7 @@ class ReportSchedule(Base):
     last_run_at = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
     updated_at = Column(
         DateTime(timezone=True),

@@ -1,9 +1,11 @@
-from datetime import datetime, timedelta, timezone
-from typing import Any, Union, Optional, Dict
-from jose import jwt, JWTError
-import bcrypt
 import hashlib
 import secrets
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
+import bcrypt
+from jose import jwt
+
 from app.core.config import settings
 
 
@@ -11,7 +13,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify plain password against hashed password."""
     try:
         return bcrypt.checkpw(
-            plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+            plain_password.encode("utf-8"), hashed_password.encode("utf-8"),
         )
     except Exception:
         return False
@@ -33,18 +35,18 @@ def generate_secure_token(length: int = 48) -> str:
 
 
 def create_access_token(
-    subject: Union[str, Any],
+    subject: str | Any,
     role: str,
-    tenant_id: Union[str, None] = None,
+    tenant_id: str | None = None,
     token_version: int = 1,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Generate a short-lived JWT access token with tenant_id and token_version."""
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
         )
 
     to_encode = {
@@ -60,9 +62,9 @@ def create_access_token(
 
 
 def create_refresh_token(
-    subject: Union[str, Any],
+    subject: str | Any,
     token_version: int = 1,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Generate a long-lived rotating refresh token (default 30 days)."""
     if expires_delta:
@@ -82,8 +84,8 @@ def create_refresh_token(
 
 
 def create_mfa_token(
-    subject: Union[str, Any],
-    expires_delta: Optional[timedelta] = None,
+    subject: str | Any,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Generate a short-lived temporary token (5 minutes) for TOTP challenge step."""
     if expires_delta:
@@ -99,6 +101,6 @@ def create_mfa_token(
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm="HS256")
 
 
-def decode_token(token: str) -> Dict[str, Any]:
+def decode_token(token: str) -> dict[str, Any]:
     """Decode and validate JWT token signature and expiration."""
     return jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])

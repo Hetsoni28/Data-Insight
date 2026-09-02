@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
 from app.schemas.user import UserResponse
 
 
@@ -12,12 +13,12 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    access_token: Optional[str] = None
-    refresh_token: Optional[str] = None
+    access_token: str | None = None
+    refresh_token: str | None = None
     token_type: str = "bearer"
     mfa_required: bool = False
-    mfa_token: Optional[str] = None
-    user: Optional[UserResponse] = None
+    mfa_token: str | None = None
+    user: UserResponse | None = None
 
 
 class MFALoginRequest(BaseModel):
@@ -29,7 +30,7 @@ class MFASetupResponse(BaseModel):
     secret: str
     otpauth_url: str
     qr_code_base64: str
-    recovery_codes: List[str]
+    recovery_codes: list[str]
 
 
 class MFAVerifyRequest(BaseModel):
@@ -68,7 +69,7 @@ class LoginHistoryResponse(BaseModel):
     country: str
     city: str
     success: bool
-    failure_reason: Optional[str] = None
+    failure_reason: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

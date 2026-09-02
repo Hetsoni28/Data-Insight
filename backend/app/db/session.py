@@ -1,9 +1,10 @@
 # app/db/session.py
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
-from contextlib import asynccontextmanager
-from sqlalchemy.pool import NullPool
 import sys
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
+
 from app.core.config import settings
 
 # ─── Async Engine ─────────────────────────────────────────────────────────────
@@ -38,18 +39,15 @@ AsyncSessionLocal = async_sessionmaker(
 
 # ─── Base Model ───────────────────────────────────────────────────────────────
 class Base(DeclarativeBase):
-    """
-    All SQLAlchemy ORM models inherit from this Base.
+    """All SQLAlchemy ORM models inherit from this Base.
     Import this in every model file.
     """
 
-    pass
 
 
 # ─── Session Dependency (FastAPI) ────────────────────────────────────────────
 async def get_async_session():
-    """
-    FastAPI dependency that provides a scoped AsyncSession.
+    """FastAPI dependency that provides a scoped AsyncSession.
     Automatically commits on success and rolls back on exception.
     """
     async with AsyncSessionLocal() as session:

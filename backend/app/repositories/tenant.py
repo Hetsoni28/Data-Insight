@@ -1,10 +1,9 @@
 """TenantRepository — queries for the Tenant model."""
 
-import uuid
-from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.models.tenant import Tenant, PlanType
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.tenant import PlanType, Tenant
 from app.repositories.base import BaseRepository
 
 
@@ -12,12 +11,12 @@ class TenantRepository(BaseRepository[Tenant]):
     def __init__(self, session: AsyncSession):
         super().__init__(Tenant, session)
 
-    async def get_by_slug(self, slug: str) -> Optional[Tenant]:
+    async def get_by_slug(self, slug: str) -> Tenant | None:
         stmt = select(Tenant).where(Tenant.slug == slug, Tenant.is_deleted == False)
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
-    async def get_by_domain(self, domain: str) -> Optional[Tenant]:
+    async def get_by_domain(self, domain: str) -> Tenant | None:
         stmt = select(Tenant).where(Tenant.domain == domain, Tenant.is_deleted == False)
         result = await self.session.execute(stmt)
         return result.scalars().first()

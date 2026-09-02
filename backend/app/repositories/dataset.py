@@ -2,9 +2,10 @@
 
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, List
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+
 from app.models.dataset import Dataset, DatasetStatus
 from app.repositories.base import BaseRepository
 
@@ -19,7 +20,7 @@ class DatasetRepository(BaseRepository[Dataset]):
         workspace_id: uuid.UUID,
         limit: int = 50,
         offset: int = 0,
-    ) -> List[Dataset]:
+    ) -> list[Dataset]:
         stmt = (
             select(Dataset)
             .where(
@@ -35,8 +36,8 @@ class DatasetRepository(BaseRepository[Dataset]):
         return list(result.scalars().all())
 
     async def get_tenant_dataset(
-        self, tenant_id: uuid.UUID, dataset_id: uuid.UUID
-    ) -> Optional[Dataset]:
+        self, tenant_id: uuid.UUID, dataset_id: uuid.UUID,
+    ) -> Dataset | None:
         stmt = select(Dataset).where(
             Dataset.id == dataset_id,
             Dataset.tenant_id == tenant_id,
@@ -48,13 +49,13 @@ class DatasetRepository(BaseRepository[Dataset]):
     async def get_tenant_storage_used(self, tenant_id: uuid.UUID) -> int:
         """Returns total file_size_bytes for all non-deleted datasets of this tenant."""
         stmt = select(func.coalesce(func.sum(Dataset.file_size_bytes), 0)).where(
-            Dataset.tenant_id == tenant_id, Dataset.is_deleted == False
+            Dataset.tenant_id == tenant_id, Dataset.is_deleted == False,
         )
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
     async def update_status(
-        self, dataset: Dataset, status: DatasetStatus, error_message: str | None = None
+        self, dataset: Dataset, status: DatasetStatus, error_message: str | None = None,
     ) -> Dataset:
         dataset.status = status
         if error_message:

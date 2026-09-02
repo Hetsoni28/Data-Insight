@@ -6,9 +6,8 @@ Create Date: 2026-08-13 20:19:07.356344+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0ce9ac4e6622"
@@ -52,7 +51,7 @@ def upgrade() -> None:
         sa.Column(
             "source",
             sa.Enum(
-                "pricing_page", "landing_page", "referral", "direct", name="lead_source"
+                "pricing_page", "landing_page", "referral", "direct", name="lead_source",
             ),
             nullable=False,
         ),
@@ -70,7 +69,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("lead_id"),
     )
     op.create_index(
-        op.f("ix_leads_business_email"), "leads", ["business_email"], unique=False
+        op.f("ix_leads_business_email"), "leads", ["business_email"], unique=False,
     )
     op.create_index(op.f("ix_leads_status"), "leads", ["status"], unique=False)
     op.alter_column(

@@ -1,36 +1,37 @@
 import uuid
-from pydantic import BaseModel, ConfigDict, Field
-from datetime import datetime, date
-from typing import List, Optional, Dict, Any
+from datetime import date, datetime
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict
 
 
 # =======================
 # User Profile Schemas
 # =======================
 class UserProfileBase(BaseModel):
-    phone: Optional[str] = None
-    alternate_email: Optional[str] = None
-    birth_date: Optional[date] = None
-    country: Optional[str] = None
-    state: Optional[str] = None
-    city: Optional[str] = None
-    timezone: Optional[str] = "UTC"
-    language: Optional[str] = "en"
-    short_bio: Optional[str] = None
+    phone: str | None = None
+    alternate_email: str | None = None
+    birth_date: date | None = None
+    country: str | None = None
+    state: str | None = None
+    city: str | None = None
+    timezone: str | None = "UTC"
+    language: str | None = "en"
+    short_bio: str | None = None
 
-    company_name: Optional[str] = None
-    job_title: Optional[str] = None
-    department: Optional[str] = None
-    industry: Optional[str] = None
-    website: Optional[str] = None
-    linkedin_url: Optional[str] = None
-    github_url: Optional[str] = None
-    twitter_url: Optional[str] = None
-    portfolio_url: Optional[str] = None
-    experience_years: Optional[int] = None
+    company_name: str | None = None
+    job_title: str | None = None
+    department: str | None = None
+    industry: str | None = None
+    website: str | None = None
+    linkedin_url: str | None = None
+    github_url: str | None = None
+    twitter_url: str | None = None
+    portfolio_url: str | None = None
+    experience_years: int | None = None
 
-    preferences: Optional[Dict[str, Any]] = None
-    security_settings: Optional[Dict[str, Any]] = None
+    preferences: dict[str, Any] | None = None
+    security_settings: dict[str, Any] | None = None
 
 
 class UserProfileUpdate(UserProfileBase):
@@ -54,9 +55,9 @@ class UserActivityResponse(BaseModel):
     user_id: uuid.UUID
     action: str
     module: str
-    metadata_json: Optional[Dict[str, Any]] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
+    metadata_json: dict[str, Any] | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -67,11 +68,11 @@ class UserActivityResponse(BaseModel):
 # =======================
 class UserSessionResponse(BaseModel):
     id: uuid.UUID
-    device_name: Optional[str] = None
-    os: Optional[str] = None
-    browser: Optional[str] = None
-    location: Optional[str] = None
-    ip_address: Optional[str] = None
+    device_name: str | None = None
+    os: str | None = None
+    browser: str | None = None
+    location: str | None = None
+    ip_address: str | None = None
     is_active: bool
     last_active_at: datetime
     created_at: datetime
@@ -99,5 +100,5 @@ class ProfileStatsResponse(BaseModel):
 
 class FullProfileResponse(BaseModel):
     user: Any  # Dict from user schema
-    profile: Optional[UserProfileResponse] = None
+    profile: UserProfileResponse | None = None
     stats: ProfileStatsResponse

@@ -1,16 +1,17 @@
 """Report generation and management endpoints."""
 
 import uuid
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, get_current_active_tenant_user, RequireRole
+from app.api.deps import RequireRole, get_current_active_tenant_user, get_db
 from app.models.user import User
 from app.schemas.report import (
-    ReportGenerateRequest,
     ReportApproveRequest,
-    ReportResponse,
+    ReportGenerateRequest,
     ReportJobResponse,
+    ReportResponse,
 )
 from app.services.report import ReportService
 
@@ -40,7 +41,7 @@ async def generate_report(
 
 
 @router.get(
-    "", response_model=list[ReportResponse], summary="List reports in workspace"
+    "", response_model=list[ReportResponse], summary="List reports in workspace",
 )
 async def list_reports(
     workspace_id: uuid.UUID,

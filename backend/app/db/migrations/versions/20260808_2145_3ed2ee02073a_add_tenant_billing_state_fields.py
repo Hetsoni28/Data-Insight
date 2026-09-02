@@ -6,9 +6,8 @@ Create Date: 2026-08-08 21:45:49.492689+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "3ed2ee02073a"
@@ -33,7 +32,7 @@ def upgrade() -> None:
         sa.Column("current_period_end", sa.DateTime(timezone=True), nullable=True),
     )
     op.add_column(
-        "tenants", sa.Column("cancel_at", sa.DateTime(timezone=True), nullable=True)
+        "tenants", sa.Column("cancel_at", sa.DateTime(timezone=True), nullable=True),
     )
     op.add_column(
         "tenants",

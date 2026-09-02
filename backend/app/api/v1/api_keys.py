@@ -1,16 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, Header, Security
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-import secrets
 import hashlib
+import secrets
 import uuid
-from datetime import datetime, timezone
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User
-from app.models.api_key import ApiKey
-from app.schemas.api_key import ApiKeyCreate, ApiKeyResponse, ApiKeyCreateResponse
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
 from app.core.exceptions import ResourceNotFoundException
+from app.models.api_key import ApiKey
+from app.models.user import User
+from app.schemas.api_key import ApiKeyCreate, ApiKeyCreateResponse, ApiKeyResponse
 
 router = APIRouter(prefix="/users/me/api-keys", tags=["API Keys"])
 
@@ -23,7 +23,7 @@ def generate_api_key(prefix: str = "sk_live_"):
 
 @router.get("", response_model=list[ApiKeyResponse], summary="List my API keys")
 async def list_api_keys(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db),
 ):
     stmt = (
         select(ApiKey)
@@ -41,10 +41,11 @@ async def create_api_key(
     db: AsyncSession = Depends(get_db),
 ):
     # Phase 5: Quota Enforcement
-    from app.services.entitlements import can_use_feature, BillingFeature
-    from app.models.tenant import Tenant
     from sqlalchemy import select
+
     from app.core.exceptions import ForbiddenException
+    from app.models.tenant import Tenant
+    from app.services.entitlements import BillingFeature, can_use_feature
 
     if not current_user.tenant_id:
         raise ForbiddenException("Organization required to create API keys.")

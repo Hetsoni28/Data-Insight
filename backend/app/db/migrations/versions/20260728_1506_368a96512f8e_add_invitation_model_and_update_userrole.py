@@ -6,8 +6,8 @@ Create Date: 2026-07-28 15:06:38.096523+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -38,10 +38,10 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_invitations_email"), "invitations", ["email"], unique=False
+        op.f("ix_invitations_email"), "invitations", ["email"], unique=False,
     )
     op.create_index(
-        op.f("ix_invitations_tenant_id"), "invitations", ["tenant_id"], unique=False
+        op.f("ix_invitations_tenant_id"), "invitations", ["tenant_id"], unique=False,
     )
     op.create_index(op.f("ix_invitations_token"), "invitations", ["token"], unique=True)
     op.alter_column(
@@ -80,7 +80,7 @@ def upgrade() -> None:
         existing_nullable=False,
     )
     op.create_index(
-        op.f("ix_ai_token_usage_feature"), "ai_token_usage", ["feature"], unique=False
+        op.f("ix_ai_token_usage_feature"), "ai_token_usage", ["feature"], unique=False,
     )
     op.alter_column(
         "audit_logs",
@@ -104,7 +104,7 @@ def upgrade() -> None:
         existing_nullable=False,
     )
     op.create_index(
-        op.f("ix_audit_logs_user_id"), "audit_logs", ["user_id"], unique=False
+        op.f("ix_audit_logs_user_id"), "audit_logs", ["user_id"], unique=False,
     )
     op.alter_column(
         "datasets",
@@ -212,10 +212,10 @@ def upgrade() -> None:
         existing_nullable=False,
     )
     op.create_index(
-        op.f("ix_reports_dataset_id"), "reports", ["dataset_id"], unique=False
+        op.f("ix_reports_dataset_id"), "reports", ["dataset_id"], unique=False,
     )
     op.create_index(
-        op.f("ix_reports_workspace_id"), "reports", ["workspace_id"], unique=False
+        op.f("ix_reports_workspace_id"), "reports", ["workspace_id"], unique=False,
     )
     op.alter_column(
         "tenants",
@@ -465,7 +465,7 @@ def downgrade() -> None:
         existing_nullable=False,
     )
     op.create_unique_constraint(
-        "user_sessions_token_hash_key", "user_sessions", ["token_hash"]
+        "user_sessions_token_hash_key", "user_sessions", ["token_hash"],
     )
     op.alter_column(
         "user_sessions",

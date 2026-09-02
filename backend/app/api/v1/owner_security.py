@@ -1,12 +1,13 @@
 import uuid
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
 
-from app.api.deps import get_db, get_current_user
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
+from app.models.security import ComplianceReport, SecurityEvent, ThreatIntelligence
 from app.models.user import User
-from app.models.security import SecurityEvent, ThreatIntelligence, ComplianceReport
 from app.models.user_session import UserSession
 
 router = APIRouter()
@@ -14,7 +15,7 @@ router = APIRouter()
 
 async def require_owner(current_user: User = Depends(get_current_user)) -> User:
     if getattr(current_user, "role", "") != "owner" and not getattr(
-        current_user, "is_owner", False
+        current_user, "is_owner", False,
     ):
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
@@ -22,21 +23,21 @@ async def require_owner(current_user: User = Depends(get_current_user)) -> User:
 
 @router.get("/overview")
 async def get_overview(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     # KPI Logic
     active_sessions = await db.scalar(
-        select(func.count(UserSession.id)).where(UserSession.is_active == True)
+        select(func.count(UserSession.id)).where(UserSession.is_active == True),
     )
     blocked_ips = await db.scalar(
         select(func.count(ThreatIntelligence.id)).where(
-            ThreatIntelligence.is_blocked == True
-        )
+            ThreatIntelligence.is_blocked == True,
+        ),
     )
     critical_events = await db.scalar(
         select(func.count(SecurityEvent.id)).where(
-            SecurityEvent.severity == "critical", SecurityEvent.resolved == False
-        )
+            SecurityEvent.severity == "critical", SecurityEvent.resolved == False,
+        ),
     )
     total_events = await db.scalar(select(func.count(SecurityEvent.id)))
 
@@ -52,7 +53,7 @@ async def get_overview(
             "blocked_ips": blocked_ips or 0,
             "critical_events": critical_events or 0,
             "total_events": total_events or 0,
-        }
+        },
     }
 
 
@@ -63,7 +64,7 @@ async def get_security_events(
     current_user: User = Depends(require_owner),
 ) -> Any:
     result = await db.execute(
-        select(SecurityEvent).order_by(desc(SecurityEvent.created_at)).limit(limit)
+        select(SecurityEvent).order_by(desc(SecurityEvent.created_at)).limit(limit),
     )
     events = result.scalars().all()
 
@@ -81,7 +82,7 @@ async def get_security_events(
                 "created_at": e.created_at.isoformat(),
             }
             for e in events
-        ]
+        ],
     }
 
 
@@ -94,7 +95,7 @@ async def get_threats(
     result = await db.execute(
         select(ThreatIntelligence)
         .order_by(desc(ThreatIntelligence.last_seen_at))
-        .limit(limit)
+        .limit(limit),
     )
     threats = result.scalars().all()
 
@@ -111,7 +112,7 @@ async def get_threats(
                 "last_seen_at": t.last_seen_at.isoformat(),
             }
             for t in threats
-        ]
+        ],
     }
 
 
@@ -148,13 +149,13 @@ async def get_sessions(
                 "created_at": s.created_at.isoformat(),
             }
             for s, u in rows
-        ]
+        ],
     }
 
 
 @router.get("/compliance")
 async def get_compliance(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     result = await db.execute(select(ComplianceReport))
     reports = result.scalars().all()
@@ -173,7 +174,7 @@ async def get_compliance(
                 ),
             }
             for r in reports
-        ]
+        ],
     }
 
 

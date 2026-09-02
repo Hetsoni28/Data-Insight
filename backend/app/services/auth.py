@@ -10,46 +10,45 @@ Implements:
 """
 
 import uuid
-import hashlib
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List, Dict, Any, Tuple
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
+from loguru import logger
+from redis.asyncio import Redis
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from redis.asyncio import Redis
-from loguru import logger
 
-from app.schemas.user import UserCreate
-from app.models.user import User
-from app.models.auth import RefreshToken, LoginHistory
-from app.models.user_session import UserSession
-from app.models.notification import Notification
-from app.repositories.user import UserRepository
+from app.core import otp as otp_service
 from app.core.config import settings
 from app.core.exceptions import (
     ConflictException,
-    UnauthorizedException,
     ForbiddenException,
-    ValidationException,
     ResourceNotFoundException,
+    UnauthorizedException,
+    ValidationException,
 )
 from app.core.security import (
-    verify_password,
-    get_password_hash,
     create_access_token,
-    create_refresh_token,
     create_mfa_token,
+    create_refresh_token,
     decode_token,
+    get_password_hash,
     hash_token,
+    verify_password,
 )
-from app.services.mfa import MFAService
-from app.core import otp as otp_service
+from app.models.auth import LoginHistory, RefreshToken
+from app.models.user import User
+from app.models.user_session import UserSession
+from app.repositories.user import UserRepository
+from app.schemas.user import UserCreate
 from app.services import email as email_service
+from app.services.mfa import MFAService
 from app.services.notification_service import NotificationService
 
 
 def parse_client_metadata(
-    user_agent: Optional[str], ip_address: Optional[str]
-) -> Dict[str, str]:
+    user_agent: str | None, ip_address: str | None,
+) -> dict[str, str]:
     """Extract browser, OS, and device information from client headers."""
     client_ip = (ip_address or "127.0.0.1").split(",")[0].strip()
     device = "Desktop"
@@ -104,7 +103,7 @@ class AuthService:
     # ── Request Access & Registration ─────────────────────────────────────────
 
     async def request_access(
-        self, email: str, password: str, full_name: str, requested_role: str
+        self, email: str, password: str, full_name: str, requested_role: str,
     ) -> User:
         """Creates a new user in a Pending Approval state."""
         if settings.OWNER_EMAIL and email.lower() == settings.OWNER_EMAIL.lower():
@@ -120,7 +119,7 @@ class AuthService:
                 password=password,
                 full_name=full_name,
                 account_type="organization",
-            )
+            ),
         )
 
         user.is_active = False
@@ -172,10 +171,10 @@ class AuthService:
         await self.session.commit()
 
         verification_otp = await otp_service.create_email_verification_otp(
-            self.redis, new_user.email
+            self.redis, new_user.email,
         )
         logger.info(
-            f"[Auth] New user registered: {new_user.email} | OTP: {verification_otp}"
+            f"[Auth] New user registered: {new_user.email} | OTP: {verification_otp}",
         )
 
         await email_service.send_email_verification(
@@ -185,7 +184,7 @@ class AuthService:
         )
         return new_user
 
-    async def verify_email_otp(self, email: str, otp: str) -> Dict[str, Any]:
+    async def verify_email_otp(self, email: str, otp: str) -> dict[str, Any]:
         """Validate OTP on registration, mark verified, and issue tokens."""
         user = await self.user_repo.get_by_email(email)
         if not user:
@@ -208,16 +207,16 @@ class AuthService:
             return
 
         allowed = await otp_service.check_resend_rate_limit(
-            self.redis, email, max_per_hour=3
+            self.redis, email, max_per_hour=3,
         )
         if not allowed:
             raise ForbiddenException(
-                "Too many resend requests. Please wait before requesting a new code."
+                "Too many resend requests. Please wait before requesting a new code.",
             )
 
         new_otp = await otp_service.create_email_verification_otp(self.redis, email)
         await email_service.send_email_verification(
-            to_email=email, full_name=user.full_name, otp=new_otp
+            to_email=email, full_name=user.full_name, otp=new_otp,
         )
 
     # ── Enterprise Authentication & Lockout ──────────────────────────────────
@@ -226,11 +225,10 @@ class AuthService:
         self,
         email: str,
         password: str,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """
-        Authenticate user with account lockout & MFA check.
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> dict[str, Any]:
+        """Authenticate user with account lockout & MFA check.
         Returns access/refresh tokens OR mfa_required payload.
         """
         meta = parse_client_metadata(user_agent, ip_address)
@@ -240,7 +238,7 @@ class AuthService:
         # 1. User existence check with dummy password verification to prevent timing attacks
         if not user:
             verify_password(
-                "dummy", "$2b$12$e8uq2Bv2uV7s/F6uQJ2N6e5Fj2z9N3XvK3Ew2yU1K9n.q3gV6Nq0S"
+                "dummy", "$2b$12$e8uq2Bv2uV7s/F6uQJ2N6e5Fj2z9N3XvK3Ew2yU1K9n.q3gV6Nq0S",
             )
             raise UnauthorizedException("Incorrect email or password.")
 
@@ -252,7 +250,7 @@ class AuthService:
         )
         if locked_until_utc and locked_until_utc > now_utc:
             remaining_mins = max(
-                1, int((locked_until_utc - now_utc).total_seconds() / 60)
+                1, int((locked_until_utc - now_utc).total_seconds() / 60),
             )
             await self._record_login_history(
                 user_id=user.id,
@@ -261,7 +259,7 @@ class AuthService:
                 failure_reason=f"Account locked until {locked_until_utc.isoformat()}",
             )
             raise UnauthorizedException(
-                f"Account is temporarily locked due to excessive failed attempts. Please try again in {remaining_mins} minute(s)."
+                f"Account is temporarily locked due to excessive failed attempts. Please try again in {remaining_mins} minute(s).",
             )
 
         # 3. Validate Password
@@ -277,20 +275,19 @@ class AuthService:
                     failure_reason="5 failed attempts - account locked for 15m",
                 )
                 raise UnauthorizedException(
-                    "Too many failed login attempts. Your account has been locked for 15 minutes."
+                    "Too many failed login attempts. Your account has been locked for 15 minutes.",
                 )
-            else:
-                await self.session.commit()
-                await self._record_login_history(
-                    user_id=user.id,
-                    meta=meta,
-                    success=False,
-                    failure_reason=f"Invalid password (attempt {user.failed_login_attempts}/5)",
-                )
-                remaining_attempts = 5 - user.failed_login_attempts
-                raise UnauthorizedException(
-                    f"Incorrect email or password. {remaining_attempts} attempt(s) remaining before lockout."
-                )
+            await self.session.commit()
+            await self._record_login_history(
+                user_id=user.id,
+                meta=meta,
+                success=False,
+                failure_reason=f"Invalid password (attempt {user.failed_login_attempts}/5)",
+            )
+            remaining_attempts = 5 - user.failed_login_attempts
+            raise UnauthorizedException(
+                f"Incorrect email or password. {remaining_attempts} attempt(s) remaining before lockout.",
+            )
 
         # 4. Password is valid -> Reset failed attempts
         user.failed_login_attempts = 0
@@ -299,12 +296,12 @@ class AuthService:
 
         if not user.is_email_verified:
             raise ForbiddenException(
-                "Please verify your email address before logging in."
+                "Please verify your email address before logging in.",
             )
 
         if not user.is_active:
             raise ForbiddenException(
-                "Your account is pending approval by the Platform Owner."
+                "Your account is pending approval by the Platform Owner.",
             )
 
         # 5. Check if Multi-Factor Authentication (TOTP) is enabled
@@ -319,7 +316,7 @@ class AuthService:
 
         # 6. Issue full tokens & establish session
         return await self._create_tokens_and_session(
-            user=user, meta=meta, user_agent=user_agent
+            user=user, meta=meta, user_agent=user_agent,
         )
 
     # ── MFA Challenge Verification ───────────────────────────────────────────
@@ -328,9 +325,9 @@ class AuthService:
         self,
         mfa_token: str,
         code: str,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> dict[str, Any]:
         """Validate TOTP 6-digit code or emergency recovery code for 2-step login."""
         try:
             payload = decode_token(mfa_token)
@@ -339,7 +336,7 @@ class AuthService:
             user_id = payload.get("sub")
         except Exception:
             raise UnauthorizedException(
-                "MFA session expired. Please enter your password again."
+                "MFA session expired. Please enter your password again.",
             )
 
         user = await self.user_repo.get_by_id(user_id)
@@ -357,13 +354,13 @@ class AuthService:
         if not is_valid_totp:
             # Check single-use emergency backup recovery codes
             consumed, remaining_codes = MFAService.verify_and_consume_recovery_code(
-                user.mfa_recovery_codes, code
+                user.mfa_recovery_codes, code,
             )
             if consumed:
                 user.mfa_recovery_codes = remaining_codes
                 await self.session.commit()
                 logger.info(
-                    f"[Auth] Emergency recovery code consumed for user {user.email}"
+                    f"[Auth] Emergency recovery code consumed for user {user.email}",
                 )
             else:
                 await self._record_login_history(
@@ -373,12 +370,12 @@ class AuthService:
                     failure_reason="Invalid MFA TOTP/Recovery code",
                 )
                 raise ValidationException(
-                    "Invalid two-factor authentication code or backup code."
+                    "Invalid two-factor authentication code or backup code.",
                 )
 
         logger.info(f"[Auth] MFA login successful for {user.email}")
         return await self._create_tokens_and_session(
-            user=user, meta=meta, user_agent=user_agent
+            user=user, meta=meta, user_agent=user_agent,
         )
 
     # ── Refresh Token Rotation with Reuse Detection ──────────────────────────
@@ -386,11 +383,10 @@ class AuthService:
     async def rotate_refresh_token(
         self,
         refresh_token_str: str,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """
-        Validate incoming refresh token, revoke it, and issue a fresh pair.
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> dict[str, Any]:
+        """Validate incoming refresh token, revoke it, and issue a fresh pair.
         Detects token reuse attacks and terminates all user sessions if a revoked token is replayed.
         """
         try:
@@ -408,7 +404,7 @@ class AuthService:
 
         if getattr(user, "token_version", 1) != token_version:
             raise UnauthorizedException(
-                "Session has been revoked. Please log in again."
+                "Session has been revoked. Please log in again.",
             )
 
         incoming_hash = hash_token(refresh_token_str)
@@ -419,23 +415,23 @@ class AuthService:
         # REUSE DETECTION: If token record not found or already revoked -> Compromise detected!
         if not stored_token or stored_token.is_revoked:
             logger.critical(
-                f"[Security Alert] Revoked refresh token reuse detected for user {user.email}! Revoking all sessions."
+                f"[Security Alert] Revoked refresh token reuse detected for user {user.email}! Revoking all sessions.",
             )
             # Invalidate all active sessions globally by bumping token_version
             user.token_version = getattr(user, "token_version", 1) + 1
             await self.session.execute(
                 update(RefreshToken)
                 .where(RefreshToken.user_id == user.id)
-                .values(is_revoked=True)
+                .values(is_revoked=True),
             )
             await self.session.execute(
                 update(UserSession)
                 .where(UserSession.user_id == user.id)
-                .values(is_active=False)
+                .values(is_active=False),
             )
             await self.session.commit()
             raise UnauthorizedException(
-                "Security alert: Token reuse detected. All active sessions have been revoked for your security."
+                "Security alert: Token reuse detected. All active sessions have been revoked for your security.",
             )
 
         # Mark current token as consumed / revoked
@@ -471,7 +467,7 @@ class AuthService:
 
     # ── MFA Management (Setup / Enable / Disable) ────────────────────────────
 
-    async def setup_mfa(self, user: User) -> Dict[str, Any]:
+    async def setup_mfa(self, user: User) -> dict[str, Any]:
         """Generate a new TOTP secret, QR Code data URL, and backup recovery codes."""
         secret = MFAService.generate_totp_secret()
         otpauth_url = MFAService.get_totp_uri(secret, email=user.email)
@@ -486,12 +482,12 @@ class AuthService:
         }
 
     async def enable_mfa(
-        self, user: User, secret: str, code: str, recovery_codes: List[str]
+        self, user: User, secret: str, code: str, recovery_codes: list[str],
     ) -> bool:
         """Verify the user's first 6-digit TOTP code and enable 2FA on their account."""
         if not MFAService.verify_totp_code(secret, code):
             raise ValidationException(
-                "Invalid 6-digit confirmation code. Please try again."
+                "Invalid 6-digit confirmation code. Please try again.",
             )
 
         hashed_codes = [MFAService.hash_code(rc) for rc in recovery_codes]
@@ -521,8 +517,8 @@ class AuthService:
     # ── Session & Device Management ──────────────────────────────────────────
 
     async def list_user_sessions(
-        self, user: User, current_token_hash: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        self, user: User, current_token_hash: str | None = None,
+    ) -> list[dict[str, Any]]:
         """List active device sessions for the authenticated user."""
         stmt = (
             select(UserSession)
@@ -550,14 +546,14 @@ class AuthService:
                     ),
                     "last_active_at": s.last_active_at,
                     "created_at": s.created_at,
-                }
+                },
             )
         return results
 
     async def revoke_session(self, user: User, session_id: uuid.UUID) -> bool:
         """Revoke a specific device session."""
         stmt = select(UserSession).where(
-            UserSession.id == session_id, UserSession.user_id == user.id
+            UserSession.id == session_id, UserSession.user_id == user.id,
         )
         res = await self.session.execute(stmt)
         sess = res.scalar_one_or_none()
@@ -574,20 +570,20 @@ class AuthService:
         await self.session.execute(
             update(UserSession)
             .where(UserSession.user_id == user.id)
-            .values(is_active=False)
+            .values(is_active=False),
         )
         await self.session.execute(
             update(RefreshToken)
             .where(RefreshToken.user_id == user.id)
-            .values(is_revoked=True)
+            .values(is_revoked=True),
         )
         await self.session.commit()
         logger.info(f"[Auth] All sessions revoked globally for user {user.email}")
         return True
 
     async def list_login_history(
-        self, user: User, limit: int = 20
-    ) -> List[LoginHistory]:
+        self, user: User, limit: int = 20,
+    ) -> list[LoginHistory]:
         """Fetch recent login history audit records."""
         stmt = (
             select(LoginHistory)
@@ -610,7 +606,7 @@ class AuthService:
         await email_service.send_password_reset(to_email=email, otp=reset_otp)
 
     async def reset_password_with_otp(
-        self, email: str, otp: str, new_password: str
+        self, email: str, otp: str, new_password: str,
     ) -> None:
         """Verify OTP, update password, and revoke existing sessions for security."""
         if len(new_password) < 8:
@@ -628,7 +624,7 @@ class AuthService:
         user.token_version = getattr(user, "token_version", 1) + 1
         await self.session.commit()
         logger.info(
-            f"[Auth] Password reset complete & all sessions invalidated for {email}"
+            f"[Auth] Password reset complete & all sessions invalidated for {email}",
         )
 
     # ── Internal Helpers ──────────────────────────────────────────────────────
@@ -636,9 +632,9 @@ class AuthService:
     async def _create_tokens_and_session(
         self,
         user: User,
-        meta: Optional[Dict[str, str]] = None,
-        user_agent: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        meta: dict[str, str] | None = None,
+        user_agent: str | None = None,
+    ) -> dict[str, Any]:
         """Helper to create access/refresh token pair, persist session and login history."""
         if not meta:
             meta = parse_client_metadata(user_agent, "127.0.0.1")
@@ -701,9 +697,9 @@ class AuthService:
     async def _record_login_history(
         self,
         user_id: uuid.UUID,
-        meta: Dict[str, str],
+        meta: dict[str, str],
         success: bool,
-        failure_reason: Optional[str] = None,
+        failure_reason: str | None = None,
     ) -> None:
         """Internal helper to write an immutable login attempt record."""
         try:

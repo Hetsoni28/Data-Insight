@@ -2,28 +2,30 @@
 
 from __future__ import annotations
 
-import uuid
 import json
 import logging
-from typing import Optional, List, Dict, Any, AsyncIterator
-from sqlalchemy.ext.asyncio import AsyncSession
-import polars as pl
+import uuid
+from collections.abc import AsyncIterator
+from typing import Any
 
-from app.models.user import User
-from app.models.ai_token_usage import AITokenUsage
+import polars as pl
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 from app.core.exceptions import (
     AIServiceException,
     ResourceNotFoundException,
     ValidationException,
 )
-from app.services.ai.router import LLMRouter
-from app.services.ai.nl_sql_agent import NLSQLAgent
-from app.services.ai.visual_sql_agent import VisualSQLAgent
-from app.services.ai.suggestions_service import SuggestionsService
-from app.services.ai.narrative_generator import NarrativeGenerator
-from app.services.quota_service import QuotaService
+from app.models.ai_token_usage import AITokenUsage
+from app.models.user import User
 from app.repositories.chat import ChatRepository
+from app.services.ai.narrative_generator import NarrativeGenerator
+from app.services.ai.nl_sql_agent import NLSQLAgent
+from app.services.ai.router import LLMRouter
+from app.services.ai.suggestions_service import SuggestionsService
+from app.services.ai.visual_sql_agent import VisualSQLAgent
+from app.services.quota_service import QuotaService
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ class AIService:
     async def _track_tokens(
         self,
         tenant_id: uuid.UUID,
-        user_id: Optional[uuid.UUID],
+        user_id: uuid.UUID | None,
         provider: str,
         model: str,
         prompt_tokens: int,
@@ -69,8 +71,8 @@ class AIService:
         feature: str,
         cost_usd: float = 0.0,
         latency_ms: float = 0.0,
-        report_id: Optional[uuid.UUID] = None,
-        dataset_id: Optional[uuid.UUID] = None,
+        report_id: uuid.UUID | None = None,
+        dataset_id: uuid.UUID | None = None,
     ) -> None:
         """Record token consumption in DB and consume tenant quota."""
         total_tokens = prompt_tokens + completion_tokens
@@ -95,18 +97,18 @@ class AIService:
         quota_svc = QuotaService(self.session)
         await quota_svc.consume_ai_tokens(tenant_id, total_tokens)
 
-    def list_providers(self) -> List[Dict[str, Any]]:
+    def list_providers(self) -> list[dict[str, Any]]:
         """List all available LLM providers and supported models."""
         return self.router.list_available_providers()
 
     async def copilot_chat(
         self,
         question: str,
-        dataset_id: Optional[uuid.UUID] = None,
-        actor: Optional[User] = None,
-        history: Optional[List[Dict[str, str]]] = None,
-        preferred_provider: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        dataset_id: uuid.UUID | None = None,
+        actor: User | None = None,
+        history: list[dict[str, str]] | None = None,
+        preferred_provider: str | None = None,
+    ) -> dict[str, Any]:
         """Interactive Copilot chat — context-aware, multi-turn, grounded in dataset profiling."""
         tenant_id = actor.tenant_id if actor else None
         user_id = actor.id if actor else None
@@ -134,7 +136,7 @@ class AIService:
                     "row_count": dataset.profile.get("overview", {}).get("row_count")
                     or dataset.row_count,
                     "column_count": dataset.profile.get("overview", {}).get(
-                        "column_count"
+                        "column_count",
                     )
                     or dataset.column_count,
                     "columns": columns_meta,
@@ -218,10 +220,10 @@ class AIService:
     async def copilot_chat_stream(
         self,
         question: str,
-        dataset_id: Optional[uuid.UUID] = None,
-        actor: Optional[User] = None,
-        history: Optional[List[Dict[str, str]]] = None,
-        preferred_provider: Optional[str] = None,
+        dataset_id: uuid.UUID | None = None,
+        actor: User | None = None,
+        history: list[dict[str, str]] | None = None,
+        preferred_provider: str | None = None,
     ) -> AsyncIterator[str]:
         """Stream interactive Copilot responses word-by-word via SSE."""
         tenant_id = actor.tenant_id if actor else None
@@ -255,8 +257,8 @@ class AIService:
         question: str,
         dataset_id: uuid.UUID,
         actor: User,
-        preferred_provider: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        preferred_provider: str | None = None,
+    ) -> dict[str, Any]:
         """Execute Natural Language to DuckDB SQL query against tenant dataset."""
         tenant_id = actor.tenant_id
         if tenant_id:
@@ -304,8 +306,8 @@ class AIService:
         self,
         dataset_id: uuid.UUID,
         actor: User,
-        preferred_provider: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        preferred_provider: str | None = None,
+    ) -> dict[str, Any]:
         """Generate comprehensive 5-tier business narrative report from dataset profiling."""
         tenant_id = actor.tenant_id
         if tenant_id:
@@ -321,7 +323,7 @@ class AIService:
 
         if not dataset.profile:
             raise AIServiceException(
-                "Dataset must be profiled before generating narrative analysis."
+                "Dataset must be profiled before generating narrative analysis.",
             )
 
         result = await self.narrative_generator.generate_narrative(
@@ -354,8 +356,8 @@ class AIService:
         user_id: uuid.UUID,
         report_id: uuid.UUID,
         dataset_id: uuid.UUID,
-        preferred_provider: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        preferred_provider: str | None = None,
+    ) -> dict[str, Any]:
         """Generate BI report blueprint layout and sheet architecture."""
         prompt = f"""{_MASTER_PERSONA}
 MISSION: ENTERPRISE BI WORKBOOK BLUEPRINT GENERATION
@@ -399,7 +401,7 @@ Generate the executive workbook blueprint in valid JSON."""
 
         return blueprint
 
-    def _get_fallback_blueprint(self, dataset_summary: str = "") -> Dict[str, Any]:
+    def _get_fallback_blueprint(self, dataset_summary: str = "") -> dict[str, Any]:
         """Generate a resilient fallback blueprint if AI blueprint generation fails."""
         return {
             "domain": "General Business Analytics",
@@ -414,19 +416,19 @@ Generate the executive workbook blueprint in valid JSON."""
                     "title": "Overview Distribution",
                     "x_axis": "category",
                     "y_axis": "value",
-                }
+                },
             ],
             "pivot_tables": [],
         }
 
     async def write_executive_summary(
         self,
-        blueprint: Dict[str, Any],
-        data_insights: Dict[str, Any],
+        blueprint: dict[str, Any],
+        data_insights: dict[str, Any],
         tenant_id: uuid.UUID,
         user_id: uuid.UUID,
         report_id: uuid.UUID,
-        preferred_provider: Optional[str] = None,
+        preferred_provider: str | None = None,
     ) -> str:
         """Write high-level executive summary for Excel workbook report."""
         prompt = f"""{_MASTER_PERSONA}
@@ -472,12 +474,12 @@ SECTION 3 — RECOMMENDATIONS"""
 
     async def write_ai_insights(
         self,
-        blueprint: Dict[str, Any],
-        data_insights: Dict[str, Any],
+        blueprint: dict[str, Any],
+        data_insights: dict[str, Any],
         tenant_id: uuid.UUID,
         user_id: uuid.UUID,
         report_id: uuid.UUID,
-        preferred_provider: Optional[str] = None,
+        preferred_provider: str | None = None,
     ) -> str:
         """Write deep WHY-analysis insights for Excel workbook report."""
         prompt = f"""{_MASTER_PERSONA}
@@ -517,12 +519,12 @@ Write structured analytical insights with WHAT, WHY, and SO WHAT breakdown."""
 
     async def write_recommendations(
         self,
-        blueprint: Dict[str, Any],
-        data_insights: Dict[str, Any],
+        blueprint: dict[str, Any],
+        data_insights: dict[str, Any],
         tenant_id: uuid.UUID,
         user_id: uuid.UUID,
         report_id: uuid.UUID,
-        preferred_provider: Optional[str] = None,
+        preferred_provider: str | None = None,
     ) -> str:
         """Write strategic action recommendations for Excel workbook report."""
         prompt = f"""{_MASTER_PERSONA}
@@ -564,11 +566,12 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
             )
 
     async def _load_dataset_df(
-        self, dataset: Any, n_rows: Optional[int] = None
+        self, dataset: Any, n_rows: int | None = None,
     ) -> pl.DataFrame:
         """Load Polars DataFrame for a dataset, supporting both local filesystem and MinIO object storage."""
         from pathlib import Path
-        from app.core.storage import download_file_bytes, DATASETS_BUCKET
+
+        from app.core.storage import DATASETS_BUCKET, download_file_bytes
         from app.services.ingestion.polars_engine import PolarsEngine
 
         file_url = getattr(dataset, "file_url", "") or ""
@@ -582,14 +585,14 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         # 1. Try local filesystem path first
         if file_url and Path(file_url).exists() and Path(file_url).is_file():
             return PolarsEngine.load_from_path(
-                file_url, file_type=file_type_str, n_rows=n_rows
+                file_url, file_type=file_type_str, n_rows=n_rows,
             )
 
         # 2. Download from MinIO / S3 object storage
         try:
             file_bytes = await download_file_bytes(DATASETS_BUCKET, file_url)
             return PolarsEngine.load_from_bytes(
-                file_bytes, file_type=file_type_str, n_rows=n_rows
+                file_bytes, file_type=file_type_str, n_rows=n_rows,
             )
         except Exception as e:
             logger.error(f"[AIService] Failed to load dataset file ({file_url}): {e}")
@@ -599,8 +602,8 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         self,
         dataset_id: uuid.UUID,
         actor: User,
-        preferred_provider: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        preferred_provider: str | None = None,
+    ) -> list[dict[str, Any]]:
         """Fetch proactive contextual smart suggestions for a given dataset.
 
         Uses stored dataset profile (set during ingestion) or downloads file from storage
@@ -614,8 +617,8 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         if not dataset:
             raise ResourceNotFoundException("Dataset", str(dataset_id))
 
-        schema_info: Dict[str, Any] = {}
-        preview_rows: List[Dict] = []
+        schema_info: dict[str, Any] = {}
+        preview_rows: list[dict] = []
         row_count: int = dataset.row_count or 0
 
         # --- Primary: use pre-computed profile stored during ingestion ---
@@ -673,7 +676,7 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
             except Exception as file_err:
                 logger.warning(
                     f"[Suggestions] Could not read file for dataset {dataset_id}: {file_err}. "
-                    "Using default heuristic suggestions."
+                    "Using default heuristic suggestions.",
                 )
 
         return await self.suggestions_service.generate_smart_suggestions(
@@ -688,8 +691,8 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         session_id: uuid.UUID,
         question: str,
         actor: User,
-        preferred_provider: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        preferred_provider: str | None = None,
+    ) -> dict[str, Any]:
         """Send message into persistent session, execute NL-to-SQL + visual synthesis if dataset bound, and store history."""
         tenant_id = actor.tenant_id
         user_id = actor.id
@@ -705,12 +708,12 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         # 1. Save user message
         clean_question = _sanitize_prompt(question)
         await chat_repo.add_message(
-            session_id=session_id, role="user", content=clean_question
+            session_id=session_id, role="user", content=clean_question,
         )
 
         # 2. Get conversation history for context
         history_msgs = await chat_repo.get_session_messages(
-            session_id, limit=MAX_HISTORY
+            session_id, limit=MAX_HISTORY,
         )
         history_payload = [
             {"role": m.role, "content": m.content}
@@ -844,7 +847,7 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
                 is_data_question = True
 
             logger.info(
-                f"[AIService] Intent detection: '{clean_question[:60]}' → {'DATA' if is_data_question else 'CHAT'}"
+                f"[AIService] Intent detection: '{clean_question[:60]}' → {'DATA' if is_data_question else 'CHAT'}",
             )
 
         if dataset_id and is_data_question:
@@ -882,7 +885,7 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
 
             except Exception as e:
                 logger.error(
-                    f"[AIService] Data pipeline failed for dataset {dataset_id}: {e}"
+                    f"[AIService] Data pipeline failed for dataset {dataset_id}: {e}",
                 )
                 # Return a friendly error message rather than hanging
                 assistant_content = (
@@ -902,9 +905,8 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
                 latency_ms = 0.0
         else:
             # General conversational response — multi-turn, context-aware
-            dataset_hint = ""
             if dataset_id and chat_sess:
-                dataset_hint = "\n\nContext: The user has a dataset connected to this chat session. You can guide them to ask data questions like 'Show me a chart of X by Y' or 'What is the total Z'."
+                pass
 
             chat_res = await self.copilot_chat(
                 question=clean_question,
@@ -936,7 +938,7 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
             if len(clean_question) > 40:
                 clean_title += "..."
             await chat_repo.update_session(
-                session_id, tenant_id, user_id, title=clean_title
+                session_id, tenant_id, user_id, title=clean_title,
             )
 
         # 5. Track tokens
@@ -976,7 +978,7 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         session_id: uuid.UUID,
         question: str,
         actor: User,
-        preferred_provider: Optional[str] = None,
+        preferred_provider: str | None = None,
     ) -> AsyncIterator[str]:
         """Stream response for session chat and persist assistant message + artifact at the end."""
         # Execute chat logic

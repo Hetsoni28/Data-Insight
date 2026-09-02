@@ -6,9 +6,8 @@ Create Date: 2026-08-11 20:34:55.662282+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "06937fd28d85"
@@ -40,16 +39,16 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["dataset_id"], ["datasets.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
-            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE"
+            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_charts_dataset_id"), "charts", ["dataset_id"], unique=False
+        op.f("ix_charts_dataset_id"), "charts", ["dataset_id"], unique=False,
     )
     op.create_index(op.f("ix_charts_tenant_id"), "charts", ["tenant_id"], unique=False)
     op.create_index(
-        op.f("ix_charts_workspace_id"), "charts", ["workspace_id"], unique=False
+        op.f("ix_charts_workspace_id"), "charts", ["workspace_id"], unique=False,
     )
     # ### end Alembic commands ###
 

@@ -6,9 +6,8 @@ Create Date: 2026-08-05 10:40:59.274497+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "8409e8982dd2"
@@ -40,7 +39,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_report_schedules_id"), "report_schedules", ["id"], unique=False
+        op.f("ix_report_schedules_id"), "report_schedules", ["id"], unique=False,
     )
     op.create_index(
         op.f("ix_report_schedules_tenant_id"),

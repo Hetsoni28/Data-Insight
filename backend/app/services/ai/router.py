@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import logging
-from typing import AsyncIterator, Optional, Dict, Any, List
+from collections.abc import AsyncIterator
+from typing import Any
+
 from app.core.config import settings
 from app.core.exceptions import AIServiceException
 from app.services.ai.base import BaseLLMProvider, LLMResponse
-from app.services.ai.groq_provider import GroqProvider
 from app.services.ai.gemini_provider import GeminiProvider
+from app.services.ai.groq_provider import GroqProvider
 
 logger = logging.getLogger(__name__)
 
@@ -18,20 +20,20 @@ class LLMRouter:
 
     def __init__(
         self,
-        groq_api_key: Optional[str] = None,
-        gemini_api_key: Optional[str] = None,
+        groq_api_key: str | None = None,
+        gemini_api_key: str | None = None,
     ):
         self.groq_provider = GroqProvider(api_key=groq_api_key)
         self.gemini_provider = GeminiProvider(api_key=gemini_api_key)
 
-    def get_provider(self, name: str) -> Optional[BaseLLMProvider]:
+    def get_provider(self, name: str) -> BaseLLMProvider | None:
         if name.lower() == "groq":
             return self.groq_provider
-        elif name.lower() == "gemini":
+        if name.lower() == "gemini":
             return self.gemini_provider
         return None
 
-    def list_available_providers(self) -> List[Dict[str, Any]]:
+    def list_available_providers(self) -> list[dict[str, Any]]:
         providers = []
         providers.append(
             {
@@ -41,7 +43,7 @@ class LLMRouter:
                 "default_model": settings.GROQ_DEFAULT_MODEL
                 or self.groq_provider.default_model,
                 "models": list(self.groq_provider.PRICING.keys()),
-            }
+            },
         )
         providers.append(
             {
@@ -51,17 +53,17 @@ class LLMRouter:
                 "default_model": settings.GEMINI_DEFAULT_MODEL
                 or self.gemini_provider.default_model,
                 "models": list(self.gemini_provider.PRICING.keys()),
-            }
+            },
         )
         return providers
 
     def _determine_provider_chain(
         self,
         task_type: str = "chat",
-        preferred_provider: Optional[str] = None,
-    ) -> List[BaseLLMProvider]:
+        preferred_provider: str | None = None,
+    ) -> list[BaseLLMProvider]:
         """Determine primary and fallback provider chain based on task type and availability."""
-        chain: List[BaseLLMProvider] = []
+        chain: list[BaseLLMProvider] = []
 
         if preferred_provider:
             pref = self.get_provider(preferred_provider)
@@ -101,25 +103,25 @@ class LLMRouter:
         self,
         prompt: str,
         task_type: str = "chat",
-        preferred_provider: Optional[str] = None,
-        system_instruction: Optional[str] = None,
+        preferred_provider: str | None = None,
+        system_instruction: str | None = None,
         temperature: float = 0.2,
         max_tokens: int = 4096,
         json_mode: bool = False,
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> LLMResponse:
         chain = self._determine_provider_chain(task_type, preferred_provider)
         if not chain:
             raise AIServiceException(
-                "No AI providers configured. Please set GROQ_API_KEY or GEMINI_API_KEY."
+                "No AI providers configured. Please set GROQ_API_KEY or GEMINI_API_KEY.",
             )
 
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
 
         for provider in chain:
             try:
                 logger.info(
-                    f"[LLMRouter] Routing request ({task_type}) to {provider.provider_name}"
+                    f"[LLMRouter] Routing request ({task_type}) to {provider.provider_name}",
                 )
                 response = await provider.generate(
                     prompt=prompt,
@@ -134,23 +136,23 @@ class LLMRouter:
                 return response
             except Exception as e:
                 logger.warning(
-                    f"[LLMRouter] Provider {provider.provider_name} failed: {e}. Attempting failover..."
+                    f"[LLMRouter] Provider {provider.provider_name} failed: {e}. Attempting failover...",
                 )
                 last_error = e
 
         raise AIServiceException(
-            f"All configured AI providers failed. Last error: {str(last_error)}"
+            f"All configured AI providers failed. Last error: {last_error!s}",
         )
 
     async def generate_stream(
         self,
         prompt: str,
         task_type: str = "chat",
-        preferred_provider: Optional[str] = None,
-        system_instruction: Optional[str] = None,
+        preferred_provider: str | None = None,
+        system_instruction: str | None = None,
         temperature: float = 0.2,
         max_tokens: int = 4096,
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> AsyncIterator[str]:
         chain = self._determine_provider_chain(task_type, preferred_provider)
         if not chain:
@@ -159,7 +161,7 @@ class LLMRouter:
         primary_provider = chain[0]
         try:
             logger.info(
-                f"[LLMRouter] Streaming response using {primary_provider.provider_name}"
+                f"[LLMRouter] Streaming response using {primary_provider.provider_name}",
             )
             async for token in primary_provider.generate_stream(
                 prompt=prompt,
@@ -171,12 +173,12 @@ class LLMRouter:
                 yield token
         except Exception as e:
             logger.warning(
-                f"[LLMRouter] Primary streaming provider {primary_provider.provider_name} failed: {e}"
+                f"[LLMRouter] Primary streaming provider {primary_provider.provider_name} failed: {e}",
             )
             if len(chain) > 1:
                 fallback_provider = chain[1]
                 logger.info(
-                    f"[LLMRouter] Failing over stream to {fallback_provider.provider_name}"
+                    f"[LLMRouter] Failing over stream to {fallback_provider.provider_name}",
                 )
                 async for token in fallback_provider.generate_stream(
                     prompt=prompt,
@@ -186,4 +188,4 @@ class LLMRouter:
                 ):
                     yield token
             else:
-                raise AIServiceException(f"Streaming failed: {str(e)}")
+                raise AIServiceException(f"Streaming failed: {e!s}")

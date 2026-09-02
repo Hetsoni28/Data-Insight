@@ -6,9 +6,8 @@ Create Date: 2026-07-31 20:32:35.337392+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "68596c43178a"
@@ -45,7 +44,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "paid", "pending", "failed", "refunded", "draft", name="invoicestatus"
+                "paid", "pending", "failed", "refunded", "draft", name="invoicestatus",
             ),
             nullable=False,
         ),
@@ -62,7 +61,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("stripe_invoice_id"),
     )
     op.create_index(
-        op.f("ix_invoices_tenant_id"), "invoices", ["tenant_id"], unique=False
+        op.f("ix_invoices_tenant_id"), "invoices", ["tenant_id"], unique=False,
     )
     op.add_column(
         "tenants",
@@ -74,10 +73,10 @@ def upgrade() -> None:
         ),
     )
     op.add_column(
-        "tenants", sa.Column("mrr", sa.Float(), server_default="0.0", nullable=False)
+        "tenants", sa.Column("mrr", sa.Float(), server_default="0.0", nullable=False),
     )
     op.add_column(
-        "tenants", sa.Column("trial_ends_at", sa.DateTime(timezone=True), nullable=True)
+        "tenants", sa.Column("trial_ends_at", sa.DateTime(timezone=True), nullable=True),
     )
     # ### end Alembic commands ###
 
@@ -90,7 +89,7 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_invoices_tenant_id"), table_name="invoices")
     op.drop_table("invoices")
     op.drop_index(
-        op.f("ix_billing_activities_tenant_id"), table_name="billing_activities"
+        op.f("ix_billing_activities_tenant_id"), table_name="billing_activities",
     )
     op.drop_table("billing_activities")
     # ### end Alembic commands ###

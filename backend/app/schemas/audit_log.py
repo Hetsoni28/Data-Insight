@@ -1,20 +1,21 @@
 import uuid
 from datetime import datetime
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, Dict, Any
 
 
 class AuditLogResponse(BaseModel):
     id: uuid.UUID
-    tenant_id: Optional[uuid.UUID] = None
-    user_id: Optional[uuid.UUID] = None
+    tenant_id: uuid.UUID | None = None
+    user_id: uuid.UUID | None = None
     action: str
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
-    actor_user_id: Optional[uuid.UUID] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    extra_metadata: Optional[Dict[str, Any]] = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    actor_user_id: uuid.UUID | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
+    extra_metadata: dict[str, Any] | None = None
     status: str
     created_at: datetime
 

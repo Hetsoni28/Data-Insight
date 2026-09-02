@@ -1,30 +1,28 @@
-import asyncio
 import io
 import uuid
+
 import pandas as pd
-from typing import Dict, Any
 from asgiref.sync import async_to_sync
 
-from app.worker.celery_app import celery_app
-from app.db.session import AsyncSessionLocal
-from app.models.report import Report, ReportStatus
-from app.models.dataset import Dataset, DatasetFileType
-from app.core.storage import download_file_bytes, DATASETS_BUCKET
 from app.core.ai import generate_structured_report
+from app.core.storage import DATASETS_BUCKET, download_file_bytes
+from app.db.session import AsyncSessionLocal
+from app.models.dataset import Dataset, DatasetFileType
+from app.models.report import Report, ReportStatus
+from app.worker.celery_app import celery_app
 
 
 async def _process_ai_report(
-    tenant_id: str, report_id: str, dataset_id: str, report_category: str
+    tenant_id: str, report_id: str, dataset_id: str, report_category: str,
 ):
-    """
-    Core async logic for processing AI reports based on category.
+    """Core async logic for processing AI reports based on category.
     """
     async with AsyncSessionLocal() as db:
         from sqlalchemy import select
 
         # 1. Fetch Report and Dataset
         r_stmt = select(Report).where(
-            Report.id == uuid.UUID(report_id), Report.tenant_id == uuid.UUID(tenant_id)
+            Report.id == uuid.UUID(report_id), Report.tenant_id == uuid.UUID(tenant_id),
         )
         report = (await db.execute(r_stmt)).scalars().first()
         if not report:
@@ -206,7 +204,7 @@ async def _process_ai_report(
                                     "chartId": {"type": "STRING"},
                                     "title": {"type": "STRING"},
                                     "chartType": {
-                                        "type": "STRING"
+                                        "type": "STRING",
                                     },  # "bar", "line", "pie", "area"
                                     "description": {"type": "STRING"},
                                     "xAxisKey": {"type": "STRING"},

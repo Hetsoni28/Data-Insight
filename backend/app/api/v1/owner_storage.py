@@ -1,21 +1,21 @@
-from typing import Any
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import FileResponse
+from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, desc, or_
 
-from app.api.deps import get_db, get_current_user
-from app.models.user import User, UserRole
-from app.models.tenant import Tenant
+from app.api.deps import get_current_user, get_db
 from app.models.storage import (
+    StorageActivityLog,
+    StorageBackup,
     StorageBucket,
     StorageFile,
-    StorageBackup,
-    StorageLifecyclePolicy,
-    StorageActivityLog,
 )
+from app.models.tenant import Tenant
+from app.models.user import User
 
 router = APIRouter(prefix="", tags=["owner-storage"])
 
@@ -23,7 +23,7 @@ router = APIRouter(prefix="", tags=["owner-storage"])
 def require_owner(current_user: User = Depends(get_current_user)):
     # Fallback to is_owner
     if getattr(current_user, "role", "") != "owner" and not getattr(
-        current_user, "is_owner", False
+        current_user, "is_owner", False,
     ):
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
@@ -31,20 +31,20 @@ def require_owner(current_user: User = Depends(get_current_user)):
 
 @router.get("/overview")
 async def get_overview(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get live KPIs for the Storage Command Center."""
     # Total storage used (bytes)
     total_size = await db.scalar(
         select(func.sum(StorageFile.file_size_bytes)).where(
-            StorageFile.deleted_at.is_(None)
-        )
+            StorageFile.deleted_at.is_(None),
+        ),
     )
     total_size = int(total_size or 0)
 
     # Total files
     total_files = await db.scalar(
-        select(func.count(StorageFile.id)).where(StorageFile.deleted_at.is_(None))
+        select(func.count(StorageFile.id)).where(StorageFile.deleted_at.is_(None)),
     )
 
     # Active buckets
@@ -54,13 +54,13 @@ async def get_overview(
     categories_res = await db.execute(
         select(StorageFile.category, func.count(StorageFile.id))
         .where(StorageFile.deleted_at.is_(None))
-        .group_by(StorageFile.category)
+        .group_by(StorageFile.category),
     )
     category_counts = {cat: count for cat, count in categories_res.all()}
 
     # Backups
     total_backups = await db.scalar(
-        select(func.count(StorageBackup.id)).where(StorageBackup.status == "completed")
+        select(func.count(StorageBackup.id)).where(StorageBackup.status == "completed"),
     )
 
     # Calculate costs (AWS S3 Standard rate $0.023 per GB)
@@ -83,13 +83,13 @@ async def get_overview(
                 + category_counts.get("other", 0),
                 "image": category_counts.get("image", 0),
             },
-        }
+        },
     }
 
 
 @router.get("/analytics")
 async def get_analytics(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get timeseries analytics for storage growth."""
     # Query actual file created_at for time-series points.
@@ -125,7 +125,7 @@ async def get_analytics(
                 ),
                 "daily_bytes": int(row.size or 0),
                 "cumulative_bytes": cumulative,
-            }
+            },
         )
 
     return {"trends": trends}
@@ -172,7 +172,7 @@ async def get_organization_storage(
                 "max_storage_gb": max_gb,
                 "file_count": row.file_count,
                 "percent_used": min(round(percent_used, 1), 100),
-            }
+            },
         )
 
     return {"organizations": orgs}
@@ -180,7 +180,7 @@ async def get_organization_storage(
 
 @router.get("/buckets")
 async def get_buckets(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get all storage buckets and their stats."""
     query = (
@@ -215,7 +215,7 @@ async def get_buckets(
                 "created_at": (
                     bucket.created_at.isoformat() if bucket.created_at else None
                 ),
-            }
+            },
         )
 
     return {"buckets": buckets}
@@ -223,8 +223,8 @@ async def get_buckets(
 
 @router.get("/files")
 async def get_files(
-    q: str = None,
-    bucket_id: str = None,
+    q: str | None = None,
+    bucket_id: str | None = None,
     limit: int = Query(50, le=200),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_owner),
@@ -249,7 +249,7 @@ async def get_files(
                 StorageFile.file_type.ilike(search_pattern),
                 StorageBucket.name.ilike(search_pattern),
                 Tenant.name.ilike(search_pattern),
-            )
+            ),
         )
     if bucket_id:
         query = query.where(StorageFile.bucket_id == bucket_id)
@@ -271,7 +271,7 @@ async def get_files(
                 "bucket_name": row.bucket_name,
                 "tenant_name": row.tenant_name,
                 "created_at": f.created_at.isoformat() if f.created_at else None,
-            }
+            },
         )
 
     return {"files": files}
@@ -285,7 +285,7 @@ async def get_backups(
 ) -> Any:
     """Get backup center status."""
     result = await db.execute(
-        select(StorageBackup).order_by(desc(StorageBackup.started_at)).limit(limit)
+        select(StorageBackup).order_by(desc(StorageBackup.started_at)).limit(limit),
     )
     backups = result.scalars().all()
 
@@ -302,7 +302,7 @@ async def get_backups(
                 "completed_at": b.completed_at.isoformat() if b.completed_at else None,
             }
             for b in backups
-        ]
+        ],
     }
 
 
@@ -332,7 +332,7 @@ async def get_activity(
                 "tenant_name": row.tenant_name,
                 "metadata": a.metadata_json,
                 "created_at": a.created_at.isoformat() if a.created_at else None,
-            }
+            },
         )
 
     return {"activities": activities}
@@ -340,27 +340,26 @@ async def get_activity(
 
 @router.get("/security")
 async def get_security(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(require_owner),
 ) -> Any:
     """Get security overview for storage."""
-
     # Public vs Private files
     public_count = await db.scalar(
         select(func.count(StorageFile.id)).where(
-            StorageFile.is_public == True, StorageFile.deleted_at.is_(None)
-        )
+            StorageFile.is_public == True, StorageFile.deleted_at.is_(None),
+        ),
     )
     private_count = await db.scalar(
         select(func.count(StorageFile.id)).where(
-            StorageFile.is_public == False, StorageFile.deleted_at.is_(None)
-        )
+            StorageFile.is_public == False, StorageFile.deleted_at.is_(None),
+        ),
     )
 
     # Encrypted files (assuming all new ones are true by default)
     encrypted_count = await db.scalar(
         select(func.count(StorageFile.id)).where(
-            StorageFile.is_encrypted == True, StorageFile.deleted_at.is_(None)
-        )
+            StorageFile.is_encrypted == True, StorageFile.deleted_at.is_(None),
+        ),
     )
 
     total = (public_count or 0) + (private_count or 0)
@@ -368,8 +367,8 @@ async def get_security(
     malware_scanned = (
         await db.scalar(
             select(func.count(StorageFile.id)).where(
-                StorageFile.is_malware_scanned == True
-            )
+                StorageFile.is_malware_scanned == True,
+            ),
         )
         or 0
     )
@@ -398,7 +397,7 @@ async def get_security(
             "unencrypted_files": unencrypted_files,
             "malware_scanned_files": malware_scanned,
             "health_score": max(0, min(100, int(score))),
-        }
+        },
     }
 
 
@@ -421,7 +420,7 @@ async def create_bucket(
 ) -> Any:
     """Create a new storage bucket."""
     existing = await db.scalar(
-        select(StorageBucket).where(StorageBucket.name == data.name)
+        select(StorageBucket).where(StorageBucket.name == data.name),
     )
     if existing:
         raise HTTPException(status_code=400, detail="Bucket name already exists")
@@ -433,7 +432,7 @@ async def create_bucket(
         try:
             client = storage_core._client()
             client.storage.create_bucket(data.name, options={"public": data.is_public})
-        except Exception as e:
+        except Exception:
             # Continue even if it exists in Supabase
             pass
 
@@ -487,7 +486,7 @@ async def delete_file(
         raise HTTPException(status_code=404, detail="File not found")
 
     bucket = await db.scalar(
-        select(StorageBucket).where(StorageBucket.id == file.bucket_id)
+        select(StorageBucket).where(StorageBucket.id == file.bucket_id),
     )
     bucket_name = bucket.name if bucket else "datasets"
 
@@ -512,14 +511,14 @@ async def download_file(
     """Download a storage file or get its content stream."""
     file = await db.scalar(
         select(StorageFile).where(
-            StorageFile.id == file_id, StorageFile.deleted_at.is_(None)
-        )
+            StorageFile.id == file_id, StorageFile.deleted_at.is_(None),
+        ),
     )
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
 
     bucket = await db.scalar(
-        select(StorageBucket).where(StorageBucket.id == file.bucket_id)
+        select(StorageBucket).where(StorageBucket.id == file.bucket_id),
     )
     bucket_name = bucket.name if bucket else "datasets"
 
@@ -539,8 +538,8 @@ async def download_file(
     db.add(act)
     await db.commit()
 
+
     from app.core import storage as storage_core
-    from pathlib import Path
 
     # Check local disk if exists
     if hasattr(storage_core, "LOCAL_UPLOADS_DIR"):

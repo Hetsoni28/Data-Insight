@@ -1,8 +1,9 @@
-import os
 import json
+import logging
+import os
+
 from google import genai
 from google.genai import types
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -18,16 +19,18 @@ except Exception as e:
 
 
 def generate_structured_report(
-    prompt: str, schema: dict, model_name: str = "gemini-3.5-flash"
+    prompt: str, schema: dict, model_name: str = "gemini-3.5-flash",
 ) -> dict:
-    """
-    Generates a structured JSON response from Gemini using Structured Outputs.
+    """Generates a structured JSON response from Gemini using Structured Outputs.
+
     Args:
         prompt (str): The prompt containing the dataset and instructions.
         schema (dict): The JSON schema definition for the desired output structure.
         model_name (str): The Gemini model to use.
+
     Returns:
         dict: The parsed JSON response.
+
     """
     if not client:
         raise ValueError("Gemini client is not initialized. Check GEMINI_API_KEY.")

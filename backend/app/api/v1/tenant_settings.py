@@ -1,20 +1,26 @@
-import socket
+import os
 import shutil
-from sqlalchemy import create_engine
-from sqlalchemy.exc import SQLAlchemyError
-from fastapi import UploadFile, File
-from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+import socket
 from typing import Any
-import uuid
 
-from app.api.deps import get_db, get_current_active_tenant_user, RequireRole
-from app.models.user import User
-from app.models.tenant import Tenant
-from app.models.audit_log import AuditLog
-from app.schemas.tenant import TenantResponse, TenantUpdateRequest
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from pydantic import BaseModel
+from sqlalchemy import create_engine, select
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import RequireRole, get_db
+from app.models.audit_log import AuditLog
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.schemas.tenant import TenantResponse, TenantUpdateRequest
 
 router = APIRouter()
 
@@ -25,7 +31,7 @@ class TenantBrandingUpdateRequest(BaseModel):
 
 
 @router.get(
-    "/profile", response_model=TenantResponse, summary="Get Organization Profile"
+    "/profile", response_model=TenantResponse, summary="Get Organization Profile",
 )
 async def get_tenant_profile(
     current_user: User = Depends(RequireRole(["organization-admin", "org_admin"])),
@@ -44,7 +50,7 @@ async def get_tenant_profile(
 
 
 @router.patch(
-    "/profile", response_model=TenantResponse, summary="Update Organization Profile"
+    "/profile", response_model=TenantResponse, summary="Update Organization Profile",
 )
 async def update_tenant_profile(
     req: TenantUpdateRequest,
@@ -204,13 +210,13 @@ def _create_config_endpoints(router, path_prefix: str, field_name: str, summary:
 # Register dynamic endpoints for simple JSON config fields
 _create_config_endpoints(router, "security", "sso_config", "Security Config")
 _create_config_endpoints(
-    router, "data-connections", "data_connections_config", "Data Connections Config"
+    router, "data-connections", "data_connections_config", "Data Connections Config",
 )
 _create_config_endpoints(
-    router, "integrations", "integrations_config", "Integrations Config"
+    router, "integrations", "integrations_config", "Integrations Config",
 )
 _create_config_endpoints(
-    router, "notifications", "notifications_config", "Notifications Config"
+    router, "notifications", "notifications_config", "Notifications Config",
 )
 _create_config_endpoints(router, "advanced", "advanced_config", "Advanced Config")
 
@@ -243,7 +249,7 @@ async def get_tenant_audit_logs(
                 "status": log.status,
                 "created_at": log.created_at.isoformat(),
                 "user_email": email or "System",
-            }
+            },
         )
 
     return logs
@@ -282,20 +288,20 @@ async def test_data_connection(
         try:
             # Create a synchronous engine just to test connection
             engine = create_engine(db_url, connect_args={"connect_timeout": 5})
-            with engine.connect() as conn:
+            with engine.connect():
                 pass  # Connection successful
             return {
                 "status": "success",
-                "message": f"Successfully connected to Postgres.",
+                "message": "Successfully connected to Postgres.",
             }
         except SQLAlchemyError as e:
             raise HTTPException(
                 status_code=400,
-                detail=f"Database connection failed: {str(e.__class__.__name__)}",
+                detail=f"Database connection failed: {e.__class__.__name__!s}",
             )
         except Exception as e:
             raise HTTPException(
-                status_code=400, detail=f"Database connection failed: {str(e)}"
+                status_code=400, detail=f"Database connection failed: {e!s}",
             )
 
     elif req.provider.lower() == "snowflake":
@@ -305,7 +311,7 @@ async def test_data_connection(
                 detail="Snowflake connection requires account locator (host) and username.",
             )
         # Mock snowflake for now as we don't have snowflake-connector-python
-        return {"status": "success", "message": f"Snowflake configuration verified."}
+        return {"status": "success", "message": "Snowflake configuration verified."}
 
     raise HTTPException(status_code=400, detail="Unsupported provider.")
 

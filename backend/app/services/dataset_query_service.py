@@ -1,8 +1,10 @@
-from typing import Dict, Any, List
-import uuid
 import os
+import uuid
+from typing import Any
+
 import polars as pl
 from loguru import logger
+
 from app.services.ingestion.duckdb_engine import DuckDBEngine
 
 
@@ -12,12 +14,11 @@ class DatasetQueryService:
         dataset_id: uuid.UUID,
         tenant_id: uuid.UUID,
         workspace_id: uuid.UUID | None,
-        query_payload: Dict[str, Any],
-        dataset_metadata: Dict[str, Any] = None,
-        storage_path: str = None,
-    ) -> List[Dict[str, Any]]:
-        """
-        Executes a structured query against a dataset, enforcing strict schema validation and executing via DuckDB.
+        query_payload: dict[str, Any],
+        dataset_metadata: dict[str, Any] | None = None,
+        storage_path: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Executes a structured query against a dataset, enforcing strict schema validation and executing via DuckDB.
         """
         dimensions = query_payload.get("dimensions", [])
         metrics = query_payload.get("metrics", [])
@@ -30,7 +31,7 @@ class DatasetQueryService:
 
         if limit > 10000:
             raise ValueError(
-                "Query limit cannot exceed 10,000 rows for performance reasons"
+                "Query limit cannot exceed 10,000 rows for performance reasons",
             )
 
         # 2. Schema Validation (Strong Logic)
@@ -43,7 +44,7 @@ class DatasetQueryService:
             for dim in dimensions:
                 if dim not in valid_columns:
                     raise ValueError(
-                        f"Invalid dimension requested: '{dim}'. Column does not exist in dataset schema."
+                        f"Invalid dimension requested: '{dim}'. Column does not exist in dataset schema.",
                     )
 
             # Validate Metrics & Aggregations
@@ -61,11 +62,11 @@ class DatasetQueryService:
 
                 if field not in valid_columns:
                     raise ValueError(
-                        f"Invalid metric requested: '{field}'. Column does not exist in dataset schema."
+                        f"Invalid metric requested: '{field}'. Column does not exist in dataset schema.",
                     )
                 if agg not in allowed_aggregations:
                     raise ValueError(
-                        f"Invalid aggregation: '{agg}'. Allowed aggregations are: {', '.join(allowed_aggregations)}"
+                        f"Invalid aggregation: '{agg}'. Allowed aggregations are: {', '.join(allowed_aggregations)}",
                     )
 
             # Validate Filters
@@ -73,7 +74,7 @@ class DatasetQueryService:
                 field = f.get("field")
                 if field not in valid_columns:
                     raise ValueError(
-                        f"Invalid filter field: '{field}'. Column does not exist in dataset schema."
+                        f"Invalid filter field: '{field}'. Column does not exist in dataset schema.",
                     )
 
         # 3. Load Data
@@ -96,7 +97,7 @@ class DatasetQueryService:
             field = m.get("field")
             if agg == "COUNT_DISTINCT":
                 select_cols.append(
-                    f'COUNT(DISTINCT "{field}") as "count_distinct_{field}"'
+                    f'COUNT(DISTINCT "{field}") as "count_distinct_{field}"',
                 )
             else:
                 select_cols.append(f'{agg}("{field}") as "{agg}_{field}"')
@@ -116,4 +117,4 @@ class DatasetQueryService:
             return result
         except Exception as e:
             logger.error(f"DuckDB Execution Error: {e}")
-            raise ValueError(f"Query execution failed: {str(e)}")
+            raise ValueError(f"Query execution failed: {e!s}")

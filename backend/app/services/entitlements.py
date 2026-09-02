@@ -1,14 +1,14 @@
 import enum
-from typing import Optional, Dict
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 
-from app.models.tenant import Tenant
-from app.models.user import User
+from pydantic import BaseModel
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.dashboard import Dashboard
 from app.models.dataset import Dataset
 from app.models.report import Report
-from app.models.dashboard import Dashboard
+from app.models.tenant import Tenant
+from app.models.user import User
 
 
 class BillingFeature(str, enum.Enum):
@@ -29,12 +29,12 @@ class BillingResource(str, enum.Enum):
 
 
 class PlanLimits(BaseModel):
-    users: Optional[int]  # None means unlimited
-    storage_gb: Optional[int]
-    ai_tokens: Optional[int]
-    datasets: Optional[int]
-    reports: Optional[int]
-    dashboards: Optional[int]
+    users: int | None  # None means unlimited
+    storage_gb: int | None
+    ai_tokens: int | None
+    datasets: int | None
+    reports: int | None
+    dashboards: int | None
     features: list[BillingFeature]
 
 
@@ -111,7 +111,7 @@ def get_plan_limits(plan_name: str) -> PlanLimits:
     return PLAN_CATALOG.get(plan_name.lower(), PLAN_CATALOG["starter"])
 
 
-def get_entitlements(tenant: Tenant) -> Dict[str, bool]:
+def get_entitlements(tenant: Tenant) -> dict[str, bool]:
     """Return a mapping of all features and whether the tenant has access to them."""
     limits = get_plan_limits(tenant.plan)
     return {feature.value: (feature in limits.features) for feature in BillingFeature}
@@ -122,29 +122,29 @@ async def get_usage(tenant: Tenant, db: AsyncSession) -> UsageMap:
     # Active Users
     users_count = await db.scalar(
         select(func.count(User.id)).where(
-            User.tenant_id == tenant.id, User.is_active == True
-        )
+            User.tenant_id == tenant.id, User.is_active == True,
+        ),
     )
 
     # Active Datasets
     datasets_count = await db.scalar(
         select(func.count(Dataset.id)).where(
-            Dataset.tenant_id == tenant.id, Dataset.is_deleted == False
-        )
+            Dataset.tenant_id == tenant.id, Dataset.is_deleted == False,
+        ),
     )
 
     # Active Reports
     reports_count = await db.scalar(
         select(func.count(Report.id)).where(
-            Report.tenant_id == tenant.id, Report.is_deleted == False
-        )
+            Report.tenant_id == tenant.id, Report.is_deleted == False,
+        ),
     )
 
     # Active Dashboards
     dashboards_count = await db.scalar(
         select(func.count(Dashboard.id)).where(
-            Dashboard.tenant_id == tenant.id, Dashboard.is_deleted == False
-        )
+            Dashboard.tenant_id == tenant.id, Dashboard.is_deleted == False,
+        ),
     )
 
     return UsageMap(
@@ -166,12 +166,12 @@ def can_use_feature(tenant: Tenant, feature: BillingFeature) -> bool:
 class QuotaResult(BaseModel):
     allowed: bool
     used: float
-    limit: Optional[int]
-    remaining: Optional[float]
+    limit: int | None
+    remaining: float | None
     warning_state: str  # "normal", "warning", "high", "critical", "limit"
 
 
-def _get_warning_state(used: float, limit: Optional[int]) -> str:
+def _get_warning_state(used: float, limit: int | None) -> str:
     if limit is None:
         return "normal"
     if limit == 0:
@@ -180,20 +180,19 @@ def _get_warning_state(used: float, limit: Optional[int]) -> str:
     pct = used / limit
     if pct >= 1.0:
         return "limit"
-    elif pct >= 0.95:
+    if pct >= 0.95:
         return "critical"
-    elif pct >= 0.85:
+    if pct >= 0.85:
         return "high"
-    elif pct >= 0.70:
+    if pct >= 0.70:
         return "warning"
     return "normal"
 
 
 def check_quota(
-    tenant: Tenant, usage: UsageMap, resource: BillingResource, buffer: int = 1
+    tenant: Tenant, usage: UsageMap, resource: BillingResource, buffer: int = 1,
 ) -> QuotaResult:
-    """
-    Check if the tenant has enough quota to consume `buffer` more of a specific resource.
+    """Check if the tenant has enough quota to consume `buffer` more of a specific resource.
     Returns a QuotaResult with allowed flag, limits, and warning state.
     """
     limits = get_plan_limits(tenant.plan)

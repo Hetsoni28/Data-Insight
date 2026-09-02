@@ -1,17 +1,18 @@
-from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
-from app.models.user import User, UserRole, AccountType
-from app.schemas.user import UserCreate
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security import get_password_hash
+from app.models.user import AccountType, User, UserRole
 from app.repositories.base import BaseRepository
+from app.schemas.user import UserCreate
 
 
 class UserRepository(BaseRepository[User]):
     def __init__(self, session: AsyncSession):
         super().__init__(User, session)
 
-    async def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: str) -> User | None:
         stmt = select(User).where(User.email == email)
         result = await self.session.execute(stmt)
         return result.scalars().first()
@@ -39,8 +40,7 @@ class UserRepository(BaseRepository[User]):
         password: str,
         full_name: str | None = None,
     ) -> User:
-        """
-        Create the single platform OWNER account.
+        """Create the single platform OWNER account.
         Sets is_owner=True, role=owner, bypasses email verification.
         Should only be called from seed_owner.py.
         """

@@ -1,13 +1,15 @@
+import os
+
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-import os
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func
+
+from app.models.ai_ops import AIProvider, AIUsageLog, ProviderStatus
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.models.ai_ops import AIProvider, AIUsageLog, ProviderStatus
-from dotenv import load_dotenv
 
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
@@ -26,7 +28,7 @@ class GeminiService:
         tenant = tenant.scalars().first()
 
         user_count = await db.execute(
-            select(func.count(User.id)).where(User.tenant_id == tenant_id)
+            select(func.count(User.id)).where(User.tenant_id == tenant_id),
         )
         user_count = user_count.scalar()
 
@@ -45,7 +47,7 @@ class GeminiService:
         """Fetches live DB data for the entire platform (Super Admin context)"""
         # Tenants
         tenants_result = await db.execute(
-            select(Tenant).where(Tenant.is_deleted == False).limit(100)
+            select(Tenant).where(Tenant.is_deleted == False).limit(100),
         )
         tenants_list = tenants_result.scalars().all()
         total_tenants = len(tenants_list)
@@ -55,7 +57,7 @@ class GeminiService:
         tenants_summary = []
         for t in tenants_list:
             tenants_summary.append(
-                f"- {t.name} (Plan: {t.plan}, MRR: ${t.mrr}, Active: {t.is_active})"
+                f"- {t.name} (Plan: {t.plan}, MRR: ${t.mrr}, Active: {t.is_active})",
             )
         tenants_summary_str = (
             "\n        ".join(tenants_summary)
@@ -76,15 +78,16 @@ class GeminiService:
         )
 
         usage_result = await db.execute(
-            select(func.count(AIUsageLog.id), func.sum(AIUsageLog.cost_usd))
+            select(func.count(AIUsageLog.id), func.sum(AIUsageLog.cost_usd)),
         )
         usage_stats = usage_result.fetchone()
         total_ai_requests = int(usage_stats[0] or 0)
         total_ai_cost = float(usage_stats[1] or 0.0)
 
         # Recent Audit Logs
-        from app.models.audit_log import AuditLog
         from sqlalchemy import desc
+
+        from app.models.audit_log import AuditLog
 
         logs_result = await db.execute(
             select(
@@ -95,7 +98,7 @@ class GeminiService:
                 AuditLog.module,
             )
             .order_by(desc(AuditLog.created_at))
-            .limit(15)
+            .limit(15),
         )
         logs_data = logs_result.all()
         audit_logs_str = (
@@ -103,7 +106,7 @@ class GeminiService:
                 [
                     f"- [{log.created_at.strftime('%Y-%m-%d %H:%M:%S')}] {log.module.upper()}: {log.action} ({log.status}, {log.severity})"
                     for log in logs_data
-                ]
+                ],
             )
             if logs_data
             else "No recent audit logs."
@@ -132,7 +135,7 @@ class GeminiService:
         tenant_id: str,
         message: str,
         history: list,
-        files: list = None,
+        files: list | None = None,
         is_owner: bool = False,
     ):
         if is_owner:
@@ -157,8 +160,8 @@ class GeminiService:
             role = "user" if h.get("role") == "user" else "model"
             contents.append(
                 types.Content(
-                    role=role, parts=[types.Part.from_text(text=h.get("content", ""))]
-                )
+                    role=role, parts=[types.Part.from_text(text=h.get("content", ""))],
+                ),
             )
 
         parts = []
@@ -166,8 +169,8 @@ class GeminiService:
         # Process uploaded files (omitted for brevity, keep existing logic if needed)
         uploaded_gemini_files = []
         if files:
-            import tempfile
             import os
+            import tempfile
 
             for file in files:
                 content = await file.read()
@@ -179,13 +182,13 @@ class GeminiService:
                     f.write(content)
                 try:
                     gemini_file = self.client.files.upload(
-                        file=temp_path, config={"display_name": file.filename}
+                        file=temp_path, config={"display_name": file.filename},
                     )
                     uploaded_gemini_files.append(gemini_file)
                     parts.append(
                         types.Part.from_uri(
-                            file_uri=gemini_file.uri, mime_type=gemini_file.mime_type
-                        )
+                            file_uri=gemini_file.uri, mime_type=gemini_file.mime_type,
+                        ),
                     )
                 except Exception as e:
                     print(f"Error uploading file {file.filename} to Gemini: {e}")
@@ -204,14 +207,14 @@ class GeminiService:
                 model=self.model_name,
                 contents=contents,
                 config=types.GenerateContentConfig(
-                    system_instruction=system_instruction, temperature=0.7
+                    system_instruction=system_instruction, temperature=0.7,
                 ),
             )
             async for chunk in response:
                 if chunk.text:
                     yield chunk.text
         except Exception as e:
-            print(f"Gemini API Error: {str(e)}")
+            print(f"Gemini API Error: {e!s}")
             yield "I'm sorry, I encountered an error connecting to Google Gemini. Please ensure your API key is correctly configured."
 
 

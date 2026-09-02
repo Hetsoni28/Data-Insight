@@ -2,9 +2,11 @@
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, DateTime, ForeignKey, Text, JSON
-from sqlalchemy.orm import Mapped, mapped_column
+
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app.db.session import Base
 
 
@@ -12,7 +14,7 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     tenant_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
@@ -37,31 +39,31 @@ class AuditLog(Base):
 
     # Who did it (for impersonation audit — actor != user)
     actor_user_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
+        UUID(as_uuid=True), nullable=True,
     )
 
     ip_address: Mapped[str | None] = mapped_column(String(50), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)
     extra_metadata: Mapped[dict | None] = mapped_column(
-        JSON, nullable=True
+        JSON, nullable=True,
     )  # extra context
     status: Mapped[str] = mapped_column(
-        String(20), default="success", nullable=False
+        String(20), default="success", nullable=False,
     )  # success | failure
 
     severity: Mapped[str] = mapped_column(
-        String(50), default="info", nullable=False
+        String(50), default="info", nullable=False,
     )  # info, warning, critical
     module: Mapped[str] = mapped_column(
-        String(100), default="system", nullable=False, index=True
+        String(100), default="system", nullable=False, index=True,
     )  # authentication, api, ai, billing, storage
 
     old_value: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     new_value: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     correlation_id: Mapped[str | None] = mapped_column(
-        String(255), nullable=True, index=True
+        String(255), nullable=True, index=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True,
     )

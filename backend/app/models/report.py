@@ -2,9 +2,11 @@
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, JSON, Integer, Index
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.db.session import Base
 
 
@@ -29,7 +31,7 @@ class Report(Base):
     __table_args__ = (Index("ix_tenant_workspace_report", "tenant_id", "workspace_id"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -50,15 +52,15 @@ class Report(Base):
         index=True,
     )
     created_by_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True,
     )
 
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     report_type: Mapped[str] = mapped_column(
-        String(20), default=ReportType.excel, nullable=False
+        String(20), default=ReportType.excel, nullable=False,
     )
     status: Mapped[str] = mapped_column(
-        String(50), default=ReportStatus.queued, nullable=False, index=True
+        String(50), default=ReportStatus.queued, nullable=False, index=True,
     )
 
     # Generation config — what the user requested
@@ -69,7 +71,7 @@ class Report(Base):
 
     # Output
     output_url: Mapped[str | None] = mapped_column(
-        Text, nullable=True
+        Text, nullable=True,
     )  # Supabase Storage signed URL
     output_size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     celery_task_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -80,10 +82,10 @@ class Report(Base):
 
     # Approval workflow
     approved_by_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True,
     )
     approved_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True,
     )
     approval_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -92,10 +94,10 @@ class Report(Base):
 
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

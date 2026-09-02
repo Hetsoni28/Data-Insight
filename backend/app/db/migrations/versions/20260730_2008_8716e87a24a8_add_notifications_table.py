@@ -6,8 +6,8 @@ Create Date: 2026-07-30 20:08:04.513941+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -31,7 +31,7 @@ def upgrade() -> None:
         sa.Column("tenant_id", sa.UUID(), nullable=True),
         sa.Column("user_id", sa.UUID(), nullable=True),
         sa.Column(
-            "metadata_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+            "metadata_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True,
         ),
         sa.Column("is_read", sa.Boolean(), nullable=False),
         sa.Column("is_pinned", sa.Boolean(), nullable=False),
@@ -51,10 +51,10 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_index(
-        op.f("ix_notifications_tenant_id"), "notifications", ["tenant_id"], unique=False
+        op.f("ix_notifications_tenant_id"), "notifications", ["tenant_id"], unique=False,
     )
     op.create_index(
-        op.f("ix_notifications_user_id"), "notifications", ["user_id"], unique=False
+        op.f("ix_notifications_user_id"), "notifications", ["user_id"], unique=False,
     )
     # ### end Alembic commands ###
 

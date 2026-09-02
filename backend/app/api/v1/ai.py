@@ -1,41 +1,41 @@
 """AI Copilot endpoints — chat, SSE streaming, NL-to-SQL, deep analysis, job status."""
 
-import uuid
 import json
-from typing import Optional, List, Dict, Any
+import uuid
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from app.core.rate_limit import limiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, get_current_active_tenant_user
-from app.models.user import User
-from app.models.tenant import Tenant
-from app.services.ai_service import AIService
-from app.services.entitlements import check_quota, BillingResource, get_usage
-from app.repositories.chat import ChatRepository
+from app.api.deps import get_current_active_tenant_user, get_db
 from app.core.exceptions import (
     ForbiddenException,
     ResourceNotFoundException,
-    AIServiceException,
 )
+from app.core.rate_limit import limiter
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.repositories.chat import ChatRepository
 from app.schemas.ai import (
-    AIChatRequest,
-    AIChatResponse,
-    AINLQueryRequest,
-    AINLQueryResponse,
     AIAnalyzeRequest,
     AIAnalyzeResponse,
-    AIProvidersListResponse,
-    ChatSessionCreate,
-    ChatSessionUpdate,
-    ChatSessionResponse,
-    ChatSessionListResponse,
-    ChatMessageResponse,
+    AIChatRequest,
+    AIChatResponse,
     AICopilotMessageRequest,
     AICopilotMessageResponse,
     AICopilotSuggestionsResponse,
+    AINLQueryRequest,
+    AINLQueryResponse,
+    AIProvidersListResponse,
+    ChatMessageResponse,
+    ChatSessionCreate,
+    ChatSessionListResponse,
+    ChatSessionResponse,
+    ChatSessionUpdate,
 )
+from app.services.ai_service import AIService
+from app.services.entitlements import BillingResource, check_quota, get_usage
 
 router = APIRouter(prefix="/ai", tags=["AI Copilot"])
 
@@ -99,7 +99,7 @@ async def copilot_chat(
         )
     except Exception as e:
         raise HTTPException(
-            status_code=503, detail=f"AI service temporarily unavailable: {str(e)}"
+            status_code=503, detail=f"AI service temporarily unavailable: {e!s}",
         )
 
 
@@ -164,7 +164,7 @@ async def natural_language_query(
         )
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Natural language query failed: {str(e)}"
+            status_code=500, detail=f"Natural language query failed: {e!s}",
         )
 
 
@@ -233,7 +233,7 @@ async def get_dataset_suggestions(
     svc = AIService(db)
     try:
         suggestions = await svc.get_dataset_suggestions(
-            dataset_id=dataset_id, actor=current_user
+            dataset_id=dataset_id, actor=current_user,
         )
         return {
             "dataset_id": dataset_id,
@@ -243,7 +243,7 @@ async def get_dataset_suggestions(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to generate suggestions: {str(e)}"
+            status_code=500, detail=f"Failed to generate suggestions: {e!s}",
         )
 
 
@@ -253,7 +253,7 @@ async def get_dataset_suggestions(
     summary="List persistent chat sessions for current user",
 )
 async def list_chat_sessions(
-    dataset_id: Optional[uuid.UUID] = None,
+    dataset_id: uuid.UUID | None = None,
     limit: int = 50,
     offset: int = 0,
     current_user: User = Depends(get_current_active_tenant_user),
@@ -300,7 +300,7 @@ async def list_chat_sessions(
                     )
                     for m in (s.messages or [])
                 ],
-            )
+            ),
         )
 
     return {"sessions": results, "total": total}
@@ -458,7 +458,6 @@ async def delete_chat_session(
     )
     if not deleted:
         raise HTTPException(status_code=404, detail="Chat session not found.")
-    return None
 
 
 @router.post(
@@ -486,7 +485,7 @@ async def send_session_message(
     except ResourceNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Copilot query failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Copilot query failed: {e!s}")
 
 
 @router.post(
@@ -522,16 +521,15 @@ async def send_session_message_stream(
 
 @router.post(
     "/forecast",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     summary="Generate real ML time-series forecast on a dataset",
 )
 async def generate_ml_forecast(
-    body: Dict[str, Any],
+    body: dict[str, Any],
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Run the Machine Learning time-series forecasting engine on any tenant dataset.
+    """Run the Machine Learning time-series forecasting engine on any tenant dataset.
     Returns trendline, confidence intervals, growth projections, and statistical metrics.
     """
     if not current_user.tenant_id:
@@ -541,12 +539,14 @@ async def generate_ml_forecast(
     if not dataset_id_str:
         raise HTTPException(status_code=400, detail="dataset_id is required.")
 
-    from app.models.dataset import Dataset, DatasetFileType
-    from app.core.storage import download_file_bytes, DATASETS_BUCKET
-    from app.services.analytics.forecasting_engine import ForecastingEngine
     import io
+
     import pandas as pd
     from sqlalchemy import select
+
+    from app.core.storage import DATASETS_BUCKET, download_file_bytes
+    from app.models.dataset import Dataset, DatasetFileType
+    from app.services.analytics.forecasting_engine import ForecastingEngine
 
     stmt = select(Dataset).where(
         Dataset.id == uuid.UUID(dataset_id_str),
@@ -583,4 +583,4 @@ async def generate_ml_forecast(
         )
         return forecast_result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Forecasting failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Forecasting failed: {e!s}")

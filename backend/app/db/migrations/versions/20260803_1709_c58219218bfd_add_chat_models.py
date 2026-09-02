@@ -6,8 +6,8 @@ Create Date: 2026-08-03 17:09:25.967036+00:00
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -39,11 +39,11 @@ def upgrade() -> None:
         sa.Column("role", sa.String(), nullable=False),
         sa.Column("content", sa.Text(), nullable=False),
         sa.Column(
-            "artifact_data", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+            "artifact_data", postgresql.JSONB(astext_type=sa.Text()), nullable=True,
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(
-            ["session_id"], ["chat_sessions.id"], ondelete="CASCADE"
+            ["session_id"], ["chat_sessions.id"], ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
     )

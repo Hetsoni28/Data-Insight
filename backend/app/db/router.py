@@ -6,25 +6,28 @@ Supports multi-tier database isolation:
 """
 
 from __future__ import annotations
+
 import asyncio
 import time
 import uuid
-from typing import AsyncGenerator, Dict, Optional, Tuple
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+
 from loguru import logger
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy import text
 
 from app.core.config import settings
-from app.core.tenant_context import get_tenant_context, TenantContext
+from app.db.session import (
+    AsyncSessionLocal as SharedAsyncSessionLocal,
+)
 from app.db.session import (
     engine as shared_engine,
-    AsyncSessionLocal as SharedAsyncSessionLocal,
 )
 
 
@@ -41,14 +44,14 @@ def normalize_db_url(url: str) -> str:
 class TenantDatabaseRouter:
     """Manages dynamic connection pools for shared and dedicated tenant databases."""
 
-    _instance: Optional[TenantDatabaseRouter] = None
+    _instance: TenantDatabaseRouter | None = None
     _lock = asyncio.Lock()
 
     def __init__(self):
         # Cache dedicated engines and sessionmakers keyed by tenant_id string
-        self._dedicated_engines: Dict[str, AsyncEngine] = {}
-        self._dedicated_sessionmakers: Dict[str, async_sessionmaker[AsyncSession]] = {}
-        self._engine_created_at: Dict[str, float] = {}
+        self._dedicated_engines: dict[str, AsyncEngine] = {}
+        self._dedicated_sessionmakers: dict[str, async_sessionmaker[AsyncSession]] = {}
+        self._engine_created_at: dict[str, float] = {}
 
     @classmethod
     def get_instance(cls) -> TenantDatabaseRouter:
@@ -70,7 +73,7 @@ class TenantDatabaseRouter:
         )
 
     async def get_engine_for_tenant(
-        self, tenant_id: Optional[uuid.UUID], dedicated_url: Optional[str] = None
+        self, tenant_id: uuid.UUID | None, dedicated_url: str | None = None,
     ) -> AsyncEngine:
         """Retrieve the dedicated engine for a tenant or fall back to shared engine."""
         if not tenant_id or not dedicated_url:
@@ -85,7 +88,7 @@ class TenantDatabaseRouter:
                 return self._dedicated_engines[key]
 
             logger.info(
-                f"[DB Router] Initializing dedicated engine pool for tenant: {tenant_id}"
+                f"[DB Router] Initializing dedicated engine pool for tenant: {tenant_id}",
             )
             engine = self._build_engine(dedicated_url)
             session_factory = async_sessionmaker(
@@ -101,7 +104,7 @@ class TenantDatabaseRouter:
             return engine
 
     async def get_sessionmaker_for_tenant(
-        self, tenant_id: Optional[uuid.UUID], dedicated_url: Optional[str] = None
+        self, tenant_id: uuid.UUID | None, dedicated_url: str | None = None,
     ) -> async_sessionmaker[AsyncSession]:
         """Retrieve the session factory for a tenant or fall back to shared sessionmaker."""
         if not tenant_id or not dedicated_url:
@@ -125,7 +128,7 @@ class TenantDatabaseRouter:
                 self._engine_created_at.pop(key, None)
                 if engine:
                     logger.info(
-                        f"[DB Router] Disposing dedicated engine pool for tenant: {tenant_id}"
+                        f"[DB Router] Disposing dedicated engine pool for tenant: {tenant_id}",
                     )
                     await engine.dispose()
 
@@ -133,7 +136,7 @@ class TenantDatabaseRouter:
         """Dispose all dedicated engines on server shutdown."""
         async with self._lock:
             logger.info(
-                f"[DB Router] Disposing {len(self._dedicated_engines)} dedicated connection pools..."
+                f"[DB Router] Disposing {len(self._dedicated_engines)} dedicated connection pools...",
             )
             for key, engine in list(self._dedicated_engines.items()):
                 try:
@@ -146,9 +149,8 @@ class TenantDatabaseRouter:
             logger.info("[DB Router] All dedicated connection pools disposed.")
 
     @staticmethod
-    async def test_connection(db_url: str) -> Tuple[bool, Optional[str], float]:
-        """
-        Test reachability and measure query latency for a dedicated database connection.
+    async def test_connection(db_url: str) -> tuple[bool, str | None, float]:
+        """Test reachability and measure query latency for a dedicated database connection.
         Returns: (success: bool, error_message: str | None, latency_ms: float)
         """
         start_time = time.perf_counter()
@@ -183,12 +185,12 @@ db_router = TenantDatabaseRouter.get_instance()
 
 @asynccontextmanager
 async def get_tenant_db_session(
-    tenant_id: Optional[uuid.UUID] = None,
-    dedicated_url: Optional[str] = None,
+    tenant_id: uuid.UUID | None = None,
+    dedicated_url: str | None = None,
 ) -> AsyncGenerator[AsyncSession, None]:
     """Context manager yielding a transactional AsyncSession routed for the specific tenant."""
     session_factory = await db_router.get_sessionmaker_for_tenant(
-        tenant_id=tenant_id, dedicated_url=dedicated_url
+        tenant_id=tenant_id, dedicated_url=dedicated_url,
     )
     async with session_factory() as session:
         try:
