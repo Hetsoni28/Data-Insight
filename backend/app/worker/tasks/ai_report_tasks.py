@@ -45,13 +45,23 @@ async def _process_ai_report(
             file_bytes = await download_file_bytes(DATASETS_BUCKET, dataset.file_url)
             file_buffer = io.BytesIO(file_bytes)
 
-            if dataset.file_type == DatasetFileType.csv:
-                df = pd.read_csv(file_buffer)
-            elif dataset.file_type == DatasetFileType.xlsx:
-                df = pd.read_excel(file_buffer)
-            elif dataset.file_type == DatasetFileType.json:
-                df = pd.read_json(file_buffer)
-            else:
+            from pathlib import Path as _Path
+            ext = _Path(dataset.file_url).suffix.lower().lstrip(".")
+            if not ext and dataset.original_filename:
+                ext = _Path(dataset.original_filename).suffix.lower().lstrip(".")
+            if not ext:
+                ext = str(dataset.file_type.value if hasattr(dataset.file_type, "value") else dataset.file_type).lower()
+
+            try:
+                if ext in ["xlsx", "xls", "excel"]:
+                    df = pd.read_excel(file_buffer)
+                elif ext in ["json", "ndjson"]:
+                    df = pd.read_json(file_buffer)
+                else:
+                    df = pd.read_csv(file_buffer)
+            except Exception as e:
+                # Fallback to CSV if zip/excel parsing fails
+                file_buffer.seek(0)
                 df = pd.read_csv(file_buffer)
 
             # Sample the data to fit comfortably and quickly in context (first 5000 rows max)
