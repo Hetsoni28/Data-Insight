@@ -155,6 +155,19 @@ Data Insight uses a carefully crafted, enterprise-grade design language built on
 - Branded with company name and configurable colors
 - Download as `.xlsx` — board-presentation ready
 
+### 🧩 Microsoft Excel Integration (Add-in) [NEW]
+- Native Office.js taskpane add-in right inside desktop and web Excel
+- Chat with your dataset directly alongside your spreadsheets
+- Instantly apply AI formatting, formula generation, and data cleaning via Quick Actions
+- Fully authenticated MSAL (Microsoft Authentication Library) integration
+- Link your live workbook securely to your cloud dataset
+
+### 🐋 Large Dataset Architecture (Enterprise Scale) [NEW]
+- **Chunked Uploads:** Safely upload massive files (>300MB) without server timeouts (2GB limit)
+- **Streaming Ingestion:** Uses openpyxl memory streaming to process million-row datasets without OOM crashes
+- **Smart AI Sampling:** AI dynamically samples 10K/100K rows for LLM context, protecting the token limits while DuckDB/Polars still processes the full 1.8M+ rows
+- **CSV Fallback:** Safe automatic fallback from Excel to CSV processing for oversized data exports
+
 ### 📄 AI Report Generator
 - One click → professional PDF report with AI-written narrative
 - Templates: Executive, Financial, Sales, Marketing, HR Operations
@@ -318,7 +331,13 @@ Data Insight uses a carefully crafted, enterprise-grade design language built on
           ┌────────────────▼───┐   ┌───────▼────────────────┐
           │  Next.js Frontend  │   │   FastAPI Backend      │
           │  (Port 3000)       │   │   (Port 8000)          │
-          └────────────────────┘   └───┬───────────────┬────┘
+          └────────────────┬───┘   └───┬───────────────┬────┘
+                           │           │               │
+                ┌──────────▼───────────▼──┐   ┌────────▼───────────┐
+                │  MS Excel Add-in        │   │  Redis             │
+                │  (React / Office.js)    │   │  ├ Cache Layer     │
+                │  (Port 3001 - HTTPS)    │   │  └ Celery Queue    │
+                └─────────────────────────┘   └────────┬───────────┘
                                        │               │
                           ┌────────────▼──┐   ┌────────▼───────────┐
                           │  Supabase     │   │  Redis             │
@@ -787,6 +806,21 @@ This starts:
 ```bash
 docker compose exec backend alembic upgrade head
 ```
+
+### 5. Setup the Excel Add-in (Optional)
+
+The Data Insight MS Excel Add-in runs on its own secure Webpack dev server because Microsoft Office requires add-ins to run over valid HTTPS (`https://localhost:3001`).
+
+```bash
+cd excel-addin
+npm install
+npm start
+```
+This will automatically generate the required SSL certificates, start the server on port 3001, and launch Microsoft Excel (if installed) with the Add-in automatically sideloaded.
+
+**Add-in Troubleshooting:** 
+- If you need to clear the linked dataset from your Excel workbook, go to the Add-in **Settings** tab and click **Unlink Workbook**.
+- Ensure you have run `npm run build` if you want to deploy the static files to the main frontend server.
 
 ---
 
