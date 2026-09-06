@@ -575,28 +575,47 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         from app.services.ingestion.polars_engine import PolarsEngine
 
         file_url = getattr(dataset, "file_url", "") or ""
+
+        # Always resolve file type from the ACTUAL file extension on disk / in storage.
+        # This handles cases where a cleaned .csv was saved but DB still says file_type=xlsx.
+        # Priority: file_url extension → original_filename extension → DB enum
+        original_filename = getattr(dataset, "original_filename", "") or ""
         raw_type = getattr(dataset, "file_type", "csv")
-        file_type_str = (
-            str(raw_type.value if hasattr(raw_type, "value") else raw_type)
-            .lower()
-            .replace("datasetfiletype.", "")
-        )
+
+        ext_from_url = Path(file_url).suffix.lower().lstrip(".")
+        ext_from_name = Path(original_filename).suffix.lower().lstrip(".")
+        ext_from_db = str(
+            raw_type.value if hasattr(raw_type, "value") else raw_type
+        ).lower().replace("datasetfiletype.", "")
+
+        file_type_str = ext_from_url or ext_from_name or ext_from_db
 
         # 1. Try local filesystem path first
         if file_url and Path(file_url).exists() and Path(file_url).is_file():
-            return PolarsEngine.load_from_path(
-                file_url, file_type=file_type_str, n_rows=n_rows,
-            )
+            try:
+                return PolarsEngine.load_from_path(
+                    file_url, file_type=file_type_str, n_rows=n_rows,
+                )
+            except Exception:
+                return PolarsEngine.load_from_path(
+                    file_url, file_type="csv", n_rows=n_rows,
+                )
 
         # 2. Download from MinIO / S3 object storage
         try:
             file_bytes = await download_file_bytes(DATASETS_BUCKET, file_url)
-            return PolarsEngine.load_from_bytes(
-                file_bytes, file_type=file_type_str, n_rows=n_rows,
-            )
+            try:
+                return PolarsEngine.load_from_bytes(
+                    file_bytes, file_type=file_type_str, n_rows=n_rows,
+                )
+            except Exception:
+                # Final fallback: try CSV — covers any misdetected file type
+                logger.warning(f"[AIService] Falling back to CSV for {file_url} (type was '{file_type_str}')")
+                return PolarsEngine.read_csv_from_bytes(file_bytes)
         except Exception as e:
             logger.error(f"[AIService] Failed to load dataset file ({file_url}): {e}")
             raise ValidationException(f"Could not load dataset file: {e}")
+
 
     async def get_dataset_suggestions(
         self,

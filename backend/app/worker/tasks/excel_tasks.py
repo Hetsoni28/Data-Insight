@@ -517,20 +517,44 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                         response = await client.get(signed_url)
                         file_bytes = response.content
 
-                # 2. Parse using PolarsEngine
-                ext = (
-                    dataset.file_type.value
-                    if hasattr(dataset.file_type, "value")
-                    else str(dataset.file_type)
-                )
+                # Use file_url extension first (handles cases where a cleaned file is saved as .csv
+                # but original_filename is still .xlsx)
+                from pathlib import Path as _Path
+                ext = _Path(dataset.file_url).suffix.lower().lstrip(".")
+                
+                if not ext and dataset.original_filename:
+                    ext = _Path(dataset.original_filename).suffix.lower().lstrip(".")
+                    
+                if not ext:
+                    ext = (
+                        dataset.file_type.value
+                        if hasattr(dataset.file_type, "value")
+                        else str(dataset.file_type)
+                    )
                 ext = ext.lower().strip().lstrip(".")
-                df = PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
+
+                try:
+                    df = PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
+                except Exception as parse_err:
+                    logger.warning(f"Failed to parse as {ext} ({parse_err}), trying CSV fallback")
+                    df = PolarsEngine.read_csv_from_bytes(file_bytes)
+
+                # For large datasets: sample 100K rows for the AI Excel report.
+                # The Excel report itself only shows 10K rows (MAX_DATA_ROWS in excel_builder.py).
+                # Cleaning + profiling 1.8M rows in a Celery worker would OOM or time out.
+                REPORT_SAMPLE_ROWS = 100_000
+                if len(df) > REPORT_SAMPLE_ROWS:
+                    logger.info(f"Large dataset ({len(df):,} rows) — sampling {REPORT_SAMPLE_ROWS:,} rows for report")
+                    df = df.sample(n=REPORT_SAMPLE_ROWS, seed=42)
 
                 # 3. Clean
                 df_cleaned, _ = DatasetCleaner.clean_dataframe(df)
 
                 # 4. Profile
                 profile = DataProfiler.profile_dataframe(df_cleaned)
+                # Annotate that this is a sampled report
+                if profile:
+                    profile["report_note"] = f"Report generated from a {REPORT_SAMPLE_ROWS:,}-row sample"
 
                 # 5. Get AI Insights (Groq) then build 15-tab Excel
                 ai_content = await _get_ai_content(df_cleaned, profile, dataset.name)
@@ -542,6 +566,8 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                     profile=profile,
                     dataset_name=dataset.name,
                     ai_content=ai_content,
+                    dataset_id=dataset_id,
+                    workspace_id=str(dataset.workspace_id) if dataset.workspace_id else None,
                 ).build()
 
                 try:

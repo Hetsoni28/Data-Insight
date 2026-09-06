@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useCallback, useState } from "react";
@@ -35,11 +35,11 @@ export function DatasetUploader({ workspaceId, onUploadComplete }: DatasetUpload
       "application/json": [".json"],
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
     },
-    maxSize: 100 * 1024 * 1024, // 100MB
+    maxSize: 2 * 1024 * 1024 * 1024, // 2 GB
     onDropRejected: (fileRejections) => {
       const error = fileRejections[0]?.errors[0];
       if (error?.code === "file-too-large") {
-        toast.error("File is larger than 100MB limit.");
+        toast.error("File exceeds the 2 GB limit. Please split your dataset.");
       } else if (error?.code === "file-invalid-type") {
         toast.error("Invalid file type. Only CSV, JSON, and XLSX are supported.");
       } else {
@@ -47,6 +47,14 @@ export function DatasetUploader({ workspaceId, onUploadComplete }: DatasetUpload
       }
     },
   });
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  };
+
+  const isLargeFile = file && file.size > 10 * 1024 * 1024;
 
   const handleUpload = async () => {
     if (!file) return;
@@ -85,7 +93,9 @@ export function DatasetUploader({ workspaceId, onUploadComplete }: DatasetUpload
       <CardHeader>
         <CardTitle>Upload Dataset</CardTitle>
         <CardDescription>
-          Drag and drop your raw data here. Supported formats: CSV, XLSX, JSON (Max 100MB).
+          Drag and drop your raw data here. Supported formats: CSV, XLSX, JSON{" "}
+          <span className="font-medium text-primary">— up to 2 GB</span>.
+          Large files are uploaded in secure 10 MB chunks automatically.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -120,7 +130,12 @@ export function DatasetUploader({ workspaceId, onUploadComplete }: DatasetUpload
                 <div>
                   <p className="text-sm font-medium leading-none">{file.name}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {(file.size / (1024 * 1024)).toFixed(2)} MB
+                    {formatSize(file.size)}
+                    {isLargeFile && (
+                      <span className="ml-2 text-primary font-medium">
+                        · chunked upload ({Math.ceil(file.size / (10 * 1024 * 1024))} parts)
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -140,7 +155,8 @@ export function DatasetUploader({ workspaceId, onUploadComplete }: DatasetUpload
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground flex items-center gap-1">
-                    <Loader2 className="h-3 w-3 animate-spin" /> Uploading...
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    {isLargeFile ? `Uploading chunk by chunk...` : "Uploading..."}
                   </span>
                   <span className="font-medium">{progress}%</span>
                 </div>

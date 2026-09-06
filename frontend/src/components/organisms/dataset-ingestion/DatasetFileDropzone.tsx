@@ -64,8 +64,9 @@ export function DatasetFileDropzone({ file, onFileSelect, onRemove, disabled }: 
       return
     }
     
-    if (selectedFile.size > 100 * 1024 * 1024) {
-      toast.error("File exceeds the 100 MB maximum size limit.")
+    const MAX_SIZE = 2 * 1024 * 1024 * 1024 // 2 GB
+    if (selectedFile.size > MAX_SIZE) {
+      toast.error("File exceeds the 2 GB maximum size limit. Please split your dataset and upload in parts.")
       return
     }
 
@@ -74,7 +75,8 @@ export function DatasetFileDropzone({ file, onFileSelect, onRemove, disabled }: 
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
   }
 
   return (
@@ -84,7 +86,7 @@ export function DatasetFileDropzone({ file, onFileSelect, onRemove, disabled }: 
           <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
           Data Source File
         </label>
-        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Max size: 100MB</span>
+        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Max size: 2 GB</span>
       </div>
 
       <AnimatePresence mode="wait">

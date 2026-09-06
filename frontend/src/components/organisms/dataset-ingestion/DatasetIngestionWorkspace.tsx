@@ -108,16 +108,57 @@ export function DatasetIngestionWorkspace({ role }: DatasetIngestionWorkspacePro
     setStatus("uploading")
     setErrorMessage("")
 
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("workspace_id", activeWs.id)
-      formData.append("name", name)
-      if (description) formData.append("description", description)
+    const CHUNK_SIZE = 10 * 1024 * 1024 // 10 MB
+    const isLarge = file.size > CHUNK_SIZE
 
-      const res = await api.post("/datasets/upload", formData)
-      
-      setDatasetId(res.data.id)
+    try {
+      let datasetRes: any
+
+      if (!isLarge) {
+        // ── Small file: single request ────────────────────────────────────────
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("workspace_id", activeWs.id)
+        formData.append("name", name)
+        if (description) formData.append("description", description)
+
+        const res = await api.post("/datasets/upload", formData)
+        datasetRes = res.data
+      } else {
+        // ── Large file: chunked upload ─────────────────────────────────────────
+        const uploadId = crypto.randomUUID()
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
+
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE
+          const end = Math.min(start + CHUNK_SIZE, file.size)
+          const slice = file.slice(start, end)
+
+          const chunkForm = new FormData()
+          chunkForm.append("upload_id", uploadId)
+          chunkForm.append("chunk_index", String(i))
+          chunkForm.append("total_chunks", String(totalChunks))
+          chunkForm.append("chunk", new File([slice], file.name))
+
+          await api.post("/datasets/upload-chunk", chunkForm)
+        }
+
+        // All chunks sent — finalize
+        const finalForm = new FormData()
+        finalForm.append("upload_id", uploadId)
+        finalForm.append("total_chunks", String(totalChunks))
+        finalForm.append("filename", file.name)
+        finalForm.append("workspace_id", activeWs.id)
+        finalForm.append("name", name)
+        if (description) finalForm.append("description", description)
+
+        const res = await api.post("/datasets/upload-finalize", finalForm, {
+          timeout: 10 * 60 * 1000, // 10 min — large files take time to profile
+        })
+        datasetRes = res.data
+      }
+
+      setDatasetId(datasetRes.id)
       setStatus("queued")
     } catch (err: any) {
       setStatus("error")
@@ -125,8 +166,9 @@ export function DatasetIngestionWorkspace({ role }: DatasetIngestionWorkspacePro
         setErrorMessage(err.response?.data?.detail || "Storage limit reached for this workspace.")
         toast.error(err.response?.data?.detail || "Storage limit reached.")
       } else {
-        setErrorMessage(err.response?.data?.detail || "Failed to upload file.")
-        toast.error("Failed to upload file.")
+        const detail = err.response?.data?.detail || err.message || "Failed to upload file."
+        setErrorMessage(detail)
+        toast.error("Upload failed: " + detail)
       }
     }
   }

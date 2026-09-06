@@ -26,7 +26,7 @@ from app.core.exceptions import (
 )
 
 ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".xls", ".json", ".parquet", ".tsv"}
-MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB hard limit per file
+MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024 * 1024  # 2 GB — supports large enterprise datasets (chunked upload)
 
 EXTENSION_TO_TYPE = {
     ".csv": DatasetFileType.csv,
@@ -197,14 +197,32 @@ class DatasetService:
             async with httpx.AsyncClient() as client:
                 response = await client.get(signed_url)
                 file_bytes = response.content
-
-        ext = (
-            dataset.file_type.value
-            if hasattr(dataset.file_type, "value")
-            else str(dataset.file_type)
-        )
+                
+        from pathlib import Path as _Path
+        
+        # 1. Use the extension of the actual file we just downloaded (file_url)
+        # This handles cases where an uploaded .xlsx was cleaned and saved as .csv
+        ext = _Path(dataset.file_url).suffix.lower().lstrip(".")
+        
+        # 2. Fall back to original_filename
+        if not ext and dataset.original_filename:
+            ext = _Path(dataset.original_filename).suffix.lower().lstrip(".")
+            
+        # 3. Fall back to database file_type enum
+        if not ext:
+            ext = (
+                dataset.file_type.value
+                if hasattr(dataset.file_type, "value")
+                else str(dataset.file_type)
+            )
         ext = ext.lower().strip().lstrip(".")
-        return await asyncio.to_thread(PolarsEngine.load_from_bytes, file_bytes, ext)
+        
+        try:
+            return await asyncio.to_thread(PolarsEngine.load_from_bytes, file_bytes, ext)
+        except Exception as parse_err:
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to parse as {ext} ({parse_err}), trying CSV fallback in load_dataframe")
+            return await asyncio.to_thread(PolarsEngine.read_csv_from_bytes, file_bytes)
 
     async def get_preview_data(
         self, dataset_id: uuid.UUID, actor: User, limit: int = 50

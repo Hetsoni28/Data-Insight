@@ -118,22 +118,70 @@ class PolarsEngine:
         sheet_name: str | None = None,
         n_rows: int | None = None,
     ) -> pl.DataFrame:
-        """Read Excel (.xlsx / .xls) bytes into a Polars DataFrame."""
-        try:
-            # Polars read_excel uses calamine or openpyxl
-            return pl.read_excel(
-                io.BytesIO(file_bytes),
-                sheet_name=sheet_name or 0,
-                read_options={"n_rows": n_rows} if n_rows else None,
-            )
-        except Exception as exc:
-            logger.warning(f"Polars read_excel failed, falling back to pandas: {exc}")
-            import pandas as pd
+        """Read Excel (.xlsx / .xls) bytes into a Polars DataFrame.
 
-            pdf = pd.read_excel(
-                io.BytesIO(file_bytes), sheet_name=sheet_name or 0, nrows=n_rows,
-            )
-            return pl.from_pandas(pdf)
+        For files > 50 MB, uses openpyxl read_only streaming mode to avoid
+        loading the entire workbook into RAM at once.
+        """
+        LARGE_FILE_THRESHOLD = 50 * 1024 * 1024  # 50 MB
+
+        if len(file_bytes) > LARGE_FILE_THRESHOLD:
+            # ── Streaming path for large Excel files ──────────────────────────
+            logger.info(f"Large Excel file ({len(file_bytes) / 1_048_576:.1f} MB) — using openpyxl streaming read")
+            try:
+                import io as _io
+                import openpyxl
+
+                wb = openpyxl.load_workbook(_io.BytesIO(file_bytes), read_only=True, data_only=True)
+                ws = wb[sheet_name] if sheet_name and sheet_name in wb.sheetnames else wb.active
+
+                rows_iter = ws.iter_rows(values_only=True)
+                try:
+                    headers = [str(h) if h is not None else f"column_{i}" for i, h in enumerate(next(rows_iter))]
+                except StopIteration:
+                    wb.close()
+                    return pl.DataFrame()
+
+                data: list[tuple] = []
+                for idx, row in enumerate(rows_iter):
+                    if n_rows is not None and idx >= n_rows:
+                        break
+                    # Pad/trim to header length
+                    row_list = list(row)
+                    if len(row_list) < len(headers):
+                        row_list += [None] * (len(headers) - len(row_list))
+                    elif len(row_list) > len(headers):
+                        row_list = row_list[:len(headers)]
+                    data.append(tuple(row_list))
+
+                wb.close()
+                # Build Polars DataFrame column by column to control types
+                col_data = {headers[i]: [row[i] for row in data] for i in range(len(headers))}
+                df = pl.DataFrame(col_data, infer_schema_length=10000)
+                logger.info(f"Streaming Excel read complete: {len(df)} rows × {len(df.columns)} cols")
+                return df
+
+            except Exception as exc:
+                logger.warning(f"Streaming Excel read failed ({exc}), falling back to pandas for large file")
+                import io as _io
+                import pandas as pd
+                pdf = pd.read_excel(_io.BytesIO(file_bytes), sheet_name=sheet_name or 0, nrows=n_rows, engine="openpyxl")
+                return pl.from_pandas(pdf)
+        else:
+            # ── Standard path for small/medium Excel files ────────────────────
+            try:
+                return pl.read_excel(
+                    io.BytesIO(file_bytes),
+                    sheet_name=sheet_name or 0,
+                    read_options={"n_rows": n_rows} if n_rows else None,
+                )
+            except Exception as exc:
+                logger.warning(f"Polars read_excel failed, falling back to pandas: {exc}")
+                import pandas as pd
+                pdf = pd.read_excel(
+                    io.BytesIO(file_bytes), sheet_name=sheet_name or 0, nrows=n_rows,
+                )
+                return pl.from_pandas(pdf)
 
     @classmethod
     def read_json_from_bytes(

@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Data Insight"
     APP_VERSION: str = "1.0.0"
     SECRET_KEY: str
-    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "https://localhost:3001", "http://localhost:3001"]
 
     # Master Database (Platform Registry)
     DATABASE_URL: str

@@ -1092,14 +1092,20 @@ async def clean_dataset_api(
             DatasetCleaner.clean_dataframe, df,
         )
 
-        # Write to bytes buffer (always export as xlsx for cleaning)
+        # Write to bytes buffer
+        # Excel has a hard limit of 1,048,575 rows — export as CSV for large datasets
+        EXCEL_MAX_ROWS = 1_048_575
         buf = io.BytesIO()
-        df_cleaned.write_excel(buf)
+        if len(df_cleaned) > EXCEL_MAX_ROWS:
+            # Large dataset → export as CSV (no row limit)
+            csv_bytes = df_cleaned.write_csv().encode("utf-8")
+            buf.write(csv_bytes)
+            clean_filename = f"cleaned_{d.id}.csv"
+        else:
+            df_cleaned.write_excel(buf)
+            clean_filename = f"cleaned_{d.id}.xlsx"
         buf.seek(0)
         file_bytes = buf.read()
-
-        # Generate new filename
-        clean_filename = f"cleaned_{d.id}.xlsx"
 
         # Upload new cleaned file
         new_file_url = await upload_file(
@@ -1367,11 +1373,20 @@ async def get_cleaning_suggestions(
     ds_svc = DatasetService(db)
     df = await ds_svc.load_dataframe(d)
 
+    # For large datasets: sample 10,000 rows for AI analysis.
+    # The agent only needs a representative sample to detect patterns —
+    # loading 1.8M rows into the AI context window would time out.
+    SAMPLE_ROWS = 10_000
+    if len(df) > SAMPLE_ROWS:
+        df_sample = df.sample(n=SAMPLE_ROWS, seed=42)
+    else:
+        df_sample = df
+
     router_instance = LLMRouter()
     agent = CleaningAgent(router_instance)
 
     schema = d.profile.get("columns", {}) if d.profile else {}
-    suggestions = await agent.suggest_cleaning(df, schema)
+    suggestions = await agent.suggest_cleaning(df_sample, schema)
 
     return {"status": "success", "data": suggestions}
 
@@ -1409,8 +1424,14 @@ async def apply_cleaning_operations(
     agent = CleaningAgent(None)  # Router not needed for apply
     df_cleaned = agent.apply_operations(df, req.operations)
 
+    # Excel has a hard limit of 1,048,575 rows — export as CSV for large datasets
+    EXCEL_MAX_ROWS = 1_048_575
     buf = io.BytesIO()
-    df_cleaned.write_excel(buf)
+    if len(df_cleaned) > EXCEL_MAX_ROWS:
+        csv_bytes = df_cleaned.write_csv().encode("utf-8")
+        buf.write(csv_bytes)
+    else:
+        df_cleaned.write_excel(buf)
     buf.seek(0)
     file_bytes = buf.read()
 

@@ -52,11 +52,13 @@ def _col_w(df, col, extra=4):
 
 
 class AdvancedExcelBuilder:
-    def __init__(self, df, profile, dataset_name, ai_content):
+    def __init__(self, df, profile, dataset_name, ai_content, dataset_id=None, workspace_id=None):
         self.df = df
         self.profile = profile or {}
         self.name = (dataset_name or "Dataset")[:50]
         self.ai = ai_content or {}
+        self.dataset_id = dataset_id
+        self.workspace_id = workspace_id
         self.generated_at = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
         self.num_cols = [
             c
@@ -144,6 +146,13 @@ class AdvancedExcelBuilder:
         tabs.append(self._t14_method())
         tabs.append(self._t15_dict())
         self._fill_toc(ws_toc, tabs)
+        
+        if self.dataset_id: 
+            self._wb.set_custom_property('data_insight_dataset_id', str(self.dataset_id))
+        if self.workspace_id: 
+            self._wb.set_custom_property('data_insight_workspace_id', str(self.workspace_id))
+        self._wb.set_custom_property('data_insight_version', '1.0')
+        
         self._wb.close()
         buf.seek(0)
         return buf.read()

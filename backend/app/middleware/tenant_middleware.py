@@ -51,8 +51,8 @@ class TenantMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         path = request.url.path
 
-        # Bypass static and auth handshake routes
-        if any(path.startswith(prefix) for prefix in EXCLUDED_PREFIXES):
+        # Bypass static and auth handshake routes, and CORS OPTIONS preflights
+        if request.method == "OPTIONS" or any(path.startswith(prefix) for prefix in EXCLUDED_PREFIXES):
             return await call_next(request)
 
         tenant_id_str: str | None = None
