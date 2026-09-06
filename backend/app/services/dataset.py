@@ -362,13 +362,10 @@ class DatasetService:
             col_expr = safe_col(col_name)
             numeric = is_numeric_col(col_name)
 
-            # SUM/AVG/MIN/MAX on a string column → cast to DOUBLE, or fall back to COUNT
-            if agg in ("SUM", "AVG") and not numeric:
-                # Try TRY_CAST — returns NULL for non-parseable values, avoids error
-                col_expr = f"TRY_CAST({col_expr} AS DOUBLE)"
-            elif agg in ("MIN", "MAX") and not numeric:
-                # MIN/MAX on strings is fine, no cast needed
-                pass
+            if not numeric and agg in ("SUM", "AVG", "MIN", "MAX"):
+                raise ValidationException(
+                    f"Cannot apply {agg} to text column '{col_name}'. Please use COUNT or select a numeric metric."
+                )
 
             return f'{agg}({col_expr}) as "{alias}"'
 
