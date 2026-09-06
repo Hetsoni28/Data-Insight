@@ -66,11 +66,11 @@ export function OrganizationScoreCards({ kpis, overview }: { kpis: KPIs | null; 
             <div className="h-2.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden p-0.5">
               <div 
                 className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500 shadow-sm"
-                style={{ width: `${Math.min((kpis.storage_mb || 0) / 1024 * 100, 100)}%` }} 
+                style={{ width: `${Math.min((kpis.storage_mb || 0) / ((overview?.max_storage_gb ?? 1) * 1024) * 100, 100)}%` }} 
               />
             </div>
             <div className="flex justify-between text-[10px] mt-1.5 text-slate-500 dark:text-slate-400 font-medium">
-              <span>0 MB</span><span>1 GB limit</span>
+              <span>0 MB</span><span>{overview?.max_storage_gb ?? 1} GB limit</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 pt-1">
@@ -99,9 +99,9 @@ export function OrganizationScoreCards({ kpis, overview }: { kpis: KPIs | null; 
         </div>
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Rental Plan</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Plan</span>
             <Badge className="bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-500/30 capitalize text-[10px] font-bold px-2 py-0.5">
-              Dedicated System
+              {overview?.subscription_plan ? overview.subscription_plan.charAt(0).toUpperCase() + overview.subscription_plan.slice(1) : "Enterprise"}
             </Badge>
           </div>
           

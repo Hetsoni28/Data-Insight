@@ -63,6 +63,7 @@ async def get_dashboard_overview(
                 "current_ai_provider": current_ai,
                 "greeting": f"Welcome back, {current_user.full_name.split()[0] if current_user.full_name else 'User'}",
                 "mrr": tenant.mrr or 0.0,
+                "max_storage_gb": tenant.max_storage_gb or 1,
                 "current_period_end": (
                     tenant.current_period_end.isoformat()
                     if tenant.current_period_end
