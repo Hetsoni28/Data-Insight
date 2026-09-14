@@ -1113,7 +1113,8 @@ async def clean_dataset_api(
         EXCEL_MAX_ROWS = 1_048_575
         if len(df_cleaned) > EXCEL_MAX_ROWS:
             csv_bytes = df_cleaned.write_csv().encode("utf-8-sig")
-            safe_name = f"Clean_{d.name}.csv".replace("/", "_")
+            # Sanitize filename — remove/replace problematic characters
+            safe_name = "".join(c if c.isalnum() or c in "-_." else "_" for c in f"Clean_{d.name}") + ".csv"
             audit = AuditLog(
                 tenant_id=tenant_id, user_id=current_user.id,
                 action="dataset.cleaned", resource_type="dataset",
@@ -1122,8 +1123,9 @@ async def clean_dataset_api(
             )
             db.add(audit)
             await db.commit()
-            return StreamingResponse(
-                iter([csv_bytes]),
+            from fastapi.responses import Response
+            return Response(
+                content=csv_bytes,
                 media_type="text/csv",
                 headers={"Content-Disposition": f'attachment; filename="{safe_name}"'},
             )
@@ -1140,7 +1142,8 @@ async def clean_dataset_api(
             ).build()
         )
 
-        safe_name = f"Clean_{d.name}.xlsx".replace("/", "_")
+        # Sanitize filename — spaces and special chars cause Content-Disposition issues
+        safe_name = "".join(c if c.isalnum() or c in "-_." else "_" for c in f"Clean_{d.name}") + ".xlsx"
 
         # Log audit
         audit = AuditLog(
@@ -1152,8 +1155,9 @@ async def clean_dataset_api(
         db.add(audit)
         await db.commit()
 
-        return StreamingResponse(
-            iter([excel_bytes]),
+        from fastapi.responses import Response
+        return Response(
+            content=excel_bytes,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f'attachment; filename="{safe_name}"'},
         )
