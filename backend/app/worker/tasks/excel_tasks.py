@@ -539,40 +539,64 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                     logger.warning(f"Failed to parse as {ext} ({parse_err}), trying CSV fallback")
                     df_original = PolarsEngine.read_csv_from_bytes(file_bytes)
 
-                # 3. Profile FULL original data (before cleaning) — real stats, no sampling
-                logger.info(f"Profiling original dataset ({len(df_original):,} rows)...")
-                original_profile = DataProfiler.profile_dataframe(df_original)
+                total_rows = len(df_original)
+                logger.info(f"Dataset loaded: {total_rows:,} rows × {len(df_original.columns)} cols")
 
-                # 4. Clean the FULL dataset — get real dynamic cleaning metrics
-                logger.info("Cleaning dataset...")
+                # ── Smart sampling strategy ────────────────────────────────────
+                # For very large datasets (>500K rows):
+                #   - Run cleaner on FULL dataset → exact duplicate/null counts
+                #   - Profile a 500K sample → fast column-level stats
+                #   - Write up to 1M rows to Excel (Excel's hard limit anyway)
+                # For small datasets (<500K rows):
+                #   - Process everything on the full dataset
+                PROFILE_SAMPLE = 500_000
+                AI_SAMPLE = 100_000
+                EXCEL_MAX = 1_048_575
+
+                # 3. Clean the FULL dataset — always exact counts regardless of size
+                logger.info("Cleaning full dataset...")
                 df_cleaned, cleaning_metrics = DatasetCleaner.clean_dataframe(df_original)
                 logger.info(
-                    f"Cleaned: {cleaning_metrics['duplicates_removed']:,} dupes removed, "
+                    f"Cleaned: {cleaning_metrics['duplicates_removed']:,} dupes, "
                     f"{cleaning_metrics['nulls_filled']:,} nulls filled, "
                     f"{len(df_cleaned):,} rows remain"
                 )
 
-                # 5. Profile FULL cleaned data (after cleaning) — real stats
-                logger.info("Profiling cleaned dataset...")
-                profile = DataProfiler.profile_dataframe(df_cleaned)
+                # 4. Profile — use sample for large datasets to keep it fast
+                if total_rows > PROFILE_SAMPLE:
+                    logger.info(f"Large dataset — sampling {PROFILE_SAMPLE:,} rows for profiling")
+                    df_sample = df_cleaned.sample(n=min(PROFILE_SAMPLE, len(df_cleaned)), seed=42)
+                    original_sample = df_original.sample(n=min(PROFILE_SAMPLE, len(df_original)), seed=42)
+                else:
+                    df_sample = df_cleaned
+                    original_sample = df_original
+
+                original_profile = DataProfiler.profile_dataframe(original_sample)
+                profile = DataProfiler.profile_dataframe(df_sample)
+
+                # Inject EXACT counts from the full-dataset cleaning (overrides sampled stats)
+                original_profile["row_count"] = total_rows
+                original_profile["column_count"] = len(df_original.columns)
+                profile["row_count"] = len(df_cleaned)
+                profile["column_count"] = len(df_cleaned.columns)
                 profile["original_stats"] = original_profile
                 profile["cleaning_metrics"] = cleaning_metrics
 
-                # 6. Sample 100K rows ONLY for AI content generation
-                #    (AI prompt doesn't need 1.2M rows — this keeps it fast)
-                REPORT_SAMPLE_ROWS = 100_000
-                df_for_ai = df_cleaned
-                if len(df_cleaned) > REPORT_SAMPLE_ROWS:
-                    logger.info(f"Sampling {REPORT_SAMPLE_ROWS:,} rows for AI prompt (full data still written to Excel)")
-                    df_for_ai = df_cleaned.sample(n=REPORT_SAMPLE_ROWS, seed=42)
+                # 5. Sample for AI prompt (AI doesn't need 1.8M rows)
+                df_for_ai = df_cleaned if len(df_cleaned) <= AI_SAMPLE else df_cleaned.sample(n=AI_SAMPLE, seed=42)
 
-                # 7. Get AI Insights from the sample, then build full Excel with ALL rows
+                # 6. For Excel data sheet: cap at Excel's row limit
+                df_for_excel = df_cleaned if len(df_cleaned) <= EXCEL_MAX else df_cleaned.head(EXCEL_MAX)
+                if len(df_cleaned) > EXCEL_MAX:
+                    logger.info(f"Dataset exceeds Excel row limit — writing first {EXCEL_MAX:,} rows")
+
+                # 7. Get AI Insights, then build Excel with smart row count
                 ai_content = await _get_ai_content(df_for_ai, profile, dataset.name)
                 from app.services.ingestion.excel_builder import AdvancedExcelBuilder
                 from app.services.ingestion.pdf_builder import AdvancedPdfBuilder
 
                 excel_bytes = AdvancedExcelBuilder(
-                    df=df_cleaned,
+                    df=df_for_excel,
                     profile=profile,
                     dataset_name=dataset.name,
                     ai_content=ai_content,

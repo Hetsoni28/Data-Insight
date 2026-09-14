@@ -58,9 +58,16 @@ export function DataQualityReview({
       }, 5000)
 
       let attempts = 0
-      const maxAttempts = 48
+      // Large datasets (1M+ rows) can take 5-10 minutes to process
+      // 360 attempts × 2.5s = 15 minutes max wait
+      const maxAttempts = 360
       const pollInterval = setInterval(async () => {
         attempts++
+        // Show time elapsed every 30 seconds
+        if (attempts % 12 === 0) {
+          const mins = Math.floor((attempts * 2500) / 60000)
+          setExcelProgress(`Still working... (${mins}m elapsed — large datasets take longer)`)
+        }
         try {
           const statusRes = await api.get(`/tenant-datasets/${datasetId}`)
           const ds = statusRes.data?.data
@@ -96,7 +103,7 @@ export function DataQualityReview({
         if (attempts >= maxAttempts) {
           clearInterval(pollInterval)
           clearInterval(msgInterval)
-          toast.error("Generation timed out, please try again")
+          toast.error("Generation timed out after 15 minutes. Try with a smaller dataset.")
           setIsGeneratingExcel(false)
         }
       }, 2500)
