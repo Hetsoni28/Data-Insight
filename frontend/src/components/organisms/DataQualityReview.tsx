@@ -156,14 +156,22 @@ export function DataQualityReview({
             clearInterval(msgInterval)
             toast.success("✅ Clean data ready! Downloading now...")
 
+            // Determine correct extension from the stored URL (not from Content-Disposition which can be stripped by proxy)
+            const storedUrl = (ds.excel_url as string).replace('clean_export::', '')
+            const isZip = storedUrl.endsWith('.zip')
+            const fallbackFilename = isZip
+              ? `Clean_${datasetName}.zip`
+              : `Clean_${datasetName}.xlsx`
+
             // 3. Download the file (Excel or ZIP)
             try {
               const dlRes = await api.get(`/tenant-datasets/${datasetId}/clean-export-download`, {
                 responseType: 'blob'
               })
+              // Try Content-Disposition first, fall back to correct extension from excel_url
               const contentDisposition = dlRes.headers['content-disposition'] || ''
-              const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
-              const filename = match ? match[1].replace(/['"]/g, '') : `Clean_${datasetName}.xlsx`
+              const match = contentDisposition.match(/filename[^;=\n]*=((['\"]).*?\2|[^;\n]*)/)
+              const filename = match ? match[1].replace(/['"]/g, '') : fallbackFilename
 
               const url = window.URL.createObjectURL(new Blob([dlRes.data]))
               const link = document.createElement('a')
@@ -173,6 +181,10 @@ export function DataQualityReview({
               link.click()
               link.remove()
               window.URL.revokeObjectURL(url)
+
+              if (isZip) {
+                toast.success("📦 Downloaded ZIP: extract it to get Quality_Report.xlsx + full Clean Data CSV", { duration: 8000 })
+              }
             } catch {
               toast.error("Download failed — please try again.")
             }
