@@ -1060,14 +1060,23 @@ async def clean_dataset_api(
     workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    """Scans the dataset for structural chaos, removes duplicates and null rows,
-    and saves the cleaned version over the original.
-    """
-    import io
+    """Cleans the dataset (removes duplicates, empty rows, fills nulls) and
+    streams a professionally formatted 3-tab Excel directly to the user.
 
-    from app.core.storage import DATASETS_BUCKET, upload_file
+    Tabs:
+      1. Data Quality Dashboard  — dynamic before/after stats (real numbers from this dataset)
+      2. Clean Data              — ALL rows of the cleaned dataset
+      3. Column Profiles         — per-column null %, unique %, min/max/mean
+
+    The original dataset in the database is NOT modified.
+    """
+    import asyncio
+    from fastapi.responses import StreamingResponse
+
     from app.services.dataset import DatasetService
+    from app.services.ingestion.clean_excel_builder import CleanExcelBuilder
     from app.services.ingestion.cleaner import DatasetCleaner
+    from app.services.ingestion.profiler import DataProfiler
 
     try:
         tenant_id = current_user.tenant_id
@@ -1081,72 +1090,73 @@ async def clean_dataset_api(
         if not d:
             raise HTTPException(status_code=404, detail="Dataset not found")
 
-        # Load data
+        # 1. Load original data
         ds_svc = DatasetService(db)
-        df = await ds_svc.load_dataframe(d)
+        df_original = await ds_svc.load_dataframe(d)
 
-        # Clean data
-        import asyncio
-
-        df_cleaned, metrics = await asyncio.to_thread(
-            DatasetCleaner.clean_dataframe, df,
+        # 2. Profile ORIGINAL data — real stats before any changes
+        original_profile = await asyncio.to_thread(
+            DataProfiler.profile_dataframe, df_original
         )
 
-        # Write to bytes buffer
-        # Excel has a hard limit of 1,048,575 rows — export as CSV for large datasets
+        # 3. Clean — returns fully dynamic metrics (real counts from this dataset)
+        df_cleaned, cleaning_metrics = await asyncio.to_thread(
+            DatasetCleaner.clean_dataframe, df_original
+        )
+
+        # 4. Profile CLEANED data — real stats after cleaning
+        clean_profile = await asyncio.to_thread(
+            DataProfiler.profile_dataframe, df_cleaned
+        )
+
+        # 5. If > 1M rows, export as plain CSV (Excel row limit)
         EXCEL_MAX_ROWS = 1_048_575
-        buf = io.BytesIO()
         if len(df_cleaned) > EXCEL_MAX_ROWS:
-            # Large dataset → export as CSV (no row limit)
-            csv_bytes = df_cleaned.write_csv().encode("utf-8")
-            buf.write(csv_bytes)
-            clean_filename = f"cleaned_{d.id}.csv"
-        else:
-            df_cleaned.write_excel(buf)
-            clean_filename = f"cleaned_{d.id}.xlsx"
-        buf.seek(0)
-        file_bytes = buf.read()
+            csv_bytes = df_cleaned.write_csv().encode("utf-8-sig")
+            safe_name = f"Clean_{d.name}.csv".replace("/", "_")
+            audit = AuditLog(
+                tenant_id=tenant_id, user_id=current_user.id,
+                action="dataset.cleaned", resource_type="dataset",
+                resource_id=str(d.id),
+                ip_address=request.client.host if request.client else "127.0.0.1",
+            )
+            db.add(audit)
+            await db.commit()
+            return StreamingResponse(
+                iter([csv_bytes]),
+                media_type="text/csv",
+                headers={"Content-Disposition": f'attachment; filename="{safe_name}"'},
+            )
 
-        # Upload new cleaned file
-        new_file_url = await upload_file(
-            DATASETS_BUCKET,
-            file_bytes,
-            clean_filename,
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        # 6. Build the formatted 3-tab Excel (100% dynamic — no hardcoded values)
+        excel_bytes = await asyncio.to_thread(
+            lambda: CleanExcelBuilder(
+                df_original=df_original,
+                df_cleaned=df_cleaned,
+                cleaning_metrics=cleaning_metrics,
+                original_profile=original_profile,
+                clean_profile=clean_profile,
+                dataset_name=d.name,
+            ).build()
         )
 
-        # Update database
-        d.file_url = new_file_url
-        d.file_size_bytes = len(file_bytes)
-        d.file_type = "xlsx"
-        d.original_filename = f"Cleaned_{d.original_filename}"
-        if not d.original_filename.endswith(".xlsx"):
-            d.original_filename += ".xlsx"
-
-        d.row_count = metrics["final_rows"]
+        safe_name = f"Clean_{d.name}.xlsx".replace("/", "_")
 
         # Log audit
         audit = AuditLog(
-            tenant_id=tenant_id,
-            user_id=current_user.id,
-            action="dataset.cleaned",
-            resource_type="dataset",
+            tenant_id=tenant_id, user_id=current_user.id,
+            action="dataset.cleaned", resource_type="dataset",
             resource_id=str(d.id),
             ip_address=request.client.host if request.client else "127.0.0.1",
         )
         db.add(audit)
         await db.commit()
 
-        return {
-            "status": "success",
-            "message": "Dataset cleaned successfully.",
-            "metrics": metrics,
-            "dataset": {
-                "id": str(d.id),
-                "row_count": d.row_count,
-                "file_url": d.file_url,
-            },
-        }
+        return StreamingResponse(
+            iter([excel_bytes]),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{safe_name}"'},
+        )
 
     except HTTPException:
         raise

@@ -109,29 +109,31 @@ export function DataQualityReview({
   const handleCleanAndDownload = async () => {
     setIsCleaning(true)
     try {
-      const res = await api.post(`/tenant-datasets/${datasetId}/clean`)
-      const metrics = res.data.metrics ?? {}
-      toast.success(
-        `Cleaned! Removed ${metrics.duplicates_removed ?? 0} duplicates & ${metrics.empty_rows_removed ?? 0} blank rows.`
+      // Backend now streams the formatted Excel directly — no separate download step
+      const res = await api.post(
+        `/tenant-datasets/${datasetId}/clean`,
+        {},
+        { responseType: "blob" }
       )
-      try {
-        const dlRes = await api.get(`/tenant-datasets/${datasetId}/download-url`)
-        if (dlRes.data?.download_url) {
-          const link = document.createElement("a")
-          link.href = dlRes.data.download_url
-          link.download = `cleaned_${datasetName}.xlsx`
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          return
-        }
-      } catch {
-        // fallthrough
-      }
-      toast.info("Cleaned dataset saved. Redirecting to explorer...")
-      setTimeout(() => onExplore(), 1500)
+
+      // Determine filename from Content-Disposition header or fallback
+      const disposition = res.headers["content-disposition"] || ""
+      const match = disposition.match(/filename="?([^"]+)"?/)
+      const filename = match ? match[1] : `Clean_${datasetName}.xlsx`
+
+      // Trigger browser download
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement("a")
+      link.href = url
+      link.setAttribute("download", filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+
+      toast.success("✅ Clean data downloaded! Check the Quality Dashboard tab inside the Excel.")
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Failed to clean dataset.")
+      toast.error(err.response?.data?.detail || "Failed to clean and download dataset.")
     } finally {
       setIsCleaning(false)
     }
