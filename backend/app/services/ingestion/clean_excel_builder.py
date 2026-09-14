@@ -233,7 +233,58 @@ class CleanExcelBuilder:
         ws.freeze_panes(1, 1)
         ws.set_row(0, 22)
 
-        headers = self.df_cleaned.columns
+        headers = self.df_cleaned.columns if self.df_cleaned.columns else self.df_original.columns
+
+        # ── Empty dataframe = quality-only report (data is in CSV) ───────────
+        if len(self.df_cleaned) == 0:
+            clean_rows = self.metrics.get("final_rows", 0)
+            clean_cols = len(self.df_original.columns)
+            ws.set_column("A:A", 80)
+
+            note_fmt   = wb.add_format({"font_size": 14, "bold": True, "font_color": "#065F46",
+                                        "bg_color": "#D1FAE5", "align": "left", "valign": "vcenter",
+                                        "border": 1, "border_color": "#6EE7B7"})
+            sub_fmt    = wb.add_format({"font_size": 11, "font_color": "#374151",
+                                        "bg_color": "#F0FDF4", "align": "left", "valign": "vcenter",
+                                        "border": 1, "border_color": "#A7F3D0"})
+            label_fmt  = wb.add_format({"font_size": 12, "bold": True, "font_color": "#1E293B",
+                                        "bg_color": "#ECFDF5", "align": "left", "valign": "vcenter"})
+            value_fmt  = wb.add_format({"font_size": 12, "font_color": "#065F46",
+                                        "bg_color": "#ECFDF5", "align": "left", "valign": "vcenter",
+                                        "num_format": "#,##0"})
+
+            ws.set_row(1, 40)
+            ws.set_row(2, 30)
+            ws.set_row(3, 25)
+            ws.set_row(4, 25)
+            ws.set_row(5, 25)
+            ws.set_row(8, 30)
+
+            ws.merge_range(1, 0, 1, 3,
+                "📄 Your full clean data is in the CSV file inside the ZIP archive", note_fmt)
+            ws.merge_range(2, 0, 2, 3,
+                "This Excel file contains the Quality Dashboard and Column Profiles only.", sub_fmt)
+
+            ws.set_column("A:A", 40)
+            ws.set_column("B:B", 25)
+
+            ws.write(4, 0, "Total Clean Rows:", label_fmt)
+            ws.write(4, 1, clean_rows, value_fmt)
+
+            ws.write(5, 0, "Total Columns:", label_fmt)
+            ws.write(5, 1, clean_cols, value_fmt)
+
+            ws.write(6, 0, "Duplicates Removed:", label_fmt)
+            ws.write(6, 1, self.metrics.get("duplicates_removed", 0), value_fmt)
+
+            ws.write(7, 0, "Nulls Filled:", label_fmt)
+            ws.write(7, 1, self.metrics.get("nulls_filled", 0), value_fmt)
+
+            ws.merge_range(9, 0, 9, 3,
+                "➡  Open the CSV file in the ZIP to view and use all clean rows.", sub_fmt)
+            return
+
+        # ── Normal case: write ALL rows ───────────────────────────────────────
         for col_idx, header in enumerate(headers):
             ws.write(0, col_idx, header, self.fmt["col_header_green"])
 
