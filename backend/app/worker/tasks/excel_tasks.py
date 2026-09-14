@@ -534,30 +534,40 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                 ext = ext.lower().strip().lstrip(".")
 
                 try:
-                    df = PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
+                    df_original = PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
                 except Exception as parse_err:
                     logger.warning(f"Failed to parse as {ext} ({parse_err}), trying CSV fallback")
-                    df = PolarsEngine.read_csv_from_bytes(file_bytes)
+                    df_original = PolarsEngine.read_csv_from_bytes(file_bytes)
 
-                # For large datasets: sample 100K rows for the AI Excel report.
-                # The Excel report itself only shows 10K rows (MAX_DATA_ROWS in excel_builder.py).
-                # Cleaning + profiling 1.8M rows in a Celery worker would OOM or time out.
-                REPORT_SAMPLE_ROWS = 100_000
-                if len(df) > REPORT_SAMPLE_ROWS:
-                    logger.info(f"Large dataset ({len(df):,} rows) — sampling {REPORT_SAMPLE_ROWS:,} rows for report")
-                    df = df.sample(n=REPORT_SAMPLE_ROWS, seed=42)
+                # 3. Profile FULL original data (before cleaning) — real stats, no sampling
+                logger.info(f"Profiling original dataset ({len(df_original):,} rows)...")
+                original_profile = DataProfiler.profile_dataframe(df_original)
 
-                # 3. Clean
-                df_cleaned, _ = DatasetCleaner.clean_dataframe(df)
+                # 4. Clean the FULL dataset — get real dynamic cleaning metrics
+                logger.info("Cleaning dataset...")
+                df_cleaned, cleaning_metrics = DatasetCleaner.clean_dataframe(df_original)
+                logger.info(
+                    f"Cleaned: {cleaning_metrics['duplicates_removed']:,} dupes removed, "
+                    f"{cleaning_metrics['nulls_filled']:,} nulls filled, "
+                    f"{len(df_cleaned):,} rows remain"
+                )
 
-                # 4. Profile
+                # 5. Profile FULL cleaned data (after cleaning) — real stats
+                logger.info("Profiling cleaned dataset...")
                 profile = DataProfiler.profile_dataframe(df_cleaned)
-                # Annotate that this is a sampled report
-                if profile:
-                    profile["report_note"] = f"Report generated from a {REPORT_SAMPLE_ROWS:,}-row sample"
+                profile["original_stats"] = original_profile
+                profile["cleaning_metrics"] = cleaning_metrics
 
-                # 5. Get AI Insights (Groq) then build 15-tab Excel
-                ai_content = await _get_ai_content(df_cleaned, profile, dataset.name)
+                # 6. Sample 100K rows ONLY for AI content generation
+                #    (AI prompt doesn't need 1.2M rows — this keeps it fast)
+                REPORT_SAMPLE_ROWS = 100_000
+                df_for_ai = df_cleaned
+                if len(df_cleaned) > REPORT_SAMPLE_ROWS:
+                    logger.info(f"Sampling {REPORT_SAMPLE_ROWS:,} rows for AI prompt (full data still written to Excel)")
+                    df_for_ai = df_cleaned.sample(n=REPORT_SAMPLE_ROWS, seed=42)
+
+                # 7. Get AI Insights from the sample, then build full Excel with ALL rows
+                ai_content = await _get_ai_content(df_for_ai, profile, dataset.name)
                 from app.services.ingestion.excel_builder import AdvancedExcelBuilder
                 from app.services.ingestion.pdf_builder import AdvancedPdfBuilder
 
@@ -568,11 +578,13 @@ async def _generate_ai_excel_safe(task, dataset_id: str, user_id: str):
                     ai_content=ai_content,
                     dataset_id=dataset_id,
                     workspace_id=str(dataset.workspace_id) if dataset.workspace_id else None,
+                    original_profile=original_profile,
+                    cleaning_metrics=cleaning_metrics,
                 ).build()
 
                 try:
                     pdf_bytes = AdvancedPdfBuilder(
-                        df=df_cleaned,
+                        df=df_for_ai,
                         profile=profile,
                         dataset_name=dataset.name,
                         ai_content=ai_content,

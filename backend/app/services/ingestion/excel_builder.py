@@ -29,7 +29,7 @@ C_NAVY = "#1E293B"
 C_SLATE = "#475569"
 C_ROW_EVEN = "#F0FDF4"
 C_ROW_ODD = "#FFFFFF"
-MAX_DATA_ROWS = 10_000
+MAX_DATA_ROWS = 1_048_575  # Excel's absolute row limit — write ALL rows up to this
 MAX_COL_W = 55
 MAX_PIE_CATS = 10
 
@@ -52,13 +52,16 @@ def _col_w(df, col, extra=4):
 
 
 class AdvancedExcelBuilder:
-    def __init__(self, df, profile, dataset_name, ai_content, dataset_id=None, workspace_id=None):
+    def __init__(self, df, profile, dataset_name, ai_content, dataset_id=None, workspace_id=None,
+                 original_profile=None, cleaning_metrics=None):
         self.df = df
         self.profile = profile or {}
         self.name = (dataset_name or "Dataset")[:50]
         self.ai = ai_content or {}
         self.dataset_id = dataset_id
         self.workspace_id = workspace_id
+        self.original_profile = original_profile or {}
+        self.cleaning_metrics = cleaning_metrics or {}
         self.generated_at = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
         self.num_cols = [
             c
@@ -97,7 +100,10 @@ class AdvancedExcelBuilder:
         )
         self._setup_formats()
         tabs = []
-        tabs.append(self._t01_cover())  # 01 Cover FIRST for correct tab order
+        # Quality Dashboard first (if we have cleaning metrics)
+        if self.cleaning_metrics:
+            tabs.append(self._t00_quality_dashboard())
+        tabs.append(self._t01_cover())
         ws_toc = self._wb.add_worksheet("02 Contents")
         ws_toc.set_tab_color(C_INDIGO)
         tabs.append(("02 Contents", "Navigate to any section"))
@@ -332,6 +338,157 @@ class AdvancedExcelBuilder:
                 with open(png, "rb") as f:
                     return f.read()
         return None
+
+    def _t00_quality_dashboard(self):
+        """Tab 00 — Dynamic Data Quality Dashboard (before vs after cleaning)."""
+        sn = "00 Quality Dashboard"
+        ws = self._wb.add_worksheet(sn)
+        ws.set_tab_color(C_GREEN)
+        ws.set_column("A:A", 30)
+        ws.set_column("B:B", 22)
+        ws.set_column("C:C", 22)
+
+        # Formats
+        title_fmt = self._wb.add_format({
+            "font_name": "Calibri", "bold": True, "font_size": 16,
+            "font_color": "#FFFFFF", "bg_color": C_NAVY,
+            "align": "left", "valign": "vcenter",
+        })
+        section_fmt = self._wb.add_format({
+            "font_name": "Calibri", "bold": True, "font_size": 11,
+            "font_color": "#FFFFFF", "bg_color": "#334155",
+        })
+        label_fmt = self._wb.add_format({
+            "font_name": "Calibri", "font_size": 10, "bold": True,
+            "font_color": "#374151", "bg_color": "#F8FAFC",
+        })
+        before_fmt = self._wb.add_format({
+            "font_name": "Calibri", "font_size": 10,
+            "font_color": "#7F1D1D", "bg_color": "#FEF2F2", "num_format": "#,##0",
+        })
+        after_fmt = self._wb.add_format({
+            "font_name": "Calibri", "font_size": 10, "bold": True,
+            "font_color": "#065F46", "bg_color": "#ECFDF5", "num_format": "#,##0",
+        })
+        before_pct_fmt = self._wb.add_format({
+            "font_name": "Calibri", "font_size": 10,
+            "font_color": "#7F1D1D", "bg_color": "#FEF2F2", "num_format": "0.00%",
+        })
+        after_pct_fmt = self._wb.add_format({
+            "font_name": "Calibri", "font_size": 10, "bold": True,
+            "font_color": "#065F46", "bg_color": "#ECFDF5", "num_format": "0.00%",
+        })
+        removed_lbl_fmt = self._wb.add_format({
+            "font_name": "Calibri", "font_size": 10, "bold": True,
+            "font_color": "#92400E", "bg_color": "#FEF3C7",
+        })
+        removed_val_fmt = self._wb.add_format({
+            "font_name": "Calibri", "font_size": 10,
+            "font_color": "#92400E", "bg_color": "#FEF3C7", "num_format": "#,##0",
+        })
+        col_header_fmt = self._wb.add_format({
+            "font_name": "Calibri", "bold": True, "font_size": 10,
+            "font_color": "#FFFFFF", "bg_color": C_NAVY, "align": "center",
+        })
+        col_header_green_fmt = self._wb.add_format({
+            "font_name": "Calibri", "bold": True, "font_size": 10,
+            "font_color": "#FFFFFF", "bg_color": C_GREEN, "align": "center",
+        })
+        note_fmt = self._wb.add_format({
+            "font_name": "Calibri", "italic": True, "font_size": 9, "font_color": "#6B7280",
+        })
+
+        row = 0
+        ws.merge_range(row, 0, row, 2, f"Data Quality Report — {self.name}  |  Generated: {self.generated_at}", title_fmt)
+        ws.set_row(row, 28)
+        row += 2
+
+        # Pull real dynamic values from cleaning_metrics and profiles
+        m = self.cleaning_metrics
+        op = self.original_profile
+        cp = self.profile
+
+        orig_rows     = m.get("initial_rows", op.get("row_count", 0))
+        clean_rows    = m.get("final_rows", cp.get("row_count", 0))
+        orig_cols     = op.get("column_count", len(self.df.columns))
+        clean_cols    = cp.get("column_count", len(self.df.columns))
+        dupes         = m.get("duplicates_removed", 0)
+        empty         = m.get("empty_rows_removed", 0)
+        nulls_before  = m.get("total_nulls_before", 0)
+        nulls_after   = m.get("total_nulls_after", 0)
+        orig_score    = op.get("quality_score", 0)
+        clean_score   = cp.get("quality_score", 0)
+        orig_miss_pct = op.get("missing_cells_pct", 0) / 100
+        clean_miss_pct = cp.get("missing_cells_pct", 0) / 100
+
+        # Section header
+        ws.write(row, 0, "METRIC", section_fmt)
+        ws.write(row, 1, "⚠  ORIGINAL DATA", section_fmt)
+        ws.write(row, 2, "✅  AFTER CLEANING", section_fmt)
+        row += 1
+
+        rows_data = [
+            ("Total Rows",          orig_rows,       clean_rows,       False),
+            ("Total Columns",       orig_cols,        clean_cols,       False),
+            ("Duplicate Rows",      dupes,            0,                False),
+            ("Fully Empty Rows",    empty,            0,                False),
+            ("Total Null Cells",    nulls_before,     nulls_after,      False),
+            ("Missing Data %",      orig_miss_pct,    clean_miss_pct,   True),
+            ("Data Quality Score",  orig_score,       clean_score,      False),
+        ]
+        for label, bv, av, is_pct in rows_data:
+            ws.write(row, 0, label, label_fmt)
+            if is_pct:
+                ws.write(row, 1, bv, before_pct_fmt)
+                ws.write(row, 2, av, after_pct_fmt)
+            else:
+                ws.write(row, 1, bv, before_fmt)
+                ws.write(row, 2, av, after_fmt)
+            row += 1
+
+        row += 1
+        ws.merge_range(row, 0, row, 2, "WHAT WAS CLEANED", section_fmt)
+        row += 1
+        for label, val in [
+            ("Duplicate rows removed",   dupes),
+            ("Empty rows removed",        empty),
+            ("Null values filled",         m.get("nulls_filled", 0)),
+            ("Clean rows in this file",   clean_rows),
+        ]:
+            ws.write(row, 0, label, removed_lbl_fmt)
+            ws.write(row, 1, val,   removed_val_fmt)
+            ws.write(row, 2, "",    removed_val_fmt)
+            row += 1
+
+        row += 1
+        ws.merge_range(row, 0, row, 2, "COLUMN-LEVEL NULL REPORT", section_fmt)
+        row += 1
+        ws.write(row, 0, "Column Name",           col_header_fmt)
+        ws.write(row, 1, "Nulls Before Cleaning", col_header_fmt)
+        ws.write(row, 2, "Filled With",           col_header_green_fmt)
+        row += 1
+
+        null_fill_map = m.get("null_fill_map", {})
+        has_nulls = False
+        orig_col_profiles = op.get("columns", {})
+        for col in self.df.columns:
+            orig_null = int(orig_col_profiles.get(col, {}).get("null_count", 0))
+            if orig_null > 0:
+                has_nulls = True
+                fill_val = null_fill_map.get(col, "—")
+                ws.write(row, 0, col,            label_fmt)
+                ws.write(row, 1, orig_null,      before_fmt)
+                ws.write(row, 2, str(fill_val),  after_fmt)
+                row += 1
+
+        if not has_nulls:
+            ws.merge_range(row, 0, row, 2, "✅ No null values found in original dataset", after_fmt)
+            row += 1
+
+        row += 2
+        ws.write(row, 0, f"Data Insight AI  |  {clean_rows:,} clean rows × {clean_cols} columns", note_fmt)
+
+        return (sn, "Before/after quality comparison — all stats computed from real data")
 
     def _t01_cover(self):
         ws = self._wb.add_worksheet("01 Cover")
@@ -789,7 +946,7 @@ class AdvancedExcelBuilder:
         ws.set_tab_color(C_GREEN)
         ws.freeze_panes(1, 1)
         ws.set_row(0, 25)
-        df = self.df.head(MAX_DATA_ROWS)
+        df = self.df  # ALL rows — no cap
         hdrs = df.columns
         nci = {ci for ci, c in enumerate(hdrs) if c in self.num_cols}
         for ci, col in enumerate(hdrs):
@@ -798,7 +955,7 @@ class AdvancedExcelBuilder:
         self._write_rows(ws, 1, df, hdrs, nci)
         return (
             "07 Cleaned Data",
-            f"{min(len(self.df), MAX_DATA_ROWS):,} rows, frozen header+sidebar",
+            f"{len(self.df):,} rows (full dataset), frozen header+sidebar",
         )
 
     def _t08_quality(self):
