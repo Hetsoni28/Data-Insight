@@ -5,7 +5,7 @@ import { useParams, useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { useWebSocket } from "@/hooks/useWebSocket"
 import api from "@/lib/api"
-import { ShieldCheck, Table as TableIcon, FileDigit, Info, Calendar, ArrowLeft, BrainCircuit, LineChart } from "lucide-react"
+import { ShieldCheck, Table as TableIcon, FileDigit, Info, Calendar, ArrowLeft, BrainCircuit, LineChart, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -19,6 +19,7 @@ import { DatasetAlertsModal } from "@/components/organisms/DatasetAlertsModal"
 import { BellRing } from "lucide-react"
 import { toast } from "sonner"
 import { GenerateReportDialog } from "@/components/organisms/GenerateReportDialog"
+import ShareDatasetModal from "@/components/organisms/ShareDatasetModal"
 
 interface DatasetDetailExplorerProps {
   backHref?: string
@@ -47,6 +48,7 @@ export function DatasetDetailExplorer({
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [reportCategory, setReportCategory] = useState("executive")
   const [activeTab, setActiveTab] = useState("preview")
 
@@ -176,6 +178,13 @@ export function DatasetDetailExplorer({
                   <BellRing className="w-5 h-5 mr-2.5 text-emerald-400" />
                   Alerts
                 </Button>
+                <Button
+                  onClick={() => setIsShareModalOpen(true)}
+                  variant="outline"
+                  className="bg-transparent border-blue-400/40 text-white hover:bg-blue-500/20 hover:text-white backdrop-blur-md h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">
+                  <Share2 className="w-5 h-5 mr-2.5 text-blue-300" />
+                  Share with Client
+                </Button>
               </>
             )}
 
@@ -265,7 +274,13 @@ export function DatasetDetailExplorer({
         defaultDatasetId={dataset.id}
         defaultCategory={reportCategory}
       />
+
+      <ShareDatasetModal
+        open={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        datasetId={dataset.id}
+        datasetName={dataset.name}
+      />
     </div>
   )
 }
-

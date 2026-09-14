@@ -39,10 +39,12 @@ from app.api.v1.webhooks import router as webhooks_router
 from app.api.v1.workspaces import router as workspaces_router
 
 from app.api.v1.excel_ai import router as excel_ai_router
+from app.api.v1.share_links import router as share_links_router
 
 api_router = APIRouter()
 
 api_router.include_router(excel_ai_router, prefix='/excel-ai', tags=['Excel AI'])
+api_router.include_router(share_links_router, prefix="/share-links", tags=["Share Links"])
 api_router.include_router(public_router, prefix="/public", tags=["Public"])
 api_router.include_router(local_storage_router, tags=["Local Storage"])
 api_router.include_router(auth_router)

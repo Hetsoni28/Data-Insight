@@ -136,3 +136,4 @@ __all__ = [
     "Workspace",
 ]
 from app.models.dataset_alert import DatasetAlert
+from app.models.dataset_share_link import DatasetShareLink
