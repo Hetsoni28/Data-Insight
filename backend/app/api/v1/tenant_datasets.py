@@ -1060,18 +1060,18 @@ async def clean_dataset_api(
     workspace: Workspace | None = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    """Cleans the dataset (removes duplicates, empty rows, fills nulls) and
-    streams a professionally formatted 3-tab Excel directly to the user.
+    """Cleans the dataset and streams a professionally formatted Excel directly to the user.
 
-    Tabs:
-      1. Data Quality Dashboard  — dynamic before/after stats (real numbers from this dataset)
-      2. Clean Data              — ALL rows of the cleaned dataset
-      3. Column Profiles         — per-column null %, unique %, min/max/mean
+    Smart sampling strategy for large datasets (>500K rows):
+      - Cleaner runs on FULL dataset → exact duplicate/null/empty counts
+      - Profiler runs on a 500K sample → fast column-level stats
+      - Excel data sheet capped at 500K rows → fast response (< 60 seconds)
+      - Datasets >1M rows after cleaning → auto-exports as CSV instead
 
     The original dataset in the database is NOT modified.
     """
     import asyncio
-    from fastapi.responses import StreamingResponse
+    from fastapi.responses import Response
 
     from app.services.dataset import DatasetService
     from app.services.ingestion.clean_excel_builder import CleanExcelBuilder
@@ -1093,27 +1093,48 @@ async def clean_dataset_api(
         # 1. Load original data
         ds_svc = DatasetService(db)
         df_original = await ds_svc.load_dataframe(d)
+        total_rows = len(df_original)
 
-        # 2. Profile ORIGINAL data — real stats before any changes
-        original_profile = await asyncio.to_thread(
-            DataProfiler.profile_dataframe, df_original
-        )
+        # ── Smart sampling constants ──────────────────────────────────────────
+        # For 1.8M row datasets profiling twice (before+after) in a web request
+        # takes 3+ minutes and exceeds browser timeout. Smart sampling:
+        #   - Clean FULL dataset → exact counts always
+        #   - Profile 500K sample → fast column stats (< 30 seconds)
+        #   - Write 500K rows to Excel → fast file build (< 30 seconds)
+        PROFILE_SAMPLE = 500_000
+        EXCEL_DATA_ROWS = 500_000   # Cap for Excel data sheet
+        EXCEL_MAX_ROWS  = 1_048_575  # Excel absolute limit; above this → CSV
 
-        # 3. Clean — returns fully dynamic metrics (real counts from this dataset)
+        # 2. Clean the FULL dataset — exact counts regardless of size
         df_cleaned, cleaning_metrics = await asyncio.to_thread(
             DatasetCleaner.clean_dataframe, df_original
         )
+        clean_total = len(df_cleaned)
 
-        # 4. Profile CLEANED data — real stats after cleaning
-        clean_profile = await asyncio.to_thread(
-            DataProfiler.profile_dataframe, df_cleaned
-        )
+        # 3. Profile — sample for large datasets to stay within 60-second budget
+        def _profile_both():
+            if total_rows > PROFILE_SAMPLE:
+                orig_sample  = df_original.sample(n=min(PROFILE_SAMPLE, total_rows), seed=42)
+                clean_sample = df_cleaned.sample(n=min(PROFILE_SAMPLE, clean_total), seed=42)
+            else:
+                orig_sample  = df_original
+                clean_sample = df_cleaned
+            op = DataProfiler.profile_dataframe(orig_sample)
+            cp = DataProfiler.profile_dataframe(clean_sample)
+            # Inject EXACT row counts from the full-dataset cleaning
+            op["row_count"] = total_rows
+            op["column_count"] = len(df_original.columns)
+            cp["row_count"] = clean_total
+            cp["column_count"] = len(df_cleaned.columns)
+            return op, cp
 
-        # 5. If > 1M rows, export as plain CSV (Excel row limit)
-        EXCEL_MAX_ROWS = 1_048_575
-        if len(df_cleaned) > EXCEL_MAX_ROWS:
-            csv_bytes = df_cleaned.write_csv().encode("utf-8-sig")
-            # Sanitize filename — remove/replace problematic characters
+        original_profile, clean_profile = await asyncio.to_thread(_profile_both)
+
+        # 4. Very large datasets (>1M rows) → export as CSV (no xlsxwriter build)
+        if clean_total > EXCEL_MAX_ROWS:
+            csv_bytes = await asyncio.to_thread(
+                lambda: df_cleaned.write_csv().encode("utf-8-sig")
+            )
             safe_name = "".join(c if c.isalnum() or c in "-_." else "_" for c in f"Clean_{d.name}") + ".csv"
             audit = AuditLog(
                 tenant_id=tenant_id, user_id=current_user.id,
@@ -1123,18 +1144,25 @@ async def clean_dataset_api(
             )
             db.add(audit)
             await db.commit()
-            from fastapi.responses import Response
             return Response(
                 content=csv_bytes,
                 media_type="text/csv",
                 headers={"Content-Disposition": f'attachment; filename="{safe_name}"'},
             )
 
-        # 6. Build the formatted 3-tab Excel (100% dynamic — no hardcoded values)
+        # 5. Cap the data sheet for Excel build speed
+        #    (writing 1M rows in xlsxwriter takes 5+ minutes in a web request)
+        df_for_excel = (
+            df_cleaned.head(EXCEL_DATA_ROWS)
+            if clean_total > EXCEL_DATA_ROWS
+            else df_cleaned
+        )
+
+        # 6. Build the formatted 3-tab Excel
         excel_bytes = await asyncio.to_thread(
             lambda: CleanExcelBuilder(
                 df_original=df_original,
-                df_cleaned=df_cleaned,
+                df_cleaned=df_for_excel,
                 cleaning_metrics=cleaning_metrics,
                 original_profile=original_profile,
                 clean_profile=clean_profile,
@@ -1142,10 +1170,8 @@ async def clean_dataset_api(
             ).build()
         )
 
-        # Sanitize filename — spaces and special chars cause Content-Disposition issues
         safe_name = "".join(c if c.isalnum() or c in "-_." else "_" for c in f"Clean_{d.name}") + ".xlsx"
 
-        # Log audit
         audit = AuditLog(
             tenant_id=tenant_id, user_id=current_user.id,
             action="dataset.cleaned", resource_type="dataset",
@@ -1155,7 +1181,6 @@ async def clean_dataset_api(
         db.add(audit)
         await db.commit()
 
-        from fastapi.responses import Response
         return Response(
             content=excel_bytes,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
