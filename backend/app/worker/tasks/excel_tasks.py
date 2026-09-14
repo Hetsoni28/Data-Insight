@@ -103,7 +103,7 @@ async def _generate_clean_export_safe(task, dataset_id: str, user_id: str):
 
             try:
                 # ── 1. Mark as processing ─────────────────────────────────────
-                dataset.status = DatasetStatus.processing
+                dataset.status = DatasetStatus.profiling
                 await session.commit()
 
                 # ── 2. Download file bytes ────────────────────────────────────
