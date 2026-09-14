@@ -41,6 +41,211 @@ def generate_ai_excel_task(self, dataset_id: str, user_id: str):
         loop.close()
 
 
+@shared_task(
+    bind=True,
+    name="dataset.generate_clean_export",
+    max_retries=2,
+    default_retry_delay=30,
+)
+def generate_clean_export_task(self, dataset_id: str, user_id: str):
+    """Celery task: clean full dataset and export ALL clean rows.
+
+    Logic:
+      - Cleans full dataset (removes duplicates, empty rows, fills nulls)
+      - If clean rows ≤ 1,048,575 → 3-tab Excel with ALL rows + quality dashboard
+      - If clean rows > 1,048,575 → ZIP (Quality_Report.xlsx + Clean_Data.csv with ALL rows)
+    Result is stored and user is notified via WebSocket.
+    """
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(_generate_clean_export_safe(self, dataset_id, user_id))
+    except Exception as exc:
+        raise self.retry(exc=exc)
+    finally:
+        try:
+            loop.run_until_complete(loop.shutdown_asyncgens())
+        except Exception:
+            pass
+        loop.close()
+
+
+async def _generate_clean_export_safe(task, dataset_id: str, user_id: str):
+    import zipfile
+
+    import httpx
+
+    from app.core.storage import (
+        DATASETS_BUCKET,
+        LOCAL_UPLOADS_DIR,
+        get_signed_url,
+        is_local_storage,
+    )
+    from app.core.websockets import manager as ws_manager
+    from app.db.session import AsyncSessionLocal
+    from app.models.dataset import DatasetStatus
+    from app.repositories.dataset import DatasetRepository
+    from app.services.ingestion.clean_excel_builder import CleanExcelBuilder
+    from app.services.ingestion.cleaner import DatasetCleaner
+    from app.services.ingestion.polars_engine import PolarsEngine
+    from app.services.ingestion.profiler import DataProfiler
+
+    EXCEL_MAX   = 1_048_575
+    PROFILE_CAP = 500_000
+
+    try:
+        async with AsyncSessionLocal() as session:
+            ds_repo  = DatasetRepository(session)
+            dataset  = await ds_repo.get_by_id(uuid.UUID(dataset_id))
+            if not dataset:
+                logger.error(f"[CleanExport] Dataset {dataset_id} not found")
+                return
+
+            try:
+                # ── 1. Mark as processing ─────────────────────────────────────
+                dataset.status = DatasetStatus.processing
+                await session.commit()
+
+                # ── 2. Download file bytes ────────────────────────────────────
+                if is_local_storage():
+                    local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / dataset.file_url
+                    file_bytes = local_path.read_bytes()
+                else:
+                    signed_url = await get_signed_url(DATASETS_BUCKET, dataset.file_url, expires_in=600)
+                    async with httpx.AsyncClient(timeout=300) as client:
+                        response = await client.get(signed_url)
+                        file_bytes = response.content
+
+                # ── 3. Parse ──────────────────────────────────────────────────
+                from pathlib import Path as _Path
+                ext = _Path(dataset.file_url).suffix.lower().lstrip(".")
+                if not ext and dataset.original_filename:
+                    ext = _Path(dataset.original_filename).suffix.lower().lstrip(".")
+                if not ext:
+                    ext = dataset.file_type.value if hasattr(dataset.file_type, "value") else str(dataset.file_type)
+                ext = ext.lower().strip().lstrip(".")
+
+                try:
+                    df_original = PolarsEngine.load_from_bytes(file_bytes=file_bytes, file_type=ext)
+                except Exception as parse_err:
+                    logger.warning(f"[CleanExport] Parse as {ext} failed ({parse_err}), trying CSV")
+                    df_original = PolarsEngine.read_csv_from_bytes(file_bytes)
+
+                total_rows = len(df_original)
+                logger.info(f"[CleanExport] Loaded {total_rows:,} rows × {len(df_original.columns)} cols")
+
+                # ── 4. Clean FULL dataset — exact counts always ───────────────
+                df_cleaned, cleaning_metrics = DatasetCleaner.clean_dataframe(df_original)
+                clean_rows = len(df_cleaned)
+                logger.info(
+                    f"[CleanExport] Cleaned: {cleaning_metrics['duplicates_removed']:,} dupes, "
+                    f"{cleaning_metrics['nulls_filled']:,} nulls filled → {clean_rows:,} clean rows"
+                )
+
+                # ── 5. Profile sample for column stats (fast) ─────────────────
+                orig_sample  = df_original.sample(n=min(PROFILE_CAP, total_rows), seed=42) if total_rows > PROFILE_CAP else df_original
+                clean_sample = df_cleaned.sample(n=min(PROFILE_CAP, clean_rows), seed=42)  if clean_rows > PROFILE_CAP else df_cleaned
+                original_profile = DataProfiler.profile_dataframe(orig_sample)
+                clean_profile    = DataProfiler.profile_dataframe(clean_sample)
+                # Inject exact counts from full-dataset cleaning
+                original_profile["row_count"]    = total_rows
+                original_profile["column_count"] = len(df_original.columns)
+                clean_profile["row_count"]       = clean_rows
+                clean_profile["column_count"]    = len(df_cleaned.columns)
+
+                # ── 6. Build output file ──────────────────────────────────────
+                safe_base = "".join(c if c.isalnum() or c in "-_." else "_" for c in f"Clean_{dataset.name}")
+
+                if clean_rows <= EXCEL_MAX:
+                    # ✅ All rows fit in Excel → 3-tab Excel with ALL rows
+                    logger.info(f"[CleanExport] Building Excel with ALL {clean_rows:,} clean rows")
+                    file_bytes_out = CleanExcelBuilder(
+                        df_original=df_original,
+                        df_cleaned=df_cleaned,          # ALL rows, no cap
+                        cleaning_metrics=cleaning_metrics,
+                        original_profile=original_profile,
+                        clean_profile=clean_profile,
+                        dataset_name=dataset.name,
+                    ).build()
+                    out_filename = safe_base + ".xlsx"
+                    content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                else:
+                    # 📦 Too many rows for Excel → ZIP: quality Excel + full CSV
+                    logger.info(f"[CleanExport] {clean_rows:,} rows > Excel limit → building ZIP")
+
+                    # Quality dashboard Excel (dashboard + profiles only, no data rows)
+                    quality_excel = CleanExcelBuilder(
+                        df_original=df_original.head(1),
+                        df_cleaned=df_cleaned.head(0),   # empty data sheet
+                        cleaning_metrics=cleaning_metrics,
+                        original_profile=original_profile,
+                        clean_profile=clean_profile,
+                        dataset_name=dataset.name,
+                    ).build()
+
+                    # Full CSV — ALL clean rows (Polars Rust speed, no row limit)
+                    csv_bytes = df_cleaned.write_csv().encode("utf-8-sig")
+
+                    # Zip them together
+                    zip_buf = io.BytesIO()
+                    with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                        zf.writestr("Quality_Report.xlsx", quality_excel)
+                        zf.writestr(f"Clean_Data_{clean_rows}_rows.csv", csv_bytes)
+                    zip_buf.seek(0)
+                    file_bytes_out = zip_buf.read()
+                    out_filename   = safe_base + ".zip"
+                    content_type   = "application/zip"
+
+                # ── 7. Upload to storage ──────────────────────────────────────
+                if is_local_storage():
+                    out_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / out_filename
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    out_path.write_bytes(file_bytes_out)
+                    stored_url = out_filename
+                else:
+                    from app.core.storage import _client
+                    client = _client()
+                    client.storage.from_(DATASETS_BUCKET).upload(
+                        path=out_filename,
+                        file=file_bytes_out,
+                        file_options={"content-type": content_type, "upsert": "true"},
+                    )
+                    stored_url = out_filename
+
+                # ── 8. Store URL on dataset and mark ready ────────────────────
+                # Re-use the excel_url field with a special prefix so frontend
+                # knows this is a clean export, not an AI Excel
+                dataset.excel_url = f"clean_export::{stored_url}"
+                dataset.status    = DatasetStatus.ready
+                await session.commit()
+                logger.info(f"[CleanExport] Done → {out_filename} ({len(file_bytes_out):,} bytes)")
+
+                # ── 9. Notify via WebSocket ───────────────────────────────────
+                try:
+                    await ws_manager.publish_tenant_event(
+                        str(dataset.tenant_id),
+                        "dataset_clean_export_ready",
+                        {"dataset_id": str(dataset.id), "filename": out_filename, "clean_rows": clean_rows},
+                    )
+                except Exception:
+                    pass
+
+            except Exception as exc:
+                import celery.exceptions
+                logger.exception(f"[CleanExport] Failed: {exc}")
+                try:
+                    dataset.status = DatasetStatus.error
+                    dataset.error_message = str(exc)[:500]
+                    await session.commit()
+                except Exception:
+                    pass
+                raise task.retry(exc=exc)
+
+    except Exception as exc:
+        logger.exception(f"[CleanExport] Unhandled error: {exc}")
+
+
+
 def _build_excel_workbook(
     df_cleaned,
     profile: dict[str, Any],

@@ -113,36 +113,95 @@ export function DataQualityReview({
     }
   }
 
+  const [cleanProgress, setCleanProgress] = useState<string>("")
+  const [isCleaningBg, setIsCleaningBg] = useState(false)
+
   const handleCleanAndDownload = async () => {
-    setIsCleaning(true)
+    setIsCleaningBg(true)
+    setCleanProgress("Starting clean export...")
+
+    const messages = [
+      "Loading your dataset...",
+      "Removing duplicate rows...",
+      "Filling missing values...",
+      "Building quality report...",
+      "Packaging clean data...",
+      "Almost ready...",
+    ]
+    let msgIdx = 0
+    const msgInterval = setInterval(() => {
+      msgIdx = (msgIdx + 1) % messages.length
+      setCleanProgress(messages[msgIdx])
+    }, 4000)
+
     try {
-      // Backend now streams the formatted Excel directly — no separate download step
-      const res = await api.post(
-        `/tenant-datasets/${datasetId}/clean`,
-        {},
-        { responseType: "blob" }
-      )
+      // 1. Trigger background Celery task
+      await api.post(`/tenant-datasets/${datasetId}/clean-export`)
 
-      // Determine filename from Content-Disposition header or fallback
-      const disposition = res.headers["content-disposition"] || ""
-      const match = disposition.match(/filename="?([^"]+)"?/)
-      const filename = match ? match[1] : `Clean_${datasetName}.xlsx`
+      // 2. Poll dataset status (same pattern as AI Excel)
+      let attempts = 0
+      const maxAttempts = 360  // 15 minutes max
+      const pollInterval = setInterval(async () => {
+        attempts++
+        if (attempts % 12 === 0) {
+          const mins = Math.floor((attempts * 2500) / 60000)
+          setCleanProgress(`Still cleaning... (${mins}m elapsed)`)
+        }
+        try {
+          const statusRes = await api.get(`/tenant-datasets/${datasetId}`)
+          const ds = statusRes.data?.data
 
-      // Trigger browser download
-      const url = window.URL.createObjectURL(new Blob([res.data]))
-      const link = document.createElement("a")
-      link.href = url
-      link.setAttribute("download", filename)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.URL.revokeObjectURL(url)
+          if (ds?.status === 'ready' && ds?.excel_url?.startsWith('clean_export::')) {
+            clearInterval(pollInterval)
+            clearInterval(msgInterval)
+            toast.success("✅ Clean data ready! Downloading now...")
 
-      toast.success("✅ Clean data downloaded! Check the Quality Dashboard tab inside the Excel.")
+            // 3. Download the file (Excel or ZIP)
+            try {
+              const dlRes = await api.get(`/tenant-datasets/${datasetId}/clean-export-download`, {
+                responseType: 'blob'
+              })
+              const contentDisposition = dlRes.headers['content-disposition'] || ''
+              const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+              const filename = match ? match[1].replace(/['"]/g, '') : `Clean_${datasetName}.xlsx`
+
+              const url = window.URL.createObjectURL(new Blob([dlRes.data]))
+              const link = document.createElement('a')
+              link.href = url
+              link.setAttribute('download', filename)
+              document.body.appendChild(link)
+              link.click()
+              link.remove()
+              window.URL.revokeObjectURL(url)
+            } catch {
+              toast.error("Download failed — please try again.")
+            }
+            setIsCleaningBg(false)
+            setCleanProgress("")
+
+          } else if (ds?.status === 'error') {
+            clearInterval(pollInterval)
+            clearInterval(msgInterval)
+            toast.error(`Clean export failed: ${ds.error_message || 'Unknown error'}`)
+            setIsCleaningBg(false)
+            setCleanProgress("")
+          }
+        } catch { /* ignore poll errors */ }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval)
+          clearInterval(msgInterval)
+          toast.error("Clean export timed out. Please try again.")
+          setIsCleaningBg(false)
+          setCleanProgress("")
+        }
+      }, 2500)
+
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Failed to clean and download dataset.")
-    } finally {
-      setIsCleaning(false)
+      clearInterval(msgInterval)
+      toast.error(err.response?.data?.detail || "Failed to start clean export.")
+      setIsCleaningBg(false)
+      setCleanProgress("")
     }
   }
 
@@ -225,9 +284,16 @@ export function DataQualityReview({
       )}
 
       <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-100 dark:border-white/5 relative z-10">
-        <Button onClick={handleCleanAndDownload} disabled={isCleaning} variant="outline" className="flex-1 h-12 rounded-xl text-slate-700 dark:text-white border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 font-bold shadow-sm">
-          {isCleaning ? (<span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> Cleaning...</span>) : (<><Download className="w-4 h-4 mr-2" />Clean &amp; Export Excel</>)}
-        </Button>
+        {isCleaningBg ? (
+          <div className="flex-1 h-12 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex items-center justify-center gap-3 px-4">
+            <span className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 truncate">{cleanProgress}</span>
+          </div>
+        ) : (
+          <Button onClick={handleCleanAndDownload} disabled={isCleaningBg} variant="outline" className="flex-1 h-12 rounded-xl text-slate-700 dark:text-white border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 font-bold shadow-sm">
+            <Download className="w-4 h-4 mr-2" />Clean &amp; Export Excel
+          </Button>
+        )}
         <div className="flex-1 relative group">
           {isGeneratingExcel ? (
             <div className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-extrabold shadow-lg flex items-center justify-center gap-3 px-4">

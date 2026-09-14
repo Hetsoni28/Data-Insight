@@ -1193,6 +1193,98 @@ async def clean_dataset_api(
         raise HTTPException(status_code=500, detail=f"Cleaning failed: {e!s}")
 
 
+@router.post(
+    "/{dataset_id}/clean-export",
+    summary="Start Clean Export (background task)",
+    dependencies=[Depends(RequirePermission("DATASET_EXPORT"))],
+)
+async def start_clean_export(
+    dataset_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    """Triggers a Celery background task to clean the FULL dataset and export ALL rows.
+
+    Logic:
+      - Clean rows ≤ 1,048,575  →  3-tab Excel (quality dashboard + ALL clean rows)
+      - Clean rows > 1,048,575  →  ZIP containing quality Excel + full CSV with ALL rows
+
+    Returns task is queued immediately. Poll GET /{dataset_id} for status.
+    """
+    from app.worker.tasks.excel_tasks import generate_clean_export_task
+
+    tenant_id = current_user.tenant_id
+    base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+
+    stmt = select(Dataset).where(*base_conditions)
+    res = await db.execute(stmt)
+    d = res.scalars().first()
+    if not d:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    # Trigger the Celery task
+    task = generate_clean_export_task.delay(str(dataset_id), str(current_user.id))
+
+    return {"status": "queued", "task_id": task.id, "message": "Clean export started. Poll dataset status for completion."}
+
+
+@router.get(
+    "/{dataset_id}/clean-export-download",
+    summary="Download Clean Export (Excel or ZIP)",
+    dependencies=[Depends(RequirePermission("DATASET_EXPORT"))],
+)
+async def download_clean_export(
+    dataset_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    """Downloads the clean export file once the background task completes.
+    Returns Excel (.xlsx) for datasets ≤ 1,048,575 rows,
+    or ZIP (.zip) containing quality Excel + full CSV for larger datasets.
+    """
+    from app.core.storage import is_local_storage
+
+    tenant_id = current_user.tenant_id
+    base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+
+    stmt = select(Dataset).where(*base_conditions)
+    res = await db.execute(stmt)
+    d = res.scalars().first()
+    if not d:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    # excel_url stores "clean_export::<filename>" when a clean export is ready
+    if not d.excel_url or not d.excel_url.startswith("clean_export::"):
+        raise HTTPException(status_code=404, detail="Clean export not ready yet")
+
+    stored_filename = d.excel_url.removeprefix("clean_export::")
+    is_zip = stored_filename.endswith(".zip")
+    media_type = "application/zip" if is_zip else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+    if is_local_storage():
+        from fastapi.responses import FileResponse
+
+        from app.core.storage import DATASETS_BUCKET, LOCAL_UPLOADS_DIR
+
+        local_path = LOCAL_UPLOADS_DIR / DATASETS_BUCKET / stored_filename
+        if not local_path.exists():
+            raise HTTPException(status_code=404, detail="Clean export file missing on disk")
+        return FileResponse(path=str(local_path), filename=stored_filename, media_type=media_type)
+
+    from fastapi.responses import RedirectResponse
+
+    from app.core.storage import DATASETS_BUCKET, get_signed_url
+
+    url = await get_signed_url(DATASETS_BUCKET, stored_filename, expires_in=300)
+    return RedirectResponse(url)
+
+
 @router.get("/{dataset_id}/excel-download", summary="Download AI Excel")
 async def download_ai_excel(
     dataset_id: uuid.UUID,
