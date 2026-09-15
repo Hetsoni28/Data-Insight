@@ -44,11 +44,10 @@ export default function ReportsCenterPage() {
 
   const handleExportSubmit = async (format: string) => {
     try {
-      const res = await api.post(`/tenant-reports/${exportReportId}/export`, { format_type: format })
-      console.log("Export triggered:", res.data)
-      // Ideally trigger a download here
+      await api.post(`/tenant-reports/${exportReportId}/export`, { format_type: format })
+      toast.success(`Exporting as ${format.toUpperCase()}`)
     } catch (e) {
-      throw e
+      toast.error("Export failed")
     }
   }
 
@@ -127,12 +126,7 @@ export default function ReportsCenterPage() {
         toast.error("Failed to download report", { id: `dl-${id}` })
       }
     } else {
-      toast.info(`Action ${action} is mocked for this iteration.`)
-      // Mocked endpoint execution just to log the audit trail
-      try {
-        await api.post(`/tenant-reports/${id}/action/${action}`)
-        fetchData()
-      } catch(e) {}
+      toast.info(`Action '${action}' is not yet supported for this report type.`)
     }
   }
 
@@ -175,7 +169,7 @@ export default function ReportsCenterPage() {
             </div>
             
             <TabsContent value="reports" className="space-y-4">
-              <ReportFilters onFilterChange={(filters) => console.log("Filters changed:", filters)} />
+              <ReportFilters onFilterChange={(_filters) => { /* TODO: wire filters to table query */ }} />
               <ReportExplorerTable 
                 reports={reports}
                 isLoading={isLoading}

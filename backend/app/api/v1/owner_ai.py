@@ -9,6 +9,7 @@ from sqlalchemy import asc, case, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
+from app.core.config import settings
 from app.models.ai_ops import (
     AIModel,
     AIProvider,
@@ -18,6 +19,12 @@ from app.models.ai_ops import (
 )
 from app.models.chat import ChatMessage, ChatSession
 from app.models.user import User
+
+
+def _is_sqlite() -> bool:
+    """Detect SQLite dialect from DATABASE_URL (async sessions have no .bind)."""
+    return "sqlite" in str(getattr(settings, "DATABASE_URL", ""))
+
 from app.services.gemini_service import gemini_service
 
 router = APIRouter()
@@ -113,6 +120,14 @@ async def get_ai_overview(
     latency_trend = pct_change(avg_latency, prev_latency)
     success_trend = pct_change(success_rate, prev_success)
 
+    # Count distinct active organizations (tenants with AI usage in last 30 days)
+    active_orgs_result = await db.execute(
+        select(func.count(func.distinct(AIUsageLog.tenant_id))).where(
+            AIUsageLog.created_at >= thirty_days_ago,
+        )
+    )
+    active_orgs_count = int(active_orgs_result.scalar() or 0)
+
     return {
         "kpis": {
             "connected_providers": total_providers,
@@ -150,7 +165,7 @@ async def get_ai_overview(
         "avg_latency": avg_latency,
         "uptime": round(success_rate, 2),
         "active_models": models_count or 0,
-        "active_organizations": 0,
+        "active_organizations": active_orgs_count,
         "success_rate": round(success_rate, 2),
         "failed_requests": total_errors,
         "sparklines": {"requests": [], "cost": [], "latency": [], "uptime": []},
@@ -295,7 +310,7 @@ async def get_usage_timeseries(
     start_date = datetime.now(timezone.utc) - timedelta(days=days)
 
     # Group by date
-    if db.bind.dialect.name == "sqlite":
+    if _is_sqlite():
         day_expr = func.strftime("%Y-%m-%d", AIUsageLog.created_at).label("day")
     else:
         day_expr = func.date_trunc("day", AIUsageLog.created_at).label("day")
@@ -432,7 +447,7 @@ async def get_analytics_charts(
     """Return real data for the AI Analytics Charts (Usage, Distribution, Latency)."""
     # 1. Usage Over Time (last 7 days, requests and cost)
     seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
-    if db.bind.dialect.name == "sqlite":
+    if _is_sqlite():
         day_expr = func.strftime("%Y-%m-%d", AIUsageLog.created_at).label("day")
     else:
         day_expr = func.date_trunc("day", AIUsageLog.created_at).label("day")
@@ -487,7 +502,7 @@ async def get_analytics_charts(
     today = datetime.now(timezone.utc).replace(
         hour=0, minute=0, second=0, microsecond=0,
     )
-    if db.bind.dialect.name == "sqlite":
+    if _is_sqlite():
         hour_expr = func.strftime("%Y-%m-%d %H:00:00", AIUsageLog.created_at).label(
             "hour",
         )

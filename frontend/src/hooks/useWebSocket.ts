@@ -23,7 +23,7 @@ export function useWebSocket({ onMessage }: { onMessage?: (event: WebSocketEvent
     const connect = () => {
       const token = localStorage.getItem("access_token")
       if (!token) {
-        console.log("[WebSocket] No auth token found, aborting connection.")
+        if (process.env.NODE_ENV === "development") console.log("[WebSocket] No auth token found, aborting connection.")
         return
       }
 
@@ -36,7 +36,7 @@ export function useWebSocket({ onMessage }: { onMessage?: (event: WebSocketEvent
 
       ws.onopen = () => {
         if (!isUnmounted) {
-          console.log("[WebSocket] Connected successfully")
+          if (process.env.NODE_ENV === "development") console.log("[WebSocket] Connected successfully")
           setIsConnected(true)
         }
       }
@@ -46,7 +46,7 @@ export function useWebSocket({ onMessage }: { onMessage?: (event: WebSocketEvent
           try {
             if (event.data === "pong") return
             const data = JSON.parse(event.data) as WebSocketEvent
-            console.log("[WebSocket] Message received:", data)
+            if (process.env.NODE_ENV === "development") console.log("[WebSocket] Message received:", data)
             if (onMessage) onMessage(data)
           } catch (err) {
             console.error("[WebSocket] Failed to parse message:", err)
@@ -64,7 +64,7 @@ export function useWebSocket({ onMessage }: { onMessage?: (event: WebSocketEvent
 
       ws.onclose = (event) => {
         if (!isUnmounted) {
-          console.log("[WebSocket] Connection closed", event.code, event.reason)
+          if (process.env.NODE_ENV === "development") console.log("[WebSocket] Connection closed", event.code, event.reason)
           setIsConnected(false)
           // Attempt to reconnect after 3 seconds
           reconnectTimeoutRef.current = setTimeout(connect, 3000)

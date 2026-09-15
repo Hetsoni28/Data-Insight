@@ -66,7 +66,7 @@ async def list_tenants(
     )
     storage_sq = (
         select(func.coalesce(func.sum(StorageFile.file_size_bytes), 0))
-        .where(StorageFile.tenant_id == Tenant.id, StorageFile.deleted_at is None)
+        .where(StorageFile.tenant_id == Tenant.id, StorageFile.deleted_at.is_(None))
         .scalar_subquery()
     )
     ai_requests_sq = (
@@ -318,9 +318,13 @@ async def global_kpis(
             "arr": arr,
         },
         "system": {
-            "uptime_percentage": 99.98,
-            "error_rate_percentage": 0.02,
-            "avg_response_time_ms": 142,
+            "uptime_percentage": round(
+                min((time.time() - APP_STARTUP_TIME) / 86400 * 100, 100), 2
+            ) if (time.time() - APP_STARTUP_TIME) > 0 else 100.0,
+            "error_rate_percentage": 0.0,
+            "avg_response_time_ms": None,
+            "cpu_percent": psutil.cpu_percent(interval=None),
+            "memory_percent": psutil.virtual_memory().percent,
             "pending_invitations": pending_invites,
         },
     }
@@ -652,11 +656,14 @@ async def tenant_analytics(
 
     for i in range(6, -1, -1):
         target_date = now - timedelta(days=i * 30)
+        prev_date = target_date - timedelta(days=30)
         m_idx = target_date.month - 1
 
         # Total orgs created before this date
         total = sum(1 for d in all_dates if d <= target_date)
-        growth.append({"month": months[m_idx], "total": total, "new": 0})
+        # New orgs created in this 30-day window
+        new_in_window = sum(1 for d in all_dates if prev_date < d <= target_date)
+        growth.append({"month": months[m_idx], "total": total, "new": new_in_window})
 
     # 3. Top Organizations (by user count for now)
     top_orgs_stmt = (
@@ -672,13 +679,29 @@ async def tenant_analytics(
         {"name": name, "usage": users} for name, users in top_orgs_rows
     ]
 
+    # 4. Real AI token usage trend from AITokenUsage table grouped by month
+    from datetime import timedelta as td
+    ai_trend = []
+    for m_data in growth:
+        # Build month filter from the growth data
+        target_m = now - timedelta(days=growth.index(m_data) * 30)
+        month_start = target_m.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if month_start.month == 12:
+            month_end = month_start.replace(year=month_start.year + 1, month=1)
+        else:
+            month_end = month_start.replace(month=month_start.month + 1)
+        token_stmt = select(func.coalesce(func.sum(AITokenUsage.total_tokens), 0)).where(
+            AITokenUsage.created_at >= month_start,
+            AITokenUsage.created_at < month_end,
+        )
+        token_result = (await db.execute(token_stmt)).scalar() or 0
+        ai_trend.append({"month": m_data["month"], "tokens": int(token_result)})
+
     return {
         "growth": growth,
         "plan_distribution": plan_distribution,
         "top_organizations": top_organizations,
-        "ai_usage_trend": [
-            {"month": m["month"], "tokens": m["total"] * 12500} for m in growth
-        ],
+        "ai_usage_trend": ai_trend,
     }
 
 
@@ -818,7 +841,7 @@ async def get_monitoring(
         "cpu_percent": cpu_percent,
         "memory_percent": memory_percent,
         "api_latency_ms": api_latency,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "alerts": [
             {
                 "id": "ALRT-SYS",

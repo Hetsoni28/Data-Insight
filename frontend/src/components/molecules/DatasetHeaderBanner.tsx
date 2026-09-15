@@ -34,8 +34,8 @@ export function DatasetHeaderBanner({
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-10 mix-blend-overlay pointer-events-none" />
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/25 rounded-full blur-[140px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
       
-      <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-        <div className="space-y-5 max-w-3xl">
+      <div className="relative z-10 flex flex-col gap-6">
+        <div className="space-y-5">
           {showBack && backLink && (
             <Link href={backLink}>
               <Button variant="ghost" size="sm" className="pl-0 text-emerald-200/60 hover:text-white hover:bg-transparent -ml-2 mb-2 transition-colors">
@@ -70,7 +70,7 @@ export function DatasetHeaderBanner({
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-4 w-full md:w-auto mt-4 md:mt-0 shrink-0">
+        <div className="flex flex-wrap gap-3 w-full">
           {actions || (
             <>
               <Button className="bg-emerald-500 hover:bg-emerald-400 border-none text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] h-12 px-6 rounded-xl font-bold transition-all hover:scale-105 active:scale-95">

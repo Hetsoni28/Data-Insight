@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -110,8 +110,8 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Next invoice processing on {renewalDate.toLocaleDateString()}</p>
               </div>
               <div className="flex flex-col gap-2">
-                <Button size="sm" className="bg-[#0A3A2A] hover:bg-[#06261c] text-white" onClick={() => window.open("https://dashboard.stripe.com/test/customers", "_blank")}>Manage Subscription</Button>
-                <Button variant="outline" size="sm" onClick={() => window.open("https://dashboard.stripe.com/test/invoices", "_blank")}>View All Invoices</Button>
+                <Button size="sm" className="bg-[#0A3A2A] hover:bg-[#06261c] text-white" onClick={() => window.open("https://dashboard.stripe.com/customers", "_blank")}>Manage Subscription</Button>
+                <Button variant="outline" size="sm" onClick={() => window.open("https://dashboard.stripe.com/invoices", "_blank")}>View All Invoices</Button>
               </div>
             </div>
           </div>

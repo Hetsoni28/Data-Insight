@@ -60,7 +60,6 @@ export default function AnalystDatasetCenterPage() {
   }
   
   const handleWebSocketMessage = useCallback((message: any) => {
-    console.log("[WebSocket] Received dataset event:", message);
     if (!message || !message.type) return;
     
     if (message.type.startsWith("dataset_")) {

@@ -52,7 +52,6 @@ export default function ManagerReportsCenterPage() {
   const handleExportSubmit = async (format: string) => {
     try {
       const res = await api.post(`/tenant-reports/${exportReportId}/export`, { format_type: format })
-      console.log("Export triggered:", res.data)
       toast.success(`Exporting as ${format.toUpperCase()}`)
     } catch (e) {
       toast.error("Export failed")
@@ -147,13 +146,6 @@ export default function ManagerReportsCenterPage() {
       } catch (e) {
         toast.error(`Failed to ${verb} report`)
       }
-    } else {
-      toast.info(`Action ${action} is mocked for this iteration.`)
-      // Mocked endpoint execution just to log the audit trail
-      try {
-        await api.post(`/tenant-reports/${id}/action/${action}`)
-        fetchData()
-      } catch(e) {}
     }
   }
 

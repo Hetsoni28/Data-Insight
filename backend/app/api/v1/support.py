@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID
 
@@ -59,7 +59,7 @@ async def get_support_dashboard(
     )
     critical_issues = critical_query.scalar() or 0
 
-    today = datetime.utcnow() - timedelta(days=1)
+    today = datetime.now(timezone.utc) - timedelta(days=1)
     resolved_today_query = await db.execute(
         select(func.count()).where(
             SupportTicket.status == TicketStatus.RESOLVED,
@@ -67,6 +67,25 @@ async def get_support_dashboard(
         ),
     )
     resolved_today = resolved_today_query.scalar() or 0
+
+    # Compute AI-resolved tickets (tickets resolved with ai_assisted flag if available)
+    ai_resolved_query = await db.execute(
+        select(func.count()).where(
+            SupportTicket.status == TicketStatus.RESOLVED,
+        )
+    )
+    total_resolved = ai_resolved_query.scalar() or 0
+
+    # Feature requests and bug reports by category
+    feature_req_query = await db.execute(
+        select(func.count()).where(SupportTicket.category == "feature_request")
+    )
+    feature_requests = feature_req_query.scalar() or 0
+
+    bug_report_query = await db.execute(
+        select(func.count()).where(SupportTicket.category == "bug")
+    )
+    bug_reports = bug_report_query.scalar() or 0
 
     active_incidents_query = await db.execute(
         select(func.count()).where(PlatformIncident.status != "resolved"),
@@ -79,24 +98,25 @@ async def get_support_dashboard(
             "resolvedToday": resolved_today,
             "pendingTickets": pending_tickets,
             "criticalIssues": critical_issues,
-            "avgResponseTime": "15m",  # Still static as we don't track first-response-time yet
-            "avgResolutionTime": "2h 45m",
-            "csat": "98%",
-            "aiResolutionRate": "42%",
-            "featureRequests": 0,
-            "bugReports": 0,
+            "avgResponseTime": None,  # Not tracked yet - requires first-response timestamp
+            "avgResolutionTime": None,  # Not tracked yet
+            "csat": None,  # Not tracked yet - requires satisfaction survey data
+            "aiResolutionRate": None,  # Not tracked yet
+            "featureRequests": feature_requests,
+            "bugReports": bug_reports,
             "unreadConversations": 0,
-            "onlineAgents": 3,
+            "onlineAgents": None,  # Not tracked yet - requires agent presence system
             "activeIncidents": active_incidents,
-            "platformHealth": "99.99%",
+            "platformHealth": None,  # Use /admin/monitoring for live health
             "supportQueue": open_tickets + pending_tickets,
-            "kbArticles": 156,
+            "kbArticles": None,  # Not tracked yet
+            "totalResolved": total_resolved,
         },
         "trends": {
-            "openTickets": "+0%",
-            "resolvedToday": "+0%",
-            "csat": "+0%",
-            "aiResolutionRate": "+0%",
+            "openTickets": None,
+            "resolvedToday": None,
+            "csat": None,
+            "aiResolutionRate": None,
         },
     }
 
@@ -175,14 +195,14 @@ async def update_ticket(
             status_code=403, detail="Not authorized to update this ticket",
         )
 
-    update_data = ticket_in.dict(exclude_unset=True)
+    update_data = ticket_in.model_dump(exclude_unset=True)
 
     if (
         "status" in update_data
         and update_data["status"] == TicketStatus.RESOLVED
         and ticket.status != TicketStatus.RESOLVED
     ):
-        ticket.resolved_at = datetime.utcnow()
+        ticket.resolved_at = datetime.now(timezone.utc)
 
     for field, value in update_data.items():
         if field == "metadata_":

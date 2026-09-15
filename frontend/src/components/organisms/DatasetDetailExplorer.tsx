@@ -55,7 +55,7 @@ export function DatasetDetailExplorer({
   useWebSocket({
     onMessage: (event: any) => {
       if (event.type === "dataset_excel_ready" && event.payload?.dataset_id === params.id) {
-        console.log("Received dataset_excel_ready event, refreshing dataset...");
+
         api.get(`/tenant-datasets/${params.id}`).then(res => setDataset(res.data.data)).catch(console.error);
       }
     }
@@ -162,7 +162,7 @@ export function DatasetDetailExplorer({
               AI Forecasting
             </Button>
 
-            {["owner", "organization-admin", "manager"].includes(user?.role || "") && (
+            {(["owner", "org_admin", "manager"].includes(user?.role || "") || ["owner", "organization-admin", "manager"].includes(roleMatch?.[1] || "")) && (
               <>
                 <Button
                   onClick={() => setIsScheduleModalOpen(true)}

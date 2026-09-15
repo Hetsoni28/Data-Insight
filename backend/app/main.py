@@ -137,8 +137,8 @@ def create_app() -> FastAPI:
             field = " -> ".join(str(loc) for loc in error["loc"])
             errors.append({"field": field, "message": error["msg"]})
 
-        with open("422_debug.log", "w") as f:
-            f.write(str(errors))
+        import logging
+        logging.getLogger("app.validation").debug("Validation errors: %s", errors)
 
         return JSONResponse(
             status_code=422,

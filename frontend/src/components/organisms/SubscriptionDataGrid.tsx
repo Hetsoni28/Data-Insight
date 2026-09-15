@@ -228,7 +228,7 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
                       <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setSelectedTenant(tenant); }}>
                         <Eye className="mr-2 h-4 w-4 text-slate-500" /> View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open("https://dashboard.stripe.com/test/customers", "_blank"); }}>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open("https://dashboard.stripe.com/customers", "_blank"); }}>
                         <Edit className="mr-2 h-4 w-4 text-slate-500" /> Edit Plan
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />

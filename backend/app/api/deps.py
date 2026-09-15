@@ -29,7 +29,7 @@ async def get_redis() -> AsyncGenerator[Redis, None]:
         from loguru import logger
 
         logger.warning("[Redis] Not available — using in-memory OTP fallback")
-        redis_client = Redis.from_url("redis://localhost:6379/0")
+        redis_client = Redis.from_url(settings.REDIS_URL)
 
     try:
         yield redis_client
@@ -211,8 +211,9 @@ async def get_current_user(
             )
             db.add(new_session)
         await db.commit()
-    except Exception:
-        pass
+    except Exception as _exc:
+        from loguru import logger
+        logger.debug(f"[deps] Non-critical session tracking error (user still authenticated): {_exc}")
 
     return user
 
@@ -352,7 +353,6 @@ class RequirePermission:
         if current_user.is_owner or current_user.role in [
             "owner",
             "org_admin",
-            "organization-admin",
         ]:
             return current_user
 

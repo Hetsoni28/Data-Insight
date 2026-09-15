@@ -41,7 +41,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
   const handleManagePlan = () => {
     // In a real app, this redirects to Stripe Billing Portal or opens a plan management modal
     toast.success("Redirecting to Stripe Billing Portal...")
-    window.open("https://dashboard.stripe.com/test/customers", "_blank")
+    window.open("https://dashboard.stripe.com/customers", "_blank")
   }
   
   const handleViewInvoices = () => {

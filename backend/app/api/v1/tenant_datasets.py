@@ -729,7 +729,7 @@ async def simulate_ai_workflow(
                 action=f"dataset.{workflow_type}.completed",
                 resource_type="dataset",
                 resource_id=str(d.id),
-                ip_address="127.0.0.1",
+                ip_address=None,  # IP not available in background task context
             )
             db.add(audit)
             await db.commit()
@@ -856,15 +856,18 @@ async def generate_ai_excel(
     )
     db.add(audit)
 
-    tokens = 4500
+    # Log estimated token usage — actual counts are updated when the Celery task completes
+    from app.core.config import settings as _s
+    _est_prompt = 4500
+    _est_completion = 1500
     ai_log = AITokenUsage(
         tenant_id=tenant_id,
         feature="excel_generation",
-        model="gemini-3.5-flash",
-        prompt_tokens=tokens,
-        completion_tokens=1500,
-        total_tokens=tokens + 1500,
-        cost_usd=float(tokens + 1500) * 0.000015,
+        model=getattr(_s, "GEMINI_DEFAULT_MODEL", "gemini-3.6-flash"),
+        prompt_tokens=_est_prompt,
+        completion_tokens=_est_completion,
+        total_tokens=_est_prompt + _est_completion,
+        cost_usd=float(_est_prompt + _est_completion) * 0.000015,
     )
     db.add(ai_log)
 
@@ -914,15 +917,17 @@ async def create_dashboard(
         )
         db.add(audit)
 
-        tokens = 2500
+        from app.core.config import settings as _s
+        _est_prompt = 2500
+        _est_completion = 800
         ai_log = AITokenUsage(
             tenant_id=tenant_id,
             feature="dashboard_generation",
-            model="gemini-3.5-flash",
-            prompt_tokens=tokens,
-            completion_tokens=800,
-            total_tokens=tokens + 800,
-            cost_usd=float(tokens + 800) * 0.000015,
+            model=getattr(_s, "GEMINI_DEFAULT_MODEL", "gemini-3.6-flash"),
+            prompt_tokens=_est_prompt,
+            completion_tokens=_est_completion,
+            total_tokens=_est_prompt + _est_completion,
+            cost_usd=float(_est_prompt + _est_completion) * 0.000015,
         )
         db.add(ai_log)
 

@@ -48,11 +48,10 @@ export default function AnalystReportsCenterPage() {
 
   const handleExportSubmit = async (format: string) => {
     try {
-      const res = await api.post(`/tenant-reports/${exportReportId}/export`, { format_type: format })
-      console.log("Export triggered:", res.data)
-      // Ideally trigger a download here
+      await api.post(`/tenant-reports/${exportReportId}/export`, { format_type: format })
+      toast.success(`Exporting as ${format.toUpperCase()}`)
     } catch (e) {
-      throw e
+      toast.error("Export failed")
     }
   }
 
@@ -61,7 +60,6 @@ export default function AnalystReportsCenterPage() {
   
   // Real-Time WebSocket Updates
   const handleWebSocketMessage = useCallback((message: any) => {
-    console.log("[WebSocket] Received event:", message);
     if (!message || !message.type) return;
     
     // Silently refresh the reports on any relevant event

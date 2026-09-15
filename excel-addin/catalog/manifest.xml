@@ -4,7 +4,7 @@
   For production deployment, replace all instances of "https://localhost:3001"
   with your production URL (e.g. "https://datainsight.app").
 -->
-<OfficeApp 
+<OfficeAp 
   xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" 
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" 

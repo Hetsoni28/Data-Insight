@@ -784,18 +784,21 @@ async def simulate_report_workflow(
                 action="report.generated",
                 resource_type="report",
                 resource_id=str(report.id),
-                ip_address="127.0.0.1",
+                ip_address=None,  # IP not available in background task context
             )
             db.add(audit)
 
+            from app.core.config import settings as _s
+            _est_prompt = 2500
+            _est_completion = 1500
             ai_log = AITokenUsage(
                 tenant_id=tenant_id,
                 feature="report_generation",
-                model="gemini-3.5-flash",
-                prompt_tokens=2500,
-                completion_tokens=1500,
-                total_tokens=4000,
-                cost_usd=float(4000) * 0.000015,
+                model=getattr(_s, "GEMINI_DEFAULT_MODEL", "gemini-3.6-flash"),
+                prompt_tokens=_est_prompt,
+                completion_tokens=_est_completion,
+                total_tokens=_est_prompt + _est_completion,
+                cost_usd=float(_est_prompt + _est_completion) * 0.000015,
             )
             db.add(ai_log)
 

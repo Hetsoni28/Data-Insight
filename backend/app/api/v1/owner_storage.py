@@ -98,7 +98,10 @@ async def get_analytics(
     thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
 
     # Growth by day
-    if db.bind.dialect.name == "sqlite":
+    # Detect dialect from DATABASE_URL setting (db.bind not available on async sessions)
+    from app.core.config import settings
+    db_url = str(settings.DATABASE_URL) if hasattr(settings, "DATABASE_URL") else ""
+    if "sqlite" in db_url:
         day_expr = func.strftime("%Y-%m-%d", StorageFile.created_at).label("day")
     else:
         day_expr = func.date_trunc("day", StorageFile.created_at).label("day")
@@ -555,47 +558,9 @@ async def download_file(
                 media_type=file.file_type or "application/octet-stream",
             )
 
-    # For seeded or mock files, return structured export data corresponding to file type
-    if file.category == "spreadsheet" or file.file_name.endswith((".csv", ".tsv")):
-        content = (
-            f"# Data Insight Automated Export: {file.file_name}\n"
-            f"# Bucket: {bucket_name} | Generated: {datetime.now(timezone.utc).isoformat()}\n"
-            "id,transaction_id,timestamp,customer,amount_usd,status,region\n"
-            "1,TX-8921,2026-08-01,Acme Corp,1420.00,completed,us-east-1\n"
-            "2,TX-8922,2026-08-01,Global Tech,9500.50,completed,eu-west-1\n"
-            "3,TX-8923,2026-08-02,Nexus AI,3400.00,completed,us-west-2\n"
-            "4,TX-8924,2026-08-03,Starlight Data,720.00,pending,ap-south-1\n"
-        )
-        media_type = "text/csv"
-    elif file.file_name.endswith(".json"):
-        content = (
-            f"{{\n"
-            f'  "id": "{file.id}",\n'
-            f'  "file_name": "{file.file_name}",\n'
-            f'  "bucket": "{bucket_name}",\n'
-            f'  "size_bytes": {file.file_size_bytes or 2048},\n'
-            f'  "category": "{file.category}",\n'
-            f'  "downloaded_at": "{datetime.now(timezone.utc).isoformat()}",\n'
-            f'  "status": "verified"\n'
-            f"}}\n"
-        )
-        media_type = "application/json"
-    else:
-        content = (
-            f"=== DATA INSIGHT SECURE STORAGE EXPORT ===\n"
-            f"File: {file.file_name}\n"
-            f"ID: {file.id}\n"
-            f"Bucket: {bucket_name}\n"
-            f"Size: {file.file_size_bytes} bytes\n"
-            f"Generated: {datetime.now(timezone.utc).isoformat()}\n"
-        )
-        media_type = file.file_type or "text/plain"
-
-    return Response(
-        content=content.encode("utf-8"),
-        media_type=media_type,
-        headers={
-            "Content-Disposition": f'attachment; filename="{file.file_name}"',
-            "Access-Control-Expose-Headers": "Content-Disposition",
-        },
+    # File not available on local disk — do not serve fake data
+    raise HTTPException(
+        status_code=404,
+        detail=f"File '{file.file_name}' is not available for download. It may be stored in a remote bucket or has been moved.",
     )
+
