@@ -38,9 +38,14 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = "noreply@datainsight.ai"
     FRONTEND_URL: str = "http://localhost:3000"
 
-    # Billing
+    # Billing & Pricing
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_STARTER: str = "price_starter_placeholder"
+    STRIPE_PRICE_PROFESSIONAL: str = "price_professional_placeholder"
+    STRIPE_PRICE_ENTERPRISE: str = "price_enterprise_placeholder"
+    STORAGE_COST_PER_GB: float = 0.023
+    DEFAULT_CONTRACT_BASE_MONTHLY: float = 12500.0
 
     # Platform Owner (seed account — never registerable via UI)
     OWNER_EMAIL: str = ""

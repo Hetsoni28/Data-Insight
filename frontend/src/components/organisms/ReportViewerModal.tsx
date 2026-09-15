@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { ExecutiveReportViewer } from "./ExecutiveReportViewer"
 import { AIDashboardViewer } from "./AIDashboardViewer"
@@ -73,7 +73,7 @@ export function ReportViewerModal({ isOpen, onClose, reportId }: ReportViewerMod
               <TrendForecastViewer report={report} />
             ) : (
               <div className="text-center p-12 text-slate-500">
-                Viewer for <strong>{report.category}</strong> is not yet implemented.
+                Custom viewers for <strong>{report.category}</strong> reports are currently being developed. Please download the report as Excel/PDF from the table actions to view its contents.
               </div>
             )}
           </div>

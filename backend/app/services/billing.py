@@ -26,9 +26,9 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 # Create these in your Stripe dashboard under Products → Prices
 # then paste the price IDs here.
 PLAN_PRICE_IDS: dict[str, str] = {
-    "starter": "price_starter_placeholder",  # $499/month
-    "professional": "price_professional_placeholder",  # $999/month
-    "enterprise": "price_enterprise_placeholder",  # $15,000/month
+    "starter": settings.STRIPE_PRICE_STARTER,  # $499/month
+    "professional": settings.STRIPE_PRICE_PROFESSIONAL,  # $999/month
+    "enterprise": settings.STRIPE_PRICE_ENTERPRISE,  # $15,000/month
 }
 
 PLAN_NAMES: dict[str, str] = {

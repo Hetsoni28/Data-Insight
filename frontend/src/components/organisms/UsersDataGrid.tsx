@@ -117,8 +117,13 @@ export function UsersDataGrid() {
       toast.error("User or Tenant ID missing.")
       return
     }
+    const reason = window.prompt(`Please provide a reason for impersonating ${user.email} (e.g. ticket #, debugging, customer request):`)
+    if (!reason || reason.trim() === "") {
+      toast.info("Impersonation cancelled (reason is required for audit logs).")
+      return
+    }
     toast.info(`Initiating impersonation for ${user.email}...`)
-    impersonateMutation.mutate({ tenantId: user.tenant_id, userId: user.id, reason: "Admin Support" })
+    impersonateMutation.mutate({ tenantId: user.tenant_id, userId: user.id, reason: reason.trim() })
   }
   
   const [isFilterOpen, setIsFilterOpen] = useState(false)

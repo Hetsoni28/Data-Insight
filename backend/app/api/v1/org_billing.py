@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_org_admin, get_db
+from app.core.config import settings
 from app.models.ai_token_usage import AITokenUsage
 from app.models.billing_activity import BillingActivity
 from app.models.dataset import Dataset
@@ -92,7 +93,7 @@ async def _get_or_create_tenant_contract(
         start + timedelta(days=365)
     )
 
-    base_monthly = 12500.0 if not is_custom else 25000.0
+    base_monthly = settings.DEFAULT_CONTRACT_BASE_MONTHLY if not is_custom else settings.DEFAULT_CONTRACT_BASE_MONTHLY * 2
     annual_val = base_monthly * 12
     discount = 30000.0 if not is_custom else 50000.0
     contracted_annual = annual_val - discount

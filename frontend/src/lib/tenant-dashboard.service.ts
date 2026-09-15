@@ -163,7 +163,7 @@ export class TenantDashboardService {
           reports_viewed_today: kpiData.reports_viewed_today || 0,
           downloads_count: kpiData.downloads_count || 0,
           bookmarks_count: kpiData.bookmarks_count || 0,
-          unread_notifications: 0,
+          unread_notifications: overviewData.unread_notifications?.length || kpiData.unread_notifications || 0,
           recent_ai_conversations: kpiData.ai_requests?.total || 0
         },
         recent_activity: overviewData.recent_activity || [],

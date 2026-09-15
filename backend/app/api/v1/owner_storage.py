@@ -63,9 +63,9 @@ async def get_overview(
         select(func.count(StorageBackup.id)).where(StorageBackup.status == "completed"),
     )
 
-    # Calculate costs (AWS S3 Standard rate $0.023 per GB)
+    # Calculate costs
     gb_used = float(total_size) / (1024**3)
-    storage_cost = gb_used * 0.023
+    storage_cost = gb_used * settings.STORAGE_COST_PER_GB
 
     return {
         "kpis": {

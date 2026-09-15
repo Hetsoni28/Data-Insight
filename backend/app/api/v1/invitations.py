@@ -164,8 +164,9 @@ async def create_invitation(
             org_name=org_name,
             invite_url=invite_url,
         )
-    except Exception:
-        pass
+    except Exception as _exc:
+        from loguru import logger
+        logger.error(f"Failed to send invite email: {_exc}")
 
     return _to_response(invitation, tenant_name=org_name)
 
@@ -271,8 +272,9 @@ async def resend_invitation(
             org_name=org_name,
             invite_url=invite_url,
         )
-    except Exception:
-        pass
+    except Exception as _exc:
+        from loguru import logger
+        logger.error(f"Failed to resend invite email: {_exc}")
 
     return _to_response(inv, tenant_name=org_name)
 

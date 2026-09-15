@@ -340,8 +340,9 @@ async def invite_team_member(
             org_name=org_name,
             invite_url=invite_url,
         )
-    except Exception:
-        pass
+    except Exception as _exc:
+        from loguru import logger
+        logger.error(f"Failed to send team invite email: {_exc}")
 
     return {
         "status": "success",
@@ -418,8 +419,9 @@ async def resend_team_invitation(
             org_name=org_name,
             invite_url=invite_url,
         )
-    except Exception:
-        pass
+    except Exception as _exc:
+        from loguru import logger
+        logger.error(f"Failed to resend team invite email: {_exc}")
 
     return {
         "status": "success",

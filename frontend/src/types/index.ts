@@ -24,7 +24,7 @@ export interface PaginatedResponse<T> {
 }
 
 // ─── User & Auth ───────────────────────────────────────────────────────────────
-export type UserRole = "owner" | "org_admin" | "manager" | "analyst" | "viewer";
+export type UserRole = "owner" | "org_admin" | "organization-admin" | "manager" | "analyst" | "viewer";
 
 export type AccountType = "individual" | "organization";
 
