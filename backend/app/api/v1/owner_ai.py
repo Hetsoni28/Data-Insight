@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import asc, case, desc, func, select
+from sqlalchemy import asc, case, desc, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
@@ -141,8 +141,8 @@ async def get_ai_overview(
             func.sum(case((AIUsageLog.status_code == 200, 1), else_=0)).label("ok"),
         )
         .where(AIUsageLog.created_at >= spark_start)
-        .group_by(func.date_trunc("day", AIUsageLog.created_at))
-        .order_by(func.date_trunc("day", AIUsageLog.created_at))
+        .group_by(text("day"))
+        .order_by(text("day"))
     )
     daily_rows = (await db.execute(daily_usage_stmt)).all()
 
