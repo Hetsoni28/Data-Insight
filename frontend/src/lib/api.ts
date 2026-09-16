@@ -169,11 +169,16 @@ api.interceptors.response.use(
         }
         break;
 
-      default:
-        if (!error.response && !originalRequest.url?.includes("/viewer/")) {
-          showToastOnce("error", "Network error. Please check your internet connection.");
-        }
-        break;
+      default: {
+          // Suppress network error toasts for background dashboard metric calls —
+          // these fail gracefully in the UI (e.g. "Metrics unavailable") without toast spam.
+          const silentPaths = ["/owner/analytics", "/owner/ai", "/owner/storage", "/owner/support", "/viewer/"];
+          const isSilent = silentPaths.some(p => originalRequest.url?.includes(p));
+          if (!error.response && !isSilent) {
+            showToastOnce("error", "Network error. Please check your internet connection.");
+          }
+          break;
+      }
     }
 
     return Promise.reject(error);
