@@ -43,8 +43,8 @@ async def _build_daily_sparkline(
             agg_expr.label("val"),
         )
         .where(date_col >= start)
-        .group_by(text("1"))
-        .order_by(text("1"))
+        .group_by(func.date_trunc("day", date_col))
+        .order_by(func.date_trunc("day", date_col))
     )
     if extra_filters:
         for f in extra_filters:

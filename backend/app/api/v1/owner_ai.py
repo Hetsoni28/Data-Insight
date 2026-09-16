@@ -141,8 +141,8 @@ async def get_ai_overview(
             func.sum(case((AIUsageLog.status_code == 200, 1), else_=0)).label("ok"),
         )
         .where(AIUsageLog.created_at >= spark_start)
-        .group_by("1")
-        .order_by("1")
+        .group_by(func.date_trunc("day", AIUsageLog.created_at))
+        .order_by(func.date_trunc("day", AIUsageLog.created_at))
     )
     daily_rows = (await db.execute(daily_usage_stmt)).all()
 
