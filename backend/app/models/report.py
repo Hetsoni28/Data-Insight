@@ -59,7 +59,7 @@ class Report(Base):
     report_type: Mapped[str] = mapped_column(
         String(20), default=ReportType.excel, nullable=False,
     )
-    status: Mapped[str] = mapped_column(
+    status: Mapped[ReportStatus] = mapped_column(
         String(50), default=ReportStatus.queued, nullable=False, index=True,
     )
 

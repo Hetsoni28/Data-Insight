@@ -261,6 +261,8 @@ class AIService:
     ) -> dict[str, Any]:
         """Execute Natural Language to DuckDB SQL query against tenant dataset."""
         tenant_id = actor.tenant_id
+        if not tenant_id:
+            raise ResourceNotFoundException("Dataset", str(dataset_id))
         if tenant_id:
             quota_svc = QuotaService(self.session)
             await quota_svc.check_ai_quota(tenant_id, estimated_tokens=1500)
@@ -310,6 +312,8 @@ class AIService:
     ) -> dict[str, Any]:
         """Generate comprehensive 5-tier business narrative report from dataset profiling."""
         tenant_id = actor.tenant_id
+        if not tenant_id:
+            raise ResourceNotFoundException("Dataset", str(dataset_id))
         if tenant_id:
             quota_svc = QuotaService(self.session)
             await quota_svc.check_ai_quota(tenant_id, estimated_tokens=3000)
@@ -629,6 +633,8 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         to derive schema info without file-access failures.
         """
         tenant_id = actor.tenant_id
+        if not tenant_id:
+            raise ResourceNotFoundException("Dataset", str(dataset_id))
         from app.repositories.dataset import DatasetRepository
 
         ds_repo = DatasetRepository(self.session)
@@ -714,6 +720,8 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
     ) -> dict[str, Any]:
         """Send message into persistent session, execute NL-to-SQL + visual synthesis if dataset bound, and store history."""
         tenant_id = actor.tenant_id
+        if not tenant_id:
+            raise ResourceNotFoundException("ChatSession", str(session_id))
         user_id = actor.id
 
         chat_repo = ChatRepository(self.session)
@@ -734,7 +742,7 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         history_msgs = await chat_repo.get_session_messages(
             session_id, limit=MAX_HISTORY,
         )
-        history_payload = [
+        history_payload: list[dict[str, str]] = [
             {"role": m.role, "content": m.content}
             for m in history_msgs
             if m.role in ["user", "assistant"] and m.content != clean_question

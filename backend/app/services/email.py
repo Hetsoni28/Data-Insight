@@ -383,7 +383,7 @@ def _sync_send(to: str, subject: str, html: str) -> None:
     plain_text = re.sub(r"<[^>]+>", "", html).strip()
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = Header(subject, "utf-8")
+    msg["Subject"] = str(Header(subject, "utf-8"))
     msg["From"] = email.utils.formataddr(("Data Insight", settings.EMAIL_FROM))
     msg["To"] = to
     msg["Date"] = email.utils.formatdate(localtime=True)
