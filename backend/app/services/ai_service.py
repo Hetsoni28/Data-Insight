@@ -749,7 +749,7 @@ Provide prioritized recommendations with PRIORITY, IMPACT, WHAT TO DO, WHY IT MA
         ]
 
         # 3. Check if session has a bound dataset and detect intent
-        dataset_id = chat_sess.dataset_id
+        dataset_id: uuid.UUID | None = chat_sess.dataset_id # type: ignore
         is_data_question = False
 
         if dataset_id:
