@@ -128,6 +128,44 @@ async def get_ai_overview(
     )
     active_orgs_count = int(active_orgs_result.scalar() or 0)
 
+    # Build real 30-day daily sparklines from AIUsageLog
+    now_spark = datetime.now(timezone.utc)
+    spark_start = now_spark - timedelta(days=30)
+
+    daily_usage_stmt = (
+        select(
+            func.date_trunc("day", AIUsageLog.created_at).label("day"),
+            func.count(AIUsageLog.id).label("reqs"),
+            func.coalesce(func.sum(AIUsageLog.cost_usd), 0.0).label("cost"),
+            func.coalesce(func.avg(AIUsageLog.latency_ms), 0).label("lat"),
+            func.sum(case((AIUsageLog.status_code == 200, 1), else_=0)).label("ok"),
+        )
+        .where(AIUsageLog.created_at >= spark_start)
+        .group_by("1")
+        .order_by("1")
+    )
+    daily_rows = (await db.execute(daily_usage_stmt)).all()
+
+    spark_by_day: dict[str, dict] = {}
+    for row in daily_rows:
+        dk = row.day.strftime("%Y-%m-%d") if hasattr(row.day, "strftime") else str(row.day)[:10]
+        reqs = int(row.reqs or 0)
+        spark_by_day[dk] = {
+            "reqs": reqs,
+            "cost": float(row.cost or 0.0),
+            "lat": int(row.lat or 0),
+            "uptime": round((int(row.ok or 0) / reqs * 100), 1) if reqs > 0 else 100.0,
+        }
+
+    reqs_sparkline, cost_sparkline, lat_sparkline, uptime_sparkline = [], [], [], []
+    for i in range(30):
+        dk = (spark_start + timedelta(days=i + 1)).strftime("%Y-%m-%d")
+        entry = spark_by_day.get(dk, {})
+        reqs_sparkline.append(entry.get("reqs", 0))
+        cost_sparkline.append(entry.get("cost", 0.0))
+        lat_sparkline.append(entry.get("lat", 0))
+        uptime_sparkline.append(entry.get("uptime", 100.0))
+
     return {
         "kpis": {
             "connected_providers": total_providers,
@@ -168,7 +206,12 @@ async def get_ai_overview(
         "active_organizations": active_orgs_count,
         "success_rate": round(success_rate, 2),
         "failed_requests": total_errors,
-        "sparklines": {"requests": [], "cost": [], "latency": [], "uptime": []},
+        "sparklines": {
+            "requests": reqs_sparkline,
+            "cost": cost_sparkline,
+            "latency": lat_sparkline,
+            "uptime": uptime_sparkline,
+        },
     }
 
 

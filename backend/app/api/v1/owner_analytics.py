@@ -16,6 +16,57 @@ from app.models.user_session import UserSession
 router = APIRouter()
 
 
+async def _build_daily_sparkline(
+    db: AsyncSession,
+    model,
+    date_col,
+    agg_col=None,
+    extra_filters=None,
+    days: int = 30,
+) -> list[float]:
+    """Build a list of daily aggregated values for the last `days` days.
+    If agg_col is None → COUNT(*), else → SUM(agg_col).
+    Returns a list of `days` floats (0.0 for missing days).
+    """
+    now = datetime.now(timezone.utc)
+    start = now - timedelta(days=days)
+
+    agg_expr = (
+        func.coalesce(func.sum(agg_col), 0.0)
+        if agg_col is not None
+        else func.count(model.id)
+    )
+
+    stmt = (
+        select(
+            func.date_trunc("day", date_col).label("day"),
+            agg_expr.label("val"),
+        )
+        .where(date_col >= start)
+        .group_by(text("1"))
+        .order_by(text("1"))
+    )
+    if extra_filters:
+        for f in extra_filters:
+            stmt = stmt.where(f)
+
+    rows = (await db.execute(stmt)).all()
+    by_day: dict[str, float] = {}
+    for row in rows:
+        day_key = (
+            row.day.strftime("%Y-%m-%d")
+            if hasattr(row.day, "strftime")
+            else str(row.day)[:10]
+        )
+        by_day[day_key] = float(row.val or 0)
+
+    result = []
+    for i in range(days):
+        d = (start + timedelta(days=i + 1)).strftime("%Y-%m-%d")
+        result.append(by_day.get(d, 0.0))
+    return result
+
+
 async def require_owner(current_user: User = Depends(get_current_user)) -> User:
     if getattr(current_user, "role", "") != "owner" and not getattr(
         current_user, "is_owner", False,
@@ -158,6 +209,25 @@ async def get_analytics_overview(
     prev_users = (await db.execute(prev_users_stmt)).scalar_one()
     user_growth = round(((new_users - prev_users) / max(prev_users, 1)) * 100, 1)
 
+    # Build real 30-day daily sparklines
+    user_sparkline = await _build_daily_sparkline(
+        db, User, User.created_at, extra_filters=[User.is_active == True]
+    )
+    org_sparkline = await _build_daily_sparkline(
+        db, Tenant, Tenant.created_at, extra_filters=[Tenant.is_deleted == False]
+    )
+    revenue_sparkline = await _build_daily_sparkline(
+        db, Invoice, Invoice.created_at,
+        agg_col=Invoice.amount,
+        extra_filters=[Invoice.status == "paid"],
+    )
+    ai_sparkline = await _build_daily_sparkline(
+        db, AITokenUsage, AITokenUsage.created_at
+    )
+    dataset_sparkline = await _build_daily_sparkline(
+        db, Dataset, Dataset.created_at, extra_filters=[Dataset.is_deleted == False]
+    )
+
     return {
         "status": "success",
         "data": {
@@ -167,32 +237,32 @@ async def get_analytics_overview(
                 "new_last_30d": new_users,
                 "growth": user_growth,
                 "trend": f"{'+' if user_growth >= 0 else ''}{user_growth}%",
-                "sparkline": [],
+                "sparkline": user_sparkline,
             },
             "organizations": {
                 "total": total_orgs,
                 "active": active_orgs,
                 "new": new_orgs_last_30,
                 "growth": round(org_growth, 1),
-                "sparkline": [],
+                "sparkline": org_sparkline,
             },
             "revenue": {
                 "mrr": mrr,
                 "arr": arr,
                 "growth": round(mrr_growth, 1),
-                "sparkline": [],
+                "sparkline": revenue_sparkline,
             },
             "ai": {
                 "total_requests": ai_requests,
                 "growth": round(ai_growth, 1),
-                "sparkline": [],
+                "sparkline": ai_sparkline,
             },
             "platform": {
                 "datasets": total_datasets,
                 "reports": total_reports,
                 "dataset_growth": dataset_growth,
                 "report_growth": report_growth,
-                "sparkline": [],
+                "sparkline": dataset_sparkline,
             },
         },
     }

@@ -105,15 +105,70 @@ class DatasetQueryService:
         select_clause = ", ".join(select_cols)
         group_clause = ", ".join([f'"{d}"' for d in dimensions]) if dimensions else ""
 
-        # Note: Filter implementation omitted for brevity but would be added here
+        # 4b. Build WHERE clause from filters
+        where_clauses = []
+        params: dict[str, Any] = {}
+        for idx, f in enumerate(filters):
+            field = f.get("field")
+            operator = f.get("operator", "eq")
+            value = f.get("value")
+            param_key = f"p{idx}"
+
+            col_expr = f'"{field}"'
+            if operator == "eq":
+                where_clauses.append(f"{col_expr} = ${param_key}")
+                params[param_key] = value
+            elif operator == "neq":
+                where_clauses.append(f"{col_expr} != ${param_key}")
+                params[param_key] = value
+            elif operator == "gt":
+                where_clauses.append(f"{col_expr} > ${param_key}")
+                params[param_key] = value
+            elif operator == "gte":
+                where_clauses.append(f"{col_expr} >= ${param_key}")
+                params[param_key] = value
+            elif operator == "lt":
+                where_clauses.append(f"{col_expr} < ${param_key}")
+                params[param_key] = value
+            elif operator == "lte":
+                where_clauses.append(f"{col_expr} <= ${param_key}")
+                params[param_key] = value
+            elif operator == "in":
+                placeholders = ", ".join(
+                    [f"${param_key}_{j}" for j, _ in enumerate(value)]
+                )
+                where_clauses.append(f"{col_expr} IN ({placeholders})")
+                for j, v in enumerate(value):
+                    params[f"{param_key}_{j}"] = v
+            elif operator == "not_in":
+                placeholders = ", ".join(
+                    [f"${param_key}_{j}" for j, _ in enumerate(value)]
+                )
+                where_clauses.append(f"{col_expr} NOT IN ({placeholders})")
+                for j, v in enumerate(value):
+                    params[f"{param_key}_{j}"] = v
+            elif operator == "contains":
+                where_clauses.append(f"LOWER(CAST({col_expr} AS VARCHAR)) LIKE LOWER(${param_key})")
+                params[param_key] = f"%{value}%"
+            elif operator == "starts_with":
+                where_clauses.append(f"LOWER(CAST({col_expr} AS VARCHAR)) LIKE LOWER(${param_key})")
+                params[param_key] = f"{value}%"
+            elif operator == "is_null":
+                where_clauses.append(f"{col_expr} IS NULL")
+            elif operator == "is_not_null":
+                where_clauses.append(f"{col_expr} IS NOT NULL")
+            else:
+                raise ValueError(f"Unsupported filter operator: '{operator}'")
 
         sql = f"SELECT {select_clause} FROM data"
+        if where_clauses:
+            sql += " WHERE " + " AND ".join(where_clauses)
         if group_clause:
             sql += f" GROUP BY {group_clause}"
 
         # 5. Execute via Enterprise DuckDBEngine
         try:
-            result = DuckDBEngine.execute_query(df=df, sql=sql, limit=limit)
+            result = DuckDBEngine.execute_query(df=df, sql=sql, limit=limit, params=params if params else None)
             return result
         except Exception as e:
             logger.error(f"DuckDB Execution Error: {e}")

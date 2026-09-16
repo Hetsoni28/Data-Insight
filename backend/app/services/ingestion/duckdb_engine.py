@@ -79,6 +79,7 @@ class DuckDBEngine:
         table_name: str = "dataset",
         limit: int = 1000,
         offset: int = 0,
+        params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Execute an interactive SQL query against a Polars DataFrame with timeout and bounds.
         """
@@ -100,7 +101,10 @@ class DuckDBEngine:
                 f"SELECT * FROM ({user_sql}) AS __q LIMIT {limit} OFFSET {offset}"
             )
 
-            cursor = conn.execute(wrapped_sql)
+            # Build ordered list of param values matching DuckDB's $key substitution
+            param_values = list(params.values()) if params else []
+
+            cursor = conn.execute(wrapped_sql, param_values if param_values else [])
             description = cursor.description or []
             column_names = [col[0] for col in description]
             column_types = [str(col[1]) for col in description]
@@ -120,7 +124,7 @@ class DuckDBEngine:
 
             # Get total count of the subquery
             count_sql = f"SELECT COUNT(*) FROM ({user_sql}) AS __q_count"
-            total_count = conn.execute(count_sql).fetchone()[0]
+            total_count = conn.execute(count_sql, param_values if param_values else []).fetchone()[0]
 
             duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
