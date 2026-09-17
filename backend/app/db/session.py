@@ -18,7 +18,9 @@ engine_kwargs = {
     "pool_pre_ping": True,
 }
 
-if is_celery:
+_is_sqlite = "sqlite" in str(settings.DATABASE_URL).lower()
+
+if is_celery or _is_sqlite:
     engine_kwargs["poolclass"] = NullPool
 else:
     engine_kwargs["pool_size"] = 3

@@ -22,6 +22,7 @@ interface Overview {
   current_ai_provider: string
   mrr?: number
   current_period_end?: string
+  max_storage_gb?: number
 }
 
 export function OrganizationScoreCards({ kpis, overview }: { kpis: KPIs | null; overview: Overview | null }) {
