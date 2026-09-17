@@ -125,9 +125,48 @@ export default function PlatformOwnerProfilePage() {
 
       <Dialog open={isAvatarModalOpen} onOpenChange={setIsAvatarModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><ImageIcon className="h-5 w-5 text-emerald-600" /> Update Avatar</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4"><Label>Image URL</Label><Input type="url" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..." /></div>
-          <DialogFooter><Button variant="outline" onClick={() => setIsAvatarModalOpen(false)}>Cancel</Button><Button onClick={handleSaveProfile} className="bg-emerald-600 hover:bg-emerald-700">Save</Button></DialogFooter>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><ImageIcon className="h-5 w-5 text-emerald-600" /> Update Avatar</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* File upload */}
+            <div>
+              <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2 block">Upload Image</Label>
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-xl cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/30 dark:hover:bg-emerald-500/5 transition-colors">
+                <div className="flex flex-col items-center gap-1 text-slate-400 text-sm">
+                  <ImageIcon className="w-8 h-8" />
+                  <span className="font-medium text-slate-600 dark:text-slate-300">Click to select a photo</span>
+                  <span className="text-xs">PNG, JPG or WebP — max 5MB</span>
+                </div>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    if (file.size > 5 * 1024 * 1024) { toast.error("File too large — max 5MB"); return }
+                    try {
+                      const result = await ProfileService.uploadAvatar(file)
+                      setAvatarUrl(result?.avatar_url || avatarUrl)
+                      toast.success("Avatar updated!")
+                      await refetch()
+                      setIsAvatarModalOpen(false)
+                    } catch { toast.error("Failed to upload avatar") }
+                  }}
+                />
+              </label>
+            </div>
+            {/* URL fallback */}
+            <div>
+              <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2 block">Or paste an image URL</Label>
+              <Input type="url" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAvatarModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveProfile} className="bg-emerald-600 hover:bg-emerald-700">Save URL</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

@@ -200,8 +200,15 @@ export class TenantDashboardService {
   }
 
   static async getReportFilters(workspaceId: string): Promise<ViewerReportFiltersResponse> {
-    // Return empty mock, as it's not supported by standard tenant API yet
-    return { categories: [], departments: [], owners: [], statuses: [] };
+    try {
+      const { data } = await api.get(`/tenant-reports/filters`, {
+        params: { workspace_id: workspaceId }
+      });
+      return data?.data ?? { categories: [], departments: [], owners: [], statuses: [] };
+    } catch {
+      // Graceful fallback if the endpoint is not yet available
+      return { categories: [], departments: [], owners: [], statuses: [] };
+    }
   }
 
   static async getReport(reportId: string): Promise<any> {

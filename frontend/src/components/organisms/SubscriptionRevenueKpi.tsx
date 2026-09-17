@@ -1,7 +1,7 @@
-﻿"use client"
+"use client"
 
 import { Card } from "@/components/ui/card"
-import { DollarSign, Users, Activity, TrendingUp, CreditCard, ActivityIcon } from "lucide-react"
+import { DollarSign, Users, TrendingUp, CreditCard, ActivityIcon } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface KpiProps {
@@ -10,7 +10,7 @@ interface KpiProps {
 }
 
 function Sparkline({ data, color }: { data: number[], color: string }) {
-  if (!data || data.length === 0) return null
+  if (!data || data.length < 2) return null
   
   const min = Math.min(...data)
   const max = Math.max(...data)
@@ -36,6 +36,12 @@ function Sparkline({ data, color }: { data: number[], color: string }) {
   )
 }
 
+const fmtPct = (val: number | null | undefined, decimals = 1): string => {
+  if (val === null || val === undefined) return "—"
+  const sign = val >= 0 ? "+" : ""
+  return `${sign}${val.toFixed(decimals)}%`
+}
+
 export function SubscriptionRevenueKpi({ data, isLoading }: KpiProps) {
   if (isLoading) {
     return (
@@ -52,9 +58,12 @@ export function SubscriptionRevenueKpi({ data, isLoading }: KpiProps) {
       title: "Monthly Recurring Revenue",
       value: `$${(data?.mrr || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: DollarSign,
-      trend: "+12.5%",
-      trendUp: true,
-      sparkline: data?.sparkline_revenue || [],
+      trend: fmtPct(data?.mrr_growth_pct),
+      trendUp: (data?.mrr_growth_pct ?? 0) >= 0,
+      // Real sparkline from API: 7-point daily MRR trend
+      sparkline: Array.isArray(data?.sparkline_revenue) && data.sparkline_revenue.length > 1
+        ? data.sparkline_revenue
+        : [],
       color: "text-emerald-500",
       bg: "bg-emerald-50 dark:bg-emerald-500/10",
       sparklineColor: "#10b981"
@@ -63,9 +72,11 @@ export function SubscriptionRevenueKpi({ data, isLoading }: KpiProps) {
       title: "Annual Run Rate",
       value: `$${(data?.arr || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: TrendingUp,
-      trend: "+15.2%",
-      trendUp: true,
-      sparkline: (data?.sparkline_revenue || []).map((v: number) => v * 12),
+      trend: fmtPct(data?.arr_growth_pct),
+      trendUp: (data?.arr_growth_pct ?? 0) >= 0,
+      sparkline: Array.isArray(data?.sparkline_revenue) && data.sparkline_revenue.length > 1
+        ? data.sparkline_revenue.map((v: number) => v * 12)
+        : [],
       color: "text-emerald-500",
       bg: "bg-emerald-50 dark:bg-emerald-500/10",
       sparklineColor: "#10b981"
@@ -74,9 +85,14 @@ export function SubscriptionRevenueKpi({ data, isLoading }: KpiProps) {
       title: "Active Subscriptions",
       value: (data?.active_subscriptions || 0).toLocaleString(),
       icon: Users,
-      trend: "+2 this month",
-      trendUp: true,
-      sparkline: [10, 12, 12, 14, 15, 18, 20],
+      trend: data?.new_subscriptions_this_month !== undefined && data?.new_subscriptions_this_month !== null
+        ? `+${data.new_subscriptions_this_month} this month`
+        : "—",
+      trendUp: (data?.new_subscriptions_this_month ?? 0) >= 0,
+      // Sparkline from subscription count history — falls back to empty (hides sparkline)
+      sparkline: Array.isArray(data?.sparkline_subscriptions) && data.sparkline_subscriptions.length > 1
+        ? data.sparkline_subscriptions
+        : [],
       color: "text-teal-600 dark:text-teal-400",
       bg: "bg-teal-50 dark:bg-teal-500/10",
       sparklineColor: "#0d9488"
@@ -87,7 +103,10 @@ export function SubscriptionRevenueKpi({ data, isLoading }: KpiProps) {
       icon: CreditCard,
       trend: `${data?.failed_payments || 0} failed payments`,
       trendUp: (data?.failed_payments || 0) === 0,
-      sparkline: [5000, 5200, 5800, 5600, 6000, 6800, 7200],
+      // Sparkline from cumulative revenue history — falls back to empty
+      sparkline: Array.isArray(data?.sparkline_total_revenue) && data.sparkline_total_revenue.length > 1
+        ? data.sparkline_total_revenue
+        : [],
       color: "text-amber-500",
       bg: "bg-amber-50 dark:bg-amber-500/10",
       sparklineColor: "#f59e0b"

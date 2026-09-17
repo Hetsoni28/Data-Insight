@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useQuery } from "@tanstack/react-query"
 import api from "@/lib/api"
@@ -27,15 +27,78 @@ export function RevenueKpiGrid() {
     )
   }
 
+  // Helper: format a signed percentage. Returns "—" when the API has no comparison data yet.
+  const fmtPct = (val: number | null | undefined, decimals = 1): string => {
+    if (val === null || val === undefined) return "—"
+    const sign = val >= 0 ? "+" : ""
+    return `${sign}${val.toFixed(decimals)}%`
+  }
+
+  const fmtCount = (val: number | null | undefined, label: string): string => {
+    if (val === null || val === undefined) return "—"
+    return `${val >= 0 ? "+" : ""}${val} ${label}`
+  }
+
   const kpis = [
-    { label: "Total MRR", value: `$${data?.mrr?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, icon: DollarSign, trend: "+12.5%", isPositive: true },
-    { label: "Annual Run Rate (ARR)", value: `$${data?.arr?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, icon: Target, trend: "+12.5%", isPositive: true },
-    { label: "Active Subscriptions", value: data?.active_subscriptions, icon: Users, trend: "+3 this month", isPositive: true },
-    { label: "Average Revenue Per User (ARPU)", value: `$${data?.arpu?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, icon: PieChart, trend: "+2.1%", isPositive: true },
-    { label: "Est. Net Profit", value: `$${data?.net_profit?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, icon: Activity, trend: "+5.4%", isPositive: true },
-    { label: "AI Usage Revenue", value: `$${data?.ai_revenue?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, icon: Zap, trend: "+18.2%", isPositive: true },
-    { label: "Churn Rate", value: `${data?.churn_rate}%`, icon: ShieldAlert, trend: "-0.5%", isPositive: true },
-    { label: "Failed Payments", value: `$${data?.failed_payments?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, icon: CreditCard, trend: "Requires action", isPositive: false },
+    {
+      label: "Total MRR",
+      value: `$${data?.mrr?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      icon: DollarSign,
+      trend: fmtPct(data?.mrr_growth_pct),
+      isPositive: (data?.mrr_growth_pct ?? 0) >= 0
+    },
+    {
+      label: "Annual Run Rate (ARR)",
+      value: `$${data?.arr?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      icon: Target,
+      trend: fmtPct(data?.arr_growth_pct),
+      isPositive: (data?.arr_growth_pct ?? 0) >= 0
+    },
+    {
+      label: "Active Subscriptions",
+      value: data?.active_subscriptions,
+      icon: Users,
+      trend: fmtCount(data?.new_subscriptions_this_month, "this month"),
+      isPositive: (data?.new_subscriptions_this_month ?? 0) >= 0
+    },
+    {
+      label: "Average Revenue Per User (ARPU)",
+      value: `$${data?.arpu?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      icon: PieChart,
+      trend: fmtPct(data?.arpu_growth_pct),
+      isPositive: (data?.arpu_growth_pct ?? 0) >= 0
+    },
+    {
+      label: "Est. Net Profit",
+      value: `$${data?.net_profit?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      icon: Activity,
+      trend: fmtPct(data?.net_profit_growth_pct),
+      isPositive: (data?.net_profit_growth_pct ?? 0) >= 0
+    },
+    {
+      label: "AI Usage Revenue",
+      value: `$${data?.ai_revenue?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      icon: Zap,
+      trend: fmtPct(data?.ai_revenue_growth_pct),
+      isPositive: (data?.ai_revenue_growth_pct ?? 0) >= 0
+    },
+    {
+      label: "Churn Rate",
+      value: `${data?.churn_rate}%`,
+      icon: ShieldAlert,
+      // Lower churn is better — negative delta is a good sign
+      trend: fmtPct(data?.churn_rate_delta_pct),
+      isPositive: (data?.churn_rate_delta_pct ?? 0) <= 0
+    },
+    {
+      label: "Failed Payments",
+      value: `$${data?.failed_payments?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      icon: CreditCard,
+      trend: data?.failed_payments_count
+        ? `${data.failed_payments_count} require${data.failed_payments_count === 1 ? "s" : ""} action`
+        : (data?.failed_payments ?? 0) > 0 ? "Requires action" : "All clear",
+      isPositive: (data?.failed_payments ?? 0) === 0
+    },
   ]
 
   return (

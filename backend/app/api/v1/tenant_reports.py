@@ -102,6 +102,54 @@ async def get_report_stats(
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
+
+@router.get(
+    "/filters",
+    summary="Get available filter options for the report list",
+    dependencies=[Depends(RequirePermission("REPORT_VIEW"))],
+)
+async def get_report_filters(
+    workspace_id: uuid.UUID | None = Query(None),
+    current_user: User = Depends(get_current_active_tenant_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Returns distinct values for filter dropdowns: categories, statuses, and report owners."""
+    tenant_id = current_user.tenant_id
+    conditions = [Report.tenant_id == tenant_id, Report.is_deleted == False]
+    if workspace_id:
+        conditions.append(Report.workspace_id == workspace_id)
+
+    # Distinct categories
+    cat_stmt = select(Report.report_category).where(*conditions).distinct()
+    cat_res = await db.execute(cat_stmt)
+    categories = [r[0] for r in cat_res.all() if r[0]]
+
+    # Distinct statuses
+    status_stmt = select(Report.status).where(*conditions).distinct()
+    status_res = await db.execute(status_stmt)
+    statuses = [r[0] for r in status_res.all() if r[0]]
+
+    # Distinct owner names via join with User
+    owner_stmt = (
+        select(User.full_name, User.id)
+        .join(Report, Report.created_by == User.id)
+        .where(*conditions)
+        .distinct()
+    )
+    owner_res = await db.execute(owner_stmt)
+    owners = [{"id": str(r[1]), "name": r[0] or r[1]} for r in owner_res.all()]
+
+    return {
+        "status": "success",
+        "data": {
+            "categories": categories,
+            "statuses": statuses,
+            "owners": owners,
+            "departments": [],  # Not tracked on reports yet
+        },
+    }
+
+
 @router.get(
     "", summary="List Reports", dependencies=[Depends(RequirePermission("REPORT_VIEW"))],
 )

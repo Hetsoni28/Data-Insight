@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { motion } from "framer-motion"
 import { Activity, Clock, Server, AlertTriangle, Key, Layers, Globe, Shield } from "lucide-react"
 
@@ -13,52 +13,66 @@ export function GatewayLiveKpis({ overview }: GatewayLiveKpisProps) {
     return new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(num)
   }
 
+  // Helper: format a signed percentage from the API, defaulting to "—" if not available
+  const fmtPct = (val: number | null | undefined, decimals = 1): string => {
+    if (val === null || val === undefined) return "—"
+    const sign = val >= 0 ? "+" : ""
+    return `${sign}${val.toFixed(decimals)}%`
+  }
+
   const kpis = [
     {
       title: "Total API Requests",
       value: formatNumber(overview.total_requests),
-      trend: "+12.5%",
-      trendUp: true,
+      trend: fmtPct(overview.total_requests_growth_pct),
+      trendUp: (overview.total_requests_growth_pct ?? 0) >= 0,
       icon: Activity,
       color: "emerald"
     },
     {
       title: "Today's Requests",
       value: formatNumber(overview.today_requests),
-      trend: "+5.2%",
-      trendUp: true,
+      trend: fmtPct(overview.today_requests_growth_pct),
+      trendUp: (overview.today_requests_growth_pct ?? 0) >= 0,
       icon: Globe,
       color: "blue"
     },
     {
       title: "Avg Latency (95p)",
       value: `${overview.avg_latency_ms}ms`,
-      trend: "-2.1ms",
-      trendUp: true,
+      // lower is better: negative delta is positive news
+      trend: overview.latency_delta_ms !== undefined && overview.latency_delta_ms !== null
+        ? `${overview.latency_delta_ms > 0 ? "+" : ""}${overview.latency_delta_ms}ms`
+        : "—",
+      trendUp: (overview.latency_delta_ms ?? 0) <= 0,
       icon: Clock,
       color: "indigo"
     },
     {
       title: "API Availability",
       value: `${overview.api_availability}%`,
-      trend: "+0.01%",
-      trendUp: true,
+      trend: fmtPct(overview.availability_delta_pct, 2),
+      trendUp: (overview.availability_delta_pct ?? 0) >= 0,
       icon: Server,
       color: "emerald"
     },
     {
       title: "Active API Keys",
       value: overview.active_api_keys,
-      trend: "+2",
-      trendUp: true,
+      trend: overview.api_keys_delta !== undefined && overview.api_keys_delta !== null
+        ? `${overview.api_keys_delta >= 0 ? "+" : ""}${overview.api_keys_delta} this month`
+        : "—",
+      trendUp: (overview.api_keys_delta ?? 0) >= 0,
       icon: Key,
       color: "amber"
     },
     {
       title: "Developer Apps",
       value: overview.developer_apps,
-      trend: "Stable",
-      trendUp: true,
+      trend: overview.developer_apps_delta !== undefined && overview.developer_apps_delta !== null
+        ? `${overview.developer_apps_delta >= 0 ? "+" : ""}${overview.developer_apps_delta} this month`
+        : "Stable",
+      trendUp: (overview.developer_apps_delta ?? 0) >= 0,
       icon: Layers,
       color: "purple"
     },
@@ -72,9 +86,11 @@ export function GatewayLiveKpis({ overview }: GatewayLiveKpisProps) {
     },
     {
       title: "Threat Level",
-      value: "Low",
-      trend: "No alerts",
-      trendUp: true,
+      value: overview.threat_level ?? "Low",
+      trend: overview.active_threats !== undefined && overview.active_threats !== null
+        ? overview.active_threats === 0 ? "No alerts" : `${overview.active_threats} active`
+        : "—",
+      trendUp: (overview.active_threats ?? 0) === 0,
       icon: Shield,
       color: "emerald"
     }

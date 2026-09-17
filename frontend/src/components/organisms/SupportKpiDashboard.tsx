@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import { LifeBuoy, CheckCircle2, Clock, Activity, Users, AlertCircle, Bot } from "lucide-react";
@@ -50,12 +50,28 @@ export function SupportKpiDashboard({ data }: { data: any }) {
   if (!data) return null;
 
   const kpis = [
-    { title: "Open Tickets", value: data.kpis.openTickets, trend: data.trends.openTickets, trendUp: false, icon: LifeBuoy },
-    { title: "Resolved Today", value: data.kpis.resolvedToday, trend: data.trends.resolvedToday, trendUp: true, icon: CheckCircle2 },
-    { title: "Customer Satisfaction", value: data.kpis.csat, trend: data.trends.csat, trendUp: true, icon: Activity },
-    { title: "AI Resolution Rate", value: data.kpis.aiResolutionRate, trend: data.trends.aiResolutionRate, trendUp: true, icon: Bot },
-    { title: "Critical Incidents", value: data.kpis.activeIncidents, trend: "Stable", trendUp: true, icon: AlertCircle },
-    { title: "Avg Resolution Time", value: data.kpis.avgResolutionTime, trend: "-15m", trendUp: true, icon: Clock },
+    { title: "Open Tickets", value: data.kpis.openTickets, trend: data.trends.openTickets ?? "—", trendUp: false, icon: LifeBuoy },
+    { title: "Resolved Today", value: data.kpis.resolvedToday, trend: data.trends.resolvedToday ?? "—", trendUp: true, icon: CheckCircle2 },
+    { title: "Customer Satisfaction", value: data.kpis.csat ?? "—", trend: data.trends.csat ?? "—", trendUp: true, icon: Activity },
+    { title: "AI Resolution Rate", value: data.kpis.aiResolutionRate ?? "—", trend: data.trends.aiResolutionRate ?? "—", trendUp: true, icon: Bot },
+    {
+      title: "Critical Incidents",
+      value: data.kpis.activeIncidents,
+      // Show real incident delta if backend provides it, otherwise derived from count
+      trend: data.kpis.activeIncidents_delta !== undefined && data.kpis.activeIncidents_delta !== null
+        ? `${data.kpis.activeIncidents_delta >= 0 ? "+" : ""}${data.kpis.activeIncidents_delta} vs last week`
+        : data.kpis.activeIncidents === 0 ? "All clear" : "Active",
+      trendUp: (data.kpis.activeIncidents ?? 0) === 0,
+      icon: AlertCircle
+    },
+    {
+      title: "Avg Resolution Time",
+      value: data.kpis.avgResolutionTime ?? "—",
+      // Show real delta if backend provides it
+      trend: data.kpis.avgResolutionTime_delta ?? "—",
+      trendUp: true,
+      icon: Clock
+    },
   ];
 
   return (
