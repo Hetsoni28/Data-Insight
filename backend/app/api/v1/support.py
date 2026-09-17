@@ -297,14 +297,40 @@ async def send_broadcast(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Broadcast a platform-wide message to all connected tenants via WebSocket / Redis PubSub."""
     check_owner(current_user)
-    # Here we would normally send to a WebSocket/PubSub channel.
-    # For now, we simply audit it.
+
+    from app.core.websockets import manager
+
+    message = payload.get("message", "")
+    broadcast_type = payload.get("type", "platform_announcement")
+    target_tenant_id = payload.get("tenant_id")  # None = broadcast to all
+
+    # Publish to Redis so all server instances broadcast it
+    if target_tenant_id:
+        await manager.publish_tenant_event(
+            tenant_id=target_tenant_id,
+            event_type=broadcast_type,
+            payload={"message": message, "broadcast": True},
+        )
+    else:
+        # Broadcast to every currently connected tenant
+        for tid in list(manager.active_connections.keys()):
+            await manager.broadcast_to_tenant(
+                tid,
+                {"type": broadcast_type, "message": message, "broadcast": True},
+            )
+
     await AuditService.log(
         db,
         current_user.id,
         current_user.tenant_id,
         "support.broadcast.send",
-        f"Sent platform broadcast: {payload.get('message', 'No message')[:50]}",
+        f"Sent platform broadcast: {message[:100]}",
     )
-    return {"status": "success", "message": "Broadcast sent"}
+    return {
+        "status": "success",
+        "message": "Broadcast sent",
+        "target": target_tenant_id or "all",
+        "recipients": len(manager.active_connections),
+    }

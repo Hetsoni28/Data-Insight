@@ -401,15 +401,33 @@ async def test_notification(
     current_user: User = Depends(RequireRole(["organization-admin", "org_admin"])),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
-    """Mock sending a test notification (email/slack)."""
-    import asyncio
+    """Send a real test notification to verify notification settings are working."""
+    from app.services.email import _send
 
-    await asyncio.sleep(0.5)
+    notification_type = req.type.lower()
 
-    return {
-        "status": "success",
-        "message": f"Test {req.type} notification sent to {current_user.email}.",
-    }
+    try:
+        if notification_type in ("email", "all"):
+            await _send(
+                to=current_user.email,
+                subject="[Data Insight] Test Notification ✅",
+                html=(
+                    f"<p>Hi {current_user.email},</p>"
+                    "<p>This is a <strong>test notification</strong> from your Data Insight organization settings.</p>"
+                    "<p>If you received this, your email notification settings are working correctly.</p>"
+                    "<br><p>— The Data Insight Team</p>"
+                ),
+            )
+        # Slack / webhook channels: handled via /integrations/connect
+        return {
+            "status": "success",
+            "message": f"Test {req.type} notification sent to {current_user.email}.",
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to send test notification: {str(e)}",
+        }
 
 
 @router.post("/branding/logo", summary="Upload Organization Logo")
