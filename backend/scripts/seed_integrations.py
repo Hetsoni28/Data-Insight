@@ -3,8 +3,7 @@ import uuid
 import random
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import text
 
 from app.core.config import settings
@@ -19,7 +18,7 @@ import app.models.__init__
 
 async def seed_integrations():
     engine = create_async_engine(settings.DATABASE_URL, pool_pre_ping=True)
-    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     print("Creating Integration tables...")
     async with engine.begin() as conn:
