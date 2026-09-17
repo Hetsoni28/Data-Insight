@@ -13,6 +13,32 @@ interface PaginationControlsProps {
     pageSizeOptions?: number[];
 }
 
+const NavButton = ({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) => (
+    <button
+        onClick={onClick}
+        disabled={disabled}
+        style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '36px',
+            height: '36px',
+            borderRadius: '10px',
+            border: '1px solid rgba(0,0,0,0.08)',
+            background: 'white',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.35 : 1,
+            transition: 'all 0.15s ease',
+            color: '#475569',
+        }}
+        onMouseEnter={e => { if (!disabled) { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'; (e.currentTarget as HTMLElement).style.borderColor = '#10b981'; } }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
+    >
+        {children}
+    </button>
+);
+
 export function PaginationControls({
     currentPage,
     totalPages,
@@ -55,31 +81,7 @@ export function PaginationControls({
         return pages;
     };
 
-    const NavButton = ({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) => (
-        <button
-            onClick={onClick}
-            disabled={disabled}
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                border: '1px solid rgba(0,0,0,0.08)',
-                background: 'white',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                opacity: disabled ? 0.35 : 1,
-                transition: 'all 0.15s ease',
-                color: '#475569',
-            }}
-            onMouseEnter={e => { if (!disabled) { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'; (e.currentTarget as HTMLElement).style.borderColor = '#10b981'; } }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
-        >
-            {children}
-        </button>
-    );
+
 
     return (
         <div

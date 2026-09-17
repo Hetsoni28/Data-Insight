@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -127,7 +127,7 @@ export default function ShareDatasetModal({ open, onClose, datasetId, datasetNam
 
           <div className="space-y-2">
             <Label htmlFor="link-label" className="text-xs font-medium text-slate-600">
-              Label (optional) — e.g. "Shared with Acme Corp"
+              Label (optional) — e.g. &quot;Shared with Acme Corp&quot;
             </Label>
             <Input
               id="link-label"
