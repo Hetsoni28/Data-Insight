@@ -29,6 +29,7 @@ export default function ReportsCenterPage() {
   const [isLoading, setIsLoading] = useState(true)
   
   const [searchQuery, setSearchQuery] = useState("")
+  const [activeFilters, setActiveFilters] = useState<{ status: string; category: string }>({ status: "all", category: "all" })
   
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentAction, setCurrentAction] = useState("")
@@ -51,12 +52,17 @@ export default function ReportsCenterPage() {
     }
   }
 
-  const fetchData = async () => {
+  const fetchData = async (filters = activeFilters, search = searchQuery) => {
     try {
-      // Use allSettled so one failing API doesn't break the whole page
+      const params = new URLSearchParams()
+      if (search) params.set("search", search)
+      if (filters.status !== "all") params.set("status", filters.status)
+      if (filters.category !== "all") params.set("category", filters.category)
+      const queryString = params.toString() ? `?${params.toString()}` : ""
+
       const [statsRes, reportsRes, actRes, schedRes] = await Promise.allSettled([
         api.get('/tenant-reports/stats'),
-        api.get(`/tenant-reports?search=${searchQuery}`),
+        api.get(`/tenant-reports${queryString}`),
         api.get('/tenant-reports/activities'),
         ReportScheduleService.list()
       ])
@@ -74,15 +80,17 @@ export default function ReportsCenterPage() {
 
   useEffect(() => {
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Debounce search query changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchData()
+      fetchData(activeFilters, searchQuery)
     }, 300)
     return () => clearTimeout(timer)
-  }, [searchQuery])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, activeFilters])
 
   const handleQuickAction = (action: string) => {
     if (action === 'schedule') {
@@ -169,7 +177,7 @@ export default function ReportsCenterPage() {
             </div>
             
             <TabsContent value="reports" className="space-y-4">
-              <ReportFilters onFilterChange={(_filters) => { /* TODO: wire filters to table query */ }} />
+              <ReportFilters onFilterChange={(filters) => setActiveFilters(filters)} />
               <ReportExplorerTable 
                 reports={reports}
                 isLoading={isLoading}
