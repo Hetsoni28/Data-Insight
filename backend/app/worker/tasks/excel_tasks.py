@@ -144,7 +144,7 @@ async def _generate_clean_export_safe(task, dataset_id: str, user_id: str):
 
                 # ── 5. Profile sample for column stats (fast) ─────────────────
                 orig_sample  = df_original.sample(n=min(PROFILE_CAP, total_rows), seed=42) if total_rows > PROFILE_CAP else df_original
-                clean_sample = df_cleaned.sample(n=min(PROFILE_CAP, clean_rows), seed=42)  if clean_rows > PROFILE_CAP else df_cleaned
+                clean_sample = df_cleaned.sample(n=min(PROFILE_CAP, clean_rows), seed=42) if clean_rows > PROFILE_CAP else df_cleaned
                 original_profile = DataProfiler.profile_dataframe(orig_sample)
                 clean_profile    = DataProfiler.profile_dataframe(clean_sample)
                 # Inject exact counts from full-dataset cleaning

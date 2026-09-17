@@ -1,4 +1,4 @@
-﻿"""Secure Dataset Sharing API.
+"""Secure Dataset Sharing API.
 
 Endpoints:
   POST   /share-links                           (auth) create a share link
@@ -124,7 +124,7 @@ async def list_share_links(
         ).order_by(DatasetShareLink.created_at.desc())
     )
     links = res.scalars().all()
-    return {"status": "success", "data": [_link_to_dict(l) for l in links]}
+    return {"status": "success", "data": [_link_to_dict(lnk) for lnk in links]}
 
 
 @router.patch("/{token}", summary="Update Share Link")

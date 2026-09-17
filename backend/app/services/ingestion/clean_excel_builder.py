@@ -368,6 +368,8 @@ class CleanExcelBuilder:
                     ws.write_number(row_idx, 9, round(float(s.mean()), 4), num_fmt)
                     ws.write_number(row_idx, 10, round(float(s.std() or 0), 4), num_fmt)
                 else:
-                    for i in range(7, 11): ws.write(row_idx, i, "—", fmt)
+                    for i in range(7, 11):
+                        ws.write(row_idx, i, "—", fmt)
             else:
-                for i in range(7, 11): ws.write(row_idx, i, "N/A", fmt)
+                for i in range(7, 11):
+                    ws.write(row_idx, i, "N/A", fmt)

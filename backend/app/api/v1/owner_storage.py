@@ -563,4 +563,3 @@ async def download_file(
         status_code=404,
         detail=f"File '{file.file_name}' is not available for download. It may be stored in a remote bucket or has been moved.",
     )
-

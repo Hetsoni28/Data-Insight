@@ -451,13 +451,13 @@ async def get_activity_feed(
             "status": "success",
             "data": [
                 {
-                    "id": str(l.id),
-                    "action": l.action,
-                    "resource_type": l.resource_type,
-                    "status": l.status,
-                    "created_at": l.created_at,
+                    "id": str(log_item.id),
+                    "action": log_item.action,
+                    "resource_type": log_item.resource_type,
+                    "status": log_item.status,
+                    "created_at": log_item.created_at,
                 }
-                for l in logs
+                for log_item in logs
             ],
         }
     except Exception:

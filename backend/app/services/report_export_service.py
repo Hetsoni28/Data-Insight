@@ -221,11 +221,11 @@ class ReportExportService:
 </div>
 <div class="body">
 
-  {'<div class="section"><div class="section-title">Company Overview</div><div class="overview-text">' + blueprint.get("companyOverview","") + '</div></div>' if blueprint.get("companyOverview") else ""}
+  {'<div class="section"><div class="section-title">Company Overview</div><div class="overview-text">' + blueprint.get("companyOverview", "") + '</div></div>' if blueprint.get("companyOverview") else ""}
 
   {('<div class="section"><div class="section-title">Executive KPIs</div><div class="kpi-grid">' + kpi_rows + '</div></div>') if kpi_rows else ""}
 
-  {'<div class="section"><div class="section-title">Revenue Overview</div><div class="overview-text">' + blueprint.get("revenueOverview","") + '</div></div>' if blueprint.get("revenueOverview") else ""}
+  {'<div class="section"><div class="section-title">Revenue Overview</div><div class="overview-text">' + blueprint.get("revenueOverview", "") + '</div></div>' if blueprint.get("revenueOverview") else ""}
 
   {('<div class="section"><div class="section-title">Top Insights</div><ul>' + insights_html + '</ul></div>') if insights_html else ""}
 
@@ -238,7 +238,7 @@ class ReportExportService:
 
   {('<div class="section"><div class="section-title">Management Action Plan</div><div class="box box-blue"><ul>' + actions_html + '</ul></div></div>') if actions_html else ""}
 
-  {'<div class="section"><div class="section-title">Executive Conclusion</div><div class="conclusion">' + blueprint.get("executiveConclusion","") + '</div></div>' if blueprint.get("executiveConclusion") else ""}
+  {'<div class="section"><div class="section-title">Executive Conclusion</div><div class="conclusion">' + blueprint.get("executiveConclusion", "") + '</div></div>' if blueprint.get("executiveConclusion") else ""}
 
   <div class="footer">
     <span>Data Insight AI Platform · Confidential</span>

@@ -31,8 +31,8 @@ class ExcelAIService:
         return dataset, df
 
     def _build_smart_profile(self, df, workbook_context=None, selected_data=None):
-        NUMERIC_DTYPES = {'Int8','Int16','Int32','Int64','UInt8','UInt16','UInt32','UInt64','Float32','Float64'}
-        DATE_DTYPES = {'Date','Datetime','Time','Duration'}
+        NUMERIC_DTYPES = {'Int8', 'Int16', 'Int32', 'Int64', 'UInt8', 'UInt16', 'UInt32', 'UInt64', 'Float32', 'Float64'}
+        DATE_DTYPES = {'Date', 'Datetime', 'Time', 'Duration'}
         profile = {
             "row_count": len(df),
             "column_count": len(df.columns),
@@ -80,9 +80,9 @@ class ExcelAIService:
                     # Detect ID column: unique == total rows OR column name looks like an ID
                     col_lower = col.lower()
                     is_id = (
-                        (total_rows > 10 and uniq_count == total_rows) or
-                        any(col_lower.endswith(s) for s in ["id", "_id", "uuid", "key", "code", "no", "number", "ref", "num"]) or
-                        col_lower in ["id", "uuid", "key", "code"]
+                        (total_rows > 10 and uniq_count == total_rows)
+                        or any(col_lower.endswith(s) for s in ["id", "_id", "uuid", "key", "code", "no", "number", "ref", "num"])
+                        or col_lower in ["id", "uuid", "key", "code"]
                     )
                     if is_id:
                         col_info["is_id"] = True
@@ -140,8 +140,10 @@ class ExcelAIService:
         response = await self.ai_service.copilot_chat(question=prompt, dataset_id=dataset_id, actor=user)
         content = response.get("answer", "{}")
         try:
-            if "`json" in content: content = content.split("`json")[1].split("`")[0].strip()
-            elif "`" in content: content = content.split("`")[1].split("`")[0].strip()
+            if "`json" in content:
+                content = content.split("`json")[1].split("`")[0].strip()
+            elif "`" in content:
+                content = content.split("`")[1].split("`")[0].strip()
             parsed = json.loads(content)
             return {"answer": parsed.get("answer", content), "suggested_actions": parsed.get("suggested_actions", [])}
         except json.JSONDecodeError:
@@ -158,8 +160,10 @@ class ExcelAIService:
         response = await self.ai_service.copilot_chat(question=prompt, dataset_id=dataset_id, actor=user)
         content = response.get("answer", "{}")
         try:
-            if "`json" in content: content = content.split("`json")[1].split("`")[0].strip()
-            elif "`" in content: content = content.split("`")[1].split("`")[0].strip()
+            if "`json" in content:
+                content = content.split("`json")[1].split("`")[0].strip()
+            elif "`" in content:
+                content = content.split("`")[1].split("`")[0].strip()
             parsed = json.loads(content)
             return {"explanation": parsed.get("explanation", content), "key_insights": parsed.get("key_insights", [])}
         except json.JSONDecodeError:
@@ -230,8 +234,10 @@ Return ONLY valid JSON:
         response = await self.ai_service.copilot_chat(question=prompt, dataset_id=dataset_id, actor=user)
         content = response.get("answer", "{}")
         try:
-            if "```json" in content: content = content.split("```json")[1].split("```")[0].strip()
-            elif "```" in content: content = content.split("```")[1].split("```")[0].strip()
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0].strip()
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0].strip()
             ai = json.loads(content)
         except json.JSONDecodeError:
             ai = {}
@@ -240,20 +246,25 @@ Return ONLY valid JSON:
         if not chart_type:
             chart_type = ai.get("chart_type", "bar")
 
-        cat_col  = ai.get("category_col") or (cat_cols[0] if cat_cols else None)
-        val_col  = ai.get("value_col") or (num_cols[0] if num_cols else None)
-        x_col    = ai.get("x_col") or (num_cols[0] if len(num_cols) > 0 else None)
-        y_col    = ai.get("y_col") or (num_cols[1] if len(num_cols) > 1 else num_cols[0] if num_cols else None)
+        cat_col = ai.get("category_col") or (cat_cols[0] if cat_cols else None)
+        val_col = ai.get("value_col") or (num_cols[0] if num_cols else None)
+        x_col = ai.get("x_col") or (num_cols[0] if len(num_cols) > 0 else None)
+        y_col = ai.get("y_col") or (num_cols[1] if len(num_cols) > 1 else num_cols[0] if num_cols else None)
         stack_col = ai.get("stack_col") or (cat_cols[1] if len(cat_cols) > 1 else None)
-        agg_fn   = ai.get("aggregation", "COUNT" if chart_type in ("pie","donut") else "AVG").upper()
-        title    = ai.get("title", question[:60])
+        agg_fn = ai.get("aggregation", "COUNT" if chart_type in ("pie", "donut") else "AVG").upper()
+        title = ai.get("title", question[:60])
 
         # Validate columns exist
-        def valid(col): return col and col in df.columns
-        if not valid(cat_col): cat_col = cat_cols[0] if cat_cols else None
-        if not valid(val_col): val_col = num_cols[0] if num_cols else None
-        if not valid(x_col):   x_col   = num_cols[0] if num_cols else None
-        if not valid(y_col):   y_col   = num_cols[1] if len(num_cols) > 1 else (num_cols[0] if num_cols else None)
+        def valid(col):
+            return col and col in df.columns
+        if not valid(cat_col):
+            cat_col = cat_cols[0] if cat_cols else None
+        if not valid(val_col):
+            val_col = num_cols[0] if num_cols else None
+        if not valid(x_col):
+            x_col = num_cols[0] if num_cols else None
+        if not valid(y_col):
+            y_col = num_cols[1] if len(num_cols) > 1 else (num_cols[0] if num_cols else None)
 
         # ── DuckDB aggregation per chart type ─────────────────────────────────
         chart_data = {"headers": [], "rows": []}
@@ -261,7 +272,8 @@ Return ONLY valid JSON:
         try:
             if chart_type == "scatter":
                 # Raw sample of two numeric columns (up to 200 points)
-                xc = f'"{x_col}"'; yc = f'"{y_col}"'
+                xc = f'"{x_col}"'
+                yc = f'"{y_col}"'
                 sql = f'SELECT {xc}, {yc} FROM dataset WHERE {xc} IS NOT NULL AND {yc} IS NOT NULL LIMIT 200'
                 r = DuckDBEngine.execute_query(df, sql, "dataset", 200)
                 chart_data = {"headers": [x_col, y_col], "rows": r.get("rows", [])}
@@ -276,7 +288,8 @@ Return ONLY valid JSON:
                     step = (mx - mn) / 10 if mx != mn else 1
                     rows = []
                     for i in range(10):
-                        lo = mn + i * step; hi = mn + (i+1) * step
+                        lo = mn + i * step
+                        hi = mn + (i + 1) * step
                         label = f"{lo:.1f}–{hi:.1f}"
                         cond = f'{vc} >= {lo} AND {vc} < {hi}' if i < 9 else f'{vc} >= {lo} AND {vc} <= {hi}'
                         cnt_r = DuckDBEngine.execute_query(df, f'SELECT COUNT(*) FROM dataset WHERE {cond}', "dataset", 1)
@@ -361,8 +374,10 @@ Return ONLY valid JSON:
         response = await self.ai_service.copilot_chat(question=prompt, dataset_id=dataset_id, actor=user)
         content = response.get("answer", "{}")
         try:
-            if "`json" in content: content = content.split("`json")[1].split("`")[0].strip()
-            elif "`" in content: content = content.split("`")[1].split("`")[0].strip()
+            if "`json" in content:
+                content = content.split("`json")[1].split("`")[0].strip()
+            elif "`" in content:
+                content = content.split("`")[1].split("`")[0].strip()
             return json.loads(content)
         except json.JSONDecodeError:
             first_num = profile["numeric_columns"][0] if profile["numeric_columns"] else None
@@ -394,7 +409,7 @@ Return ONLY valid JSON:
                     for idx in idx_list:
                         if idx not in outlier_rows:
                             outlier_rows[idx] = []
-                        outlier_rows[idx].append(f"{col} outside [{round(lower,2)}, {round(upper,2)}]")
+                        outlier_rows[idx].append(f"{col} outside [{round(lower, 2)}, {round(upper, 2)}]")
         excel_rows = sorted([i + 2 for i in outlier_rows.keys()])[:100]
         details = {str(i+2): v for i, v in list(outlier_rows.items())[:5]}
         return {"action": "HIGHLIGHT_ANOMALIES", "sheet": sheet, "rows": excel_rows, "color": "#FF4444", "reason": f"IQR outlier in {len(outlier_rows)} row(s)", "details": details}
@@ -426,8 +441,10 @@ Return ONLY valid JSON:
         content = response.get("answer", "{}")
         parsed = {}
         try:
-            if "`json" in content: content = content.split("`json")[1].split("`")[0].strip()
-            elif "`" in content: content = content.split("`")[1].split("`")[0].strip()
+            if "`json" in content:
+                content = content.split("`json")[1].split("`")[0].strip()
+            elif "`" in content:
+                content = content.split("`")[1].split("`")[0].strip()
             parsed = json.loads(content)
         except json.JSONDecodeError:
             parsed = {"sections": [{"heading": "Executive Summary", "content": content}], "actions": []}
@@ -437,7 +454,7 @@ Return ONLY valid JSON:
         if not actions and profile["numeric_columns"]:
             nc = profile["numeric_columns"][0]
             tc = profile["text_columns"][0] if profile["text_columns"] else None
-            actions.append({"action": "CREATE_CHART", "chart_type": "bar" if tc else "column", "sheet": profile.get("active_sheet") or "Sheet1", "data_range": f"A1:{nc['excel_col']}{min(profile['row_count'],1000)+1}", "title": nc["name"] + (" by " + tc["name"] if tc else "")})
+            actions.append({"action": "CREATE_CHART", "chart_type": "bar" if tc else "column", "sheet": profile.get("active_sheet") or "Sheet1", "data_range": f"A1:{nc['excel_col']}{min(profile['row_count'], 1000) + 1}", "title": nc["name"] + (" by " + tc["name"] if tc else "")})
         return {"title": f"Analysis — {dataset.name}", "generated_at": datetime.utcnow().isoformat(), "dataset_name": dataset.name, "row_count": profile["row_count"], "column_count": profile["column_count"], "sections": parsed["sections"], "actions": actions}
 
     async def generate_forecast(self, dataset_id, periods, user, workbook_context=None, selected_data=None):
@@ -464,10 +481,13 @@ Return ONLY valid JSON:
         response = await self.ai_service.copilot_chat(question=prompt, dataset_id=dataset_id, actor=user)
         content = response.get("answer", "{}")
         try:
-            if "`json" in content: content = content.split("`json")[1].split("`")[0].strip()
-            elif "`" in content: content = content.split("`")[1].split("`")[0].strip()
+            if "`json" in content:
+                content = content.split("`json")[1].split("`")[0].strip()
+            elif "`" in content:
+                content = content.split("`")[1].split("`")[0].strip()
             result = json.loads(content)
-            if clean_range: result["data_range"] = clean_range
+            if clean_range:
+                result["data_range"] = clean_range
             result["sheet"] = active_sheet or result.get("sheet", "Sheet1")
             return result
         except json.JSONDecodeError:
@@ -475,7 +495,7 @@ Return ONLY valid JSON:
 
     async def detect_missing_values(self, dataset_id, user, workbook_context=None):
         """Scan every column for nulls/empty values. Return per-column stats + row indices for Excel highlighting."""
-        NUMERIC_DTYPES = {'Int8','Int16','Int32','Int64','UInt8','UInt16','UInt32','UInt64','Float32','Float64'}
+        NUMERIC_DTYPES = {'Int8', 'Int16', 'Int32', 'Int64', 'UInt8', 'UInt16', 'UInt32', 'UInt64', 'Float32', 'Float64'}
         dataset, df = await self._get_dataset_and_df(dataset_id, user)
         profile = self._build_smart_profile(df, workbook_context)
         total_rows = len(df)
@@ -594,8 +614,8 @@ Return ONLY valid JSON:
         2. Duplicate row Excel indices to delete
         3. Text cells with leading/trailing whitespace to trim
         """
-        NUMERIC_DTYPES = {'Int8','Int16','Int32','Int64','UInt8','UInt16','UInt32','UInt64','Float32','Float64'}
-        DATE_DTYPES = {'Date','Datetime','Time','Duration'}
+        NUMERIC_DTYPES = {'Int8', 'Int16', 'Int32', 'Int64', 'UInt8', 'UInt16', 'UInt32', 'UInt64', 'Float32', 'Float64'}
+        DATE_DTYPES = {'Date', 'Datetime', 'Time', 'Duration'}
 
         dataset, df = await self._get_dataset_and_df(dataset_id, user)
         profile = self._build_smart_profile(df, workbook_context)
@@ -640,17 +660,20 @@ Return ONLY valid JSON:
                     fill_value = r["rows"][0][0] if r["rows"] else None
                     fill_strategy = "mean"
                 except Exception:
-                    fill_value = None; fill_strategy = "mean"
+                    fill_value = None
+                    fill_strategy = "mean"
             elif "Date" in dtype_str or "Datetime" in dtype_str:
                 # Forward fill: get previous non-null value per row — just mark as skip for now
-                fill_value = None; fill_strategy = "forward_fill"
+                fill_value = None
+                fill_strategy = "forward_fill"
             else:
                 try:
                     r = DuckDBEngine.execute_query(df, f'SELECT "{col}", COUNT(*) FROM dataset WHERE "{col}" IS NOT NULL AND TRIM(CAST("{col}" AS VARCHAR)) != \'\' GROUP BY "{col}" ORDER BY COUNT(*) DESC LIMIT 1', "dataset", 1)
                     fill_value = r["rows"][0][0] if r["rows"] else None
                     fill_strategy = "mode"
                 except Exception:
-                    fill_value = None; fill_strategy = "mode"
+                    fill_value = None
+                    fill_strategy = "mode"
 
             # Get exact Excel row numbers for null cells
             null_excel_rows = []
@@ -817,7 +840,7 @@ Return format example for 3 items: ["Positive", "Neutral", "Negative"]"""
                 labels = json.loads(match.group(0)) if match else []
                 # Normalize labels
                 valid = {"Positive", "Neutral", "Negative"}
-                labels = [l if l in valid else "Neutral" for l in labels]
+                labels = [lb if lb in valid else "Neutral" for lb in labels]
             except Exception:
                 labels = ["Neutral"] * actual_batch_size
 
@@ -864,7 +887,7 @@ Texts:
                 match = re.search(r'\[.*?\]', raw, re.DOTALL)
                 labels = json.loads(match.group(0)) if match else []
                 # Normalize: ensure each label is one of defined_categories
-                labels = [l if l in defined_categories else defined_categories[-1] for l in labels]
+                labels = [lb if lb in defined_categories else defined_categories[-1] for lb in labels]
             except Exception:
                 labels = [defined_categories[-1]] * actual_batch_size
 

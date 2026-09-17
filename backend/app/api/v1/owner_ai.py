@@ -25,6 +25,7 @@ def _is_sqlite() -> bool:
     """Detect SQLite dialect from DATABASE_URL (async sessions have no .bind)."""
     return "sqlite" in str(getattr(settings, "DATABASE_URL", ""))
 
+
 from app.services.gemini_service import gemini_service
 
 router = APIRouter()
