@@ -1,10 +1,19 @@
 "use client"
 
-import type { TooltipProps } from "recharts"
+// Recharts renders this component via its `content` prop and injects these
+// fields at runtime. We declare them explicitly rather than importing
+// TooltipProps (which exposes different generic shapes across Recharts versions).
+interface ChartTooltipProps {
+  active?: boolean
+  payload?: Array<{
+    name?: string
+    value?: number | string
+    color?: string
+  }>
+  label?: string | number
+}
 
-type Props = TooltipProps<number | string, string>
-
-export function ChartTooltip({ active, payload, label }: Props) {
+export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-xl p-3 shadow-xl text-xs">
