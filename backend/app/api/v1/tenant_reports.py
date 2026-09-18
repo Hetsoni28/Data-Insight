@@ -113,31 +113,31 @@ async def get_report_filters(
     current_user: User = Depends(get_current_active_tenant_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Returns distinct values for filter dropdowns: categories, statuses, and report owners."""
+    """Returns distinct values for filter dropdowns: statuses, report types, and report owners."""
     tenant_id = current_user.tenant_id
     conditions = [Report.tenant_id == tenant_id, Report.is_deleted == False]
     if workspace_id:
         conditions.append(Report.workspace_id == workspace_id)
 
-    # Distinct categories
-    cat_stmt = select(Report.report_category).where(*conditions).distinct()
-    cat_res = await db.execute(cat_stmt)
-    categories = [r[0] for r in cat_res.all() if r[0]]
+    # Distinct report_type values (excel, pdf, both)
+    type_stmt = select(Report.report_type).where(*conditions).distinct()
+    type_res = await db.execute(type_stmt)
+    categories = [r[0] for r in type_res.all() if r[0]]
 
-    # Distinct statuses
+    # Distinct statuses (queued, generating, ready, error, etc.)
     status_stmt = select(Report.status).where(*conditions).distinct()
     status_res = await db.execute(status_stmt)
     statuses = [r[0] for r in status_res.all() if r[0]]
 
-    # Distinct owner names via join with User
+    # Distinct owner names via join with User (using correct FK: created_by_id)
     owner_stmt = (
         select(User.full_name, User.id)
-        .join(Report, Report.created_by == User.id)
+        .join(Report, Report.created_by_id == User.id)
         .where(*conditions)
         .distinct()
     )
     owner_res = await db.execute(owner_stmt)
-    owners = [{"id": str(r[1]), "name": r[0] or r[1]} for r in owner_res.all()]
+    owners = [{"id": str(r[1]), "name": r[0] or str(r[1])} for r in owner_res.all()]
 
     return {
         "status": "success",

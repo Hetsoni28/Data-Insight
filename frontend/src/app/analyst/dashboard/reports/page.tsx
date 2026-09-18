@@ -267,7 +267,7 @@ export default function AnalystReportsCenterPage() {
             </div>
             
             <TabsContent value="reports" className="space-y-4">
-              <ReportFilters onFilterChange={(filters) => console.log("Filters changed:", filters)} />
+              <ReportFilters onFilterChange={() => {}} />
               <ReportExplorerTable 
                 reports={reports}
                 isLoading={isLoading}

@@ -1,5 +1,6 @@
 import uuid
 import json
+from datetime import datetime, timezone
 from typing import Any, AsyncIterator
 import polars as pl
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -455,7 +456,7 @@ Return ONLY valid JSON:
             nc = profile["numeric_columns"][0]
             tc = profile["text_columns"][0] if profile["text_columns"] else None
             actions.append({"action": "CREATE_CHART", "chart_type": "bar" if tc else "column", "sheet": profile.get("active_sheet") or "Sheet1", "data_range": f"A1:{nc['excel_col']}{min(profile['row_count'], 1000) + 1}", "title": nc["name"] + (" by " + tc["name"] if tc else "")})
-        return {"title": f"Analysis — {dataset.name}", "generated_at": datetime.utcnow().isoformat(), "dataset_name": dataset.name, "row_count": profile["row_count"], "column_count": profile["column_count"], "sections": parsed["sections"], "actions": actions}
+        return {"title": f"Analysis — {dataset.name}", "generated_at": datetime.now(timezone.utc).isoformat(), "dataset_name": dataset.name, "row_count": profile["row_count"], "column_count": profile["column_count"], "sections": parsed["sections"], "actions": actions}
 
     async def generate_forecast(self, dataset_id, periods, user, workbook_context=None, selected_data=None):
         dataset, df = await self._get_dataset_and_df(dataset_id, user)
