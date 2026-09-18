@@ -33,6 +33,7 @@ export default function AnalystReportsCenterPage() {
   const [isLoading, setIsLoading] = useState(true)
   
   const [searchQuery, setSearchQuery] = useState("")
+  const [activeFilters, setActiveFilters] = useState<{ status: string; category: string }>({ status: "all", category: "all" })
   
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentAction, setCurrentAction] = useState("")
@@ -86,10 +87,15 @@ export default function AnalystReportsCenterPage() {
 
     try {
       if (!silent) setIsLoading(true)
-      // Use allSettled so one failing API doesn't break the whole page
+      const params = new URLSearchParams()
+      if (searchQuery) params.set("search", searchQuery)
+      if (activeFilters.status !== "all") params.set("status", activeFilters.status)
+      if (activeFilters.category !== "all") params.set("category", activeFilters.category)
+      const qs = params.toString() ? `?${params.toString()}` : ""
+
       const [statsRes, reportsRes, actRes, schedRes] = await Promise.allSettled([
         api.get('/tenant-reports/stats'),
-        api.get(`/tenant-reports?search=${searchQuery}`),
+        api.get(`/tenant-reports${qs}`),
         api.get('/tenant-reports/activities'),
         ReportScheduleService.list()
       ])
@@ -104,7 +110,7 @@ export default function AnalystReportsCenterPage() {
     } finally {
       if (!silent) setIsLoading(false)
     }
-  }, [activeWs, searchQuery])
+  }, [activeWs, searchQuery, activeFilters])
 
   useEffect(() => {
     fetchData()
@@ -267,7 +273,7 @@ export default function AnalystReportsCenterPage() {
             </div>
             
             <TabsContent value="reports" className="space-y-4">
-              <ReportFilters onFilterChange={() => {}} />
+              <ReportFilters onFilterChange={(filters) => setActiveFilters(filters)} />
               <ReportExplorerTable 
                 reports={reports}
                 isLoading={isLoading}

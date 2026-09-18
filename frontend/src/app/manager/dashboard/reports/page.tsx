@@ -31,6 +31,7 @@ export default function ManagerReportsCenterPage() {
   // Pagination & Filtering state for ManagerReportTable
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [categoryFilter, setCategoryFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(8)
   const [totalPages, setTotalPages] = useState(0)
@@ -65,6 +66,7 @@ export default function ManagerReportsCenterPage() {
         ReportService.listTenantReports({
           search: searchQuery,
           status: statusFilter,
+          category: categoryFilter !== "all" ? categoryFilter : undefined,
           skip: (currentPage - 1) * pageSize,
           limit: pageSize
         }),
@@ -94,12 +96,12 @@ export default function ManagerReportsCenterPage() {
       fetchData()
     }, 300)
     return () => clearTimeout(timer)
-  }, [currentPage, pageSize, searchQuery, statusFilter])
+  }, [currentPage, pageSize, searchQuery, statusFilter, categoryFilter])
 
   // Reset to page 1 on search or filter change
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, statusFilter])
+  }, [searchQuery, statusFilter, categoryFilter])
 
 
 
@@ -189,11 +191,8 @@ export default function ManagerReportsCenterPage() {
             
             <TabsContent value="reports" className="space-y-4">
               <ReportFilters onFilterChange={(filters) => {
-                if (filters.status && filters.status !== 'all') {
-                  setStatusFilter(filters.status)
-                } else {
-                  setStatusFilter('all')
-                }
+                setStatusFilter(filters.status && filters.status !== "all" ? filters.status : "all")
+                setCategoryFilter(filters.category && filters.category !== "all" ? filters.category : "all")
               }} />
               <ManagerReportTable 
                 reports={reports}
