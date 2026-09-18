@@ -147,6 +147,26 @@ async def get_kpis(
         sparkline_revenue.append(sparkline_by_month.get(key, 0.0))
         current_month = (current_month + timedelta(days=32)).replace(day=1)
 
+    # ── Growth % fields ──────────────────────────────────────────────────────
+    # Reuse sparkline_by_month (already fetched) — zero extra DB queries.
+    # Compare this calendar month's paid invoice revenue vs the prior month.
+    # MRR and ARR share the same % because ARR = MRR × 12 (scalar multiple).
+    this_month_key = now.strftime("%Y-%m")
+    prior_month_key = (now.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")
+
+    this_month_rev = sparkline_by_month.get(this_month_key, 0.0)
+    prior_month_rev = sparkline_by_month.get(prior_month_key, 0.0)
+
+    if prior_month_rev > 0:
+        revenue_growth_pct = round((this_month_rev - prior_month_rev) / prior_month_rev * 100, 2)
+        mrr_growth_pct = revenue_growth_pct   # MRR proxy via invoice revenue
+        arr_growth_pct = revenue_growth_pct   # ARR = MRR × 12 → same % change
+    else:
+        # No prior month data yet — return None so frontend shows "—" not "∞"
+        revenue_growth_pct = None
+        mrr_growth_pct = None
+        arr_growth_pct = None
+
     return {
         "mrr": total_mrr,
         "arr": arr,
@@ -164,6 +184,10 @@ async def get_kpis(
         "storage_revenue": storage_revenue,
         "api_revenue": api_revenue,
         "sparkline_revenue": sparkline_revenue,
+        # Month-over-month growth percentages (None when no prior month data)
+        "mrr_growth_pct": mrr_growth_pct,
+        "arr_growth_pct": arr_growth_pct,
+        "revenue_growth_pct": revenue_growth_pct,
     }
 
 
