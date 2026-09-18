@@ -41,7 +41,12 @@ export default function NotificationsPage() {
   };
 
   const fetchStats = async () => {
-    try { setStats(await NotificationService.getStats()); } catch (e) {}
+    try {
+      setStats(await NotificationService.getStats());
+    } catch (err) {
+      console.error("[NotificationsPage] Failed to load notification stats:", err);
+      setStats(null); // keeps the UI in a safe empty state
+    }
   };
 
   useEffect(() => { fetchFeed(); }, [searchQuery, activeCategory]);
