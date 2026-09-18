@@ -45,6 +45,7 @@ export class ReportService {
   static async listTenantReports(params: {
     search?: string;
     status?: string;
+    category?: string;
     skip?: number;
     limit?: number;
   }): Promise<{ data: Report[]; meta: { total: number; total_pages: number } }> {

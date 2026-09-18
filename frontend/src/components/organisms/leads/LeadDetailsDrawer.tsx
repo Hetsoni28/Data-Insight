@@ -45,6 +45,7 @@ export interface Lead {
   demo_at: string | null
   approved_at: string | null
   rejected_at: string | null
+  plan_interest: string | null
 }
 
 export const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string; bg: string; border: string }> = {

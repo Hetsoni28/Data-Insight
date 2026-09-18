@@ -1,15 +1,14 @@
-import { TooltipProps } from "recharts"
-import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent"
+"use client"
 
-export function ChartTooltip({
-  active,
-  payload,
-  label,
-}: TooltipProps<ValueType, NameType>) {
+import type { TooltipProps } from "recharts"
+
+type Props = TooltipProps<number | string, string>
+
+export function ChartTooltip({ active, payload, label }: Props) {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-white dark:bg-card border border-slate-200 dark:border-white/10 rounded-xl p-3 shadow-xl text-xs">
-      <p className="text-slate-500 dark:text-slate-400 mb-2 font-medium">{label}</p>
+      <p className="text-slate-500 dark:text-slate-400 mb-2 font-medium">{String(label ?? "")}</p>
       {payload.map((p, i) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />

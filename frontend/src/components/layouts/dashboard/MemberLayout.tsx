@@ -36,7 +36,7 @@ const MEMBER_NAV = [
 
 interface MemberLayoutProps {
   children: React.ReactNode
-  user: UserType
+  user?: UserType
   handleLogout: () => void
 }
 

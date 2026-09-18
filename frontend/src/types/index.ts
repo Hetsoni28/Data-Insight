@@ -35,6 +35,14 @@ export interface TenantSummary {
   slug: string;
   plan?: string;
   is_active?: boolean;
+  white_label_config?: {
+    primaryColor?: string;
+    primary_color?: string;
+    accentColor?: string;
+    accent_color?: string;
+    customLogoUrl?: string;
+    custom_logo_url?: string;
+  };
 }
 
 export interface User {

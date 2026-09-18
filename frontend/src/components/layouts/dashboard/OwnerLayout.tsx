@@ -88,7 +88,7 @@ const OWNER_NAV_GROUPS: NavGroup[] = [
 
 interface OwnerLayoutProps {
   children: React.ReactNode
-  user: UserType
+  user?: UserType
   handleLogout: () => void
 }
 

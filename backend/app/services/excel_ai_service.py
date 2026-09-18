@@ -416,7 +416,7 @@ Return ONLY valid JSON:
         return {"action": "HIGHLIGHT_ANOMALIES", "sheet": sheet, "rows": excel_rows, "color": "#FF4444", "reason": f"IQR outlier in {len(outlier_rows)} row(s)", "details": details}
 
     async def analyze_workbook(self, dataset_id, workbook_schema, analysis_type, user):
-        from datetime import datetime
+        from app.services.ingestion.profiler import DataProfiler
         dataset, df = await self._get_dataset_and_df(dataset_id, user)
         profile = self._build_smart_profile(df)
         ctx = self._profile_to_ctx(profile, dataset.name)
