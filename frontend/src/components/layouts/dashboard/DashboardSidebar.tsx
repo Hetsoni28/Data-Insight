@@ -1,16 +1,17 @@
-﻿"use client"
+"use client"
 import type { Workspace } from "@/types"
+import type { User as UserType } from "@/types"
 import { SidebarNav } from "@/components/molecules/SidebarNav"
 import { WorkspacePicker } from "@/components/molecules/WorkspacePicker"
 import { SidebarUserMenu } from "@/components/molecules/SidebarUserMenu"
 import { useState } from "react"
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react"
 
-export interface NavItem { icon: any; label: string; href: string }
+export interface NavItem { icon: React.ElementType; label: string; href: string }
 export interface NavGroup { title: string; items: NavItem[] }
 
 interface DashboardSidebarProps {
-  user?: any
+  user?: UserType
   workspaces?: Workspace[]
   activeWs?: Workspace | null
   loadingWs?: boolean

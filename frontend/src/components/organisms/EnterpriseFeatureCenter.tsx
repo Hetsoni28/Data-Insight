@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -44,7 +44,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
         createFeatureMutation.mutate(newFlagData);
     };
 
-    const tabs = [
+    const tabs: { id: 'flags' | 'rollouts' | 'experiments'; label: string; icon: React.ReactNode }[] = [
         { id: 'flags', label: 'Global Flags', icon: <ToggleRight className="w-4 h-4" /> },
         { id: 'rollouts', label: 'Progressive Rollouts', icon: <PercentCircle className="w-4 h-4" /> },
         { id: 'experiments', label: 'A/B Experiments', icon: <TestTubes className="w-4 h-4" /> },
@@ -70,7 +70,7 @@ export function EnterpriseFeatureCenter({ features, rollouts, experiments, isLoa
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
+                            onClick={() => setActiveTab(tab.id)}
                             className={`
                                 relative flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium rounded-lg transition-all duration-200
                                 ${activeTab === tab.id ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10'}

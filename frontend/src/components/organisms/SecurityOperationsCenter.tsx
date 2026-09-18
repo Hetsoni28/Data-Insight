@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
@@ -21,7 +21,7 @@ interface SecurityOperationsCenterProps {
 export function SecurityOperationsCenter({ events, threats, sessions, compliance, isLoading }: SecurityOperationsCenterProps) {
     const [activeTab, setActiveTab] = useState<'events' | 'threats' | 'sessions' | 'compliance'>('events');
 
-    const tabs = [
+    const tabs: { id: 'events' | 'threats' | 'sessions' | 'compliance'; label: string; icon: React.ReactNode }[] = [
         { id: 'events', label: 'Live Events', icon: <AlertCircle className="w-4 h-4" /> },
         { id: 'threats', label: 'Threat Intelligence', icon: <Globe className="w-4 h-4" /> },
         { id: 'sessions', label: 'Sessions', icon: <MonitorSmartphone className="w-4 h-4" /> },
@@ -34,7 +34,7 @@ export function SecurityOperationsCenter({ events, threats, sessions, compliance
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
+                        onClick={() => setActiveTab(tab.id)}
                         className={`
                             relative flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium rounded-lg transition-all duration-200
                             ${activeTab === tab.id ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-white/5'}

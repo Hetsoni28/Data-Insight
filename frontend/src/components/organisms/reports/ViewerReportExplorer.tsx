@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
 import type { ViewerReport } from "@/lib/tenant-dashboard.service";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
+import { API_BASE_URL } from "@/lib/api";
 
 interface ViewerReportExplorerProps {
   reports: ViewerReport[];
@@ -122,7 +123,7 @@ function ReportCard({ report, onRefresh, onPreview }: {
       if (res.download_url) {
         let url = res.download_url;
         if (url.startsWith("/api/v1/")) {
-          const backendBase = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") ?? "http://localhost:8000";
+          const backendBase = API_BASE_URL.replace("/api/v1", "");
           url = `${backendBase}${url}`;
         }
         const a = document.createElement("a");

@@ -18,6 +18,7 @@ import { Report, ReportService } from "@/lib/report.service";
 import { StateLayout } from "@/components/molecules/StateLayout";
 import { NoReportsIllustration } from "@/components/molecules/NoReportsIllustration";
 import { LoadingPulse } from "@/components/molecules/LoadingPulse";
+import { API_BASE_URL } from "@/lib/api";
 import { Plus } from "lucide-react";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
 
@@ -58,8 +59,7 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
     // If it's a relative URL (local storage), point it to the backend server
     let finalUrl = outputUrl;
     if (outputUrl.startsWith("/")) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-      const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, "");
+      const baseUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, "");
       finalUrl = `${baseUrl}${outputUrl}`;
     }
     

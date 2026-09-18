@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
 import type { ViewerReport, ViewerReportPreviewResponse, ViewerReportInsights, ViewerReportRelatedAsset } from "@/lib/tenant-dashboard.service";
 import { SimpleChartWidget } from "@/components/organisms/SimpleChartWidget"; // Reusable chart widget from existing system
+import { API_BASE_URL } from "@/lib/api";
 
 interface ViewerReportPreviewProps {
   report: ViewerReport | null;
@@ -62,7 +63,7 @@ export function ViewerReportPreview({ report, onClose }: ViewerReportPreviewProp
         // point the browser directly at the backend (port 8000).
         let url = res.download_url;
         if (url.startsWith("/api/v1/")) {
-          const backendBase = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") ?? "http://localhost:8000";
+          const backendBase = API_BASE_URL.replace("/api/v1", "");
           url = `${backendBase}${url}`;
         }
         // Use an anchor tag to trigger a true browser download
@@ -145,14 +146,14 @@ export function ViewerReportPreview({ report, onClose }: ViewerReportPreviewProp
 
           {/* Navigation Tabs */}
           <div className="flex px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-white/10 shadow-sm z-10">
-            {[
+            {([
               { id: "overview", label: "Executive Overview", icon: <Presentation className="w-4 h-4" /> },
               { id: "insights", label: "AI Insights", icon: <Sparkles className="w-4 h-4" /> },
               { id: "related", label: "Source Assets", icon: <Database className="w-4 h-4" /> }
-            ].map((tab) => (
+            ] as { id: "overview" | "insights" | "related"; label: string; icon: React.ReactNode }[]).map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2.5 py-4 px-5 text-sm font-bold border-b-2 transition-all relative ${
                   activeTab === tab.id
                     ? "border-emerald-600 text-emerald-700 dark:border-emerald-500 dark:text-emerald-400"

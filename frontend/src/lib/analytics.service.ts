@@ -17,7 +17,8 @@ export interface AnalyticsTrendItem {
   date: string;
   value?: number;
   cumulative_records?: number;
-  [key: string]: any;
+  /** Allow arbitrary extra keys from the backend (e.g. per-dataset series). */
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export interface AnalyticsTrend {
@@ -113,68 +114,77 @@ export interface AnalyticsInsight {
 export interface AnalyticsSavedView {
   id: string;
   name: string;
-  filters: Record<string, any>;
+  filters: Record<string, string | number | boolean | null>;
   created_at: string;
 }
 
+// ─── Query param shape used by every service method ──────────────────────────
+
+interface AnalyticsParams {
+  workspace_id: string;
+  dataset_id?: string;
+}
+
+// ─── Service ─────────────────────────────────────────────────────────────────
+
 export const AnalyticsService = {
   getKpis: async (workspaceId: string, datasetId?: string) => {
-    const params: any = { workspace_id: workspaceId };
+    const params: AnalyticsParams = { workspace_id: workspaceId };
     if (datasetId) params.dataset_id = datasetId;
     const res = await api.get(`/tenant-analytics/kpis`, { params });
     return res.data;
   },
 
   getTrends: async (workspaceId: string, datasetId?: string) => {
-    const params: any = { workspace_id: workspaceId };
+    const params: AnalyticsParams = { workspace_id: workspaceId };
     if (datasetId) params.dataset_id = datasetId;
     const res = await api.get(`/tenant-analytics/trends`, { params });
     return res.data;
   },
 
   getPerformance: async (workspaceId: string, datasetId?: string) => {
-    const params: any = { workspace_id: workspaceId };
+    const params: AnalyticsParams = { workspace_id: workspaceId };
     if (datasetId) params.dataset_id = datasetId;
     const res = await api.get(`/tenant-analytics/performance`, { params });
     return res.data;
   },
 
   getAnomalies: async (workspaceId: string, datasetId?: string) => {
-    const params: any = { workspace_id: workspaceId };
+    const params: AnalyticsParams = { workspace_id: workspaceId };
     if (datasetId) params.dataset_id = datasetId;
     const res = await api.get(`/tenant-analytics/anomalies`, { params });
     return res.data;
   },
 
   getDataQuality: async (workspaceId: string, datasetId?: string) => {
-    const params: any = { workspace_id: workspaceId };
+    const params: AnalyticsParams = { workspace_id: workspaceId };
     if (datasetId) params.dataset_id = datasetId;
     const res = await api.get(`/tenant-analytics/data-quality`, { params });
     return res.data;
   },
 
   getComparisons: async (workspaceId: string, datasetId?: string) => {
-    const params: any = { workspace_id: workspaceId };
+    const params: AnalyticsParams = { workspace_id: workspaceId };
     if (datasetId) params.dataset_id = datasetId;
     const res = await api.get(`/tenant-analytics/comparisons`, { params });
     return res.data;
   },
 
   getForecast: async (workspaceId: string, datasetId?: string) => {
-    const params: any = { workspace_id: workspaceId };
+    const params: AnalyticsParams = { workspace_id: workspaceId };
     if (datasetId) params.dataset_id = datasetId;
     const res = await api.get(`/tenant-analytics/forecast`, { params });
     return res.data;
   },
 
   getAiInsights: async (workspaceId: string, datasetId?: string) => {
-    const params: any = { workspace_id: workspaceId };
+    const params: AnalyticsParams = { workspace_id: workspaceId };
     if (datasetId) params.dataset_id = datasetId;
     const res = await api.get(`/tenant-analytics/ai-insights`, { params });
     return res.data;
   },
 
-  chatAi: async (workspaceId: string, message: string, context?: Record<string, any>) => {
+  chatAi: async (workspaceId: string, message: string, context?: Record<string, string | number | boolean | null>) => {
     const res = await api.post(`/tenant-analytics/ai/chat`, { message, context }, { params: { workspace_id: workspaceId } });
     return res.data;
   },
@@ -184,7 +194,7 @@ export const AnalyticsService = {
     return res.data.data;
   },
 
-  createSavedView: async (workspaceId: string, name: string, filters: Record<string, any>) => {
+  createSavedView: async (workspaceId: string, name: string, filters: Record<string, string | number | boolean | null>) => {
     const res = await api.post(`/tenant-analytics/saved-views`, { name, filters }, { params: { workspace_id: workspaceId } });
     return res.data;
   },

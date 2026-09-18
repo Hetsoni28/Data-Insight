@@ -36,6 +36,11 @@ export async function updateMe(data: { full_name?: string; avatar_url?: string }
 }
 
 /** POST /users/me/change-password → updates current user's password */
-export async function changePassword(data: any): Promise<void> {
+export interface ChangePasswordPayload {
+  current_password: string;
+  new_password: string;
+}
+
+export async function changePassword(data: ChangePasswordPayload): Promise<void> {
   await api.post("/users/me/change-password", data)
 }

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,7 +20,7 @@ interface EnterpriseAuditCenterProps {
 export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, setFilterModule, setFilterSeverity, setSearchQuery }: EnterpriseAuditCenterProps) {
     const [activeTab, setActiveTab] = useState<'log' | 'timeline'>('log');
 
-    const tabs = [
+    const tabs: { id: 'log' | 'timeline'; label: string; icon: React.ReactNode }[] = [
         { id: 'log', label: 'Advanced Audit Log', icon: <FileSearch className="w-4 h-4" /> },
         { id: 'timeline', label: 'Audit Timeline', icon: <Clock className="w-4 h-4" /> },
     ];
@@ -32,7 +32,7 @@ export function EnterpriseAuditCenter({ events, timeline, overview, isLoading, s
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
+                            onClick={() => setActiveTab(tab.id)}
                             className={`
                                 relative flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium rounded-lg transition-all duration-200
                                 ${activeTab === tab.id ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10'}
