@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react"
+import { API_BASE_URL } from "@/lib/api"
 
-const defaultClientUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"
-const WS_URL = defaultClientUrl.replace("http", "ws") + "/ws/tenant-events"
+const WS_URL = API_BASE_URL.replace(/^http/, "ws") + "/ws/tenant-events"
 
 type WebSocketEvent = {
   type: string
-  payload?: any
+  payload?: Record<string, unknown>
   tenant_id?: string
 }
 

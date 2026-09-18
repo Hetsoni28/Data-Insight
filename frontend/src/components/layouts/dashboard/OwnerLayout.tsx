@@ -7,6 +7,7 @@ import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import { useRouter } from "next/navigation"
 import { useRealtimeSync } from "@/hooks/useRealtimeSync"
+import type { User as UserType } from "@/types"
 
 import { 
   LayoutDashboard, Users, Building, Database, Brain, FileSpreadsheet, Receipt, 
@@ -87,7 +88,7 @@ const OWNER_NAV_GROUPS: NavGroup[] = [
 
 interface OwnerLayoutProps {
   children: React.ReactNode
-  user: any
+  user: UserType
   handleLogout: () => void
 }
 

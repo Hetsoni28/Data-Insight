@@ -8,6 +8,7 @@ import api from "@/lib/api"
 import { useWorkspaceStore } from "@/store/workspaceStore"
 import { useRouter } from "next/navigation"
 import { useRealtimeSync } from "@/hooks/useRealtimeSync"
+import type { User as UserType } from "@/types"
 
 const MEMBER_NAV = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", allowedRoles: ["organization-admin", "manager", "analyst", "viewer", "org_admin"] },
@@ -35,7 +36,7 @@ const MEMBER_NAV = [
 
 interface MemberLayoutProps {
   children: React.ReactNode
-  user: any
+  user: UserType
   handleLogout: () => void
 }
 

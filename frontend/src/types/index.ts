@@ -28,6 +28,15 @@ export type UserRole = "owner" | "org_admin" | "organization-admin" | "manager" 
 
 export type AccountType = "individual" | "organization";
 
+/** Lightweight tenant shape attached to a User object in auth responses. */
+export interface TenantSummary {
+  id: string;
+  name: string;
+  slug: string;
+  plan?: string;
+  is_active?: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -40,7 +49,7 @@ export interface User {
   is_superuser: boolean;
   is_owner: boolean;
   is_email_verified: boolean;
-  tenant?: any;
+  tenant?: TenantSummary;
   created_at: string;
   updated_at: string;
 }

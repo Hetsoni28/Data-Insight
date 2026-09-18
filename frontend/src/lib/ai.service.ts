@@ -2,10 +2,12 @@ import api, { API_BASE_URL } from "./api";
 import { useAuthStore } from "@/store/authStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 
+// ─── Interfaces ───────────────────────────────────────────────────────────────
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
-  artifact_data?: any;
+  artifact_data?: ArtifactData;
 }
 
 export interface ChatSessionItem {
@@ -25,17 +27,39 @@ export interface ChatSessionItem {
   };
 }
 
+/** The typed artifact payload returned by the visual SQL agent. */
+export interface ArtifactData {
+  type: "chart" | "kpi" | "summary";
+  chart_config?: ChartConfig;
+  kpi_data?: KpiData;
+  metadata?: Record<string, unknown>;
+}
+
+/** Recharts-compatible chart config returned inside an artifact. */
+export interface ChartConfig {
+  chart_type: "bar" | "line" | "area" | "pie" | "scatter";
+  title?: string;
+  x_key?: string;
+  y_keys?: string[];
+  data: Record<string, unknown>[];
+  colors?: string[];
+}
+
+/** KPI card data returned inside an artifact. */
+export interface KpiData {
+  label: string;
+  value: number | string;
+  unit?: string;
+  change?: number;
+  trend?: "up" | "down" | "flat";
+}
+
 export interface ChatMessageItem {
   id: string;
   session_id: string;
   role: "user" | "assistant";
   content: string;
-  artifact_data?: {
-    type: "chart" | "kpi" | "summary";
-    chart_config?: any;
-    kpi_data?: any;
-    metadata?: any;
-  } | null;
+  artifact_data?: ArtifactData | null;
   created_at: string;
 }
 
@@ -56,8 +80,39 @@ export interface ChatResponse {
 export interface JobStatusResponse {
   job_id: string;
   status: string;
-  result: Record<string, any> | null;
+  result: Record<string, unknown> | null;
 }
+
+/** Stored owner AI conversation session. */
+export interface OwnerAISession {
+  id: string;
+  title?: string;
+  messages: ChatMessage[];
+  created_at: string;
+}
+
+/** Forecast result returned by /ai/forecast. */
+export interface ForecastResult {
+  forecast: Array<{
+    ds: string;
+    yhat: number;
+    yhat_lower?: number;
+    yhat_upper?: number;
+  }>;
+  model?: string;
+  metrics?: Record<string, number>;
+  target_column?: string;
+  date_column?: string;
+}
+
+// ─── Streaming callback types ─────────────────────────────────────────────────
+
+type OnChunk = (chunk: string) => void;
+type OnDone = () => void;
+type OnError = (err: unknown) => void;
+type OnArtifact = (artifact: ArtifactData) => void;
+
+// ─── AIService ────────────────────────────────────────────────────────────────
 
 export class AIService {
   /**
@@ -162,11 +217,11 @@ export class AIService {
     datasetId?: string | null,
     history: ChatMessage[] = [],
     provider = "groq",
-    onChunk?: (chunk: string) => void,
-    onDone?: () => void,
-    onError?: (err: any) => void,
+    onChunk?: OnChunk,
+    onDone?: OnDone,
+    onError?: OnError,
     sessionId?: string | null,
-    onArtifact?: (artifact: any) => void
+    onArtifact?: OnArtifact
   ) {
     const token = useAuthStore.getState().token ?? "";
     const { activeWs } = useWorkspaceStore.getState();
@@ -216,7 +271,14 @@ export class AIService {
             return;
           }
           try {
-            const data = JSON.parse(dataStr);
+            const data = JSON.parse(dataStr) as {
+              type?: string;
+              content?: string;
+              artifact_data?: ArtifactData;
+              token?: string;
+              artifact?: ArtifactData;
+              error?: string;
+            };
 
             // Session stream format: { type: "token"|"artifact"|"done"|"meta", content, artifact_data }
             if (data.type === "token" && data.content && onChunk) {
@@ -250,9 +312,9 @@ export class AIService {
     question: string,
     history: ChatMessage[],
     model: string,
-    onChunk: (chunk: string) => void,
-    onDone: () => void,
-    onError: (err: any) => void
+    onChunk: OnChunk,
+    onDone: OnDone,
+    onError: OnError
   ) {
     const token = useAuthStore.getState().token ?? "";
     const { activeWs } = useWorkspaceStore.getState();
@@ -290,7 +352,7 @@ export class AIService {
         for (const line of lines) {
           if (line.startsWith("data: ")) {
             try {
-              const data = JSON.parse(line.slice(6));
+              const data = JSON.parse(line.slice(6)) as { chunk?: string };
               if (data.chunk) {
                 onChunk(data.chunk);
               }
@@ -327,7 +389,7 @@ export class AIService {
   /**
    * Retrieve platform owner conversation history.
    */
-  static async ownerGetHistory(): Promise<{ sessions: any[] }> {
+  static async ownerGetHistory(): Promise<{ sessions: OwnerAISession[] }> {
     const response = await api.get("/owner/ai/history");
     return response.data;
   }
@@ -335,7 +397,7 @@ export class AIService {
   /**
    * Save platform owner conversation history.
    */
-  static async ownerSaveHistory(historyData: { sessions: any[] }): Promise<{ status: string }> {
+  static async ownerSaveHistory(historyData: { sessions: OwnerAISession[] }): Promise<{ status: string }> {
     const response = await api.post("/owner/ai/history", historyData);
     return response.data;
   }
@@ -349,9 +411,8 @@ export class AIService {
     target_column?: string;
     date_column?: string;
     confidence_level?: number;
-  }): Promise<any> {
+  }): Promise<ForecastResult> {
     const response = await api.post("/ai/forecast", params);
     return response.data;
   }
 }
-
