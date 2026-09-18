@@ -3,7 +3,7 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
-from sqlalchemy import func
+from sqlalchemy import cast, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -92,15 +92,40 @@ async def get_support_dashboard(
     )
     active_incidents = active_incidents_query.scalar() or 0
 
+    # Avg first-response time in minutes (only tickets that have been responded to)
+    avg_response_result = await db.execute(
+        select(
+            func.avg(
+                func.extract(
+                    "epoch",
+                    SupportTicket.first_response_at - SupportTicket.created_at,
+                )
+            )
+        ).where(SupportTicket.first_response_at.isnot(None))
+    )
+    avg_response_seconds = avg_response_result.scalar()
+    avg_response_time_minutes = (
+        round(avg_response_seconds / 60, 1) if avg_response_seconds is not None else None
+    )
+
+    # Average CSAT score (1–5) across all scored tickets
+    avg_csat_result = await db.execute(
+        select(func.avg(SupportTicket.csat_score)).where(
+            SupportTicket.csat_score.isnot(None)
+        )
+    )
+    avg_csat_raw = avg_csat_result.scalar()
+    avg_csat = round(float(avg_csat_raw), 2) if avg_csat_raw is not None else None
+
     return {
         "kpis": {
             "openTickets": open_tickets,
             "resolvedToday": resolved_today,
             "pendingTickets": pending_tickets,
             "criticalIssues": critical_issues,
-            "avgResponseTime": None,  # Not tracked yet - requires first-response timestamp
+            "avgResponseTime": avg_response_time_minutes,  # minutes, or None if no data
             "avgResolutionTime": None,  # Not tracked yet
-            "csat": None,  # Not tracked yet - requires satisfaction survey data
+            "csat": avg_csat,  # 1.0–5.0 float, or None if no ratings yet
             "aiResolutionRate": None,  # Not tracked yet
             "featureRequests": feature_requests,
             "bugReports": bug_reports,
@@ -203,6 +228,20 @@ async def update_ticket(
         and ticket.status != TicketStatus.RESOLVED
     ):
         ticket.resolved_at = datetime.now(timezone.utc)
+
+    # Auto-stamp first_response_at the first time a ticket moves to IN_PROGRESS
+    if (
+        "status" in update_data
+        and update_data["status"] == TicketStatus.IN_PROGRESS
+        and ticket.first_response_at is None
+    ):
+        ticket.first_response_at = datetime.now(timezone.utc)
+
+    # Persist csat_score if provided (can only be set, not cleared once set)
+    if "csat_score" in update_data and update_data["csat_score"] is not None:
+        ticket.csat_score = update_data.pop("csat_score")
+    else:
+        update_data.pop("csat_score", None)
 
     for field, value in update_data.items():
         if field == "metadata_":

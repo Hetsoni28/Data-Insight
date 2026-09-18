@@ -7,6 +7,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    Integer,
     String,
     Text,
 )
@@ -68,6 +69,10 @@ class SupportTicket(Base):
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False,
     )
     resolved_at = Column(DateTime, nullable=True)
+    # Tracks when a support agent first responded (moved ticket to IN_PROGRESS)
+    first_response_at = Column(DateTime, nullable=True)
+    # Customer satisfaction score (1–5) submitted after ticket resolution
+    csat_score = Column(Integer, nullable=True)
 
 
 class PlatformIncident(Base):

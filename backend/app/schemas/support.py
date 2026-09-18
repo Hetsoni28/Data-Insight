@@ -32,6 +32,8 @@ class SupportTicketUpdate(BaseModel):
     tags: list[str] | None = None
     assigned_to_id: UUID | None = None
     metadata_: dict[str, Any] | None = Field(None, alias="metadata")
+    # Allow submitting a CSAT score (1–5) when resolving/closing a ticket
+    csat_score: int | None = Field(None, ge=1, le=5)
 
 
 class SupportTicketResponse(SupportTicketBase):
@@ -44,6 +46,8 @@ class SupportTicketResponse(SupportTicketBase):
     created_at: datetime
     updated_at: datetime
     resolved_at: datetime | None
+    first_response_at: datetime | None = None
+    csat_score: int | None = None
 
     class Config:
         from_attributes = True
