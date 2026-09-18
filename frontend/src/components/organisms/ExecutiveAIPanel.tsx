@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Send, User, Sparkles, Loader2, Maximize2, Minimize2 } from "lucide-react"
+import { Send, User, Sparkles, Maximize2, Minimize2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/atoms/Logo"
-import api from "@/lib/api"
+import { AIService } from "@/lib/ai.service"
 import ReactMarkdown from 'react-markdown'
 
 export function ExecutiveAIPanel() {
@@ -16,7 +16,6 @@ export function ExecutiveAIPanel() {
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [expanded, setExpanded] = useState(false)
-  const [sessionId, setSessionId] = useState<string>("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -41,78 +40,45 @@ export function ExecutiveAIPanel() {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }])
     setIsTyping(true)
 
-    try {
-      const formData = new FormData()
-      formData.append("message", userMsg)
-      formData.append("workspace_id", "owner-context") // Dummy ID for validation if required by backend structure
-      
-      if (sessionId) {
-        formData.append("session_id", sessionId)
-      }
-      
-      // Pass previous messages as history (excluding the first mock greeting if desired, but we can pass all)
-      const historyToPass = messages.map(m => ({
-        role: m.role,
-        content: m.text
-      }))
-      formData.append("history", JSON.stringify(historyToPass))
+    // Snapshot history before this message
+    const historyToPass = messages.map(m => ({
+      role: m.role === 'ai' ? 'assistant' as const : 'user' as const,
+      content: m.text
+    }))
 
-      const token = localStorage.getItem('access_token') || ''
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/owner/ai/chat`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
-      
-      if (!response.ok) throw new Error("Network response was not ok")
-      if (!response.body) throw new Error("No response body")
+    // Placeholder AI message that will be filled in by streaming chunks
+    setMessages(prev => [...prev, { role: 'ai', text: "" }])
+    setIsTyping(false)
 
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let aiMessage = ""
-      let buffer = ""
-      
-      setIsTyping(false)
-      setMessages(prev => [...prev, { role: 'ai', text: "" }])
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        
-        buffer += decoder.decode(value, { stream: true })
-        const parts = buffer.split("\n\n")
-        buffer = parts.pop() || "" // Keep incomplete part in buffer
-        
-        for (const part of parts) {
-          const line = part.trim()
-          if (line.startsWith("data: ")) {
-            const dataStr = line.substring(6)
-            try {
-              const data = JSON.parse(dataStr)
-              if (data.type === 'session' && !sessionId) {
-                setSessionId(data.session_id)
-              } else if (data.type === 'chunk') {
-                aiMessage += data.chunk
-                setMessages(prev => {
-                  const newMessages = [...prev]
-                  newMessages[newMessages.length - 1].text = aiMessage
-                  return newMessages
-                })
-              }
-            } catch (e) {
-              console.error("SSE parse error", e, dataStr)
-            }
+    await AIService.ownerChatStream(
+      userMsg,
+      historyToPass,
+      "gemini",
+      // onChunk — append to the last message in place
+      (chunk: string) => {
+        setMessages(prev => {
+          const updated = [...prev]
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            text: updated[updated.length - 1].text + chunk
           }
-        }
+          return updated
+        })
+      },
+      // onDone
+      () => {
+        setIsTyping(false)
+      },
+      // onError
+      (err: any) => {
+        console.error("ExecutiveAIPanel stream error:", err)
+        setMessages(prev => [...prev.slice(0, -1), {
+          role: 'ai',
+          text: "I encountered an error connecting to the platform services. Please check your network and API configurations."
+        }])
+        setIsTyping(false)
       }
-    } catch (error) {
-      console.error("AI chat failed:", error)
-      setMessages(prev => [...prev, { role: 'ai', text: "I encountered an error connecting to the platform services. Please check your network and API configurations." }])
-    } finally {
-      setIsTyping(false)
-    }
+    )
   }
 
   return (

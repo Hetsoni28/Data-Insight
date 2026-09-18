@@ -6,6 +6,13 @@ import { useWorkspaceStore } from "@/store/workspaceStore";
 const defaultServerUrl = process.env.INTERNAL_API_URL ?? "http://backend:8000/api/v1";
 const defaultClientUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
+/**
+ * The resolved API base URL for use in raw-fetch SSE streaming calls
+ * (Axios doesn't support streaming). Always use this instead of
+ * re-declaring process.env.NEXT_PUBLIC_API_URL with a localhost fallback.
+ */
+export const API_BASE_URL = defaultClientUrl;
+
 // ─── Axios Instance ────────────────────────────────────────────────────────────
 const api = axios.create({
   timeout: 60000, // 60 seconds — AI operations and large dataset queries need more time

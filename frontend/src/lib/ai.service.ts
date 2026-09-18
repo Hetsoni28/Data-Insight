@@ -1,4 +1,5 @@
-import api from "./api";
+import api, { API_BASE_URL } from "./api";
+import { useAuthStore } from "@/store/authStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 
 export interface ChatMessage {
@@ -167,20 +168,18 @@ export class AIService {
     sessionId?: string | null,
     onArtifact?: (artifact: any) => void
   ) {
-    const token = localStorage.getItem("access_token");
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+    const token = useAuthStore.getState().token ?? "";
+    const { activeWs } = useWorkspaceStore.getState();
 
     // Use persistent session stream if session exists — persists history + visual SQL artifacts
     const url = sessionId
-      ? `${baseUrl}/ai/sessions/${sessionId}/messages/stream`
-      : `${baseUrl}/ai/chat/stream`;
+      ? `${API_BASE_URL}/ai/sessions/${sessionId}/messages/stream`
+      : `${API_BASE_URL}/ai/chat/stream`;
 
     const body = sessionId
       ? JSON.stringify({ question, provider })
       : JSON.stringify({ question, dataset_id: datasetId || undefined, history, provider });
 
-    const { activeWs } = useWorkspaceStore.getState()
-    
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -255,12 +254,10 @@ export class AIService {
     onDone: () => void,
     onError: (err: any) => void
   ) {
-    const token = localStorage.getItem("access_token");
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-    
-    const { activeWs } = useWorkspaceStore.getState()
+    const token = useAuthStore.getState().token ?? "";
+    const { activeWs } = useWorkspaceStore.getState();
     try {
-      const response = await fetch(`${baseUrl}/owner/ai/chat`, {
+      const response = await fetch(`${API_BASE_URL}/owner/ai/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -311,24 +308,19 @@ export class AIService {
 
   /**
    * Upload a file for multimodal owner AI analysis.
+   * Auth header is injected automatically by the api.ts interceptor.
    */
   static async ownerAnalyze(
     file: File,
     question: string,
     model: string
   ): Promise<{ answer: string }> {
-    const token = localStorage.getItem("access_token");
     const formData = new FormData();
     formData.append("file", file);
     formData.append("question", question);
     formData.append("model", model);
 
-    const response = await api.post("/owner/ai/analyze", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        "Authorization": `Bearer ${token}`
-      }
-    });
+    const response = await api.post("/owner/ai/analyze", formData);
     return response.data;
   }
 
