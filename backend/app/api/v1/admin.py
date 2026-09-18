@@ -179,6 +179,36 @@ async def update_tenant_status(
     return {"status": "success", "is_active": tenant.is_active}
 
 
+class TenantDetailsUpdate(BaseModel):
+    name: str | None = None
+    industry: str | None = None
+    plan: str | None = None
+
+
+@router.patch("/tenants/{tenant_id}", summary="Update tenant details (name, industry, plan)")
+async def update_tenant_details(
+    tenant_id: uuid.UUID,
+    body: TenantDetailsUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_superuser_or_owner),
+):
+    tenant = await db.get(Tenant, tenant_id)
+    if not tenant:
+        from app.core.exceptions import ResourceNotFoundException
+        raise ResourceNotFoundException("Tenant", str(tenant_id))
+
+    if body.name is not None:
+        tenant.name = body.name.strip()
+    if body.industry is not None:
+        tenant.industry = body.industry.strip()
+    if body.plan is not None:
+        tenant.plan = body.plan.strip()
+
+    await db.commit()
+    await db.refresh(tenant)
+    return {"status": "success", "id": str(tenant.id), "name": tenant.name, "industry": tenant.industry, "plan": tenant.plan}
+
+
 @router.get("/kpis", summary="Global platform KPIs (V2 Dashboard)")
 async def global_kpis(
     db: AsyncSession = Depends(get_db),

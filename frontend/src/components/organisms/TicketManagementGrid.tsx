@@ -1,9 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Search, Filter, MoreHorizontal, MessageSquare, Clock, Eye, CheckCircle2, UserPlus, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Filter, MoreHorizontal, MessageSquare, Clock, Eye, CheckCircle2, UserPlus, Trash2, X, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuSeparator
@@ -20,12 +21,15 @@ interface TicketManagementGridProps {
 
 export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
   const [search, setSearch] = useState("");
+  const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
+  const [reassignTicketId, setReassignTicketId] = useState<string | null>(null);
+  const [reassignValue, setReassignValue] = useState("");
   const queryClient = useQueryClient();
-  
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  
+
   const updateTicketMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const res = await api.patch(`/support/tickets/${id}`, data);
@@ -35,6 +39,8 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
       queryClient.invalidateQueries({ queryKey: ['support-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['support-tickets'] });
       toast.success("Ticket updated successfully");
+      setReassignTicketId(null);
+      setReassignValue("");
     },
     onError: () => {
       toast.error("Failed to update ticket");
@@ -55,19 +61,17 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
       toast.error("Failed to close ticket");
     }
   });
-  
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
   const [priorityFilter, setPriorityFilter] = useState("All");
 
   const filteredTickets = tickets?.filter(t => {
-    const matchesSearch = (t.subject || "").toLowerCase().includes(search.toLowerCase()) || 
-                          (t.requester || "").toLowerCase().includes(search.toLowerCase()) ||
-                          (t.organization || "").toLowerCase().includes(search.toLowerCase());
-    
+    const matchesSearch = (t.subject || "").toLowerCase().includes(search.toLowerCase()) ||
+      (t.requester || "").toLowerCase().includes(search.toLowerCase()) ||
+      (t.organization || "").toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "All" || (t.status || "").toLowerCase() === statusFilter.toLowerCase();
     const matchesPriority = priorityFilter === "All" || (t.priority || "").toLowerCase() === priorityFilter.toLowerCase();
-
     return matchesSearch && matchesStatus && matchesPriority;
   }) || [];
 
@@ -76,12 +80,11 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
   const totalPages = Math.ceil(totalItems / pageSize);
   const paginatedTickets = filteredTickets.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  // Reset page when search changes
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages)
+      setCurrentPage(totalPages);
     } else if (totalPages === 0) {
-      setCurrentPage(1)
+      setCurrentPage(1);
     }
   }, [totalPages, currentPage]);
 
@@ -103,6 +106,22 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
     }
   };
 
+  const toggleExpand = (id: string) => {
+    setExpandedTicketId(prev => prev === id ? null : id);
+    setReassignTicketId(null);
+  };
+
+  const handleReassign = (ticket: any) => {
+    setReassignTicketId(ticket.id);
+    setReassignValue(ticket.assignedTo || "");
+    setExpandedTicketId(ticket.id);
+  };
+
+  const submitReassign = (ticketId: string) => {
+    if (!reassignValue.trim()) { toast.error("Please enter an assignee name."); return; }
+    updateTicketMutation.mutate({ id: ticketId, data: { assigned_to: reassignValue.trim() } });
+  };
+
   return (
     <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden mb-8">
       {/* Toolbar */}
@@ -111,9 +130,9 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mr-4">Support Queue</h2>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search tickets, customers, or issues..." 
+            <input
+              type="text"
+              placeholder="Search tickets, customers, or issues..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 pr-4 py-1.5 text-sm w-64 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-slate-900 dark:text-white placeholder:text-slate-400"
@@ -121,9 +140,9 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
+          <Button
             variant={isFilterOpen ? "default" : "outline"}
-            size="sm" 
+            size="sm"
             className={`h-8 text-xs border-slate-200 dark:border-white/10 shadow-sm ${!isFilterOpen ? 'bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10' : ''}`}
             onClick={() => setIsFilterOpen(!isFilterOpen)}
           >
@@ -136,33 +155,33 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
       {/* Advanced Filters Panel */}
       {isFilterOpen && (
         <div className="p-4 border-b border-slate-200/60 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex flex-wrap gap-4 text-sm">
-            <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status</label>
-                <select 
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
-                >
-                    <option value="All">All Statuses</option>
-                    <option value="open">Open</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Priority</label>
-                <select 
-                    value={priorityFilter}
-                    onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
-                >
-                    <option value="All">All Priorities</option>
-                    <option value="critical">Critical</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                </select>
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+            >
+              <option value="All">All Statuses</option>
+              <option value="open">Open</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Priority</label>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+            >
+              <option value="All">All Priorities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
         </div>
       )}
 
@@ -178,80 +197,170 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
       {/* Grid Rows */}
       <div className="divide-y divide-slate-100 dark:divide-white/5">
         {paginatedTickets?.map((ticket, i) => (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * i }}
-            key={ticket.id}
-            className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group"
-            onClick={() => toast.info(`Viewing details for ticket: ${ticket.id}`)}
-          >
-            <div className="col-span-4 pr-4">
-              <div className="font-medium text-slate-900 dark:text-white text-sm mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                {ticket.subject}
-              </div>
-              <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 truncate">
-                <span className="font-medium text-slate-700 dark:text-slate-300 mr-2">{ticket.requester}</span>
-                <span className="truncate">{ticket.organization}</span>
-              </div>
-            </div>
-            
-            <div className="col-span-2">
-              {getStatusBadge(ticket.status)}
-            </div>
-
-            <div className="col-span-2">
-              <Badge variant="outline" className={`${getPriorityColor(ticket.priority)} text-[10px] font-bold`}>
-                {ticket.priority.toUpperCase()}
-              </Badge>
-            </div>
-
-            <div className="col-span-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-[10px] font-bold text-emerald-700 dark:text-emerald-400 ring-2 ring-white dark:ring-background flex-shrink-0">
-                  {ticket.assignedTo?.charAt(0) || '?'}
+          <div key={ticket.id}>
+            {/* Main row */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 * i }}
+              className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+              onClick={() => toggleExpand(ticket.id)}
+            >
+              <div className="col-span-4 pr-4">
+                <div className="font-medium text-slate-900 dark:text-white text-sm mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate flex items-center gap-1.5">
+                  <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform text-slate-400 ${expandedTicketId === ticket.id ? 'rotate-180' : ''}`} />
+                  {ticket.subject}
                 </div>
-                <span className="text-sm text-slate-600 dark:text-slate-300 truncate">{ticket.assignedTo || 'Unassigned'}</span>
+                <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 truncate pl-5">
+                  <span className="font-medium text-slate-700 dark:text-slate-300 mr-2">{ticket.requester}</span>
+                  <span className="truncate">{ticket.organization}</span>
+                </div>
               </div>
-            </div>
+
+              <div className="col-span-2">
+                {getStatusBadge(ticket.status)}
+              </div>
+
+              <div className="col-span-2">
+                <Badge variant="outline" className={`${getPriorityColor(ticket.priority)} text-[10px] font-bold`}>
+                  {ticket.priority.toUpperCase()}
+                </Badge>
+              </div>
+
+              <div className="col-span-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-[10px] font-bold text-emerald-700 dark:text-emerald-400 ring-2 ring-white dark:ring-background flex-shrink-0">
+                    {ticket.assignedTo?.charAt(0) || '?'}
+                  </div>
+                  <span className="text-sm text-slate-600 dark:text-slate-300 truncate">{ticket.assignedTo || 'Unassigned'}</span>
+                </div>
+              </div>
 
               <div className="col-span-2 flex items-center justify-end gap-3">
-              <div className="flex items-center text-xs text-slate-500 whitespace-nowrap">
-                <Clock className="w-3.5 h-3.5 mr-1 text-slate-400" />
-                {ticket.sla}
+                <div className="flex items-center text-xs text-slate-500 whitespace-nowrap">
+                  <Clock className="w-3.5 h-3.5 mr-1 text-slate-400" />
+                  {ticket.sla}
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex-shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52" onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenuItem onClick={() => toggleExpand(ticket.id)}>
+                      <Eye className="h-4 w-4 mr-2.5 text-emerald-500" /> View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => updateTicketMutation.mutate({ id: ticket.id, data: { status: 'resolved' } })}>
+                      <CheckCircle2 className="h-4 w-4 mr-2.5 text-emerald-500" /> Mark as Resolved
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleReassign(ticket); }}>
+                      <UserPlus className="h-4 w-4 mr-2.5 text-violet-500" /> Reassign Ticket
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => deleteTicketMutation.mutate(ticket.id)}
+                      className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2.5" /> Close Ticket
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex-shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenuItem onClick={() => toast.info(`Viewing ticket: ${ticket.subject}`)}>  
-                    <Eye className="h-4 w-4 mr-2.5 text-emerald-500" /> View Details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => updateTicketMutation.mutate({ id: ticket.id, data: { status: 'resolved' } })}>  
-                    <CheckCircle2 className="h-4 w-4 mr-2.5 text-emerald-500" /> Mark as Resolved
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => toast.info(`Reassigning ticket ${ticket.id}...`)}>  
-                    <UserPlus className="h-4 w-4 mr-2.5 text-violet-500" /> Reassign Ticket
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => deleteTicketMutation.mutate(ticket.id)}
-                    className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2.5" /> Close Ticket
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* Expanded Detail Panel */}
+            <AnimatePresence>
+              {expandedTicketId === ticket.id && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-6 py-5 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Left: ticket details */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ticket Details</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex gap-2"><span className="text-slate-400 w-24 shrink-0">Ticket ID</span><span className="font-mono text-slate-700 dark:text-slate-300 text-xs">{ticket.id}</span></div>
+                          <div className="flex gap-2"><span className="text-slate-400 w-24 shrink-0">Requester</span><span className="text-slate-700 dark:text-slate-300">{ticket.requester || "—"}</span></div>
+                          <div className="flex gap-2"><span className="text-slate-400 w-24 shrink-0">Organization</span><span className="text-slate-700 dark:text-slate-300">{ticket.organization || "—"}</span></div>
+                          <div className="flex gap-2"><span className="text-slate-400 w-24 shrink-0">Status</span>{getStatusBadge(ticket.status)}</div>
+                          <div className="flex gap-2"><span className="text-slate-400 w-24 shrink-0">Priority</span><Badge variant="outline" className={`${getPriorityColor(ticket.priority)} text-[10px] font-bold`}>{ticket.priority?.toUpperCase()}</Badge></div>
+                          <div className="flex gap-2"><span className="text-slate-400 w-24 shrink-0">SLA</span><span className="text-slate-700 dark:text-slate-300">{ticket.sla || "—"}</span></div>
+                          {ticket.description && (
+                            <div className="flex gap-2 pt-1"><span className="text-slate-400 w-24 shrink-0">Description</span><span className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">{ticket.description}</span></div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right: reassign form + quick actions */}
+                      <div className="space-y-4">
+                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quick Actions</h4>
+
+                        {/* Reassign form */}
+                        {reassignTicketId === ticket.id ? (
+                          <div className="space-y-2">
+                            <label className="text-xs text-slate-500 dark:text-slate-400">New Assignee Name</label>
+                            <div className="flex gap-2">
+                              <Input
+                                value={reassignValue}
+                                onChange={e => setReassignValue(e.target.value)}
+                                placeholder="Enter name..."
+                                className="h-8 text-sm bg-white dark:bg-white/5"
+                                onKeyDown={e => e.key === 'Enter' && submitReassign(ticket.id)}
+                                autoFocus
+                              />
+                              <Button size="sm" className="h-8 bg-violet-600 hover:bg-violet-700 text-white shrink-0"
+                                onClick={() => submitReassign(ticket.id)}
+                                disabled={updateTicketMutation.isPending}
+                              >
+                                {updateTicketMutation.isPending ? "..." : "Assign"}
+                              </Button>
+                              <Button size="sm" variant="ghost" className="h-8 shrink-0" onClick={() => setReassignTicketId(null)}>
+                                <X className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button size="sm" variant="outline" className="w-full justify-start gap-2 h-8" onClick={() => handleReassign(ticket)}>
+                            <UserPlus className="w-3.5 h-3.5 text-violet-500" /> Reassign Ticket
+                          </Button>
+                        )}
+
+                        <div className="flex flex-col gap-2">
+                          {ticket.status !== 'resolved' && (
+                            <Button size="sm" variant="outline" className="w-full justify-start gap-2 h-8 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:bg-emerald-950/20"
+                              onClick={() => updateTicketMutation.mutate({ id: ticket.id, data: { status: 'resolved' } })}
+                              disabled={updateTicketMutation.isPending}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Mark as Resolved
+                            </Button>
+                          )}
+                          {ticket.status === 'open' && (
+                            <Button size="sm" variant="outline" className="w-full justify-start gap-2 h-8"
+                              onClick={() => updateTicketMutation.mutate({ id: ticket.id, data: { status: 'in_progress' } })}
+                              disabled={updateTicketMutation.isPending}
+                            >
+                              <Clock className="w-3.5 h-3.5 text-blue-500" /> Move to In Progress
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         ))}
         {paginatedTickets.length === 0 && (
           <div className="py-12 text-center text-slate-500 dark:text-slate-400 text-sm">
@@ -263,7 +372,7 @@ export function TicketManagementGrid({ tickets }: TicketManagementGridProps) {
 
       {/* Pagination Footer */}
       {filteredTickets.length > 0 && (
-        <PaginationControls 
+        <PaginationControls
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={totalItems}

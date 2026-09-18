@@ -1,18 +1,22 @@
-import { Building2, Calendar, CreditCard, Users, Database, Shield, Zap, HardDrive, Activity } from "lucide-react"
+"use client"
+
+import { Building2, Calendar, CreditCard, Users, Database, Shield, Zap, HardDrive, Activity, Pencil, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import api from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { toast } from "sonner"
-import { useMemo } from "react"
+import { useState } from "react"
 
 export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen: boolean, onClose: () => void, tenant: any }) {
   const queryClient = useQueryClient()
-  
-  // Fetch timeline activity
+  const [isEditing, setIsEditing] = useState(false)
+  const [editForm, setEditForm] = useState({ name: "", industry: "", plan: "" })
+
   const { data: activity, isLoading } = useQuery({
     queryKey: ['admin-tenant-activity', tenant?.id],
     queryFn: async () => {
@@ -37,13 +41,42 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
     },
     onError: () => toast.error("Failed to update organization status.")
   })
-  
-  const handleManagePlan = () => {
-    // In a real app, this redirects to Stripe Billing Portal or opens a plan management modal
-    toast.success("Redirecting to Stripe Billing Portal...")
-    window.open("https://dashboard.stripe.com/customers", "_blank")
+
+  const editTenantMutation = useMutation({
+    mutationFn: async (data: { name?: string; industry?: string; plan?: string }) => {
+      const res = await api.patch(`/admin/tenants/${tenant.id}`, data)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-tenant-list'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-global-kpis'] })
+      toast.success("Organization details updated successfully.")
+      setIsEditing(false)
+    },
+    onError: () => toast.error("Failed to update organization details.")
+  })
+
+  const handleStartEdit = () => {
+    setEditForm({ name: tenant?.name || "", industry: tenant?.industry || "", plan: tenant?.plan || "" })
+    setIsEditing(true)
   }
-  
+
+  const handleSaveEdit = () => {
+    const payload: any = {}
+    if (editForm.name.trim() && editForm.name !== tenant?.name) payload.name = editForm.name.trim()
+    if (editForm.industry.trim() && editForm.industry !== tenant?.industry) payload.industry = editForm.industry.trim()
+    if (editForm.plan.trim() && editForm.plan !== tenant?.plan) payload.plan = editForm.plan.trim()
+    if (Object.keys(payload).length === 0) { setIsEditing(false); return }
+    editTenantMutation.mutate(payload)
+  }
+
+  const handleManagePlan = () => {
+    const stripeUrl = tenant?.stripe_customer_id
+      ? `https://dashboard.stripe.com/customers/${tenant.stripe_customer_id}`
+      : "https://dashboard.stripe.com/customers"
+    window.open(stripeUrl, "_blank", "noopener,noreferrer")
+  }
+
   const handleViewInvoices = () => {
     toast.success("Loading invoice history...")
   }
@@ -54,7 +87,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="right" className="w-full sm:max-w-xl p-0 border-l border-slate-200/60 dark:border-white/10 shadow-2xl flex flex-col bg-white dark:bg-card/95 backdrop-blur-2xl gap-0">
-        
+
         {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/5">
           <div className="flex items-center gap-4">
@@ -80,7 +113,46 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          
+
+          {/* Inline Edit Form */}
+          {isEditing && (
+            <div className="p-5 rounded-xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/10 space-y-4">
+              <h3 className="text-sm font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                <Pencil className="w-3.5 h-3.5" /> Edit Organization Details
+              </h3>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <Label className="text-xs text-slate-600 dark:text-slate-400 mb-1 block">Organization Name</Label>
+                  <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="bg-white dark:bg-white/5" />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-600 dark:text-slate-400 mb-1 block">Industry</Label>
+                  <Input value={editForm.industry} onChange={e => setEditForm(f => ({ ...f, industry: e.target.value }))} className="bg-white dark:bg-white/5" />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-600 dark:text-slate-400 mb-1 block">Plan</Label>
+                  <select
+                    value={editForm.plan}
+                    onChange={e => setEditForm(f => ({ ...f, plan: e.target.value }))}
+                    className="w-full border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="Starter">Starter</option>
+                    <option value="Professional">Professional</option>
+                    <option value="Enterprise">Enterprise</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <Button size="sm" onClick={handleSaveEdit} disabled={editTenantMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  {editTenantMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
+                  <X className="w-3.5 h-3.5 mr-1" /> Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
@@ -95,7 +167,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             </div>
             <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
               <Zap className="w-5 h-5 text-amber-500 mb-2" />
-              <div className="text-2xl font-bold text-slate-900 dark:text-white">{(tenant?.ai_requests/1000).toFixed(1)}k</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">{(tenant?.ai_requests / 1000).toFixed(1)}k</div>
               <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">AI Requests</div>
             </div>
             <div className="p-4 rounded-xl border border-slate-100 dark:border-white/10 bg-white dark:bg-white/5">
@@ -169,7 +241,7 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
                 Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
               ) : activity?.length ? (
                 <div className="relative border-l-2 border-slate-100 dark:border-white/10 ml-3 space-y-6">
-                  {activity.map((item: any, i: number) => (
+                  {activity.map((item: any) => (
                     <div key={item.id} className="relative pl-6">
                       <div className="absolute w-3 h-3 bg-white dark:bg-card border-2 border-emerald-500 rounded-full -left-[7.5px] top-1.5" />
                       <div className="text-sm font-medium text-slate-900 dark:text-white">{item.type}</div>
@@ -185,30 +257,43 @@ export function OrganizationDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
           </div>
 
         </div>
-        
+
         {/* Footer Actions */}
         <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-card/95 flex justify-between gap-3 mt-auto">
           {tenant?.is_active ? (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 border-rose-200 dark:border-rose-500/20"
               onClick={() => toggleStatusMutation.mutate(tenant.id)}
             >
               Suspend
             </Button>
           ) : (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="text-emerald-500 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20"
               onClick={() => toggleStatusMutation.mutate(tenant.id)}
             >
               Reactivate
             </Button>
           )}
-          
+
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => toast.success("Impersonating Platform Admin...")}>Impersonate</Button>
-            <Button className="bg-[#0A3A2A] hover:bg-[#06261c] text-white" onClick={() => toast.success("Edit details modal opening...")}>Edit Details</Button>
+            <Button
+              variant="outline"
+              disabled
+              title="Impersonation requires elevated backend access — coming soon"
+              className="opacity-50 cursor-not-allowed"
+            >
+              Impersonate
+            </Button>
+            <Button
+              className="bg-[#0A3A2A] hover:bg-[#06261c] text-white"
+              onClick={isEditing ? handleSaveEdit : handleStartEdit}
+              disabled={editTenantMutation.isPending}
+            >
+              {isEditing ? (editTenantMutation.isPending ? "Saving..." : "Save Changes") : "Edit Details"}
+            </Button>
           </div>
         </div>
       </SheetContent>
