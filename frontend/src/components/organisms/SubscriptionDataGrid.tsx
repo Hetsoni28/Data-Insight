@@ -20,6 +20,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import api from "@/lib/api"
 import { PaginationControls } from "@/components/molecules/PaginationControls"
+import { exportToCsv } from "@/lib/exportToCsv"
 
 interface DataGridProps {
   data: any[]
@@ -109,7 +110,21 @@ export function SubscriptionDataGrid({ data, isLoading }: DataGridProps) {
             <Filter className="h-4 w-4 mr-2" />
             Advanced Filters
           </Button>
-          <Button variant="outline" className="h-10 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 hidden sm:flex" onClick={() => toast.success("Exporting visible rows...")}>
+          <Button variant="outline" className="h-10 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 hidden sm:flex" onClick={() => {
+            const rows = filteredData.map((t: any) => ({
+              name: t.name,
+              plan: t.plan,
+              status: t.status,
+              mrr: t.mrr ?? "",
+              users_count: t.users_count ?? "",
+              storage_used: t.storage_used ?? "",
+              created_at: t.created_at ? new Date(t.created_at).toLocaleDateString() : "",
+              current_period_end: t.current_period_end ? new Date(t.current_period_end).toLocaleDateString() : "",
+            }))
+            const ok = exportToCsv(`subscriptions_export_${new Date().toISOString().slice(0, 10)}.csv`, rows)
+            if (ok) toast.success(`Exported ${rows.length} subscriptions to CSV`)
+            else toast.error("No subscriptions to export")
+          }}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>

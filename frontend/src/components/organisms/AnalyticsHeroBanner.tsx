@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -64,7 +64,35 @@ export function AnalyticsHeroBanner({ onRefresh, onFilterChange }: AnalyticsHero
   };
 
   const handleExport = (format: string) => {
-    toast.success(`Exporting as ${format}`, { description: "Your file will be ready shortly." });
+    if (format === "PDF") {
+      toast.info("Opening print dialog...");
+      window.print();
+      return;
+    }
+    if (format === "CSV") {
+      // Export the current active filter configuration as a reference CSV
+      const rows = [{ date_range: dateLabel, org_filter: orgLabel, exported_at: new Date().toISOString() }];
+      const headers = Object.keys(rows[0]);
+      const csvLines = [headers.join(","), ...rows.map(r => headers.map(h => String((r as any)[h])).join(","))];
+      const blob = new Blob([csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `analytics_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+      toast.success("Analytics config exported as CSV");
+      return;
+    }
+    if (format === "Shareable Link") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("dateRange", dateRange);
+      url.searchParams.set("orgFilter", orgFilter);
+      navigator.clipboard.writeText(url.toString()).then(() => {
+        toast.success("Shareable link copied to clipboard!", { description: `Filters: ${dateLabel} · ${orgLabel}` });
+      }).catch(() => {
+        toast.error("Failed to copy link");
+      });
+    }
   };
 
   const dateLabel = DATE_OPTIONS.find((o) => o.value === dateRange)?.label ?? "Last 30 Days";

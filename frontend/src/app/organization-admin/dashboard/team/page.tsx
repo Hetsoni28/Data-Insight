@@ -8,6 +8,7 @@ import { Users, Settings, ShieldAlert, BarChart3, Mail, Download, Plus, Sparkles
 import { Button } from "@/components/ui/button"
 import api from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
+import { exportToCsv } from "@/lib/exportToCsv"
 
 
 
@@ -119,7 +120,19 @@ export default function TeamManagementPage() {
             </p>
           </div>
           <div className="flex items-center gap-3 relative z-10 w-full md:w-auto">
-            <Button onClick={() => toast.success("Exporting team data...")} variant="outline" className="gap-2 rounded-xl border-slate-200 dark:border-white/10 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 font-bold text-xs shadow-xs flex-1 md:flex-none">
+            <Button onClick={() => {
+              const rows = members.map((m: any) => ({
+                name: m.name || m.full_name || "",
+                email: m.email || "",
+                role: m.role || "",
+                department: m.department || "",
+                status: m.is_active ? "Active" : "Inactive",
+                joined: m.created_at ? new Date(m.created_at).toLocaleDateString() : "",
+              }))
+              const ok = exportToCsv(`team_export_${new Date().toISOString().slice(0, 10)}.csv`, rows)
+              if (ok) toast.success(`Exported ${rows.length} team members to CSV`)
+              else toast.error("No team members to export")
+            }} variant="outline" className="gap-2 rounded-xl border-slate-200 dark:border-white/10 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 font-bold text-xs shadow-xs flex-1 md:flex-none">
               <Download className="h-4 w-4" />
               Export
             </Button>

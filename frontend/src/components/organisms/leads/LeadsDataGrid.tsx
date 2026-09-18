@@ -1,15 +1,14 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { motion } from "framer-motion"
-import { 
-  Search, Filter, Download, Building2, ChevronRight
-} from "lucide-react"
+import { Search, Download, Building2, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Lead, LeadStatus, StatusBadge, STATUS_CONFIG, PIPELINE_ORDER, LeadDetailsDrawer } from "./LeadDetailsDrawer"
 import { toast } from "sonner"
+import { exportToCsv } from "@/lib/exportToCsv"
 
 interface LeadsDataGridProps {
   data: Lead[]
@@ -22,10 +21,26 @@ interface LeadsDataGridProps {
 
 export function LeadsDataGrid({ data, isLoading, statusFilter, search, setSearch, onRefresh }: LeadsDataGridProps) {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
-  
-  // Note: Filtering is handled server-side via React Query for status/search, 
+
+  const handleExportCsv = () => {
+    const rows = data.map(lead => ({
+      lead_id: lead.lead_id,
+      company_name: lead.company_name,
+      contact_person: lead.contact_person,
+      business_email: lead.business_email,
+      phone: lead.phone || "",
+      status: lead.status,
+      plan_interest: lead.plan_interest || "",
+      created_at: lead.created_at ? new Date(lead.created_at).toLocaleDateString() : "",
+    }))
+    const ok = exportToCsv(`leads_export_${new Date().toISOString().slice(0,10)}.csv`, rows)
+    if (ok) toast.success(`Exported ${rows.length} leads to CSV`)
+    else toast.error("No leads to export")
+  }
+
+  // Note: Filtering is handled server-side via React Query for status/search,
   // but we can add advanced client-side filters if we wanted to later.
-  
+
   function fmtDate(d: string | null) {
     if (!d) return "—"
     return new Date(d).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })
@@ -50,15 +65,15 @@ export function LeadsDataGrid({ data, isLoading, statusFilter, search, setSearch
       <div className="p-4 border-b border-slate-200/60 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-white/[0.02]">
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input 
-            placeholder="Search by company, contact, email, or lead ID..." 
+          <Input
+            placeholder="Search by company, contact, email, or lead ID..."
             className="pl-9 h-10 bg-white dark:bg-white/5 border-slate-200/60 dark:border-white/10 dark:text-white dark:placeholder:text-slate-500 rounded-lg"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-10 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 rounded-lg" onClick={() => toast.success("Exporting leads as CSV...")}>
+          <Button variant="outline" className="h-10 border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 rounded-lg" onClick={handleExportCsv}>
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>

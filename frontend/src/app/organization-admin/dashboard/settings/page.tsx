@@ -8,7 +8,6 @@ import {
   CreditCard, Bell, ScrollText, Settings, Upload, Save,
   MessageSquare, Cloud, Mail, AlertTriangle
 } from "lucide-react";
-import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,8 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import api from "@/lib/api";
 
 interface TenantProfile {
   id: string;
@@ -38,7 +36,6 @@ interface TenantBranding {
 }
 
 export default function OrganizationSettingsPage() {
-  const { token } = useAuthStore();
   const queryClient = useQueryClient();
   const [isDirty, setIsDirty] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
@@ -56,23 +53,14 @@ export default function OrganizationSettingsPage() {
     setTestingConnection(true);
     setTestResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/tenant-settings/data-connections/test`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({
-          provider,
-          ...dbCredentials,
-          port: dbCredentials.port ? parseInt(dbCredentials.port) : undefined
-        })
+      const { data } = await api.post("/tenant-settings/data-connections/test", {
+        provider,
+        ...dbCredentials,
+        port: dbCredentials.port ? parseInt(dbCredentials.port) : undefined
       });
-      const data = await res.json();
-      if (res.ok) {
-        setTestResult({ status: 'success', message: data.message });
-      } else {
-        setTestResult({ status: 'error', message: data.detail || 'Connection failed' });
-      }
-    } catch (e) {
-      setTestResult({ status: 'error', message: 'Network error occurred' });
+      setTestResult({ status: 'success', message: data.message });
+    } catch (err: any) {
+      setTestResult({ status: 'error', message: err?.response?.data?.detail || 'Connection failed' });
     } finally {
       setTestingConnection(false);
     }
@@ -82,17 +70,14 @@ export default function OrganizationSettingsPage() {
     setTestingConnection(true);
     setTestResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/tenant-settings/advanced/verify-domain`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({ domain: advancedConfig?.custom_domain })
+      const { data } = await api.post("/tenant-settings/advanced/verify-domain", {
+        domain: advancedConfig?.custom_domain
       });
-      const data = await res.json();
       setTestResult({ status: data.status, message: data.message });
       if (data.status === 'verified') {
-         setAdvancedConfig({...advancedConfig, domain_verified: true});
+        setAdvancedConfig({...advancedConfig, domain_verified: true});
       }
-    } catch (e) {
+    } catch (err: any) {
       setTestResult({ status: 'error', message: 'Verification failed' });
     } finally {
       setTestingConnection(false);
@@ -103,24 +88,16 @@ export default function OrganizationSettingsPage() {
     setTestingConnection(true);
     try {
       const key = provider === 'slack' ? apiKeys.slack : apiKeys.salesforce;
-      const res = await fetch(`${API_BASE_URL}/api/v1/tenant-settings/integrations/connect`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({ provider, api_key: key })
-      });
-      const data = await res.json();
-      if (res.ok) {
-         setTestResult({ status: 'success', message: data.message });
-         setIntegrations({...integrations, [`${provider}_enabled`]: true});
-      } else {
-         setTestResult({ status: 'error', message: data.detail || 'Connection failed' });
-      }
+      const { data } = await api.post("/tenant-settings/integrations/connect", { provider, api_key: key });
+      setTestResult({ status: 'success', message: data.message });
+      setIntegrations({...integrations, [`${provider}_enabled`]: true});
+    } catch (err: any) {
+      setTestResult({ status: 'error', message: err?.response?.data?.detail || 'Connection failed' });
     } finally {
       setTestingConnection(false);
     }
   };
 
-  
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -130,20 +107,13 @@ export default function OrganizationSettingsPage() {
     formData.append("file", file);
     
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/tenant-settings/branding/logo`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
+      await api.post("/tenant-settings/branding/logo", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Logo uploaded successfully");
-        queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
-      } else {
-        toast.error(data.detail || "Failed to upload logo");
-      }
-    } catch (err) {
-      toast.error("Network error during upload");
+      toast.success("Logo uploaded successfully");
+      queryClient.invalidateQueries({ queryKey: ['orgSettings'] });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || "Failed to upload logo");
     } finally {
       setTestingConnection(false);
     }
@@ -152,13 +122,10 @@ export default function OrganizationSettingsPage() {
   const testNotification = async (type: string) => {
     setTestingConnection(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/tenant-settings/notifications/test`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({ type })
-      });
-      const data = await res.json();
+      const { data } = await api.post("/tenant-settings/notifications/test", { type });
       setTestResult({ status: 'success', message: data.message });
+    } catch (err: any) {
+      setTestResult({ status: 'error', message: err?.response?.data?.detail || 'Failed to send test notification' });
     } finally {
       setTestingConnection(false);
     }
@@ -202,70 +169,60 @@ export default function OrganizationSettingsPage() {
   }, []);
 
   useEffect(() => {
-    if (!token) return;
-    
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const [profileRes, brandingRes, secRes, dataRes, intRes, notifRes, advRes, auditRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/v1/tenant-settings/profile`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/v1/tenant-settings/branding`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/v1/tenant-settings/security`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/v1/tenant-settings/data-connections`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/v1/tenant-settings/integrations`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/v1/tenant-settings/notifications`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/v1/tenant-settings/advanced`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/v1/tenant-settings/audit-logs`, { headers: { Authorization: `Bearer ${token}` } })
+        const [profileRes, brandingRes, secRes, dataRes, intRes, notifRes, advRes, auditRes] = await Promise.allSettled([
+          api.get("/tenant-settings/profile"),
+          api.get("/tenant-settings/branding"),
+          api.get("/tenant-settings/security"),
+          api.get("/tenant-settings/data-connections"),
+          api.get("/tenant-settings/integrations"),
+          api.get("/tenant-settings/notifications"),
+          api.get("/tenant-settings/advanced"),
+          api.get("/tenant-settings/audit-logs"),
         ]);
 
-        if (profileRes.ok) {
-          const data = await profileRes.json();
+        if (profileRes.status === "fulfilled") {
+          const data = profileRes.value.data;
           setProfile(data);
           setName(data.name || "");
           setIndustry(data.industry || "");
           setTimezone(data.timezone || "UTC");
           setCurrency(data.currency || "USD");
         }
-        
-        if (brandingRes.ok) {
-          const data = await brandingRes.json();
+        if (brandingRes.status === "fulfilled") {
+          const data = brandingRes.value.data;
           setBranding(data);
           setLogoUrl(data.logo_url || "");
           setPrimaryColor(data.white_label_config?.primary_color || "#059669");
         }
-        if (secRes.ok) setSecurityConfig(await secRes.json());
-        if (dataRes.ok) setDataConnections(await dataRes.json());
-        if (intRes.ok) setIntegrations(await intRes.json());
-        if (notifRes.ok) setNotifications(await notifRes.json());
-        if (advRes.ok) setAdvancedConfig(await advRes.json());
-        if (auditRes.ok) setAuditLogs(await auditRes.json());
+        if (secRes.status === "fulfilled") setSecurityConfig(secRes.value.data);
+        if (dataRes.status === "fulfilled") setDataConnections(dataRes.value.data);
+        if (intRes.status === "fulfilled") setIntegrations(intRes.value.data);
+        if (notifRes.status === "fulfilled") setNotifications(notifRes.value.data);
+        if (advRes.status === "fulfilled") setAdvancedConfig(advRes.value.data);
+        if (auditRes.status === "fulfilled") setAuditLogs(auditRes.value.data);
       } catch (err) {
-        console.error("Failed to load settings:", err);
+        console.error("[SettingsPage] Failed to load settings:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchSettings();
-  }, [token]);
+  }, []);
 
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/tenant-settings/profile`, {
-        method: 'PATCH',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name, industry, timezone, currency })
-      });
-      if (res.ok) {
-        toast.success("Profile saved successfully"); queryClient.invalidateQueries({ queryKey: ["orgSettings"] }); setIsDirty(false);
-      }
-    } catch (err) {
+      await api.patch("/tenant-settings/profile", { name, industry, timezone, currency });
+      toast.success("Profile saved successfully");
+      queryClient.invalidateQueries({ queryKey: ["orgSettings"] });
+      setIsDirty(false);
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to save profile");
+      toast.error(err?.response?.data?.detail || "Failed to save profile");
     } finally {
       setSaving(false);
     }
@@ -274,20 +231,11 @@ export default function OrganizationSettingsPage() {
   const handleSaveConfig = async (endpoint: string, configData: any) => {
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/tenant-settings/${endpoint}`, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ config: configData })
-      });
-      if (res.ok) {
-        toast.success("Settings saved successfully");
-      } else {
-        const body = await res.json().catch(() => ({}));
-        toast.error(body?.detail || "Failed to save settings");
-      }
-    } catch (err) {
+      await api.patch(`/tenant-settings/${endpoint}`, { config: configData });
+      toast.success("Settings saved successfully");
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to save settings. Please try again.");
+      toast.error(err?.response?.data?.detail || "Failed to save settings");
     } finally {
       setSaving(false);
     }
@@ -296,23 +244,16 @@ export default function OrganizationSettingsPage() {
   const handleSaveBranding = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/tenant-settings/branding`, {
-        method: 'PATCH',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          logo_url: logoUrl,
-          white_label_config: { primary_color: primaryColor }
-        })
+      await api.patch("/tenant-settings/branding", {
+        logo_url: logoUrl,
+        white_label_config: { primary_color: primaryColor }
       });
-      if (res.ok) {
-        toast.success("Branding saved successfully"); queryClient.invalidateQueries({ queryKey: ["orgSettings"] }); setIsDirty(false);
-      }
-    } catch (err) {
+      toast.success("Branding saved successfully");
+      queryClient.invalidateQueries({ queryKey: ["orgSettings"] });
+      setIsDirty(false);
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to save branding");
+      toast.error(err?.response?.data?.detail || "Failed to save branding");
     } finally {
       setSaving(false);
     }
