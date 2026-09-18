@@ -279,10 +279,15 @@ export default function OrganizationSettingsPage() {
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ config: configData })
       });
-      if (res.ok) alert("Settings saved successfully");
+      if (res.ok) {
+        toast.success("Settings saved successfully");
+      } else {
+        const body = await res.json().catch(() => ({}));
+        toast.error(body?.detail || "Failed to save settings");
+      }
     } catch (err) {
       console.error(err);
-      alert("Failed to save settings");
+      toast.error("Failed to save settings. Please try again.");
     } finally {
       setSaving(false);
     }

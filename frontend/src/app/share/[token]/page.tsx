@@ -63,7 +63,10 @@ export default function SharePage() {
     try {
       const ep = type === "excel" ? "excel-download" : "clean-download"
       const res = await fetch(`/api/v1/share-links/${token}/${ep}`)
-      if (!res.ok) { alert("Download failed."); return }
+      if (!res.ok) {
+        setError("Download failed. The file may no longer be available.")
+        return
+      }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
@@ -71,6 +74,8 @@ export default function SharePage() {
       a.download = type === "excel" ? "AI_Report.xlsx" : "Clean_Data.zip"
       document.body.appendChild(a); a.click(); a.remove()
       URL.revokeObjectURL(url)
+    } catch {
+      setError("Download failed. Please check your connection and try again.")
     } finally { setDl(null) }
   }
 
