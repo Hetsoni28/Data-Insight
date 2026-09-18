@@ -35,6 +35,9 @@ export default function NotificationsPage() {
     try {
       const data = await NotificationService.getNotifications({ search: searchQuery, category: activeCategory !== 'All' ? activeCategory : undefined });
       setNotifications(data);
+    } catch (err) {
+      console.error("[NotificationsPage] Failed to load notifications feed:", err);
+      setNotifications([]); // clear stale data so UI shows empty state
     } finally {
       setIsLoadingFeed(false);
     }

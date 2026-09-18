@@ -217,7 +217,15 @@ export function SubscriptionDetailsDrawer({ isOpen, onClose, tenant }: { isOpen:
             Cancel Subscription
           </Button>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => toast.success("Opening Stripe Dashboard in new tab...")}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const stripeUrl = tenant?.stripe_customer_id
+                  ? `https://dashboard.stripe.com/customers/${tenant.stripe_customer_id}`
+                  : "https://dashboard.stripe.com/customers"
+                window.open(stripeUrl, "_blank", "noopener,noreferrer")
+              }}
+            >
               <ExternalLink className="w-4 h-4 mr-2" /> Stripe Dashboard
             </Button>
           </div>
