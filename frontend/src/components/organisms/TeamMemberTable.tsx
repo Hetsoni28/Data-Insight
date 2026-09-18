@@ -4,12 +4,39 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
 import { useMutation } from "@tanstack/react-query"
-import { MoreVertical, Search, Filter, Mail, ShieldAlert, MonitorPlay, Activity, Check } from "lucide-react"
+import {
+  MoreVertical, Search, Filter, Mail, ShieldAlert, MonitorPlay, Activity,
+  Check, X, Loader2, ChevronRight, AlertCircle, CheckCircle2
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import api from "@/lib/api"
 
-export function TeamMemberTable({ members: initialMembers, departments }: { members: any[], departments: any[] }) {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function parseEmails(raw: string): string[] {
+  return raw
+    .split(/[\n,;]+/)
+    .map(e => e.trim().toLowerCase())
+    .filter(e => e.includes("@") && e.includes("."))
+}
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface InviteResult {
+  email: string
+  status: "success" | "error"
+  message: string
+}
+
+interface Props {
+  members: any[]
+  departments: any[]
+  /** Called when user clicks "Go to Invitation Center" link */
+  onOpenInvitationCenter?: () => void
+}
+
+export function TeamMemberTable({ members: initialMembers, departments, onOpenInvitationCenter }: Props) {
   const [members, setMembers] = useState<any[]>(initialMembers)
   const [searchTerm, setSearchTerm] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -18,6 +45,66 @@ export function TeamMemberTable({ members: initialMembers, departments }: { memb
   const [deptFilter, setDeptFilter] = useState("All")
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 
+  // ── Bulk Invite state ─────────────────────────────────────────────────────
+  const [isBulkInviteOpen, setIsBulkInviteOpen] = useState(false)
+  const [bulkEmailsRaw, setBulkEmailsRaw] = useState("")
+  const [bulkRole, setBulkRole] = useState("analyst")
+  const [isSending, setIsSending] = useState(false)
+  const [inviteResults, setInviteResults] = useState<InviteResult[] | null>(null)
+
+  const parsedEmails = parseEmails(bulkEmailsRaw)
+  const validCount = parsedEmails.length
+
+  const handleBulkInvite = async () => {
+    if (validCount === 0) {
+      toast.error("Enter at least one valid email address.")
+      return
+    }
+    setIsSending(true)
+    setInviteResults(null)
+
+    const results = await Promise.allSettled(
+      parsedEmails.map(email =>
+        api.post("/invitations", { email, role: bulkRole })
+      )
+    )
+
+    const summary: InviteResult[] = results.map((result, i) => {
+      if (result.status === "fulfilled") {
+        return { email: parsedEmails[i], status: "success", message: "Invitation sent" }
+      } else {
+        const detail =
+          result.reason?.response?.data?.detail ||
+          result.reason?.response?.data?.message ||
+          "Failed to send"
+        return { email: parsedEmails[i], status: "error", message: detail }
+      }
+    })
+
+    setInviteResults(summary)
+    setIsSending(false)
+
+    const successCount = summary.filter(r => r.status === "success").length
+    const errorCount = summary.filter(r => r.status === "error").length
+
+    if (successCount > 0 && errorCount === 0) {
+      toast.success(`${successCount} invitation${successCount > 1 ? "s" : ""} sent successfully!`)
+      setBulkEmailsRaw("")
+    } else if (successCount > 0) {
+      toast.warning(`${successCount} sent, ${errorCount} failed — review results below.`)
+    } else {
+      toast.error("All invitations failed — review errors below.")
+    }
+  }
+
+  const handleCloseBulkInvite = () => {
+    setIsBulkInviteOpen(false)
+    setInviteResults(null)
+    setBulkEmailsRaw("")
+    setBulkRole("analyst")
+  }
+
+  // ── Role change mutation ──────────────────────────────────────────────────
   const changeRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
       const res = await api.patch(`/tenant-team/members/${userId}/role`, { role })
@@ -34,100 +121,244 @@ export function TeamMemberTable({ members: initialMembers, departments }: { memb
     }
   })
 
+  // ── Filter logic ──────────────────────────────────────────────────────────
   const filteredMembers = members.filter(m => {
-    const matchesSearch = m.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          m.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          m.employee_id?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesRole = roleFilter === "All" || (m.role || "").toLowerCase() === roleFilter.toLowerCase();
-    
-    // Some mock logic since team members usually have is_active or status
-    const matchesStatus = statusFilter === "All" || 
-      (statusFilter === "Active" ? (m.status === 'active' || m.is_active !== false) : (m.status === 'suspended' || m.is_active === false));
-      
-    const matchesDept = deptFilter === "All" || (m.department || "Unassigned").toLowerCase() === deptFilter.toLowerCase();
+    const matchesSearch =
+      m.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.employee_id?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    return matchesSearch && matchesRole && matchesStatus && matchesDept;
+    const matchesRole = roleFilter === "All" || (m.role || "").toLowerCase() === roleFilter.toLowerCase()
+
+    const matchesStatus = statusFilter === "All" ||
+      (statusFilter === "Active" ? (m.status === "active" || m.is_active !== false) : (m.status === "suspended" || m.is_active === false))
+
+    const matchesDept = deptFilter === "All" || (m.department || "Unassigned").toLowerCase() === deptFilter.toLowerCase()
+
+    return matchesSearch && matchesRole && matchesStatus && matchesDept
   })
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden">
-      
-      {/* Table Toolbar */}
+
+      {/* ── Table Toolbar ── */}
       <div className="p-5 border-b border-slate-200/80 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 bg-white/30 dark:bg-slate-900/30">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input 
-            placeholder="Search by name, email, or employee ID..." 
+          <Input
+            placeholder="Search by name, email, or employee ID..."
             className="pl-10 h-10 bg-white dark:bg-black/20 border-slate-200/80 dark:border-white/10 rounded-xl text-sm focus-visible:ring-emerald-500/50 shadow-xs"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2.5 w-full md:w-auto">
-          <Button 
-            onClick={() => setIsFilterOpen(!isFilterOpen)} 
-            variant={isFilterOpen ? "default" : "outline"} 
-            className={`gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none shadow-sm ${!isFilterOpen ? 'text-slate-600 dark:text-slate-300' : ''}`}
+          <Button
+            onClick={() => { setIsFilterOpen(v => !v); if (isBulkInviteOpen) handleCloseBulkInvite() }}
+            variant={isFilterOpen ? "default" : "outline"}
+            className={`gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none shadow-sm ${!isFilterOpen ? "text-slate-600 dark:text-slate-300" : ""}`}
           >
             <Filter className="w-4 h-4 text-slate-400" />
             Filters
           </Button>
-          <Button onClick={() => toast.info("Bulk invite mode enabled. Use the Invitation Center for mass invites.")} variant="outline" className="gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none">
+          <Button
+            onClick={() => { setIsBulkInviteOpen(v => !v); setIsFilterOpen(false) }}
+            variant={isBulkInviteOpen ? "default" : "outline"}
+            className={`gap-2 rounded-xl border-slate-200/80 dark:border-white/10 dark:bg-white/5 font-semibold text-xs h-10 flex-1 md:flex-none ${isBulkInviteOpen ? "" : "text-slate-600 dark:text-slate-300"}`}
+          >
             <Mail className="w-4 h-4 text-emerald-500" />
             Bulk Invite
           </Button>
         </div>
       </div>
 
-      {/* Advanced Filters Panel */}
+      {/* ── Advanced Filters Panel ── */}
       {isFilterOpen && (
         <div className="p-4 border-b border-slate-200/80 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex flex-wrap gap-4 text-sm">
-            <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Role</label>
-                <select 
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
-                >
-                    <option value="All">All Roles</option>
-                    <option value="owner">Owner</option>
-                    <option value="org_admin">Org Admin</option>
-                    <option value="manager">Manager</option>
-                    <option value="analyst">Analyst</option>
-                    <option value="viewer">Viewer</option>
-                </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Department</label>
-                <select 
-                    value={deptFilter}
-                    onChange={(e) => setDeptFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
-                >
-                    <option value="All">All Departments</option>
-                    {departments.map((dept: any, i) => (
-                      <option key={i} value={dept.name || dept}>{dept.name || dept}</option>
-                    ))}
-                    <option value="Unassigned">Unassigned</option>
-                </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status</label>
-                <select 
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
-                >
-                    <option value="All">All Statuses</option>
-                    <option value="Active">Active</option>
-                    <option value="Suspended">Suspended</option>
-                </select>
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Role</label>
+            <select
+              value={roleFilter}
+              onChange={e => setRoleFilter(e.target.value)}
+              className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+            >
+              <option value="All">All Roles</option>
+              <option value="owner">Owner</option>
+              <option value="org_admin">Org Admin</option>
+              <option value="manager">Manager</option>
+              <option value="analyst">Analyst</option>
+              <option value="viewer">Viewer</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Department</label>
+            <select
+              value={deptFilter}
+              onChange={e => setDeptFilter(e.target.value)}
+              className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+            >
+              <option value="All">All Departments</option>
+              {departments.map((dept: any, i) => (
+                <option key={i} value={dept.name || dept}>{dept.name || dept}</option>
+              ))}
+              <option value="Unassigned">Unassigned</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status</label>
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-md px-3 py-1.5 h-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm min-w-[140px]"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Suspended">Suspended</option>
+            </select>
+          </div>
         </div>
       )}
 
-      {/* Table Content */}
+      {/* ── Bulk Invite Panel ── */}
+      <AnimatePresence>
+        {isBulkInviteOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="p-5 border-b border-slate-200/80 dark:border-white/5 bg-emerald-50/40 dark:bg-emerald-500/[0.04]">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-emerald-500" />
+                    Bulk Invite Team Members
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Enter one email per line, or separate with commas. Each recipient gets an individual invitation email.
+                  </p>
+                </div>
+                <button
+                  onClick={handleCloseBulkInvite}
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Email input + role selector row */}
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+                    Email Addresses
+                  </label>
+                  <textarea
+                    value={bulkEmailsRaw}
+                    onChange={e => { setBulkEmailsRaw(e.target.value); setInviteResults(null) }}
+                    placeholder={"alice@company.com\nbob@company.com, carol@company.com"}
+                    rows={4}
+                    disabled={isSending}
+                    className="w-full rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-black/20 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm font-mono disabled:opacity-60"
+                  />
+                  {bulkEmailsRaw.trim() && (
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                      {validCount} valid email{validCount !== 1 ? "s" : ""} detected
+                      {parseEmails(bulkEmailsRaw).length !== bulkEmailsRaw.split(/[\n,;]+/).filter(e => e.trim()).length && (
+                        <span className="text-amber-600 dark:text-amber-400 ml-1">
+                          (some entries look invalid and will be skipped)
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                <div className="md:w-48 flex flex-col gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">
+                      Assign Role
+                    </label>
+                    <select
+                      value={bulkRole}
+                      onChange={e => setBulkRole(e.target.value)}
+                      disabled={isSending}
+                      className="w-full bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 dark:text-white rounded-xl px-3 py-2 h-10 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm disabled:opacity-60"
+                    >
+                      <option value="manager">Manager</option>
+                      <option value="analyst">Analyst</option>
+                      <option value="viewer">Viewer</option>
+                    </select>
+                    <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                      Applied to all addresses in this batch
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handleBulkInvite}
+                    disabled={validCount === 0 || isSending}
+                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 h-10 gap-2 disabled:opacity-50 mt-auto"
+                  >
+                    {isSending ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+                    ) : (
+                      <><Mail className="w-4 h-4" /> Send {validCount > 0 ? `${validCount} ` : ""}Invitation{validCount !== 1 ? "s" : ""}</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Per-email results */}
+              {inviteResults && (
+                <div className="mt-4 rounded-xl border border-slate-200/80 dark:border-white/10 overflow-hidden">
+                  <div className="px-3 py-2 bg-slate-100/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Results</span>
+                    <div className="flex items-center gap-3 text-[11px]">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                        {inviteResults.filter(r => r.status === "success").length} sent
+                      </span>
+                      {inviteResults.some(r => r.status === "error") && (
+                        <span className="text-rose-600 dark:text-rose-400 font-bold">
+                          {inviteResults.filter(r => r.status === "error").length} failed
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="max-h-40 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
+                    {inviteResults.map((r, i) => (
+                      <div key={i} className="flex items-center gap-3 px-3 py-2 text-xs bg-white dark:bg-black/10">
+                        {r.status === "success" ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                        )}
+                        <span className="font-mono text-slate-700 dark:text-slate-300 flex-1 truncate">{r.email}</span>
+                        <span className={`text-[11px] font-medium ${r.status === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                          {r.message}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Link to Invitation Center */}
+              {onOpenInvitationCenter && (
+                <button
+                  onClick={() => { onOpenInvitationCenter(); handleCloseBulkInvite() }}
+                  className="mt-3 text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold flex items-center gap-1"
+                >
+                  View all pending invitations in Invitation Center
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Table Content ── */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
           <thead className="bg-slate-50/50 dark:bg-slate-800/30 text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-white/5 tracking-wider">
@@ -149,13 +380,13 @@ export function TeamMemberTable({ members: initialMembers, departments }: { memb
               </tr>
             ) : (
               <AnimatePresence mode="popLayout">
-                {filteredMembers.map((member) => (
-                  <motion.tr 
+                {filteredMembers.map(member => (
+                  <motion.tr
                     layout
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    key={member.id} 
+                    key={member.id}
                     className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors group"
                   >
                     <td className="px-6 py-4">
@@ -180,10 +411,10 @@ export function TeamMemberTable({ members: initialMembers, departments }: { memb
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 shadow-2xs">
-                        {member.role === 'org_admin' ? (
+                        {member.role === "org_admin" ? (
                           <><ShieldAlert className="w-3 h-3 mr-1 text-rose-500" /> Admin</>
                         ) : (
-                          <span className="capitalize">{member.role.replace('_', ' ')}</span>
+                          <span className="capitalize">{member.role.replace("_", " ")}</span>
                         )}
                       </span>
                     </td>
@@ -191,7 +422,7 @@ export function TeamMemberTable({ members: initialMembers, departments }: { memb
                       {member.department || <span className="italic text-slate-400 font-normal">Unassigned</span>}
                     </td>
                     <td className="px-6 py-4">
-                      {member.status === 'Active' ? (
+                      {member.status === "Active" ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20 shadow-2xs">
                           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                           Active
@@ -219,8 +450,7 @@ export function TeamMemberTable({ members: initialMembers, departments }: { memb
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {/* Role change dropdown — only for non-org_admin members */}
-                      {member.role !== 'org_admin' && (
+                      {member.role !== "org_admin" && (
                         <div className="relative inline-block text-left">
                           <Button
                             variant="ghost"
@@ -235,7 +465,7 @@ export function TeamMemberTable({ members: initialMembers, departments }: { memb
                               <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-white/5">
                                 Change Role
                               </div>
-                              {["manager", "analyst", "viewer"].map((role) => (
+                              {["manager", "analyst", "viewer"].map(role => (
                                 <button
                                   key={role}
                                   disabled={member.role === role || changeRoleMutation.isPending}

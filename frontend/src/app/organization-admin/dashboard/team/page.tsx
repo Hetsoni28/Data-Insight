@@ -170,7 +170,11 @@ export default function TeamManagementPage() {
               transition={{ duration: 0.25 }}
             >
               {activeTab === "members" && (
-                <TeamMemberTable members={members} departments={departments} />
+                <TeamMemberTable
+                  members={members}
+                  departments={departments}
+                  onOpenInvitationCenter={() => setActiveTab("invitations")}
+                />
               )}
               {activeTab === "roles" && (
                 <TeamRoleManager roles={roles} />
