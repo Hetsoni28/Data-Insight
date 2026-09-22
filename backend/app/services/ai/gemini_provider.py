@@ -20,20 +20,18 @@ class GeminiProvider(BaseLLMProvider):
     """Deep analytical provider powered by Google Gemini models with 1M+ context."""
 
     provider_name: str = "gemini"
-    default_model: str = "gemini-2.5-flash"
+    default_model: str = "gemini-3.6-flash"
 
-    # Model fallback chain — tried in order on 503/quota errors
+    # Model fallback chain — tried in order on 503/quota/deprecated errors
     FALLBACK_MODELS: list[str] = [
-        "gemini-2.5-flash",
-        "gemini-2.5-flash-lite",
+        "gemini-3.6-flash",
         "gemini-2.0-flash",
         "gemini-1.5-flash",
     ]
 
     # Pricing per 1M tokens in USD
     PRICING: dict[str, dict[str, float]] = {
-        "gemini-2.5-flash": {"prompt": 0.075, "completion": 0.30},
-        "gemini-2.5-flash-lite": {"prompt": 0.04, "completion": 0.15},
+        "gemini-3.6-flash": {"prompt": 0.075, "completion": 0.30},
         "gemini-2.0-flash": {"prompt": 0.10, "completion": 0.40},
         "gemini-1.5-pro": {"prompt": 1.25, "completion": 5.00},
         "gemini-1.5-flash": {"prompt": 0.075, "completion": 0.30},
@@ -61,7 +59,7 @@ class GeminiProvider(BaseLLMProvider):
         return self._client
 
     def _is_retriable(self, err_str: str) -> bool:
-        """Return True if the error is a transient quota/overload error worth retrying on a lighter model."""
+        """Return True if the error should trigger the next model in the fallback chain."""
         lower = err_str.lower()
         return (
             "503" in err_str
@@ -71,6 +69,9 @@ class GeminiProvider(BaseLLMProvider):
             or "resource_exhausted" in lower
             or "429" in err_str
             or "rate" in lower
+            or "404" in err_str           # model deprecated / not found
+            or "NOT_FOUND" in err_str     # explicit deprecation message
+            or "no longer available" in lower
         )
 
     def _models_to_try(self, requested_model: str | None) -> list[str]:
