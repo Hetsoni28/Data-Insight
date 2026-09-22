@@ -20,8 +20,8 @@ class GeminiService:
         self.client = None
         if GEMINI_API_KEY:
             self.client = genai.Client(api_key=GEMINI_API_KEY)
-        self.model_name = "gemini-2.0-flash"
-        self.fallback_model = "gemini-1.5-flash"
+        self.model_name = "gemini-2.5-flash"
+        self.fallback_model = "gemini-2.0-flash"
 
     async def _get_platform_context(self, db: AsyncSession, tenant_id: str) -> str:
         """Fetches live DB data to inject into the Gemini system prompt"""
