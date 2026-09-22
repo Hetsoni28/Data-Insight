@@ -117,7 +117,11 @@ export interface ReportSchedule {
 export class ReportScheduleService {
   static async list(): Promise<ReportSchedule[]> {
     const response = await api.get("/tenant-reports/schedules");
-    return response.data;
+    // Backend may return { data: [...] } envelope or raw array
+    const raw = response.data;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.data)) return raw.data;
+    return [];
   }
 
   static async create(data: {
@@ -130,7 +134,7 @@ export class ReportScheduleService {
     email_recipients?: string[];
   }): Promise<ReportSchedule> {
     const response = await api.post("/tenant-reports/schedules", data);
-    return response.data;
+    return response.data?.data ?? response.data;
   }
 
   static async toggle(scheduleId: string): Promise<ReportSchedule> {

@@ -78,12 +78,7 @@ export default function ReportsCenterPage() {
     }
   }
 
-  useEffect(() => {
-    fetchData()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Debounce search query changes
+  // Debounce search query changes — also runs on initial mount (0ms delay first render)
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchData(activeFilters, searchQuery)
@@ -103,14 +98,21 @@ export default function ReportsCenterPage() {
 
   const handleRowAction = async (action: string, id: string) => {
     if (action === 'delete' || action === 'archive') {
-      if (!confirm(`Are you sure you want to ${action} this report?`)) return
-      try {
-        await api.post(`/tenant-reports/${id}/action/delete`)
-        toast.success(`Report ${action}d successfully`)
-        fetchData()
-      } catch (e) {
-        toast.error(`Failed to ${action} report`)
-      }
+      toast(`${action === 'delete' ? 'Delete' : 'Archive'} this report?`, {
+        action: {
+          label: action === 'delete' ? 'Delete' : 'Archive',
+          onClick: async () => {
+            try {
+              await api.post(`/tenant-reports/${id}/action/delete`)
+              toast.success(`Report ${action}d successfully`)
+              fetchData()
+            } catch (e) {
+              toast.error(`Failed to ${action} report`)
+            }
+          }
+        },
+        cancel: { label: 'Cancel', onClick: () => {} }
+      })
     } else if (action === 'preview') {
       setViewingReportId(id)
       setIsViewerOpen(true)

@@ -62,16 +62,13 @@ export default function AnalystReportsCenterPage() {
   // Real-Time WebSocket Updates
   const handleWebSocketMessage = useCallback((message: any) => {
     if (!message || !message.type) return;
-    
-    // Silently refresh the reports on any relevant event
     if (message.type.startsWith("report_") || message.type.startsWith("schedule_")) {
-      // Optional: Display a toast when someone else creates a report
       if (message.type === "report_created" && message.payload?.title) {
         toast.info(`New report created: ${message.payload.title}`);
       }
       fetchData(true);
     }
-  }, []);
+  }, [fetchData]);
   
   const { isConnected } = useWebSocket({ onMessage: handleWebSocketMessage });
 
@@ -140,14 +137,21 @@ export default function AnalystReportsCenterPage() {
 
   const handleRowAction = async (action: string, id: string) => {
     if (action === 'delete' || action === 'archive') {
-      if (!confirm(`Are you sure you want to ${action} this report?`)) return
-      try {
-        await api.post(`/tenant-reports/${id}/action/delete`)
-        toast.success(`Report ${action}d successfully`)
-        fetchData()
-      } catch (e: any) {
-        toast.error(e.response?.data?.detail || `Failed to ${action} report`)
-      }
+      toast(`${action === 'delete' ? 'Delete' : 'Archive'} this report?`, {
+        action: {
+          label: action === 'delete' ? 'Delete' : 'Archive',
+          onClick: async () => {
+            try {
+              await api.post(`/tenant-reports/${id}/action/delete`)
+              toast.success(`Report ${action}d successfully`)
+              fetchData()
+            } catch (e: any) {
+              toast.error(e.response?.data?.detail || `Failed to ${action} report`)
+            }
+          }
+        },
+        cancel: { label: 'Cancel', onClick: () => {} }
+      })
     } else if (action === 'preview') {
       setViewingReportId(id)
       setIsViewerOpen(true)

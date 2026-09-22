@@ -1,7 +1,7 @@
 "use client"
 import dynamic from "next/dynamic"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import api from "@/lib/api"
 import { toast } from "sonner"
 
@@ -59,13 +59,13 @@ export default function ManagerReportsCenterPage() {
     }
   }
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [statsRes, reportsRes, actRes, schedRes] = await Promise.allSettled([
         api.get('/tenant-reports/stats'),
         ReportService.listTenantReports({
           search: searchQuery,
-          status: statusFilter,
+          status: statusFilter !== "all" ? statusFilter : undefined,
           category: categoryFilter !== "all" ? categoryFilter : undefined,
           skip: (currentPage - 1) * pageSize,
           limit: pageSize
@@ -87,16 +87,16 @@ export default function ManagerReportsCenterPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [searchQuery, statusFilter, categoryFilter, currentPage, pageSize])
 
-  // Reload when page, size, or filters change
+  // Reload when fetchData reference changes (driven by its own deps)
   useEffect(() => {
     setIsLoading(true)
     const timer = setTimeout(() => {
       fetchData()
     }, 300)
     return () => clearTimeout(timer)
-  }, [currentPage, pageSize, searchQuery, statusFilter, categoryFilter])
+  }, [fetchData])
 
   // Reset to page 1 on search or filter change
   useEffect(() => {
@@ -140,14 +140,21 @@ export default function ManagerReportsCenterPage() {
       }
     } else if (action === 'delete' || action === 'archive' || action === 'duplicate') {
       const verb = action === 'delete' ? 'delete' : action === 'archive' ? 'archive' : 'duplicate'
-      if (!confirm(`Are you sure you want to ${verb} this report?`)) return
-      try {
-        await api.post(`/tenant-reports/${id}/action/${action}`)
-        toast.success(`Report ${verb}d successfully`)
-        fetchData()
-      } catch (e) {
-        toast.error(`Failed to ${verb} report`)
-      }
+      toast(`${verb.charAt(0).toUpperCase() + verb.slice(1)} this report?`, {
+        action: {
+          label: verb.charAt(0).toUpperCase() + verb.slice(1),
+          onClick: async () => {
+            try {
+              await api.post(`/tenant-reports/${id}/action/${action}`)
+              toast.success(`Report ${verb}d successfully`)
+              fetchData()
+            } catch (e) {
+              toast.error(`Failed to ${verb} report`)
+            }
+          }
+        },
+        cancel: { label: 'Cancel', onClick: () => {} }
+      })
     }
   }
 
