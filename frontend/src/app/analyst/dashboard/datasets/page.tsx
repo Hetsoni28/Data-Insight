@@ -48,6 +48,54 @@ export default function AnalystDatasetCenterPage() {
   const [loadingActivities, setLoadingActivities] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
+
+  const fetchStats = useCallback(async (silent = false) => {
+    try {
+      if (!silent) setLoadingStats(true)
+      const res = await api.get("/tenant-datasets/stats")
+      setStats(res.data.data)
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch stats:", e.message || e)
+      }
+    } finally {
+      if (!silent) setLoadingStats(false)
+    }
+  }, [])
+
+  const fetchDatasets = useCallback(async (silent = false) => {
+    try {
+      if (!silent) setLoadingDatasets(true)
+      const query = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ""
+      const res = await api.get(`/tenant-datasets${query}`)
+      setDatasets(res.data.data ?? res.data ?? [])
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch datasets:", e.message || e)
+      }
+    } finally {
+      if (!silent) setLoadingDatasets(false)
+    }
+  }, [searchQuery])
+
+  const fetchActivities = useCallback(async (silent = false) => {
+    try {
+      if (!silent) setLoadingActivities(true)
+      const res = await api.get("/tenant-datasets/activities")
+      const combined = [
+        ...(res.data.data?.audit_logs || []),
+        ...(res.data.data?.ai_activities || [])
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      setActivities(combined.slice(0, 15))
+    } catch (e: any) {
+      if (e.name !== "CanceledError") {
+        console.warn("Failed to fetch activities:", e.message || e)
+      }
+    } finally {
+      if (!silent) setLoadingActivities(false)
+    }
+  }, [])
+
   const refreshAll = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true)
     await Promise.all([
@@ -57,7 +105,7 @@ export default function AnalystDatasetCenterPage() {
     if (!silent) setIsRefreshing(false)
     fetchActivities(silent).catch(console.error)
   }, [fetchStats, fetchDatasets, fetchActivities])
-  
+
   const handleWebSocketMessage = useCallback((message: any) => {
     if (!message || !message.type) return;
     if (message.type.startsWith("dataset_")) {
@@ -70,7 +118,7 @@ export default function AnalystDatasetCenterPage() {
       refreshAll(true);
     }
   }, [refreshAll]);
-  
+
   const { isConnected } = useWebSocket({ onMessage: handleWebSocketMessage });
 
   useEffect(() => {
@@ -95,53 +143,6 @@ export default function AnalystDatasetCenterPage() {
       return () => clearInterval(interval)
     }
   }, [datasets, refreshAll])
-
-  const fetchStats = useCallback(async (silent = false) => {
-    try {
-      if (!silent) setLoadingStats(true)
-      const res = await api.get("/tenant-datasets/stats")
-      setStats(res.data.data)
-    } catch (e: any) {
-      if (e.name !== "CanceledError") {
-        console.warn("Failed to fetch stats:", e.message || e)
-      }
-    } finally {
-      if (!silent) setLoadingStats(false)
-    }
-  }, [])
-
-  const fetchDatasets = useCallback(async (silent = false) => {
-    try {
-      if (!silent) setLoadingDatasets(true)
-      const query = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ""
-      const res = await api.get(`/tenant-datasets${query}`)
-      setDatasets(res.data.data)
-    } catch (e: any) {
-      if (e.name !== "CanceledError") {
-        console.warn("Failed to fetch datasets:", e.message || e)
-      }
-    } finally {
-      if (!silent) setLoadingDatasets(false)
-    }
-  }, [searchQuery])
-
-  const fetchActivities = useCallback(async (silent = false) => {
-    try {
-      if (!silent) setLoadingActivities(true)
-      const res = await api.get("/tenant-datasets/activities")
-      const combined = [
-        ...(res.data.data.audit_logs || []),
-        ...(res.data.data.ai_activities || [])
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      setActivities(combined.slice(0, 15))
-    } catch (e: any) {
-      if (e.name !== "CanceledError") {
-        console.warn("Failed to fetch activities:", e.message || e)
-      }
-    } finally {
-      if (!silent) setLoadingActivities(false)
-    }
-  }, [])
 
   const handleQuickAction = async (action: string) => {
     if (action === 'upload') {

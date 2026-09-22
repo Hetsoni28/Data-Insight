@@ -47,37 +47,6 @@ export default function DatasetCenterPage() {
   const [loadingActivities, setLoadingActivities] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const refreshAll = useCallback(async (silent = false) => {
-    if (!silent) setIsRefreshing(true)
-    await Promise.all([
-      fetchStats(silent),
-      fetchDatasets(silent),
-    ])
-    if (!silent) setIsRefreshing(false)
-    fetchActivities(silent).catch(console.error)
-  }, [fetchStats, fetchDatasets, fetchActivities])
-
-  useEffect(() => {
-    refreshAll()
-  }, [activeWs?.id])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchDatasets()
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
-
-  useEffect(() => {
-    const hasProcessing = datasets.some(d => d.status === 'processing' || d.status === 'uploading' || d.status === 'profiling')
-    if (hasProcessing) {
-      const interval = setInterval(() => {
-        refreshAll(true)
-      }, 3000)
-      return () => clearInterval(interval)
-    }
-  }, [datasets, refreshAll])
-
   const fetchStats = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoadingStats(true)
@@ -124,6 +93,37 @@ export default function DatasetCenterPage() {
       if (!silent) setLoadingActivities(false)
     }
   }, [])
+
+  const refreshAll = useCallback(async (silent = false) => {
+    if (!silent) setIsRefreshing(true)
+    await Promise.all([
+      fetchStats(silent),
+      fetchDatasets(silent),
+    ])
+    if (!silent) setIsRefreshing(false)
+    fetchActivities(silent).catch(console.error)
+  }, [fetchStats, fetchDatasets, fetchActivities])
+
+  useEffect(() => {
+    refreshAll()
+  }, [activeWs?.id])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchDatasets()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  useEffect(() => {
+    const hasProcessing = datasets.some(d => d.status === 'processing' || d.status === 'uploading' || d.status === 'profiling')
+    if (hasProcessing) {
+      const interval = setInterval(() => {
+        refreshAll(true)
+      }, 3000)
+      return () => clearInterval(interval)
+    }
+  }, [datasets, refreshAll])
 
   const handleQuickAction = async (action: string) => {
     if (action === 'upload') {
