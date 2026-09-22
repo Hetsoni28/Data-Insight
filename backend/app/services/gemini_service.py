@@ -20,7 +20,8 @@ class GeminiService:
         self.client = None
         if GEMINI_API_KEY:
             self.client = genai.Client(api_key=GEMINI_API_KEY)
-        self.model_name = "gemini-flash-latest"
+        self.model_name = "gemini-2.0-flash"
+        self.fallback_model = "gemini-1.5-flash"
 
     async def _get_platform_context(self, db: AsyncSession, tenant_id: str) -> str:
         """Fetches live DB data to inject into the Gemini system prompt"""
@@ -202,20 +203,37 @@ class GeminiService:
             yield "Google Gemini API key is missing. Please configure GEMINI_API_KEY in your environment."
             return
 
-        try:
-            response = await self.client.aio.models.generate_content_stream(
-                model=self.model_name,
-                contents=contents,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_instruction, temperature=0.7,
-                ),
-            )
-            async for chunk in response:
-                if chunk.text:
-                    yield chunk.text
-        except Exception as e:
-            print(f"Gemini API Error: {e!s}")
-            yield "I'm sorry, I encountered an error connecting to Google Gemini. Please ensure your API key is correctly configured."
+        models_to_try = [self.model_name, self.fallback_model]
+        last_error = None
+
+        for model in models_to_try:
+            try:
+                response = await self.client.aio.models.generate_content_stream(
+                    model=model,
+                    contents=contents,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction, temperature=0.7,
+                    ),
+                )
+                async for chunk in response:
+                    if chunk.text:
+                        yield chunk.text
+                return  # success — stop trying models
+            except Exception as e:
+                err_str = str(e)
+                print(f"Gemini API Error (model={model}): {err_str}")
+                last_error = err_str
+                # 503 / resource exhausted → try fallback model
+                if "503" in err_str or "UNAVAILABLE" in err_str or "exhausted" in err_str.lower():
+                    continue
+                # Any other error — fail immediately
+                break
+
+        # All models failed
+        if last_error and ("503" in last_error or "UNAVAILABLE" in last_error):
+            yield "Gemini is experiencing high demand right now. Please try again in a few seconds."
+        else:
+            yield "I encountered an error reaching the AI service. Please try again."
 
 
 gemini_service = GeminiService()
