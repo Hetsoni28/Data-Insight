@@ -82,8 +82,40 @@ async def get_report_stats(
         ai_res = await db.execute(ai_stmt)
         ai_reports = ai_res.scalar() or 0
 
-        # Scheduled
-        scheduled = 0
+        # Ready reports (success count)
+        ready_stmt = select(func.count(Report.id)).where(
+            *base_conditions, Report.status == "ready",
+        )
+        ready_res = await db.execute(ready_stmt)
+        ready_count = ready_res.scalar() or 0
+
+        # Error reports
+        error_stmt = select(func.count(Report.id)).where(
+            *base_conditions, Report.status == "error",
+        )
+        error_res = await db.execute(error_stmt)
+        error_count = error_res.scalar() or 0
+
+        # Success rate (exclude still-generating from denominator)
+        completed = ready_count + error_count
+        success_rate = round((ready_count / completed * 100), 1) if completed > 0 else 100.0
+
+        # Avg generation time from ready reports (updated_at - created_at)
+        time_stmt = select(
+            func.avg(
+                func.extract("epoch", Report.updated_at) - func.extract("epoch", Report.created_at)
+            )
+        ).where(*base_conditions, Report.status == "ready")
+        time_res = await db.execute(time_stmt)
+        avg_time = round(float(time_res.scalar() or 0), 1)
+
+        # Real scheduled count
+        sched_stmt = select(func.count(ReportSchedule.id)).where(
+            ReportSchedule.tenant_id == tenant_id,
+            ReportSchedule.is_active == True,
+        )
+        sched_res = await db.execute(sched_stmt)
+        scheduled = sched_res.scalar() or 0
 
         return {
             "status": "success",
@@ -91,8 +123,8 @@ async def get_report_stats(
                 "total_reports": total_reports,
                 "ai_reports": ai_reports,
                 "scheduled_reports": scheduled,
-                "success_rate": 99.8,
-                "avg_generation_time_sec": 4.2,
+                "success_rate": success_rate,
+                "avg_generation_time_sec": avg_time,
             },
         }
 
@@ -475,7 +507,6 @@ async def create_schedule(
 
 @router.get(
     "/schedules",
-    response_model=list[ReportScheduleResponse],
     summary="List Report Schedules",
     dependencies=[Depends(RequirePermission("REPORT_SCHEDULE"))],
 )
@@ -490,7 +521,26 @@ async def list_schedules(
         .order_by(desc(ReportSchedule.created_at))
     )
     res = await db.execute(stmt)
-    return res.scalars().all()
+    schedules = res.scalars().all()
+    # Return wrapped envelope so frontend service can unwrap .data
+    return {
+        "status": "success",
+        "data": [
+            {
+                "id": str(s.id),
+                "name": s.name,
+                "dataset_id": str(s.dataset_id),
+                "report_type": s.report_type,
+                "report_category": s.report_category,
+                "cron_expression": s.cron_expression,
+                "is_active": s.is_active,
+                "next_run_at": s.next_run_at.isoformat() if s.next_run_at else None,
+                "last_run_at": s.last_run_at.isoformat() if s.last_run_at else None,
+                "created_at": s.created_at.isoformat(),
+            }
+            for s in schedules
+        ],
+    }
 
 
 @router.patch(
@@ -1016,6 +1066,22 @@ async def report_action(
 
         if action_type == "delete":
             r.is_deleted = True
+        elif action_type == "archive":
+            r.status = "archived"
+        elif action_type == "duplicate":
+            # Create a copy of the report record
+            duplicate = Report(
+                tenant_id=tenant_id,
+                workspace_id=r.workspace_id,
+                dataset_id=r.dataset_id,
+                created_by_id=current_user.id,
+                title=f"{r.title} (Copy)",
+                report_type=r.report_type,
+                status=ReportStatus.generating,
+                generation_config=dict(r.generation_config or {}),
+                ai_tokens_used=0,
+            )
+            db.add(duplicate)
 
         audit = AuditLog(
             tenant_id=tenant_id,
@@ -1084,12 +1150,14 @@ async def download_report(
 
         if file_url:
             try:
-                # Need await here since we discovered it was missing earlier in worker, assuming it's async in storage
                 file_bytes = await download_file_bytes(REPORTS_BUCKET, file_url)
                 output.write(file_bytes)
                 output.seek(0)
-            except Exception:
-                pass  # Fall back to dynamic generation
+            except Exception as dl_err:
+                import logging
+                logging.getLogger(__name__).warning(
+                    f"[download_report] Storage fetch failed for {file_url}: {dl_err} — falling back to blueprint"
+                )
 
         # If no file exists in storage or it failed, generate one dynamically from ai_blueprint
         if output.tell() == 0:
