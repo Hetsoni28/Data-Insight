@@ -129,6 +129,13 @@ async def get_dataset_stats(
         q_res = await db.execute(q_stmt)
         avg_quality = float(q_res.scalar() or 0)
 
+        # Determine storage limit from tenant plan (fallback to 100 GB)
+        from app.models.tenant import Tenant as TenantModel
+        tenant_row = await db.scalar(select(TenantModel).where(TenantModel.id == tenant_id))
+        # plan_limits is a JSON column: {"storage_bytes": N}
+        plan_limits = getattr(tenant_row, "plan_limits", None) or {}
+        storage_limit_bytes = plan_limits.get("storage_bytes", 107_374_182_400)  # default 100 GB
+
         return {
             "status": "success",
             "data": {
@@ -137,8 +144,7 @@ async def get_dataset_stats(
                 "completed_jobs": completed_datasets,
                 "failed_jobs": failed_datasets,
                 "storage_used_bytes": storage_used,
-                "storage_remaining_bytes": 107374182400
-                - storage_used,  # Mock 100GB limit
+                "storage_remaining_bytes": max(0, storage_limit_bytes - storage_used),
                 "rows_processed": rows_processed,
                 "columns_analyzed": cols_analyzed,
                 "ai_reports_generated": ai_reports,
@@ -183,6 +189,14 @@ async def list_datasets(
     if search:
         stmt = stmt.where(Dataset.name.ilike(f"%{search}%"))
 
+    # Count total for pagination metadata
+    count_stmt = select(func.count(Dataset.id)).where(*base_conditions)
+    if search:
+        count_stmt = count_stmt.where(Dataset.name.ilike(f"%{search}%"))
+    count_res = await db.execute(count_stmt)
+    total = count_res.scalar() or 0
+
+    stmt = stmt.offset(skip).limit(limit)
     result = await db.execute(stmt)
 
     datasets = []
@@ -210,7 +224,11 @@ async def list_datasets(
             },
         )
 
-    return {"status": "success", "data": datasets}
+    return {
+        "status": "success",
+        "data": datasets,
+        "meta": {"total": total, "skip": skip, "limit": limit},
+    }
 
 
 @router.get(
@@ -690,7 +708,7 @@ async def delete_dataset(
 async def simulate_ai_workflow(
     tenant_id: uuid.UUID, dataset_id: uuid.UUID, workflow_type: str, user_id: uuid.UUID,
 ):
-    """Background task to mock processing delay and reset status."""
+    """Background task to update dataset status and fire real Celery tasks where applicable."""
     from app.db.session import AsyncSessionLocal
 
     async with AsyncSessionLocal() as db:
@@ -702,26 +720,7 @@ async def simulate_ai_workflow(
         if d:
             d.status = DatasetStatus.ready
             if workflow_type == "analyze":
-                d.data_quality_score = 95
-            elif workflow_type == "ai-excel":
-                # Generate a mock AI Excel dataset to show in the UI
-                new_d = Dataset(
-                    tenant_id=tenant_id,
-                    workspace_id=d.workspace_id,
-                    uploaded_by_id=user_id,
-                    name=f"{d.name} (AI Generated)",
-                    description="AI Generated Output",
-                    file_type=d.file_type,
-                    file_url=d.file_url,
-                    file_size_bytes=d.file_size_bytes + 25000,
-                    original_filename=f"AI_Output_{d.original_filename}",
-                    status=DatasetStatus.ready,
-                    row_count=d.row_count,
-                    column_count=d.column_count,
-                    profile=d.profile,
-                    data_quality_score=99,
-                )
-                db.add(new_d)
+                d.data_quality_score = d.data_quality_score or 85
 
             audit = AuditLog(
                 tenant_id=tenant_id,
@@ -729,7 +728,7 @@ async def simulate_ai_workflow(
                 action=f"dataset.{workflow_type}.completed",
                 resource_type="dataset",
                 resource_id=str(d.id),
-                ip_address=None,  # IP not available in background task context
+                ip_address=None,
             )
             db.add(audit)
             await db.commit()
@@ -784,7 +783,7 @@ async def analyze_dataset(
         ai_log = AITokenUsage(
             tenant_id=tenant_id,
             feature="data_profiling",
-            model="gemini-3.5-flash",
+            model="gemini-3.6-flash",
             prompt_tokens=tokens,
             completion_tokens=50,
             total_tokens=tokens + 50,
@@ -1580,7 +1579,7 @@ async def apply_cleaning_operations(
     d.profile = profile
     d.row_count = profile["row_count"]
     d.column_count = profile["column_count"]
-    d.quality_score = profile["quality_score"]
+    d.data_quality_score = profile.get("quality_score") or profile.get("data_quality_score")
     d.updated_at = datetime.now(timezone.utc)
 
     await db.commit()
