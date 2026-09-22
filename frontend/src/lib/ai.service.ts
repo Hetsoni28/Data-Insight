@@ -307,6 +307,10 @@ export class AIService {
 
   /**
    * Stream a chat response from Gemini with owner platform context.
+   *
+   * Backend: POST /owner/ai/chat — reads request.form() with fields:
+   *   message (str), workspace_id (str), history (JSON str), session_id? (str), files? (list)
+   * SSE format: data: {"chunk": "...", "type": "chunk"} | {"type": "done"}
    */
   static async ownerChatStream(
     question: string,
@@ -318,15 +322,23 @@ export class AIService {
   ) {
     const token = useAuthStore.getState().token ?? "";
     const { activeWs } = useWorkspaceStore.getState();
+
+    // Build multipart form-data — backend reads request.form(), not JSON body
+    const formData = new FormData();
+    formData.append("message", question);
+    formData.append("workspace_id", activeWs?.id ?? "owner");
+    formData.append("history", JSON.stringify(
+      history.map(m => ({ role: m.role, content: m.content }))
+    ));
+
     try {
       const response = await fetch(`${API_BASE_URL}/owner/ai/chat`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          // Do NOT set Content-Type — browser sets it with boundary for FormData
           "Authorization": `Bearer ${token}`,
-          ...(activeWs?.id ? { "x-workspace-id": activeWs.id } : {})
         },
-        body: JSON.stringify({ question, history, model })
+        body: formData,
       });
 
       if (!response.ok) {
@@ -350,15 +362,21 @@ export class AIService {
         buffer = lines.pop() || "";
 
         for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6)) as { chunk?: string };
-              if (data.chunk) {
-                onChunk(data.chunk);
-              }
-            } catch (e) {
-              console.error("Error parsing stream line:", e);
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const data = JSON.parse(line.slice(6)) as {
+              chunk?: string;
+              type?: string;
+              session_id?: string;
+            };
+            if (data.type === "chunk" && data.chunk) {
+              onChunk(data.chunk);
+            } else if (data.type === "done") {
+              onDone();
+              return;
             }
+          } catch {
+            // Ignore malformed SSE chunks
           }
         }
       }
