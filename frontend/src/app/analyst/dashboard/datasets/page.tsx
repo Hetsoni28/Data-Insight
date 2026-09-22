@@ -48,20 +48,18 @@ export default function AnalystDatasetCenterPage() {
   const [loadingActivities, setLoadingActivities] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const refreshAll = async (silent = false) => {
+  const refreshAll = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true)
     await Promise.all([
       fetchStats(silent),
       fetchDatasets(silent),
     ])
     if (!silent) setIsRefreshing(false)
-    // Activities loads independently so it can't block the main data
     fetchActivities(silent).catch(console.error)
-  }
+  }, [fetchStats, fetchDatasets, fetchActivities])
   
   const handleWebSocketMessage = useCallback((message: any) => {
     if (!message || !message.type) return;
-    
     if (message.type.startsWith("dataset_")) {
       if (message.type === "dataset_uploaded" && message.payload?.name) {
         toast.info(`New dataset uploaded: ${message.payload.name}`);
@@ -79,6 +77,7 @@ export default function AnalystDatasetCenterPage() {
     refreshAll()
   }, [activeWs?.id])
 
+  // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchDatasets()
@@ -86,14 +85,18 @@ export default function AnalystDatasetCenterPage() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
+  // Auto-poll if any datasets are processing
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchDatasets()
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
+    const hasProcessing = datasets.some(
+      (d) => d.status === "processing" || d.status === "uploading" || d.status === "profiling"
+    )
+    if (hasProcessing) {
+      const interval = setInterval(() => refreshAll(true), 5000)
+      return () => clearInterval(interval)
+    }
+  }, [datasets, refreshAll])
 
-  const fetchStats = async (silent = false) => {
+  const fetchStats = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoadingStats(true)
       const res = await api.get("/tenant-datasets/stats")
@@ -105,9 +108,9 @@ export default function AnalystDatasetCenterPage() {
     } finally {
       if (!silent) setLoadingStats(false)
     }
-  }
+  }, [])
 
-  const fetchDatasets = async (silent = false) => {
+  const fetchDatasets = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoadingDatasets(true)
       const query = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ""
@@ -120,17 +123,16 @@ export default function AnalystDatasetCenterPage() {
     } finally {
       if (!silent) setLoadingDatasets(false)
     }
-  }
+  }, [searchQuery])
 
-  const fetchActivities = async (silent = false) => {
+  const fetchActivities = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoadingActivities(true)
-            const res = await api.get("/tenant-datasets/activities")
+      const res = await api.get("/tenant-datasets/activities")
       const combined = [
         ...(res.data.data.audit_logs || []),
         ...(res.data.data.ai_activities || [])
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      
       setActivities(combined.slice(0, 15))
     } catch (e: any) {
       if (e.name !== "CanceledError") {
@@ -139,7 +141,7 @@ export default function AnalystDatasetCenterPage() {
     } finally {
       if (!silent) setLoadingActivities(false)
     }
-  }
+  }, [])
 
   const handleQuickAction = async (action: string) => {
     if (action === 'upload') {

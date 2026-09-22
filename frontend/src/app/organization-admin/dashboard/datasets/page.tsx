@@ -1,7 +1,7 @@
 "use client"
 import dynamic from "next/dynamic"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { useWorkspaceStore } from "@/store/workspaceStore"
@@ -47,17 +47,15 @@ export default function DatasetCenterPage() {
   const [loadingActivities, setLoadingActivities] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const refreshAll = async (silent = false) => {
+  const refreshAll = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true)
-    // Load stats & datasets in parallel first — don't block on activities (can be slow)
     await Promise.all([
       fetchStats(silent),
       fetchDatasets(silent),
     ])
     if (!silent) setIsRefreshing(false)
-    // Activities loads independently so it can't block the main data
     fetchActivities(silent).catch(console.error)
-  }
+  }, [fetchStats, fetchDatasets, fetchActivities])
 
   useEffect(() => {
     refreshAll()
@@ -78,9 +76,9 @@ export default function DatasetCenterPage() {
       }, 3000)
       return () => clearInterval(interval)
     }
-  }, [datasets])
+  }, [datasets, refreshAll])
 
-  const fetchStats = async (silent = false) => {
+  const fetchStats = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoadingStats(true)
       const res = await api.get("/tenant-datasets/stats")
@@ -92,14 +90,14 @@ export default function DatasetCenterPage() {
     } finally {
       if (!silent) setLoadingStats(false)
     }
-  }
+  }, [])
 
-  const fetchDatasets = async (silent = false) => {
+  const fetchDatasets = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoadingDatasets(true)
       const query = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ""
       const res = await api.get(`/tenant-datasets${query}`)
-      setDatasets(res.data.data)
+      setDatasets(res.data.data ?? res.data ?? [])
     } catch (e: any) {
       if (e.name !== "CanceledError") {
         console.warn("Failed to fetch datasets:", e.message || e)
@@ -107,17 +105,16 @@ export default function DatasetCenterPage() {
     } finally {
       if (!silent) setLoadingDatasets(false)
     }
-  }
+  }, [searchQuery])
 
-  const fetchActivities = async (silent = false) => {
+  const fetchActivities = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoadingActivities(true)
       const res = await api.get("/tenant-datasets/activities")
       const combined = [
-        ...(res.data.data.audit_logs || []),
-        ...(res.data.data.ai_activities || [])
+        ...(res.data.data?.audit_logs || []),
+        ...(res.data.data?.ai_activities || [])
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      
       setActivities(combined.slice(0, 15))
     } catch (e: any) {
       if (e.name !== "CanceledError") {
@@ -126,7 +123,7 @@ export default function DatasetCenterPage() {
     } finally {
       if (!silent) setLoadingActivities(false)
     }
-  }
+  }, [])
 
   const handleQuickAction = async (action: string) => {
     if (action === 'upload') {

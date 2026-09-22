@@ -63,17 +63,25 @@ export default function OwnerDatasetsPage() {
   };
 
   const handleDelete = async (ds: Dataset) => {
-    if (!confirm(`Delete "${ds.name}"? This action cannot be undone.`)) return;
-    setDeletingId(ds.id);
-    try {
-      await DatasetService.delete(ds.id);
-      toast.success(`"${ds.name}" deleted successfully.`);
-      fetchDatasets();
-    } catch {
-      toast.error("Failed to delete dataset.");
-    } finally {
-      setDeletingId(null);
-    }
+    toast("Delete dataset?", {
+      description: `"${ds.name}" will be permanently deleted. This cannot be undone.`,
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          setDeletingId(ds.id);
+          try {
+            await DatasetService.delete(ds.id);
+            toast.success(`"${ds.name}" deleted successfully.`);
+            fetchDatasets();
+          } catch {
+            toast.error("Failed to delete dataset.");
+          } finally {
+            setDeletingId(null);
+          }
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
+    });
   };
 
   const filteredDatasets = datasets.filter(

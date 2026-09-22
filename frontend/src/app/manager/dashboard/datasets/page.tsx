@@ -58,11 +58,11 @@ export default function ManagerDatasetCenterPage() {
   const fetchDatasets = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoadingDatasets(true)
-      const query = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ""
-      const res = await api.get(`/tenant-datasets?skip=0&limit=50${query}`)
+      const params = new URLSearchParams({ skip: "0", limit: "50" })
+      if (searchQuery) params.set("search", searchQuery)
+      const res = await api.get(`/tenant-datasets?${params.toString()}`)
       const raw = res.data?.data || res.data || {}
-      const list = raw.datasets || raw || []
-      
+      const list = Array.isArray(raw) ? raw : (raw.datasets || raw.items || [])
       setDatasets(list)
     } catch (e: any) {
       if (e.name !== "CanceledError") {
