@@ -370,10 +370,24 @@ export function CopilotChat({
     }
   }, [initialDatasetId]);
 
+  const fetchSessions = useCallback(async () => {
+    try {
+      const res = await AIService.getSessions(selectedDatasetId || undefined);
+      const list = res?.sessions || res?.data?.sessions || [];
+      setSessions(list);
+      if (list.length > 0 && !currentSessionId) {
+        loadSession(list[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to load chat sessions", err);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDatasetId]);
+
   // Load chat sessions when dataset is selected or changes
   useEffect(() => {
     fetchSessions();
-  }, [selectedDatasetId]);
+  }, [fetchSessions]);
 
   // Load suggestions when dataset changes
   useEffect(() => {
@@ -398,18 +412,6 @@ export function CopilotChat({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages.length, isTyping]);
-
-  const fetchSessions = async () => {
-    try {
-      const res = await AIService.getSessions(selectedDatasetId || undefined);
-      setSessions(res.sessions || []);
-      if (res.sessions && res.sessions.length > 0 && !currentSessionId) {
-        loadSession(res.sessions[0].id);
-      }
-    } catch (err) {
-      console.error("Failed to load chat sessions", err);
-    }
-  };
 
   const loadSession = async (sessionId: string) => {
     try {

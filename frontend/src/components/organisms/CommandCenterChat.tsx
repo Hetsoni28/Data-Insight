@@ -51,10 +51,10 @@ export function CommandCenterChat({ initialActionTitle, initialSessionId }: Comm
 
   useEffect(() => {
     if (initialSessionId) {
-      // Fetch history
       api.get(`/owner/ai/chat/sessions/${initialSessionId}`).then(res => {
-        setMessages(res.data)
-      }).catch(err => console.error(err))
+        const raw: { role: string; content: string }[] = Array.isArray(res.data) ? res.data : []
+        setMessages(raw.map(m => ({ role: m.role as "user" | "assistant", content: m.content })))
+      }).catch(err => console.error("Failed to load session history:", err))
     }
   }, [initialSessionId])
   const [input, setInput] = useState("")
