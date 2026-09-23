@@ -36,13 +36,20 @@ export function AnalystChartConfiguration({ config, setConfig, datasets }: Analy
     enabled: !!config.dataset_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(config.dataset_id),
   })
 
-  // Group columns by type
-  const columns = dataset?.profile?.columns 
-    ? Object.entries(dataset.profile.columns).map(([k, v]: [string, any]) => ({
-        name: k,
-        type: v.dtype || 'unknown'
-      }))
-    : []
+  // Group columns by type — handle both dict {colName: {dtype}} and list [{name, dtype}] profile shapes
+  const columns = (() => {
+    const profileCols = dataset?.profile?.columns
+    if (!profileCols) return []
+    if (Array.isArray(profileCols)) {
+      // List format: [{name: "col", dtype: "int64", ...}]
+      return profileCols.map((c: any) => ({ name: c.name ?? c.column_name ?? String(c), type: c.dtype ?? c.type ?? 'unknown' }))
+    }
+    // Dict format: { colName: {dtype: "int64", ...} }
+    return Object.entries(profileCols).map(([k, v]: [string, any]) => ({
+      name: k,
+      type: v.dtype ?? v.type ?? 'unknown'
+    }))
+  })()
 
   const numericKeywords = ['int', 'float', 'double', 'decimal', 'numeric', 'number', 'real', 'bigint', 'smallint'];
   const numericColumns = columns.filter((c: any) => 

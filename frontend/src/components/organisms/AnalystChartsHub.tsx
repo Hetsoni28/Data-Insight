@@ -215,7 +215,9 @@ export function AnalystChartsHub({ onCreateNew, onEditChart }: AnalystChartsHubP
 
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                 <span className="text-[11px] font-semibold text-slate-400">
-                  Updated {formatDistanceToNow(new Date(chart.updated_at), { addSuffix: true })}
+                  {chart.updated_at
+                    ? `Updated ${formatDistanceToNow(new Date(chart.updated_at), { addSuffix: true })}`
+                    : "Recently updated"}
                 </span>
                 <div className="flex items-center gap-1">
                   <button

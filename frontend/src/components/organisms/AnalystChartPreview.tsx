@@ -214,7 +214,7 @@ export function AnalystChartPreview({ config }: AnalystChartPreviewProps) {
   }
 
   const renderChart = () => {
-    switch (config.chart_type) {
+    switch (debouncedConfig.chart_type) {
       case 'line':
         return (
           <LineChart data={chartData} margin={{ top: 25, right: 35, left: 15, bottom: 25 }}>

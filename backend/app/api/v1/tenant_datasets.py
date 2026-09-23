@@ -1010,6 +1010,101 @@ class QueryRequest(BaseModel):
     metrics: list[str] = []
 
 
+class StructuredQueryRequest(BaseModel):
+    dimension: str
+    metric: str
+    aggregation: str = "sum"
+    limit: int = 100
+    sort: list[dict] | None = None
+
+
+@router.post(
+    "/{dataset_id}/query/structured",
+    summary="Structured Chart Query — GROUP BY dimension, aggregate metric",
+    dependencies=[Depends(RequirePermission("DATASET_QUERY"))],
+)
+async def structured_chart_query(
+    dataset_id: uuid.UUID,
+    body: StructuredQueryRequest,
+    current_user: User = Depends(get_current_active_tenant_user),
+    workspace: Workspace | None = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Execute a dimension × metric GROUP BY query via DuckDB.
+    Used by the Chart Builder preview pane.
+    """
+    import re
+
+    tenant_id = current_user.tenant_id
+    base_conditions = [Dataset.id == dataset_id, Dataset.tenant_id == tenant_id, Dataset.is_deleted == False]
+    if workspace:
+        base_conditions.append(Dataset.workspace_id == workspace.id)
+
+    stmt = select(Dataset).where(*base_conditions)
+    res = await db.execute(stmt)
+    dataset = res.scalars().first()
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    # Sanitise identifiers — only allow alphanumeric + underscore + space
+    def _safe_col(name: str) -> str:
+        if not re.match(r'^[\w\s]+$', name):
+            raise HTTPException(status_code=422, detail=f"Invalid column name: {name!r}")
+        return f'"{name}"'
+
+    agg = body.aggregation.upper()
+    if agg not in ("SUM", "AVG", "COUNT", "MIN", "MAX"):
+        raise HTTPException(status_code=422, detail=f"Unsupported aggregation: {agg}")
+
+    dim_col = _safe_col(body.dimension)
+    met_col = _safe_col(body.metric)
+    limit = max(1, min(body.limit, 500))
+
+    sql = (
+        f"SELECT {dim_col} AS dimension, {agg}(TRY_CAST({met_col} AS DOUBLE)) AS metric "
+        f"FROM dataset "
+        f"GROUP BY {dim_col} "
+        f"ORDER BY metric DESC NULLS LAST "
+        f"LIMIT {limit}"
+    )
+
+    try:
+        import os
+        import polars as pl
+        from app.services.ingestion.duckdb_engine import DuckDBEngine
+
+        storage_path = dataset.file_url
+        if not storage_path or not os.path.exists(storage_path):
+            raise HTTPException(status_code=404, detail="Dataset physical file not found on disk.")
+
+        if storage_path.endswith(".parquet"):
+            df = pl.read_parquet(storage_path)
+        else:
+            df = pl.read_csv(storage_path, ignore_errors=True)
+
+        raw = DuckDBEngine.execute_query(df=df, sql=sql, table_name="dataset", limit=limit)
+
+        # raw = {columns: [...], rows: [[dim, metric], ...], ...}
+        cols = raw.get("columns", [])
+        rows = raw.get("rows", [])
+
+        # Map column names back to user-friendly keys
+        dim_idx = cols.index("dimension") if "dimension" in cols else 0
+        met_idx = cols.index("metric") if "metric" in cols else 1
+        data = [
+            {body.dimension: r[dim_idx], body.metric: r[met_idx]}
+            for r in rows
+            if r[dim_idx] is not None
+        ]
+        return {"columns": [body.dimension, body.metric], "rows": rows, "data": data}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chart query failed: {e!s}")
+
+
+
 @router.post(
     "/{dataset_id}/query",
     summary="Query Dataset",
