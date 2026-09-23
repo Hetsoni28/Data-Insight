@@ -18,7 +18,7 @@ import { Report, ReportService } from "@/lib/report.service";
 import { StateLayout } from "@/components/molecules/StateLayout";
 import { NoReportsIllustration } from "@/components/molecules/NoReportsIllustration";
 import { LoadingPulse } from "@/components/molecules/LoadingPulse";
-import { API_BASE_URL } from "@/lib/api";
+import api from "@/lib/api";
 import { Plus } from "lucide-react";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
 
@@ -50,20 +50,27 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
     }
   };
 
-  const handleDownload = (outputUrl: string | null) => {
-    if (!outputUrl) {
-      toast.error("Download link is not available yet.");
-      return;
+  const handleDownload = async (reportId: string, reportTitle?: string) => {
+    const toastId = `dl-${reportId}`
+    toast.loading("Preparing download...", { id: toastId })
+    try {
+      const res = await api.get(`/tenant-reports/${reportId}/download`, { responseType: 'blob' })
+      const blob = new Blob([res.data], { type: res.headers['content-type'] || 'application/octet-stream' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${(reportTitle || "Report").replace(/[^a-z0-9_\-]/gi, "_")}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+      toast.success("Download complete!", { id: toastId })
+    } catch (e: any) {
+      const detail = e?.response?.data instanceof Blob
+        ? await e.response.data.text().then((t: string) => { try { return JSON.parse(t).detail } catch { return t } })
+        : e?.message
+      toast.error(detail || "Failed to download report", { id: toastId })
     }
-    
-    // If it's a relative URL (local storage), point it to the backend server
-    let finalUrl = outputUrl;
-    if (outputUrl.startsWith("/")) {
-      const baseUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, "");
-      finalUrl = `${baseUrl}${outputUrl}`;
-    }
-    
-    window.open(finalUrl, "_blank");
   };
 
   const getStatusBadge = (status: string, progress: number) => {
@@ -163,8 +170,8 @@ export function ReportTable({ reports, isLoading, onRefresh, onGenerate }: Repor
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
-                    disabled={!report.output_url || report.status.toUpperCase() !== "READY" && report.status.toUpperCase() !== "COMPLETED"}
-                    onClick={() => handleDownload(report.output_url)}
+                    disabled={report.status.toUpperCase() !== "READY" && report.status.toUpperCase() !== "COMPLETED"}
+                    onClick={() => handleDownload(report.id, report.title)}
                     title="Download Report"
                   >
                     <Download className="h-4 w-4" />

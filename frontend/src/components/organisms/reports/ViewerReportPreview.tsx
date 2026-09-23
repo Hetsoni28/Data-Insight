@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
 import type { ViewerReport, ViewerReportPreviewResponse, ViewerReportInsights, ViewerReportRelatedAsset } from "@/lib/tenant-dashboard.service";
 import { SimpleChartWidget } from "@/components/organisms/SimpleChartWidget"; // Reusable chart widget from existing system
-import { API_BASE_URL } from "@/lib/api";
+import api from "@/lib/api";
 
 interface ViewerReportPreviewProps {
   report: ViewerReport | null;
@@ -50,35 +50,29 @@ export function ViewerReportPreview({ report, onClose }: ViewerReportPreviewProp
   if (!report) return null;
 
   const handleDownload = async () => {
-    if (!details || (details.status !== "ready" && details.status !== "approved")) {
+    const status = details?.status || report.status;
+    if (status !== "ready" && status !== "approved") {
       toast.error("This report is not ready for download.");
       return;
     }
     setDownloading(true);
     try {
-      const res = await TenantDashboardService.downloadReport(report.id);
-      if (res.download_url) {
-        // Convert relative /api/v1/storage/... paths to absolute backend URLs.
-        // Next.js rewrites don't support binary file streaming so we must
-        // point the browser directly at the backend (port 8000).
-        let url = res.download_url;
-        if (url.startsWith("/api/v1/")) {
-          const backendBase = API_BASE_URL.replace("/api/v1", "");
-          url = `${backendBase}${url}`;
-        }
-        // Use an anchor tag to trigger a true browser download
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = report.title || "report";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        toast.success("Download started.");
-      } else {
-        toast.error("Download URL not available.");
-      }
-    } catch {
-      toast.error("Could not generate download link.");
+      const res = await api.get(`/tenant-reports/${report.id}/download`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: res.headers['content-type'] || 'application/octet-stream' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(details?.title || report.title || "Report").replace(/[^a-z0-9_\-]/gi, "_")}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Download started.");
+    } catch (e: any) {
+      const detail = e?.response?.data instanceof Blob
+        ? await e.response.data.text().then((t: string) => { try { return JSON.parse(t).detail } catch { return t } })
+        : e?.message;
+      toast.error(detail || "Could not generate download link.");
     } finally {
       setDownloading(false);
     }
@@ -129,15 +123,15 @@ export function ViewerReportPreview({ report, onClose }: ViewerReportPreviewProp
                 <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full bg-black/20 hover:bg-black/40 border border-white/10 text-white shadow-sm transition-all md:absolute md:top-6 md:right-6">
                   <X className="w-5 h-5" />
                 </Button>
-                {details?.output_url ? (
+                {(details?.status === "ready" || details?.status === "approved") ? (
                   <Button onClick={handleDownload} disabled={downloading || loading} size="sm" className="bg-emerald-500 text-white hover:bg-emerald-400 shadow-md font-bold mt-auto h-10 px-4 rounded-xl">
                     {downloading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />}
-                    Download PDF
+                    Download XLSX
                   </Button>
                 ) : (
                   <Button disabled size="sm" variant="outline" className="bg-black/20 border-white/10 text-white/50 cursor-not-allowed mt-auto h-10 px-4 rounded-xl">
                     <FileText className="w-4 h-4 mr-2" />
-                    Interactive Only
+                    Not Ready
                   </Button>
                 )}
               </div>

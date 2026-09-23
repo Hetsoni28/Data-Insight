@@ -1142,11 +1142,12 @@ async def download_report(
 
         output = io.BytesIO()
 
+        # Prefer generation_config.output_file_url, fall back to report.output_url column
         file_url = (
             report.generation_config.get("output_file_url")
             if report.generation_config
             else None
-        )
+        ) or report.output_url
 
         if file_url:
             try:

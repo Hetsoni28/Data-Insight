@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { TenantDashboardService } from "@/lib/tenant-dashboard.service";
 import type { ViewerReport } from "@/lib/tenant-dashboard.service";
 import { PaginationControls } from "@/components/molecules/PaginationControls";
-import { API_BASE_URL } from "@/lib/api";
+import api from "@/lib/api";
 
 interface ViewerReportExplorerProps {
   reports: ViewerReport[];
@@ -119,25 +119,22 @@ function ReportCard({ report, onRefresh, onPreview }: {
     if (!canDownload) return;
     setDownloading(true);
     try {
-      const res = await TenantDashboardService.downloadReport(report.id);
-      if (res.download_url) {
-        let url = res.download_url;
-        if (url.startsWith("/api/v1/")) {
-          const backendBase = API_BASE_URL.replace("/api/v1", "");
-          url = `${backendBase}${url}`;
-        }
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = report.title || "report";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        toast.success("Download started.");
-      } else {
-        toast.error("Download URL not available.");
-      }
-    } catch {
-      toast.error("Could not generate download link.");
+      const res = await api.get(`/tenant-reports/${report.id}/download`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: res.headers['content-type'] || 'application/octet-stream' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(report.title || "Report").replace(/[^a-z0-9_\-]/gi, "_")}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Download started.");
+    } catch (e: any) {
+      const detail = e?.response?.data instanceof Blob
+        ? await e.response.data.text().then((t: string) => { try { return JSON.parse(t).detail } catch { return t } })
+        : e?.message;
+      toast.error(detail || "Could not generate download link.");
     } finally {
       setDownloading(false);
     }
@@ -219,11 +216,11 @@ function ReportCard({ report, onRefresh, onPreview }: {
         </div>
         
         <div className="flex items-center gap-2">
-          {report.output_url && (
+          {canDownload && (
             <Button
               size="sm"
               variant="ghost"
-              disabled={!canDownload || downloading}
+              disabled={downloading}
               className="h-8 px-2.5 text-xs font-semibold text-slate-600 hover:text-blue-700 dark:text-slate-300 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-500/10 z-10 rounded-lg"
               onClick={handleDownload}
             >

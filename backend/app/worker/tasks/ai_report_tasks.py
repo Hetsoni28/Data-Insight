@@ -246,10 +246,43 @@ async def _process_ai_report(
             else:
                 raise ValueError(f"Unsupported report category: {report_category}")
 
-            # 5. Save to database
+            # 5. Save blueprint to database
             report.ai_blueprint = ai_blueprint
             report.status = ReportStatus.ready
             report.progress = 100
+
+            # 6. Generate Excel output file and upload to storage so output_url is set
+            try:
+                from app.core.excel_generator import generate_excel_from_blueprint
+                from app.core.storage import REPORTS_BUCKET, report_storage_path, upload_file
+
+                excel_buffer = generate_excel_from_blueprint(ai_blueprint, report.title or "Report")
+                excel_bytes = excel_buffer.read()
+
+                safe_title = "".join(
+                    c if c.isalnum() or c in ("_", "-") else "_"
+                    for c in (report.title or "report")
+                )[:60]
+                dest_path = report_storage_path(
+                    uuid.UUID(tenant_id),
+                    uuid.UUID(report_id),
+                    f"{safe_title}.xlsx",
+                )
+                stored_path = await upload_file(
+                    bucket=REPORTS_BUCKET,
+                    file_bytes=excel_bytes,
+                    destination_path=dest_path,
+                    content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
+                report.output_url = stored_path
+                # Also record in generation_config so the download endpoint can find it
+                existing_config = report.generation_config or {}
+                report.generation_config = {**existing_config, "output_file_url": stored_path}
+            except Exception as upload_err:
+                import logging
+                logging.getLogger(__name__).warning(
+                    f"[ai_report] Excel upload failed for report {report_id}: {upload_err} — report still marked ready"
+                )
 
             await db.commit()
 
