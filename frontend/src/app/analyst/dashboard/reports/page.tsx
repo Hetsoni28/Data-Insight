@@ -58,19 +58,6 @@ export default function AnalystReportsCenterPage() {
 
   // Explicitly tie fetching to the current workspace
   const { activeWs } = useWorkspaceStore()
-  
-  // Real-Time WebSocket Updates
-  const handleWebSocketMessage = useCallback((message: any) => {
-    if (!message || !message.type) return;
-    if (message.type.startsWith("report_") || message.type.startsWith("schedule_")) {
-      if (message.type === "report_created" && message.payload?.title) {
-        toast.info(`New report created: ${message.payload.title}`);
-      }
-      fetchData(true);
-    }
-  }, [fetchData]);
-  
-  const { isConnected } = useWebSocket({ onMessage: handleWebSocketMessage });
 
   const fetchData = useCallback(async (silent = false) => {
     // If there is no workspace selected, do not fetch anything.
@@ -98,8 +85,8 @@ export default function AnalystReportsCenterPage() {
       ])
 
       if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.data)
-      if (reportsRes.status === 'fulfilled') setReports(reportsRes.value.data.data)
-      if (actRes.status === 'fulfilled') setActivities(actRes.value.data.data.audit_logs || [])
+      if (reportsRes.status === 'fulfilled') setReports(reportsRes.value.data.data ?? [])
+      if (actRes.status === 'fulfilled') setActivities(actRes.value.data?.data?.audit_logs ?? [])
       if (schedRes.status === 'fulfilled') setSchedules(schedRes.value)
     } catch (e) {
       console.error("Failed to fetch reports center data", e)
@@ -109,9 +96,23 @@ export default function AnalystReportsCenterPage() {
     }
   }, [activeWs, searchQuery, activeFilters])
 
+  // Real-Time WebSocket Updates — declared AFTER fetchData to avoid TDZ
+  const handleWebSocketMessage = useCallback((message: any) => {
+    if (!message || !message.type) return;
+    if (message.type.startsWith("report_") || message.type.startsWith("schedule_")) {
+      if (message.type === "report_created" && message.payload?.title) {
+        toast.info(`New report created: ${message.payload.title}`);
+      }
+      fetchData(true);
+    }
+  }, [fetchData]);
+  
+  const { isConnected } = useWebSocket({ onMessage: handleWebSocketMessage });
+
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
 
   const handleQuickAction = (action: string) => {
     if (action === 'schedule') {

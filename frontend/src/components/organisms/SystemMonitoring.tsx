@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -34,13 +34,7 @@ export function SystemMonitoring() {
 
   useEffect(() => { setMounted(true) }, [])
 
-  useEffect(() => {
-    fetchMonitoring()
-    const interval = setInterval(fetchMonitoring, 15000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const fetchMonitoring = async () => {
+  const fetchMonitoring = useCallback(async () => {
     try {
       const res = await api.get("/admin/monitoring")
       const data = res.data
@@ -59,8 +53,16 @@ export function SystemMonitoring() {
       setLoading(false)
     } catch (error) {
       console.error("Failed to fetch monitoring data", error)
+      setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchMonitoring()
+    const interval = setInterval(fetchMonitoring, 15000)
+    return () => clearInterval(interval)
+  }, [fetchMonitoring])
+
 
   if (!mounted) return <div className="w-full h-[200px] rounded-xl bg-slate-100 dark:bg-white/10 animate-pulse" />
 
