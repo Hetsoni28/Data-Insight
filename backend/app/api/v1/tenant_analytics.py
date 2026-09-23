@@ -126,6 +126,7 @@ async def get_data_quality(
 
 @router.get("/comparisons", response_model=ViewerAnalyticsComparisonsResponse)
 async def get_comparisons(
+    dataset_id: uuid.UUID | None = Query(None),
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -135,6 +136,7 @@ async def get_comparisons(
 
 @router.get("/forecast", response_model=ViewerAnalyticsForecastResponse)
 async def get_forecast(
+    dataset_id: uuid.UUID | None = Query(None),
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -144,6 +146,7 @@ async def get_forecast(
 
 @router.get("/ai-insights", response_model=ViewerAnalyticsInsightsResponse)
 async def get_ai_insights(
+    dataset_id: uuid.UUID | None = Query(None),
     current_user: User = Depends(RequirePermission("DATASET_VIEW")),
     db: AsyncSession = Depends(get_db),
 ):

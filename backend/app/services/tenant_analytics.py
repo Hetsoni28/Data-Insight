@@ -201,7 +201,10 @@ class TenantAnalyticsService:
                 "sparkline": [float(total_cols)] * 4,
             },
         )
-        avg_quality = sum(d.data_quality_score or 100 for d in datasets) / len(datasets)
+        avg_quality = sum(
+            (d.data_quality_score if d.data_quality_score is not None else 100)
+            for d in datasets
+        ) / len(datasets)
         kpis.append(
             {
                 "id": str(uuid.uuid4()),
@@ -531,15 +534,17 @@ class TenantAnalyticsService:
         if numeric_cols:
             num_col = numeric_cols[0]
             try:
-                mean = ds.profile["columns"][num_col].get("mean", 0) or 0
-                std = ds.profile["columns"][num_col].get("std", 1) or 1
+                # Use _get_columns_dict() to handle both list and dict profile shapes
+                cols_dict = self._get_columns_dict(ds.profile or {})
+                col_info = cols_dict.get(num_col, {})
+                mean = float(col_info.get("mean", 0) or 0)
+                std = float(col_info.get("std", 1) or 1)
                 sql = f'SELECT MAX(TRY_CAST("{num_col}" AS DOUBLE)) as max_val FROM dataset'
                 result = await self.dataset_service.execute_query(
                     dataset_id, sql, actor,
                 )
                 rows = _rows_to_dicts(result)
-                max_val = rows[0].get("max_val", 0) if rows else 0
-                max_val = max_val or 0
+                max_val = float(rows[0].get("max_val") or 0) if rows else 0.0
                 if std > 0 and (max_val - mean) / std > 3:
                     anomalies.append(
                         {
@@ -825,24 +830,34 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
         insights = []
 
         try:
-            from google import genai
-
             from app.core.config import settings
 
-            client = genai.Client(api_key=settings.GEMINI_API_KEY)
-            response = client.models.generate_content(
-                model="gemini-2.0-flash", contents=prompt,
-            )
-            raw = response.text.strip()
+            # 3-model fallback chain — matches the rest of the app
+            _FALLBACK_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash"]
+            last_exc: Exception | None = None
 
-            # Split into summary + bullet points
-            lines = [l.strip() for lead in raw.split("\n") if l.strip()]
+            from google import genai as _genai
+            _client = _genai.Client(api_key=settings.GEMINI_API_KEY)
+
+            raw = None
+            for _model in _FALLBACK_MODELS:
+                try:
+                    response = _client.models.generate_content(model=_model, contents=prompt)
+                    raw = response.text.strip()
+                    break
+                except Exception as _e:
+                    last_exc = _e
+                    continue
+
+            if raw is None:
+                raise last_exc or RuntimeError("All Gemini models failed")
+
+            # Split into summary + bullet points — FIX: use same var name throughout
+            lines = [line.strip() for line in raw.split("\n") if line.strip()]
             summary_lines = []
             in_bullets = False
             for line in lines:
-                if (
-                    line.startswith(("**", "- **", "* **", "•"))
-                ):
+                if line.startswith(("**", "- **", "* **", "•")):
                     in_bullets = True
                 if in_bullets:
                     clean = line.lstrip("-•* ").strip()
@@ -850,14 +865,7 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
                         insight_type = "opportunity"
                         if any(
                             w in clean.lower()
-                            for w in [
-                                "risk",
-                                "warning",
-                                "missing",
-                                "quality",
-                                "issue",
-                                "problem",
-                            ]
+                            for w in ["risk", "warning", "missing", "quality", "issue", "problem"]
                         ):
                             insight_type = "risk"
                         elif any(
@@ -869,7 +877,10 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
                             {
                                 "id": str(uuid.uuid4()),
                                 "type": insight_type,
+                                "title": clean[:80],
+                                "description": clean,
                                 "content": clean,
+                                "confidence": 0.85,
                             },
                         )
                 else:
@@ -890,8 +901,16 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
                 {
                     "id": str(uuid.uuid4()),
                     "type": "opportunity",
-                    "content": f"**{domain} Data Opportunity:** You have {len(datasets)} datasets with {total_rows:,} total rows. "
-                    f"Combining them could yield new cross-functional insights. Recommendation: Run a cross-dataset join analysis.",
+                    "title": f"{domain} Data Opportunity",
+                    "description": (
+                        f"**{domain} Data Opportunity:** You have {len(datasets)} datasets with {total_rows:,} total rows. "
+                        f"Combining them could yield new cross-functional insights. Recommendation: Run a cross-dataset join analysis."
+                    ),
+                    "content": (
+                        f"**{domain} Data Opportunity:** You have {len(datasets)} datasets with {total_rows:,} total rows. "
+                        f"Combining them could yield new cross-functional insights."
+                    ),
+                    "confidence": 0.7,
                 },
             )
             if low_quality:
@@ -899,8 +918,13 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
                     {
                         "id": str(uuid.uuid4()),
                         "type": "risk",
-                        "content": f"**Data Quality Warning:** Datasets {low_quality} have quality scores below 80%. "
-                        f"Missing or invalid values may impact forecast accuracy. Recommendation: Set up automated data cleaning.",
+                        "title": "Data Quality Warning",
+                        "description": (
+                            f"**Data Quality Warning:** Datasets {low_quality} have quality scores below 80%. "
+                            f"Missing or invalid values may impact forecast accuracy. Recommendation: Set up automated data cleaning."
+                        ),
+                        "content": f"Datasets {low_quality} have quality scores below 80%.",
+                        "confidence": 0.9,
                     },
                 )
 
@@ -909,7 +933,10 @@ Keep the total response under 200 words. Be specific and data-driven. Do not use
                 {
                     "id": str(uuid.uuid4()),
                     "type": "opportunity",
-                    "content": f"**{domain} Opportunity:** {len(datasets)} datasets with {total_rows:,} rows ready for analysis. Upload more data to unlock deeper cross-dataset insights.",
+                    "title": f"{domain} Opportunity",
+                    "description": f"**{domain} Opportunity:** {len(datasets)} datasets with {total_rows:,} rows ready for analysis. Upload more data to unlock deeper cross-dataset insights.",
+                    "content": f"{len(datasets)} datasets with {total_rows:,} rows ready for analysis.",
+                    "confidence": 0.6,
                 },
             )
 

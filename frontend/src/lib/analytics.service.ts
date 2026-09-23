@@ -181,7 +181,16 @@ export const AnalyticsService = {
     const params: AnalyticsParams = { workspace_id: workspaceId };
     if (datasetId) params.dataset_id = datasetId;
     const res = await api.get(`/tenant-analytics/ai-insights`, { params });
-    return res.data;
+    const data = res.data?.data ?? res.data;
+    // Normalise insights so both 'content' and 'description' are always present
+    if (data?.insights) {
+      data.insights = data.insights.map((ins: any) => ({
+        ...ins,
+        content: ins.content ?? ins.description ?? "",
+        description: ins.description ?? ins.content ?? "",
+      }));
+    }
+    return data;
   },
 
   chatAi: async (workspaceId: string, message: string, context?: Record<string, string | number | boolean | null>) => {
