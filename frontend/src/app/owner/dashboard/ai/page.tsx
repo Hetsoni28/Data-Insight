@@ -72,8 +72,8 @@ export default function AICommandCenterPage() {
               transition={{ duration: 0.3 }}
               className="w-full max-w-4xl mt-12 mx-auto flex flex-col items-center px-4 pb-24"
             >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-xl shadow-emerald-500/20 mb-8 border border-emerald-400/30">
-                <img src="/icon.svg" alt="Data Insight" className="h-8 w-auto brightness-0 invert drop-shadow-md" />
+              <div className="mb-8">
+                <img src="/icon.svg" alt="Data Insight" className="h-20 w-auto drop-shadow-md" />
               </div>
               <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-3">
                 Welcome back, {user?.full_name?.split(" ")[0] || "Owner"}
