@@ -102,3 +102,4 @@ def generate_structured_report(
 
     raise last_exc
 
+

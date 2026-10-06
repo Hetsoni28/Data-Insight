@@ -208,7 +208,7 @@ export function ViewerAiAssistant({ datasets, isLoading }: ViewerAiAssistantProp
               >
                 {msg.role === "assistant" && (
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-md shadow-emerald-500/30 ring-2 ring-emerald-50 dark:ring-emerald-950">
-                    <Logo size={16} showText={false} href={null} whiteMode className="brightness-0 invert drop-shadow-sm" />
+                    <Logo size={16} showText={false} href={null} whiteMode className=" drop-shadow-sm" />
                   </div>
                 )}
                 <div
@@ -294,7 +294,7 @@ export function ViewerAiAssistant({ datasets, isLoading }: ViewerAiAssistantProp
           {isSending && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-md shadow-emerald-500/30 ring-2 ring-emerald-50 dark:ring-emerald-950">
-                <Logo size={16} showText={false} href={null} whiteMode className="brightness-0 invert drop-shadow-sm" />
+                <Logo size={16} showText={false} href={null} whiteMode className=" drop-shadow-sm" />
               </div>
               <div className="bg-slate-50 dark:bg-white/10 border border-slate-200/60 dark:border-white/10 rounded-xl rounded-tl-none px-4 py-3 flex items-center gap-2">
                 <Loader2 className="w-4 h-4 text-emerald-500 animate-spin" />

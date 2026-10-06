@@ -91,7 +91,7 @@ export function ExecutiveAIPanel() {
           onClick={() => setIsOpen(true)}
           className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.4)] border-2 border-emerald-400/50 text-white cursor-pointer transition-all"
         >
-          <img src="/icon.svg" alt="Data Insight AI" className="h-7 w-auto brightness-0 invert drop-shadow-md" />
+          <img src="/icon.svg" alt="Data Insight AI" className="h-7 w-auto  drop-shadow-md" />
         </motion.button>
       )}
 
@@ -108,7 +108,7 @@ export function ExecutiveAIPanel() {
             <div className="p-5 bg-gradient-to-b from-slate-50/80 to-transparent dark:from-slate-800/80 border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-4 overflow-hidden">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
-                  <Logo size={20} showText={false} href={null} className="brightness-0 invert drop-shadow-md" />
+                  <Logo size={20} showText={false} href={null} className=" drop-shadow-md" />
                 </div>
                 <div className="flex flex-col justify-center shrink-0">
                   <h3 className="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-500 dark:from-white dark:to-slate-400 tracking-tight whitespace-nowrap">
@@ -144,7 +144,7 @@ export function ExecutiveAIPanel() {
                   className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm ${msg.role === 'user' ? 'bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 border border-white/20' : 'bg-gradient-to-br from-emerald-400 to-emerald-600 border border-emerald-300/30'}`}>
-                    {msg.role === 'user' ? <User className="w-4 h-4 text-slate-700 dark:text-slate-300" /> : <img src="/icon.svg" className="w-4 h-4 brightness-0 invert drop-shadow-sm" />}
+                    {msg.role === 'user' ? <User className="w-4 h-4 text-slate-700 dark:text-slate-300" /> : <img src="/icon.svg" className="w-4 h-4  drop-shadow-sm" />}
                   </div>
                   <div className={`w-fit max-w-[85%] rounded-2xl p-4 text-[14px] leading-relaxed shadow-sm backdrop-blur-md ${msg.role === 'user' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-tr-sm shadow-emerald-500/20 border border-emerald-400/30' : 'bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 rounded-tl-sm text-slate-800 dark:text-slate-200'}`}>
                     {msg.role === 'ai' ? (
@@ -165,7 +165,7 @@ export function ExecutiveAIPanel() {
               {isTyping && messages[messages.length - 1].role === 'user' && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm border border-emerald-300/30">
-                    <img src="/icon.svg" className="w-4 h-4 brightness-0 invert drop-shadow-sm" />
+                    <img src="/icon.svg" className="w-4 h-4  drop-shadow-sm" />
                   </div>
                   <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm flex items-center gap-3">
                     <div className="flex gap-1">

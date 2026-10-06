@@ -115,7 +115,7 @@ export function ViewerHero({ welcome, isLoading, onOpenCopilot }: ViewerHeroProp
             onClick={onOpenCopilot}
             className="bg-emerald-500 hover:bg-emerald-400 text-white h-11 px-6 rounded-xl border-t border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.5)] transition-all font-semibold hover:scale-105 active:scale-95"
           >
-            <Logo size={18} showText={false} href={null} whiteMode className="mr-2.5 brightness-0 invert drop-shadow-sm" />
+            <Logo size={18} showText={false} href={null} whiteMode className="mr-2.5  drop-shadow-sm" />
             Open AI Copilot
           </Button>
           <Button

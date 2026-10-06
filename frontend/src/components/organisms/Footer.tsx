@@ -1,4 +1,4 @@
-﻿import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/components/ui/separator"
 import { Logo } from "@/components/atoms/Logo"
 
 const NAV = [
@@ -22,7 +22,7 @@ export function Footer() {
         <div className="grid sm:grid-cols-3 gap-8 mb-8">
           {/* Brand */}
           <div className="space-y-3">
-            <Logo size={24} textClassName="text-sm font-bold text-slate-900" />
+            <Logo size={40} />
             <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
               AI-powered business intelligence that eliminates manual reporting and unlocks predictive insights.
             </p>

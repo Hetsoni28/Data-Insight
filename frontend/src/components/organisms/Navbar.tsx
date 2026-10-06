@@ -40,7 +40,7 @@ export function Navbar() {
         
         {/* Brand Logo */}
         <div className="flex items-center gap-4">
-          <Logo size={26} whiteMode={!scrolled} textClassName={`text-base font-semibold tracking-tight ${scrolled ? "text-slate-900" : "text-white"}`} />
+          <Logo size={52} whiteMode={!scrolled} />
         </div>
 
         {/* Desktop Navigation Links */}
@@ -102,7 +102,7 @@ export function Navbar() {
           >
             <SheetHeader className="px-6 py-5 border-b border-slate-100">
               <SheetTitle className="flex items-center gap-2 text-left">
-                <Logo size={22} href={null} textClassName="text-slate-900" />
+                <Logo size={40} href={null} />
               </SheetTitle>
             </SheetHeader>
             <div className="px-5 py-6 space-y-2">
